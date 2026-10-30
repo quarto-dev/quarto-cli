@@ -21,6 +21,8 @@ Compare landed changes across the release range with the changelog, not just the
 
 For new or materially rewritten claims, establish the landed implementation and exact scope. Verify linked PRs are merged and their changes belong to the reviewed release. An open issue can track broader work than its landed fix: assess the narrow claim rather than treating issue closure as proof.
 
+For claims involving bundled extensions, metadata, localization, dependencies or accessibility tooling, consult the matching sources in [references/cli-guidance.md](references/cli-guidance.md). Read only the guidance needed to resolve the claim.
+
 ### Regression fixes and backports
 
 `Regression fixes` signals fixes also backported to stable. A bug introduced in an older version is not sufficient evidence for placement there.

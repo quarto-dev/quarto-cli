@@ -10,9 +10,23 @@ For research and drafting, use upstream repository files at the relevant branch 
 
 A local checkout is needed for destination edits or rendering. Use one provided by the user or identified by the workspace's repository tooling. Ask for a location only when those actions are required and no checkout is known. Read its project instructions, especially branch routing, documentation style and freeze rules, and compare with current upstream content to avoid duplicating completed documentation.
 
+### Website rules
+
+Read these sources from quarto-web's reviewed `prerelease` ref before preparing edits or a website handoff:
+
+- `.claude/rules/quarto-web-workflow.md`: shared corrections target `main` first and are ported to `prerelease`; upcoming-version changes target `prerelease`. Source edits can invalidate computational freezes even when only prose or includes change. Use its engine-aware freeze procedure and look for existing shared partials before repeating content across pages.
+- `.claude/rules/docs-authoring.md`: version callouts for substantial new features, format identifiers, UI controls, and headings versus example labels.
+- `.claude/rules/images-alt-text.md` and `_style-guide.md`: website link syntax, image purpose, `fig-alt`, and keeping shown example code in sync with rendered output. Check image alt attributes in rendered HTML, including content hidden from axe scans.
+
+Use `.claude/rules/axe-baseline.md` only when the task touches a scan baseline or an intentional accessibility example. Read `.claude/skills/screenshot/SKILL.md` and its visual references when producing documentation screenshots. Read `.claude/skills/release-merge/SKILL.md` and its reference when an authorized task includes the release-time merge; content preparation should only identify that dependency.
+
 Highlights belong in `docs/prerelease/{version}/_highlights.qmd` in quarto-web. Inspect its include callers and version page to understand where the copy appears. The technical CLI changelog and promotional highlights serve different readers.
 
-Quarto release posts publish in `posit-dev/open-source-website`, under `content/blog/quarto-{major}-{minor}/`, rather than quarto-web. Confirm the destination against the current release checklist and blog guidance. Read quarto-web's `.claude/skills/blog-post/SKILL.md` and its release-post reference when available, then the destination's authoring guide and archetype. Those sources govern post structure, metadata, acknowledgements, images, rendering and validation.
+### Blog rules
+
+Quarto release posts publish in `posit-dev/open-source-website`, under `content/blog/quarto-{major}-{minor}/`, rather than quarto-web. Confirm the destination against the current release checklist and blog guidance. Read quarto-web's `.claude/skills/blog-post/SKILL.md` and the Release Announcements section of `references/post-types.md` within that skill.
+
+In the destination repository, read `content/blog/CLAUDE.md`, `content/blog/_authoring-guide.md` and `archetypes/blog.md`. Those sources govern metadata, scaffolding, rendering and validation; quarto-web supplies the Quarto editorial conventions. Read the blog skill's thumbnail references only when creating the image. Check source and rendered post together, and carry pending documentation-promotion links into the handoff.
 
 ## Choose and substantiate the story
 
