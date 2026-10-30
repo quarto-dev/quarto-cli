@@ -472,6 +472,11 @@ test.describe('tabset keyboard focus order', () => {
   });
 
   test('clicking a panel control while Shift+Tab is held keeps that panel', async ({ page, browserName }) => {
+    // On macOS, WebKit does not focus a control clicked while Option is held,
+    // and WebKit needs Option to Tab to links. Releasing Option first would not
+    // help: any keyup ends the Shift+Tab state this test is about.
+    test.skip(browserName === 'webkit' && process.platform === 'darwin',
+      'macOS WebKit does not focus an Option-click');
     await gotoSlide(page, '#/control-handling-tab-in-a-tabset');
     await link(page, 'a second link').focus();
     await page.keyboard.down('Shift');
