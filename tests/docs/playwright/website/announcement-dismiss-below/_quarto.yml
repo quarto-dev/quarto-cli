@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "announcement-dismiss-below"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+  announcement:
+    content: "This is an announcement."
+    type: warning
+    dismissable: true
+    position: below-navbar
+
+# Checks that the button's accessible name can be translated.
+language:
+  announcement-dismiss-label: "Close this notice"
+
+format: html
