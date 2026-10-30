@@ -2,11 +2,10 @@
 
 ## In this release
 
-- ([#14936](https://github.com/quarto-dev/quarto-cli/pull/14936)): Accept and ignore static engine declaration keys (`name`, `claims`, `file-extensions`, `claims-files` — including an optional `processor` on `claims-files` entries) in the `external-engine` schema, so extensions can declare them for Quarto 2's engine resolution without breaking Quarto 1 validation. No Quarto 1 behavior change.
-- ([#15143](https://github.com/quarto-dev/quarto-cli/issues/15143)): Fix PDF rendering with `pdf-standard` failing with `\DocumentMetadata not supported!` after updating to KOMA-Script 3.49.3, which provides the default document classes.
-
 ## In previous releases
 
+- ([#14936](https://github.com/quarto-dev/quarto-cli/pull/14936)): Accept and ignore static engine declaration keys (`name`, `claims`, `file-extensions`, `claims-files` — including an optional `processor` on `claims-files` entries) in the `external-engine` schema, so extensions can declare them for Quarto 2's engine resolution without breaking Quarto 1 validation. No Quarto 1 behavior change.
+- ([#15143](https://github.com/quarto-dev/quarto-cli/issues/15143)): Fix PDF rendering with `pdf-standard` failing with `\DocumentMetadata not supported!` after updating to KOMA-Script 3.49.3, which provides the default document classes.
 - ([#14920](https://github.com/quarto-dev/quarto-cli/issues/14920)): Correct the Windows ARM diagnostic for x64 R crashes with stable native ARM64 R installation guidance, including reinstalling packages and configuring `QUARTO_R`.
 - ([#14731](https://github.com/quarto-dev/quarto-cli/pull/14731)): Fix `QUARTO_VENDOR_BINARIES=false` builds silently succeeding with missing binaries. The `configure` step's "is it on PATH?" check for `typst-gather`, `typst`, `pandoc` and `esbuild` compared an unawaited `Promise` against `undefined`, so the guard never fired. A build with `typst-gather` neither vendored nor on PATH reported success and produced a Quarto tree without it, surfacing only at render time as `typst-gather analyze failed; staging all packages as fallback`. The missing-binary error message now also names the path that was checked and the `QUARTO_TYPST_GATHER` environment variable.
 - ([#14741](https://github.com/quarto-dev/quarto-cli/issues/14741)): Fix PDF rendering of a cross-referenced table failing with `! Extra }, or forgotten \endgroup.` when the `endfloat` package defers `longtable` environments (`\DeclareDelayedFloatFlavor*{longtable}{table}`).
