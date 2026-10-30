@@ -80,6 +80,23 @@ test.describe("Listing pagination", () => {
     await expect(page).toHaveURL(/#listing-second-listing-page=3$/);
   });
 
+  test("page link clicked right after an update writes the page hash", async ({ page }) => {
+    await page.goto(fixture);
+
+    // Click page 2 then page 3 in one task, so no timer runs between the
+    // update that rebuilds the links and the click on a rebuilt link.
+    await page.evaluate(() => {
+      const link = (n: string) =>
+        [...document.querySelectorAll<HTMLElement>("#second-listing-pagination .page.page-link")]
+          .find((el) => el.textContent?.trim() === n)!;
+      link("2").click();
+      link("3").click();
+    });
+
+    await expect(titles(page, "second-listing")).toHaveText(["Post 3"]);
+    await expect(page).toHaveURL(/#listing-second-listing-page=3$/);
+  });
+
   test("back restores the previous page", async ({ page }) => {
     await page.goto(fixture);
     await pageLink(page, "second-listing", "2").click();
