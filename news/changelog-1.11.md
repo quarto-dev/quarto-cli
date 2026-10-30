@@ -15,7 +15,7 @@ All changes included in 1.11:
 
 - ([#15043](https://github.com/quarto-dev/quarto-cli/issues/15043)): Update the OJS runtime to acorn 8.17, Observable Inspector 5.0.1, and Observable Inputs 0.10.6. `FileAttachment(...).mimeType` now reports `text/javascript` instead of `application/javascript` for `.js` and `.mjs` files.
 - ([#15152](https://github.com/quarto-dev/quarto-cli/issues/15152)): Update `deno` to v2.9.8 to reject certificates from the compromised eMudhra / emSign certificate authorities, protecting HTTPS requests made by Quarto commands and TypeScript scripts. The bundled Deno now requires macOS 12 (Monterey) or later.
-- ([#15184](https://github.com/quarto-dev/quarto-cli/pull/15184)): Update the preview UI's Fluent UI components to 9.74.9 and icons to 2.0.343.
+- ([#15184](https://github.com/quarto-dev/quarto-cli/pull/15184)): Update the preview UI's Fluent UI components to 9.74.10 and icons to 2.0.344.
 
 ## Accessibility
 
