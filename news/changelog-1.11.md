@@ -118,6 +118,7 @@ All changes included in 1.11:
 
 ### Books
 
+- ([#2571](https://github.com/quarto-dev/quarto-cli/issues/2571)): Fix cross references and links to book parts, and to sections inside part files, being unresolved or not linking anywhere, and links to files later in the book not linking anywhere in `pdf` output. References to parts now show the part title. (author: @Wizorx)
 - ([#10114](https://github.com/quarto-dev/quarto-cli/issues/10114)): Support `announcement` under the `book` key, which previously had no effect.
 - ([#14276](https://github.com/quarto-dev/quarto-cli/issues/14276)): Support `llms-txt` under the `book` key, which previously had no effect.
 - ([#14879](https://github.com/quarto-dev/quarto-cli/issues/14879)): Support `plausible-analytics`, `back-to-top-navigation`, and `image-alt` under the `book` key, which previously had no effect.

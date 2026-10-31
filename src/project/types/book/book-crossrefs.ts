@@ -202,6 +202,7 @@ interface BookCrossrefEntry {
   file: string;
   order: BookCrossrefOrder;
   caption?: string;
+  unnumbered?: boolean;
 }
 
 interface BookCrossrefHeading {
@@ -313,7 +314,11 @@ function formatCrossref(
     return crossref.join("");
   }
 
-  if (format.pandoc["number-sections"] === false && type === "sec") {
+  // unnumbered entries (such as book parts) are referred to by title
+  if (
+    (format.pandoc["number-sections"] === false || entry.unnumbered) &&
+    type === "sec"
+  ) {
     return entry.caption || entry.key;
   }
 
