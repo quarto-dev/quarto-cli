@@ -43,3 +43,24 @@ for (const { method, dir, rendered } of books) {
     }
   });
 }
+
+// #15194: footnote popups took the footnote's HTML when the page loaded and
+// never typeset it, so math showed as raw TeX whenever MathJax hadn't reached
+// the footnote yet (e.g. while loading font data for \mathcal).
+test.describe("MathJax math in footnote popups", () => {
+  for (const ref of ["1", "2"]) {
+    test(`footnote ${ref}`, async ({ page }) => {
+      await page.goto(getUrl("html/hover-math-footnotes.html"), {
+        waitUntil: "load",
+      });
+      await page.locator('a[role="doc-noteref"]', { hasText: ref }).hover();
+
+      const popup = page.locator(".tippy-box");
+      await expect(popup).toBeVisible();
+      await expect(popup.locator("mjx-container")).toBeVisible({
+        timeout: 15000,
+      });
+      await expect(popup).not.toContainText(/\\[([]/);
+    });
+  }
+});

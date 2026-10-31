@@ -386,6 +386,17 @@
       <% } %>
       window.tippy(el, config); 
     }
+
+    // MathJax 4 loads font data on first use, which only its promise-based
+    // typeset waits for (the synchronous one throws instead)
+    const typesetPopupMath = (el) => {
+      if (window.MathJax?.typesetPromise) {
+        return window.MathJax.typesetPromise([el]);
+      } else if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(el);
+      }
+      return Promise.resolve();
+    }
     <% } %>
   
     <% if (hoverFootnotes) { %>
@@ -393,18 +404,23 @@
     const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
     for (var i=0; i<noterefs.length; i++) {
       const ref = noterefs[i];
-      tippyHover(ref, function() {
+      tippyHover(ref, undefined, function(instance) {
+        instance.disable();
         // use id or data attribute instead here
         let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
         try { href = new URL(href).hash; } catch {}
         const id = href.replace(/^#\/?/, "");
         const note = window.document.getElementById(id);
   
-        if (note) {
-          return note.innerHTML;
-        } else {
-          return "";
-        }
+        // typeset when shown: the page's own typesetting may not have
+        // reached the footnote yet
+        const content = note ? note.cloneNode(true) : document.createElement("div");
+        typesetPopupMath(content).then(() => {
+          instance.setContent(content.innerHTML);
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
       });
     }
   
@@ -413,17 +429,6 @@
     <% if (hoverXrefs) { %>
     const xrefs = window.document.querySelectorAll('a.quarto-xref');
   
-    // MathJax 4 loads font data on first use, which only its promise-based
-    // typeset waits for (the synchronous one throws instead)
-    const typesetXRefMath = (el) => {
-      if (window.MathJax?.typesetPromise) {
-        return window.MathJax.typesetPromise([el]);
-      } else if (window.Quarto?.typesetMath) {
-        window.Quarto.typesetMath(el);
-      }
-      return Promise.resolve();
-    }
-
     const processXRef = async (id, note) => {
   
       // Strip column container classes
@@ -453,10 +458,10 @@
             }
           }
   
-          await typesetXRefMath(container);
+          await typesetPopupMath(container);
           return container.innerHTML
         } else {
-          await typesetXRefMath(note);
+          await typesetPopupMath(note);
           return note.innerHTML;
         }
       } else {
@@ -465,7 +470,7 @@
         if (anchorLink) {
           anchorLink.remove();
         }
-        await typesetXRefMath(note);
+        await typesetPopupMath(note);
         <% /* %>
         // TODO in 1.5, we should make sure this works without a callout special case
         <% */ %>
