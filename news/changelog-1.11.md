@@ -90,6 +90,7 @@ All changes included in 1.11:
 - ([#15131](https://github.com/quarto-dev/quarto-cli/issues/15131)): Fix the light/dark toggle appearing, with no dark styles to switch to, when the `dark` brand file holds only comments and is ignored.
 - ([#15207](https://github.com/quarto-dev/quarto-cli/issues/15207)): Fix the BibTeX citation in the HTML appendix showing a copy button that does nothing when `code-copy: false` is set.
 - ([#15210](https://github.com/quarto-dev/quarto-cli/issues/15210)): Fix the BibTeX citation in the HTML appendix showing and copying altered text when the title contains text that looks like an HTML entity, such as `&lt;` or `R&notebook`.
+- ([#15244](https://github.com/quarto-dev/quarto-cli/issues/15244)): Fix math showing as raw TeX in cross-reference hover previews of another page when the current page has no math of its own, and the first preview of a chapter or section using MathJax font data such as `\mathcal` showing up empty. (author: @Wizorx)
 
 ### `pdf`
 
