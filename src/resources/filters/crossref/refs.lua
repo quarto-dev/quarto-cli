@@ -86,6 +86,15 @@ function resolveRefs()
               end
             elseif _quarto.format.isAsciiDocOutput() then
               ref = pandoc.List({pandoc.RawInline('asciidoc', '<<' .. label .. '>>')})
+            elseif _quarto.format.isTypstOutput() and entry ~= nil and entry.multirow then
+              -- rows of multi-row equations (#2275) aren't typst equations
+              -- that #ref can target, so link to them with the number as text
+              if #ref > 0 then
+                ref:insert(pandoc.RawInline('typst', '~'))
+              end
+              ref:extend(refNumberOption(type, entry))
+              ref:insert(1, pandoc.RawInline('typst', '#link(<' .. label .. '>)['))
+              ref:insert(pandoc.RawInline('typst', ']'))
             elseif _quarto.format.isTypstOutput() then
               ref:insert(1, pandoc.RawInline('typst', '#ref(<' .. label .. '>, supplement: ['))
               ref:insert(pandoc.RawInline('typst', '])'))
