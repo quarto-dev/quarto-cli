@@ -702,7 +702,7 @@ local quarto_crossref_filters = {
   },
   { name = "crossref-resolveRefs",
     filter = resolveRefs(),
-    flags = { "has_cites" },
+    flags = { "has_cites", "has_crossref_title_links" },
     traverser = 'jog',
   },
   { name = "crossref-crossrefMetaInject",
