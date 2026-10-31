@@ -1,0 +1,10 @@
+---
+title: "issue-15176"
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['--bs-border-color:\s*#ff0000', '--bs-border-radius:\s*1rem']
+---
+
+A website theme sets `$border-color` and `$border-radius` with `!default`, and the listing styles must not override them.
