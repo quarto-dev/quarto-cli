@@ -23,6 +23,8 @@ _quarto:
 
 The amsthm documentation lists algorithms with definitions, examples and
 exercises in the `definition` style, so their body is upright in LaTeX output.
+In the Typst `fancy` appearance, algorithms use the primary colour set, as
+the other `definition`-style blocks do.
 
 ::: {#alg-a}
 An algorithm.
