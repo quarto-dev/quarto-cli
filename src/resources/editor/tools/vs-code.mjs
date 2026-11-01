@@ -20613,7 +20613,7 @@ var init_yaml_intelligence_resources = __esm({
           },
           description: {
             short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Classic LaTeX style with a bold title, an italic body for theorems, lemmas, corollaries, propositions, conjectures and algorithms, and an upright body for definitions, examples and exercises (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
           }
         }
       ],

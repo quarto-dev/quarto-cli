@@ -53,9 +53,10 @@ local function ensure_appearance_imports()
   return val
 end
 
--- Defines a simple renderer once. The "theorem" style writes a bold header and
--- an italic body; the "proof" style writes an italic header and an upright
--- body, with the name in brackets, as amsthm and the HTML output do.
+-- Defines a simple renderer once, following the amsthm styles. The "plain"
+-- style writes a bold header and an italic body. The "definition" style writes
+-- a bold header and an upright body. The "proof" style writes an italic header
+-- and an upright body, with the name in brackets, as the HTML output also does.
 local function ensure_simple_render(render_name, style)
   if typst_simple_renderers[render_name] then
     return
@@ -74,12 +75,16 @@ local function ensure_simple_render(render_name, style)
     return
   end
 
+  local body_code = "emph(body)"
+  if style == "definition" then
+    body_code = "body"
+  end
   quarto.doc.include_text("in-header", "#let " .. render_name .. [[(prefix: none, title: "", full-title: auto, body) = {
   if full-title != "" and full-title != auto and full-title != none {
     strong[#full-title.]
     h(0.5em)
   }
-  emph(body)
+  ]] .. body_code .. "\n" .. [[
   parbreak()
 }
 ]])
@@ -94,8 +99,8 @@ end
 -- Returns the `render:` argument of make-frame for the theorem appearance.
 -- opts.color_scheme: fancy color set (primary, secondary or tertiary)
 -- opts.color: clouds and rainbow fill color
--- opts.simple_render, opts.simple_style: name and style ("theorem" or "proof")
--- of the simple renderer
+-- opts.simple_render, opts.simple_style: name and style ("plain",
+-- "definition" or "proof") of the simple renderer
 local function render_code(appearance_name, opts)
   if appearance_name == "fancy" then
     return "  render: fancy-box.with(\n" ..
