@@ -90,8 +90,7 @@ local function ensure_simple_render(style)
     strong[#full-title.]
     h(0.5em)
   }
-  ]] .. body_code .. [[
-
+  ]] .. body_code .. "\n" .. [[
   parbreak()
 }
 ]])
