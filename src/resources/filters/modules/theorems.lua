@@ -68,7 +68,7 @@ local simple_render_names = {
 local function ensure_simple_render(style)
   local render_name = simple_render_names[style]
   if render_name == nil then
-    error("No simple Typst theorem renderer for the amsthm style '" .. tostring(style) ..
+    fatal("No simple Typst theorem renderer for the amsthm style '" .. tostring(style) ..
       "'. Use one of: plain, definition, proof.")
   end
   if typst_simple_renderers[render_name] then
