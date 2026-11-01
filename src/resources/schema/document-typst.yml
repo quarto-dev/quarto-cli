@@ -40,7 +40,7 @@
     long: |
       Controls how theorems, lemmas, definitions, etc. are rendered:
 
-      - `simple`: Classic LaTeX style with a bold title, an italic body for theorems, lemmas, corollaries, propositions, conjectures and algorithms, and an upright body for definitions, examples and exercises (default)
+      - `simple`: Classic LaTeX style with a bold title and an italic body, or an upright body for definitions, examples and exercises (default)
       - `fancy`: Colored boxes using brand colors
       - `clouds`: Rounded colored background boxes
       - `rainbow`: Colored left border with colored title

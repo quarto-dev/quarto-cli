@@ -53,13 +53,22 @@ local function ensure_appearance_imports()
   return val
 end
 
--- Defines a simple renderer once, following the amsthm styles. The "plain"
--- style writes a bold header and an italic body. The "definition" style writes
--- a bold header and an upright body. The "proof" style writes an italic header
--- and an upright body, with the name in brackets, as the HTML output also does.
-local function ensure_simple_render(render_name, style)
+-- Names of the simple renderers, by amsthm style
+local simple_render_names = {
+  plain = "simple-theorem-render",
+  definition = "simple-definition-render",
+  proof = "simple-proof-render",
+}
+
+-- Defines the simple renderer for a style once and returns its name. The
+-- "plain" style writes a bold header and an italic body. The "definition"
+-- style writes a bold header and an upright body. The "proof" style writes an
+-- italic header and an upright body, with the name in brackets, as the HTML
+-- output also does.
+local function ensure_simple_render(style)
+  local render_name = simple_render_names[style]
   if typst_simple_renderers[render_name] then
-    return
+    return render_name
   end
 
   typst_simple_renderers[render_name] = true
@@ -72,22 +81,21 @@ local function ensure_simple_render(render_name, style)
   parbreak()
 }
 ]])
-    return
+    return render_name
   end
 
-  local body_code = "emph(body)"
-  if style == "definition" then
-    body_code = "body"
-  end
+  local body_code = style == "definition" and "body" or "emph(body)"
   quarto.doc.include_text("in-header", "#let " .. render_name .. [[(prefix: none, title: "", full-title: auto, body) = {
   if full-title != "" and full-title != auto and full-title != none {
     strong[#full-title.]
     h(0.5em)
   }
-  ]] .. body_code .. "\n" .. [[
+  ]] .. body_code .. [[
+
   parbreak()
 }
 ]])
+  return render_name
 end
 
 -- Writes text as a Typst string literal, so that titles from the language
@@ -99,8 +107,8 @@ end
 -- Returns the `render:` argument of make-frame for the theorem appearance.
 -- opts.color_scheme: fancy color set (primary, secondary or tertiary)
 -- opts.color: clouds and rainbow fill color
--- opts.simple_render, opts.simple_style: name and style ("plain",
--- "definition" or "proof") of the simple renderer
+-- opts.simple_style: amsthm style of the simple renderer, see
+-- ensure_simple_render
 local function render_code(appearance_name, opts)
   if appearance_name == "fancy" then
     return "  render: fancy-box.with(\n" ..
@@ -113,8 +121,7 @@ local function render_code(appearance_name, opts)
   elseif appearance_name == "rainbow" then
     return "  render: rainbow-render.with(fill: " .. opts.color .. ".darken(20%)),\n"
   end
-  ensure_simple_render(opts.simple_render, opts.simple_style)
-  return "  render: " .. opts.simple_render .. ",\n"
+  return "  render: " .. ensure_simple_render(opts.simple_style) .. ",\n"
 end
 
 -- Returns the Typst code for a frame header: bold, or plain for blocks whose

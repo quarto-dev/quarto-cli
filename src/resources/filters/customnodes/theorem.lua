@@ -104,17 +104,14 @@ local function ensure_typst_theorems(reftype)
   local theorem_type = theorem_types[reftype]
   local title = titleString(reftype, theorem_type.title)
   local color_scheme = "secondary"
-  local simple_render = "simple-theorem-render"
   if theorem_type.style == "definition" then
     color_scheme = "primary"
-    simple_render = "simple-definition-render"
   elseif reftype == "prp" then
     color_scheme = "tertiary"
   end
   local render_code = _quarto.modules.theorems.render_code(appearance, {
     color_scheme = color_scheme,
     color = theme_colors[reftype] or "gray",
-    simple_render = simple_render,
     simple_style = theorem_type.style,
   })
 
