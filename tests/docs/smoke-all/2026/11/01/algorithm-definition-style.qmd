@@ -1,0 +1,29 @@
+---
+title: "Algorithms use the amsthm definition style"
+format:
+  latex: default
+  typst:
+    keep-typ: true
+    theorem-appearance: fancy
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        -
+          - '\\theoremstyle\{definition\}\s*\\newtheorem\{algorithm\}'
+        -
+          - '\\theoremstyle\{plain\}\s*\\newtheorem\{algorithm\}'
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'make-frame\((\r\n?|\n)\s*"algorithm",(\r\n?|\n)(.*(\r\n?|\n)){4}\s*get-border-color: get-primary-border-color,'
+        -
+          - 'make-frame\((\r\n?|\n)\s*"algorithm",(\r\n?|\n)(.*(\r\n?|\n)){4}\s*get-border-color: get-secondary-border-color,'
+---
+
+The amsthm documentation lists algorithms with definitions, examples and
+exercises in the `definition` style, so their body is upright in LaTeX output.
+
+::: {#alg-a}
+An algorithm.
+:::
