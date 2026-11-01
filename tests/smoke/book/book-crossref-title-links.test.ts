@@ -7,7 +7,7 @@
 import { testQuartoCmd } from "../../test.ts";
 import { ensureFileRegexMatches, noErrorsOrWarnings } from "../../verify.ts";
 
-import { existsSync } from "../../../src/deno_ral/fs.ts";
+import { safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { docs } from "../../utils.ts";
 
@@ -29,10 +29,9 @@ testQuartoCmd(
     ]),
   ],
   {
+    // deno-lint-ignore require-await
     teardown: async () => {
-      if (existsSync(bookDir)) {
-        await Deno.remove(bookDir, { recursive: true });
-      }
+      safeRemoveSync(bookDir, { recursive: true });
     },
   },
 );
