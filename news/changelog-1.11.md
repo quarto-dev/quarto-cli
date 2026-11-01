@@ -66,6 +66,7 @@ All changes included in 1.11:
 - ([#14772](https://github.com/quarto-dev/quarto-cli/issues/14772)): Fix custom `language` keys expanding to empty strings in Pandoc templates; they are now available through `$quarto.language.<key>$`. (author: @mcanouil)
 - ([#14882](https://github.com/quarto-dev/quarto-cli/issues/14882)): Fix brand font families with a word starting with a digit, such as `Source Sans 3`, not applying in `html` and `revealjs` output. The same names in `mainfont` now also apply in `revealjs`. (author: @Masad791)
 - ([#14891](https://github.com/quarto-dev/quarto-cli/issues/14891)): Fix a brand file that holds only comments, such as a commented-out `_brand.yml` template, stopping the render with `YAML value is missing`. It now prints a warning and is ignored. (author: @Masad791)
+- ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) using the amsthm `plain` style. They now use the `definition` style, as the amsthm documentation lists, like definitions, examples and exercises: their body is upright in PDF output and they use the same colours as definitions in the Typst `fancy` theorem appearance. (author: @mcanouil)
 
 ### `dashboard`
 
@@ -97,7 +98,6 @@ All changes included in 1.11:
 - ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
 - ([#15027](https://github.com/quarto-dev/quarto-cli/issues/15027)): Fix PDF rendering with regional German variants such as `lang: de-CH` failing when German hyphenation patterns are not installed, instead of installing them automatically.
 - ([#15035](https://github.com/quarto-dev/quarto-cli/issues/15035)): Fix automatic installation of missing hyphenation patterns for the pinned German patterns (`ngerman-x-latest`), for several languages at once, and for languages loaded with `polyglossia`.
-- ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) using the amsthm `plain` style with an italic body. They now use the `definition` style, as the amsthm documentation lists, with an upright body like definitions, examples and exercises. (author: @mcanouil)
 
 ### `revealjs`
 
