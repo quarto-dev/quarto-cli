@@ -175,7 +175,7 @@ Guarded push `$M` to `main`, then the build check. Step 9 reuses this worktree.
 gh run view <update-downloads id> --repo quarto-dev/quarto-web --json jobs --jq '.jobs[]|"\(.conclusion) \(.name)"'
 ```
 
-Expect `success` for `update-downloads`, `publish-changes-release / build-deploy`, `publish-changes-prerelease / build-deploy`, and for `update-prerelease-reference / update-reference` (it opens the reference PR). If the `publish-changes-*` jobs are skipped, an earlier cron run may already have published: list `gh run list --repo quarto-dev/quarto-web --workflow update-downloads.yml --limit 5 --json databaseId,conclusion,createdAt` and check the jobs of the first run created after the relabel. None found: dispatch once more; still skipped: stop and report.
+Expect `success` for `update-downloads`, `publish-changes-release / build-deploy`, `publish-changes-prerelease / build-deploy`, and for `update-prerelease-reference / update-reference` (it opens the reference PR). If the `publish-changes-*` jobs are skipped, an earlier cron run may already have published: list `gh run list --repo quarto-dev/quarto-web --workflow update-downloads.yml --limit 5 --json databaseId,conclusion,createdAt` and check the jobs of each run, newest first, for succeeded `publish-changes-*` jobs; a cron run that started just before the relabel can still have published. Accept it only if `_download.json` and `_prerelease.json` then show the new versions. None found: dispatch once more; still skipped: stop and report.
 
 ```bash
 curl -s https://quarto.org/docs/download/_download.json | jq -r .version     # = $STABLE
