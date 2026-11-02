@@ -6,7 +6,6 @@
 
 import { netlifyProvider } from "./netlify/netlify.ts";
 import { ghpagesProvider } from "./gh-pages/gh-pages.ts";
-import { quartoPubProvider } from "./quarto-pub/quarto-pub.ts";
 import { rsconnectProvider } from "./rsconnect/rsconnect.ts";
 import { confluenceProvider } from "./confluence/confluence.ts";
 import { huggingfaceProvider } from "./huggingface/huggingface.ts";
@@ -19,7 +18,6 @@ export function accountTokenText(token: AccountToken) {
 }
 
 const kPublishProviders = [
-  quartoPubProvider,
   ghpagesProvider,
   rsconnectProvider,
   netlifyProvider,
@@ -39,6 +37,13 @@ export function findProvider(name?: string) {
         `Consider publishing to Posit Connect Cloud instead ` +
         `using \`quarto publish posit-connect-cloud\`. ` +
         `See https://docs.posit.co/cloud/whats_new/#october-2024 for details.`,
+    );
+  }
+  if (name === "quarto-pub") {
+    warning(
+      `The Quarto Pub publishing destination is no longer supported. ` +
+        `Consider publishing to Posit Connect Cloud instead ` +
+        `using \`quarto publish posit-connect-cloud\`.`
     );
   }
   return kPublishProviders.find((provider) => provider.name === name);
