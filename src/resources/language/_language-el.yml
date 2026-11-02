@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Απόκρυψη όλου του κώδικα"
 code-tools-view-source: "Προβολή πηγαίου κώδικα"
 code-tools-source-code: "Πηγαίος κώδικας"
 
+tools-share: "Κοινοποίηση"
+tools-download: "Λήψη"
+
 code-line: "Γραμμή"
 code-lines: "Γραμμές"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Προβολή πηγής"
 repo-action-links-issue: "Αναφορά προβλήματος"
 
 back-to-top: "Επιστροφή στην κορυφή"
+
+skip-to-content: "Μετάβαση στο κύριο περιεχόμενο"
 
 search-no-results-text: "Δεν βρέθηκαν αποτελέσματα"
 search-matching-documents-text: "ταιριάζοντα έγγραφα"
