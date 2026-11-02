@@ -1042,6 +1042,7 @@ body .nav-footer {
   // :focus-visible rule draws its keyboard focus ring.
   .quarto-announcement-action {
     cursor: pointer;
+    align-self: flex-start;
     padding: 0;
     border: 0;
     background: none;

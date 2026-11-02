@@ -8,7 +8,7 @@ website:
       - href: index.qmd
         text: Home
   announcement:
-    content: "This is an announcement."
+    content: "This is a longer announcement, which wraps over several lines on a narrow screen."
     type: warning
     dismissable: true
     position: below-navbar

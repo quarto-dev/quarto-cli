@@ -67,3 +67,24 @@ for (const { position, url, label } of testCases) {
     });
   });
 }
+
+// A button centers its content vertically, so in a wrapped announcement the
+// icon would drop to the middle of the bar; it stays aligned with the first
+// line of text, as the bare icon was.
+test.describe("wrapped announcement", () => {
+  test.use({ viewport: { width: 400, height: 800 } });
+
+  test("dismiss icon stays at the top of the bar", async ({ page }) => {
+    await page.goto(
+      getUrl("website/announcement-dismiss-below/_site/index.html"),
+      { waitUntil: "load" },
+    );
+    const content = page.locator("#quarto-announcement .quarto-announcement-content");
+    const icon = page.locator("#quarto-announcement .quarto-announcement-action i");
+    const contentBox = await content.boundingBox();
+    const iconBox = await icon.boundingBox();
+    // The text wraps, so the bar is taller than one icon.
+    expect(contentBox!.height).toBeGreaterThan(2 * iconBox!.height);
+    expect(Math.abs(iconBox!.y - contentBox!.y)).toBeLessThan(2);
+  });
+});
