@@ -1,6 +1,6 @@
 ---
-main_commit: e768e5c2d
-analyzed_date: 2026-05-06
+main_commit: 3190292c7
+analyzed_date: 2026-11-02
 key_files:
   - src/command/render/render-shared.ts
   - src/project/project-context.ts
@@ -49,6 +49,8 @@ The shapes diverged for historical reasons:
 `render()` chooses between mechanisms in this order:
 
 ```typescript
+// `render()` passes the "fatal" extension metadata policy to all three
+// context builds below (omitted here for brevity).
 let context = pContext || (await projectContext(path, nbContext, options));
 
 // Promote to synthetic project when --output-dir is used and we don't
