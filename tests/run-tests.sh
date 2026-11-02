@@ -150,7 +150,35 @@ fi
 
 SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
 
-# RUN FOR TIMING TESTS ONLY 
+# Deno prints its pre/post-test banners and final "ok |" summary outside any
+# group the harness can open, so a passing run is replayed inside one group
+# named after its target. A failing run is replayed verbatim so the harness's
+# grouping, annotations and failure sections stay intact.
+# Usage: run_timed <label> <command> [args...]; returns the command's status.
+run_timed() {
+  local label="$1"; shift
+  local tmp status
+  if [[ "$GITHUB_ACTIONS" != "true" || -n "$QUARTO_TESTS_GHA_ORCHESTRATED" ]] \
+      || ! tmp=$(mktemp); then
+    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "$@"
+    return $?
+  fi
+  echo "> timing ${label}"
+  /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "$@" > "$tmp" 2>&1
+  status=$?
+  if [ "$status" -eq 0 ]; then
+    echo "::group::${label}"
+    grep -Ev '^::(group::|endgroup::)' "$tmp"
+    if [ -s "$tmp" ] && [ -n "$(tail -c 1 "$tmp")" ]; then echo; fi
+    echo "::endgroup::"
+  else
+    cat "$tmp"
+  fi
+  rm -f "$tmp"
+  return $status
+}
+
+# RUN FOR TIMING TESTS ONLY
 if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
   if [ "$QUARTO_TEST_TIMING" == "true" ]; then
     QUARTO_TEST_TIMING="timing.txt"
@@ -172,13 +200,13 @@ if [ "$QUARTO_TEST_TIMING" != "" ] && [ "$QUARTO_TEST_TIMING" != "false" ]; then
       SMOKE_ALL_FILES=`find docs/smoke-all/ -type f -regextype "posix-extended" -regex ".*/[^_][^/]*[.]qmd" -o -regex ".*/[^_][^/]*[.]md" -o -regex ".*/[^_][^/]*[.]ipynb"`
       for j in $SMOKE_ALL_FILES; do
         echo "${SMOKE_ALL_TEST_FILE} -- ${j}" >> "$QUARTO_TEST_TIMING"
-        /usr/bin/time -f "        %e real %U user %S sys" -a -o ${QUARTO_TEST_TIMING} "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" ${SMOKE_ALL_TEST_FILE} -- ${j}
+        run_timed "smoke-all -- ${j}" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" ${SMOKE_ALL_TEST_FILE} -- ${j}
       done
       continue
     fi
     # Otherwise we time the individual test.ts test
     echo $i >> "$QUARTO_TEST_TIMING"
-    /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" $i
+    run_timed "$i" "${QUARTO_BIN_PATH}/tools/${DENO_ARCH_DIR}/deno" test ${QUARTO_DENO_OPTIONS} --no-check ${QUARTO_DENO_EXTRA_OPTIONS} "${QUARTO_IMPORT_MAP_ARG}" "${AGENT_REPORTER_ARGS[@]}" $i
   done
   # exit the script with an error code if the timing file shows error
   grep -q 'Command exited with non-zero status' $QUARTO_TEST_TIMING && SUCCESS=1 || SUCCESS=0
