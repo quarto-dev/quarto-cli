@@ -111,7 +111,6 @@ All changes included in 1.11:
 - ([#14290](https://github.com/quarto-dev/quarto-cli/issues/14290)): Fix `proof`, `remark` and `solution` blocks in Typst output, which rendered as plain text and could not be cross-referenced. They now use the same frames as theorems. Theorem and proof titles set in the language files may now contain Typst markup characters, and a `style` attribute on a theorem or proof now applies in Typst too. (author: @mcanouil)
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
 - ([#14947](https://github.com/quarto-dev/quarto-cli/issues/14947)): Fix Typst compilation failing with `invalid number suffix: px` when an image with alt text (`fig-alt`, `alt`, or an inline image caption) has its `width` or `height` in pixels. These images are now written by Pandoc's Typst writer like other images, which also fixes URL-encoded image paths and unsupported size units for them.
-- ([#15168](https://github.com/quarto-dev/quarto-cli/issues/15168)): Fix definitions, examples and exercises being set in italics in Typst output with the default `theorem-appearance: simple`. Their body is now upright, as in LaTeX output, while theorems, lemmas, corollaries, propositions, conjectures and algorithms keep an italic body. (author: @mcanouil)
 
 ## Projects
 
