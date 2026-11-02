@@ -19,6 +19,10 @@ import { join } from "../../src/deno_ral/path.ts";
 import { LightDarkBrandDarkFlag } from "../../src/core/brand/brand.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
 import { projectContext } from "../../src/project/project-context.ts";
+import { refreshProjectContext } from "../../src/project/serve/watch.ts";
+import { getLogger } from "../../src/deno_ral/log.ts";
+import { BaseHandler } from "log/base-handler";
+import { ProjectContext } from "../../src/project/types.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { renderServices } from "../../src/command/render/render-services.ts";
 import { RenderOptions } from "../../src/command/render/types.ts";
@@ -292,7 +296,7 @@ unitTest(
 );
 
 unitTest(
-  "singleFileProjectContext: a malformed extension is fatal on the render path (#14783)",
+  "singleFileProjectContext: a malformed extension is fatal with the fatal policy (#14783)",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
@@ -307,7 +311,10 @@ unitTest(
       writeExtension(tmpDir, MALFORMED_METADATA);
 
       await assertRejects(
-        () => singleFileProjectContext(file, nbContext, renderOptions),
+        () =>
+          singleFileProjectContext(file, nbContext, renderOptions, {
+            extensionMetadataPolicy: "fatal",
+          }),
         Error,
         "contributes invalid project metadata",
       );
@@ -319,7 +326,7 @@ unitTest(
 );
 
 unitTest(
-  "projectContext: a malformed extension is fatal on the render path (#14783)",
+  "projectContext: a malformed extension is fatal with the fatal policy (#14783)",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
@@ -337,7 +344,10 @@ unitTest(
       writeExtension(tmpDir, MALFORMED_METADATA);
 
       await assertRejects(
-        () => projectContext(tmpDir, nbContext, renderOptions),
+        () =>
+          projectContext(tmpDir, nbContext, renderOptions, false, {
+            extensionMetadataPolicy: "fatal",
+          }),
         Error,
         "contributes invalid project metadata",
       );
@@ -375,6 +385,242 @@ unitTest(
       );
     } finally {
       project?.cleanup?.();
+      safeRemoveSync(tmpDir, { recursive: true });
+    }
+  },
+);
+
+// Records the warnings that the code under test logs, then restores the
+// handlers of the default logger.
+class WarningRecorder extends BaseHandler {
+  messages: string[] = [];
+  override log(msg: string) {
+    this.messages.push(msg);
+  }
+}
+
+async function recordWarnings(run: () => Promise<void>): Promise<string[]> {
+  const logger = getLogger();
+  const saved = logger.handlers;
+  const recorder = new WarningRecorder("WARN");
+  logger.handlers = [recorder];
+  try {
+    await run();
+  } finally {
+    logger.handlers = saved;
+  }
+  return recorder.messages;
+}
+
+function writeProject(dir: string) {
+  Deno.writeTextFileSync(
+    join(dir, "_quarto.yml"),
+    "project:\n  type: default\n",
+  );
+  Deno.writeTextFileSync(join(dir, "index.qmd"), DOCUMENT);
+}
+
+unitTest(
+  "projectContext: an invalid extension warns once across rebuilds and keeps the valid brand (#14783)",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+    const contexts: ProjectContext[] = [];
+
+    try {
+      writeProject(tmpDir);
+      writeExtension(tmpDir, MALFORMED_METADATA, "once-broken-extension");
+      writeExtension(
+        tmpDir,
+        "      brand: brand.yml\n",
+        "once-brand-extension",
+      );
+
+      const warnings = await recordWarnings(async () => {
+        for (let i = 0; i < 2; i++) {
+          const context = await projectContext(tmpDir, notebookContext());
+          assert(context !== undefined, "projectContext must resolve");
+          contexts.push(context);
+        }
+      });
+
+      assertEquals(
+        warnings.filter((w) => w.includes("once-broken-extension")).length,
+        1,
+        "the warning must be logged once for two builds",
+      );
+      assertContributedBrand(
+        await contexts[1].resolveBrand(),
+        "next to an invalid extension",
+      );
+    } finally {
+      contexts.forEach((context) => context.cleanup());
+      safeRemoveSync(tmpDir, { recursive: true });
+    }
+  },
+);
+
+unitTest(
+  "refreshProjectContext: an invalid extension does not throw on refresh (#14783)",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+    const nbContext = notebookContext();
+    const services = renderServices(nbContext);
+    const renderOptions = { services, flags: {} } as RenderOptions;
+    let refreshed: ProjectContext | undefined;
+
+    try {
+      writeProject(tmpDir);
+      writeExtension(tmpDir, MALFORMED_METADATA, "refresh-broken-extension");
+      writeExtension(
+        tmpDir,
+        "      brand: brand.yml\n",
+        "refresh-brand-extension",
+      );
+
+      const previous = await projectContext(tmpDir, nbContext);
+      assert(previous !== undefined, "projectContext must resolve");
+
+      const next = await refreshProjectContext(
+        previous,
+        nbContext,
+        renderOptions,
+      );
+      refreshed = next;
+
+      assert(
+        next !== previous,
+        "a successful refresh builds a new context",
+      );
+      assertContributedBrand(await next.resolveBrand(), "after a refresh");
+    } finally {
+      refreshed?.cleanup();
+      services.cleanup();
+      safeRemoveSync(tmpDir, { recursive: true });
+    }
+  },
+);
+
+unitTest(
+  "refreshProjectContext: keeps the previous context when the rebuild fails (#14783)",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+    const nbContext = notebookContext();
+    const services = renderServices(nbContext);
+    const renderOptions = { services, flags: {} } as RenderOptions;
+    let previous: ProjectContext | undefined;
+
+    try {
+      writeProject(tmpDir);
+      previous = await projectContext(tmpDir, nbContext);
+      assert(previous !== undefined, "projectContext must resolve");
+
+      Deno.writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
+
+      const refreshed = await refreshProjectContext(
+        previous,
+        nbContext,
+        renderOptions,
+      );
+
+      assert(
+        refreshed === previous,
+        "a failed rebuild must keep the previous context",
+      );
+    } finally {
+      previous?.cleanup();
+      services.cleanup();
+      safeRemoveSync(tmpDir, { recursive: true });
+    }
+  },
+);
+
+unitTest(
+  "projectContext: the fatal policy cleans up the context before it rethrows (#14783)",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+
+    try {
+      writeProject(tmpDir);
+      writeExtension(tmpDir, MALFORMED_METADATA, "fatal-broken-extension");
+
+      await assertRejects(
+        () =>
+          projectContext(tmpDir, notebookContext(), undefined, false, {
+            extensionMetadataPolicy: "fatal",
+          }),
+        Error,
+        "contributes invalid project metadata",
+      );
+
+      // Fails on Windows if the context still holds its disk cache open.
+      Deno.removeSync(tmpDir, { recursive: true });
+    } finally {
+      safeRemoveSync(tmpDir, { recursive: true });
+    }
+  },
+);
+
+unitTest(
+  "singleFileProjectContext: the fatal policy cleans up the context before it rethrows (#14783)",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+    const file = join(tmpDir, "test.qmd");
+
+    try {
+      Deno.writeTextFileSync(file, DOCUMENT);
+      writeExtension(tmpDir, MALFORMED_METADATA, "fatal-single-extension");
+
+      await assertRejects(
+        () =>
+          singleFileProjectContext(file, notebookContext(), undefined, {
+            extensionMetadataPolicy: "fatal",
+          }),
+        Error,
+        "contributes invalid project metadata",
+      );
+
+      Deno.removeSync(tmpDir, { recursive: true });
+    } finally {
+      safeRemoveSync(tmpDir, { recursive: true });
+    }
+  },
+);
+
+unitTest(
+  "the warning says no project metadata from the extension was applied (#14783)",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
+    const file = join(tmpDir, "test.qmd");
+    let project: ProjectContext | undefined;
+
+    try {
+      Deno.writeTextFileSync(file, DOCUMENT);
+      writeExtension(tmpDir, MALFORMED_METADATA, "message-extension");
+
+      const warnings = await recordWarnings(async () => {
+        project = await singleFileProjectContext(file, notebookContext());
+      });
+
+      assert(
+        warnings.some((w) =>
+          w.includes("No project metadata from message-extension was applied")
+        ),
+        `expected the "not applied" warning, got: ${warnings.join(" | ")}`,
+      );
+    } finally {
+      project?.cleanup();
       safeRemoveSync(tmpDir, { recursive: true });
     }
   },

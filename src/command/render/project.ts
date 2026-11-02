@@ -343,6 +343,7 @@ export async function renderProject(
       context.dir,
       context.notebookContext,
       projectRenderConfig.options,
+      { extensionMetadataPolicy: "fatal" },
     );
 
     // Validate that certain project properties haven't been mutated

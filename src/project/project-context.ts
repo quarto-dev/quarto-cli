@@ -112,7 +112,7 @@ import { createTempContext } from "../core/temp.ts";
 import { onCleanup } from "../core/cleanup.ts";
 import { ErrorEx } from "../core/lib/error.ts";
 import { tidyverseError, tidyverseInfo } from "../core/lib/errors.ts";
-import { warning } from "../deno_ral/log.ts";
+import { warnOnce } from "../core/log.ts";
 import { ZodError } from "zod";
 import { extensionIdString } from "../extension/extension-shared.ts";
 import { Extension } from "../extension/types.ts";
@@ -146,7 +146,7 @@ const mergeExtensionMetadata = async (
   extensionContext: ExtensionContext,
   // called with the extension that failed validation; it either throws to
   // make the failure fatal, or returns to drop that one contribution
-  onInvalid: (err: Error) => void,
+  onInvalid: (err: Error, extensionId: string) => void,
 ) => {
   // this will mutate context.config.project to merge
   // in any project metadata from extensions
@@ -170,7 +170,10 @@ const mergeExtensionMetadata = async (
           Zod.ProjectConfig.parse(extension.contributes.metadata!.project),
         );
       } catch (err) {
-        onInvalid(projectMetadataError(extension, err));
+        onInvalid(
+          projectMetadataError(extension, err),
+          extensionIdString(extension.id),
+        );
       }
     }
     context.config.project = mergeProjectMetadata(
@@ -180,21 +183,34 @@ const mergeExtensionMetadata = async (
   }
 };
 
+// What to do when an extension contributes invalid project metadata:
+// "fatal" stops the command (used by render), "warn" drops that one
+// contribution and carries on (used by preview, inspect and the rest).
+export type ExtensionMetadataPolicy = "fatal" | "warn";
+
+export interface ProjectContextOptions {
+  extensionMetadataPolicy?: ExtensionMetadataPolicy;
+}
+
 // Extension metadata is validated against a strict schema, so an invalid
-// extension makes the merge fail. That is fatal for a render, as it always
-// was, and elsewhere the contribution of that one extension is dropped with
-// a warning, so commands such as preview and inspect keep working (#14783).
+// extension makes the merge fail (#14783).
 export const mergeExtensionMetadataForContext = async (
   context: ProjectContext,
   extensionContext: ExtensionContext,
-  fatal: boolean,
+  policy: ExtensionMetadataPolicy,
 ) => {
-  await mergeExtensionMetadata(context, extensionContext, (err) => {
-    if (fatal) {
-      throw err;
-    }
-    warning(`Ignoring the invalid project metadata. ${err.message}`);
-  });
+  try {
+    await mergeExtensionMetadata(context, extensionContext, (err, id) => {
+      if (policy === "fatal") {
+        throw err;
+      }
+      warnOnce(`${err.message} No project metadata from ${id} was applied.`);
+    });
+  } catch (err) {
+    // the context already holds an open disk cache
+    context.cleanup();
+    throw err;
+  }
 };
 
 export async function projectContext(
@@ -202,6 +218,7 @@ export async function projectContext(
   notebookContext: NotebookContext,
   renderOptions?: RenderOptions,
   force = false,
+  options?: ProjectContextOptions,
 ): Promise<ProjectContext | undefined> {
   const flags = renderOptions?.flags;
   const originalDir = normalizePath(
@@ -237,7 +254,7 @@ export async function projectContext(
     await mergeExtensionMetadataForContext(
       context,
       extensionContext,
-      renderOptions !== undefined,
+      options?.extensionMetadataPolicy ?? "warn",
     );
     return context;
   };
@@ -980,8 +997,15 @@ export function projectContextForDirectory(
   path: string,
   notebookContext: NotebookContext,
   renderOptions?: RenderOptions,
+  options?: ProjectContextOptions,
 ): Promise<ProjectContext> {
-  return projectContext(path, notebookContext, renderOptions, true) as Promise<
+  return projectContext(
+    path,
+    notebookContext,
+    renderOptions,
+    true,
+    options,
+  ) as Promise<
     ProjectContext
   >;
 }

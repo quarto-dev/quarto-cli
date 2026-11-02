@@ -34,6 +34,7 @@ import { globalTempContext } from "../../../core/temp.ts";
 import { once } from "../../../core/once.ts";
 import {
   mergeExtensionMetadataForContext,
+  ProjectContextOptions,
   resolveEngineExtensions,
 } from "../../project-context.ts";
 import { createExtensionContext } from "../../../extension/extension.ts";
@@ -42,6 +43,7 @@ export async function singleFileProjectContext(
   source: string,
   notebookContext: NotebookContext,
   renderOptions?: RenderOptions,
+  options?: ProjectContextOptions,
 ): Promise<ProjectContext> {
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
   const temp = globalTempContext();
@@ -119,35 +121,34 @@ export async function singleFileProjectContext(
   await mergeExtensionMetadataForContext(
     result,
     extensionContext,
-    renderOptions !== undefined,
+    options?.extensionMetadataPolicy ?? "warn",
   );
 
   // Warn whenever an extension contributed output-dir metadata, whichever
-  // command built this context, and on the render path also set forceClean
-  // as if --output-dir was given on the command line, to ensure proper cleanup
+  // command built this context. On the render path also set forceClean as if
+  // --output-dir was given on the command line, to ensure proper cleanup.
   const outputDir = result.config?.project?.["output-dir"];
   if (outputDir) {
-    const willForceClean = renderOptions
-      ? renderOptions.flags?.clean !== false
-      : undefined;
-    const outcome = willForceClean === undefined
-      ? "Output will go to that directory when the file is rendered."
-      : `Output will go to that directory. The temporary .quarto directory will ${
-        willForceClean
-          ? "be cleaned up"
-          : "NOT be cleaned up (--no-clean specified)"
-      } after rendering.`;
-    const message =
-      `An extension contributed 'output-dir: ${outputDir}' metadata for a single file.\n` +
-      `${outcome}\n` +
+    const intro =
+      `An extension contributed 'output-dir: ${outputDir}' metadata for a single file.\n`;
+    const hint =
       "To suppress this warning, use --output-dir flag instead of extension metadata.";
-    if (renderOptions && willForceClean !== undefined) {
-      warning(message);
+    if (renderOptions) {
+      const willForceClean = renderOptions.flags?.clean !== false;
+      warning(
+        `${intro}Output will go to that directory. The temporary .quarto directory will ${
+          willForceClean
+            ? "be cleaned up"
+            : "NOT be cleaned up (--no-clean specified)"
+        } after rendering.\n${hint}`,
+      );
       renderOptions.forceClean = willForceClean;
     } else {
       // inspect, publish and serve build a context repeatedly, and the user
       // cannot act on this at that point, so say it once per process
-      warnOnce(message);
+      warnOnce(
+        `${intro}Output will go to that directory when the file is rendered.\n${hint}`,
+      );
     }
   }
   return result;
