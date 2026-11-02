@@ -1,12 +1,13 @@
 ---
-main_commit: e5850df75
-analyzed_date: 2026-09-15
+main_commit: 6d9dd8c6d
+analyzed_date: 2026-11-02
 key_files:
   - .github/workflows/test-smokes.yml
   - .github/workflows/test-smokes-parallel.yml
   - .github/workflows/test-ff-matrix.yml
   - src/tools/github.ts
   - tests/test.ts
+  - tests/run-tests.sh
   - tests/gha-grouping.ts
   - tests/integration/playwright-tests.test.ts
   - tests/tools/check-gha-log.ts
@@ -29,6 +30,9 @@ There are two execution paths:
   used by `test-smokes.yml`) invokes separate `deno test` processes for test
   files, and invokes `smoke-all.test.ts` separately for each smoke-all document.
   It leaves the flag unset, so each invocation is independently harness-owned.
+  On GitHub Actions the timing loop captures each invocation, groups a passing
+  one under its target name with the harness's own markers removed, and replays
+  a failing one unchanged.
 - **Orchestrated:** A workflow loop invokes `run-tests` once per file (or
   bucket of files) and sets `QUARTO_TESTS_GHA_ORCHESTRATED=1`. The loop owns
   groups and bucket-level annotations; the harness emits only step-summary
@@ -62,6 +66,14 @@ For harness-owned runs:
 Deno creates a separate module graph for each test file and fires `unload` once
 per file. Module-level grouping and summary state is therefore per file, not per
 `deno test` process.
+
+Deno prints the `pre-test output` / `post-test output` banners and its final
+`ok |` summary outside anything the harness can group, so only the parent of the
+`deno test` process can collapse them. That is why the timing loop in
+`run-tests.sh` (`run_timed`) does it: it wraps a passing invocation in one
+group and drops the harness's own group markers so groups never nest. A failing
+invocation is replayed verbatim, keeping failure lines outside groups.
+`tests/run-tests-timing-gha.test.sh` covers this with a stub `deno`.
 
 Workflow command markers must start at column 0 and end with a newline. ANSI
 color is valid in group bodies but must be removed from annotations and step
