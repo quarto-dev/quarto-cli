@@ -16,7 +16,7 @@ runs:
       uses: actions/cache@v5
       with:
         path: ./package/dist/bin/deno_cache
-        key: ${{ runner.os }}-${{ runner.arch }}-deno-cache-v1-${{ hashFiles('configuration', 'src/import_map.json', 'src/vendor_deps.ts', 'tests/test-deps.ts', 'package/scripts/deno_std/deno_std.ts') }}
+        key: ${{ runner.os }}-${{ runner.arch }}-deno-cache-v1-${{ hashFiles('configuration', 'src/import_map.json', 'src/vendor_deps.ts', 'tests/test-deps.ts', 'package/scripts/deno_std/deno_std.ts', 'deno.lock') }}
         restore-keys: |
           ${{ runner.os }}-${{ runner.arch }}-deno-cache-v1-
 
