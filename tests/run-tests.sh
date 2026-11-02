@@ -169,7 +169,6 @@ run_timed() {
   if [ "$status" -eq 0 ]; then
     echo "::group::${label}"
     grep -Ev '^::(group::|endgroup::)' "$tmp"
-    if [ -s "$tmp" ] && [ -n "$(tail -c 1 "$tmp")" ]; then echo; fi
     echo "::endgroup::"
   else
     cat "$tmp"

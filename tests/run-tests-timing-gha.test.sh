@@ -33,20 +33,48 @@ tr -d '\r' < "$REPO_ROOT/tests/run-tests.sh" > "$TMP/tests/run-tests.sh"
 tr -d '\r' < "$REPO_ROOT/package/scripts/common/utils.sh" > "$TMP/package/scripts/common/utils.sh"
 chmod +x "$TMP/tests/run-tests.sh"
 
-# Stub deno imitating a harness-owned Deno run: banners around module-level
-# output, the harness's own group markers, and Deno's end-of-run summary.
+# Stub deno. STUB_MODE selects what it prints:
+#   harness (default) - harness-owned run: banners, the harness's own group
+#                       markers, Deno's end-of-run summary
+#   plain             - plain Deno.test file: no banners, no markers
+#   markers_only      - nothing but harness group markers
+#   empty             - no output at all
+# STUB_EXIT sets the exit code; STUB_NO_TRAILING_NL appends an unterminated line.
 cat > "$TMP/package/dist/bin/tools/stub/deno" <<'EOF'
 #!/usr/bin/env bash
-echo "------- pre-test output -------"
-echo "::group::smoke/smoke-all.test.ts"
-echo "----- pre-test output end -----"
-echo "running 1 test from ./smoke/smoke-all.test.ts"
-echo "STUB-BODY"
-echo "------- post-test output -------"
-echo "::endgroup::"
-echo "----- post-test output end -----"
-echo
-if [ "${STUB_EXIT:-0}" -eq 0 ]; then echo "ok | 1 passed | 0 failed (1s)"; else echo "FAILED | 0 passed | 1 failed (1s)"; fi
+summary() {
+  if [ "${STUB_EXIT:-0}" -eq 0 ]; then echo "ok | 1 passed | 0 failed (1s)"; else echo "FAILED | 0 passed | 1 failed (1s)"; fi
+}
+case "${STUB_MODE:-harness}" in
+  harness)
+    echo "------- pre-test output -------"
+    echo "::group::smoke/smoke-all.test.ts"
+    echo "----- pre-test output end -----"
+    echo "running 1 test from ./smoke/smoke-all.test.ts"
+    echo "STUB-BODY"
+    echo "------- post-test output -------"
+    echo "::endgroup::"
+    echo "----- post-test output end -----"
+    echo
+    summary
+    ;;
+  plain)
+    echo "running 1 test from ./foo.test.ts"
+    echo "PLAIN-BODY"
+    echo
+    summary
+    ;;
+  markers_only)
+    echo "::group::smoke/smoke-all.test.ts"
+    echo "::endgroup::"
+    ;;
+  empty)
+    ;;
+  *)
+    echo "stub deno: unknown STUB_MODE=$STUB_MODE" >&2
+    exit 99
+    ;;
+esac
 [ -n "${STUB_NO_TRAILING_NL:-}" ] && printf 'TAIL-NO-NL'
 exit "${STUB_EXIT:-0}"
 EOF
@@ -134,6 +162,8 @@ echo "PASS: D: GHA passing test file is grouped under its path"
 run_timing "$SMOKE" GITHUB_ACTIONS=true STUB_NO_TRAILING_NL=1
 [ "$(tail -n 1 "$OUT")" = "::endgroup::" ] || fail "E: last line is not exactly ::endgroup:: (output: $OUT)"
 [ -n "$(line_of "TAIL-NO-NL")" ] || fail "E: 'TAIL-NO-NL' must sit on its own line (output: $OUT)"
+e=$(line_of "::endgroup::")
+[ "$(sed -n "$((e - 1))p" "$OUT")" = "TAIL-NO-NL" ] || fail "E: blank or extra line between 'TAIL-NO-NL' and ::endgroup:: (output: $OUT)"
 echo "PASS: E: ::endgroup:: starts at column 0 after output without trailing newline"
 
 # --- F. GHA fail, capture setup fails ---
@@ -142,3 +172,68 @@ run_timing "$SMOKE" GITHUB_ACTIONS=true STUB_EXIT=1 TMPDIR="$TMP/does-not-exist"
 grep -q 'Command exited with non-zero status 1' "$TIMING" || fail "F: timing file lacks the non-zero status record"
 [ "$RC" -ne 0 ] || fail "F: expected non-zero exit code (output: $OUT)"
 echo "PASS: F: command still runs and failure is recorded when capture setup fails"
+
+# --- G1. GHA pass, marker-free test file ---
+run_timing "foo.test.ts" GITHUB_ACTIONS=true STUB_MODE=plain
+[ "$(count_of "::group::foo.test.ts")" -eq 1 ] || fail "G1: expected exactly one '::group::foo.test.ts' line (output: $OUT)"
+[ "$(count_prefix "::group::")" -eq 1 ] || fail "G1: expected the wrapper to be the only group (output: $OUT)"
+[ "$(count_of "::endgroup::")" -eq 1 ] || fail "G1: expected exactly one ::endgroup:: line (output: $OUT)"
+g=$(line_of "::group::foo.test.ts"); e=$(line_of "::endgroup::")
+b=$(line_of "PLAIN-BODY" "$g"); k=$(line_of "ok | 1 passed | 0 failed (1s)" "$g")
+{ [ -n "$g" ] && [ -n "$e" ] && [ -n "$b" ] && [ -n "$k" ] && [ "$b" -lt "$e" ] && [ "$k" -lt "$e" ]; } || fail "G1: body and 'ok |' line not inside the group (output: $OUT)"
+[ "$(tail -n 1 "$OUT")" = "::endgroup::" ] || fail "G1: last line is not exactly ::endgroup:: (output: $OUT)"
+[ "$RC" -eq 0 ] || fail "G1: expected exit code 0, got $RC (output: $OUT)"
+grep -qxF "foo.test.ts" "$TIMING" || fail "G1: timing file lacks the foo.test.ts entry"
+! grep -q 'Command exited with non-zero status' "$TIMING" || fail "G1: timing file records a non-zero status"
+echo "PASS: G1: GHA passing marker-free test file is grouped under its path"
+
+# --- G2. GHA fail, marker-free test file ---
+run_timing "foo.test.ts" GITHUB_ACTIONS=true STUB_MODE=plain STUB_EXIT=1
+[ "$(count_prefix "::group::")" -eq 0 ] || fail "G2: failing run must not get a wrapper group (output: $OUT)"
+[ "$(count_of "::endgroup::")" -eq 0 ] || fail "G2: failing marker-free run printed an ::endgroup:: (output: $OUT)"
+t=$(line_of "> timing foo.test.ts"); b=$(line_of "PLAIN-BODY" "$t"); f=$(line_of "FAILED | 0 passed | 1 failed (1s)" "$b")
+{ [ -n "$t" ] && [ -n "$b" ] && [ -n "$f" ]; } || fail "G2: output not replayed verbatim after '> timing' (output: $OUT)"
+[ "$RC" -ne 0 ] || fail "G2: expected non-zero exit code (output: $OUT)"
+grep -q 'Command exited with non-zero status 1' "$TIMING" || fail "G2: timing file lacks the non-zero status record"
+echo "PASS: G2: GHA failing marker-free test file is replayed unchanged"
+
+# --- G3/G4. GHA pass, marker-only and empty output, two targets ---
+# grep -Ev filters out every line (exit status 1); the run must still produce
+# an empty group per target and go on to the next target.
+for mode in markers_only empty; do
+  c="G3"; [ "$mode" = empty ] && c="G4"
+  run_timing "foo.test.ts bar.test.ts" GITHUB_ACTIONS=true STUB_MODE="$mode"
+  [ "$(count_of "::group::smoke/smoke-all.test.ts")" -eq 0 ] || fail "$c: harness group line leaked into the replay (output: $OUT)"
+  [ "$(count_prefix "::group::")" -eq 2 ] || fail "$c: expected exactly two group lines (output: $OUT)"
+  [ "$(count_of "::endgroup::")" -eq 2 ] || fail "$c: expected exactly two ::endgroup:: lines (output: $OUT)"
+  g1=$(line_of "::group::foo.test.ts"); e1=$(line_of "::endgroup::" "$g1")
+  g2=$(line_of "::group::bar.test.ts" "$e1"); e2=$(line_of "::endgroup::" "$g2")
+  { [ -n "$g1" ] && [ -n "$e1" ] && [ -n "$g2" ] && [ -n "$e2" ]; } || fail "$c: groups missing or out of order, second target may not have run (output: $OUT)"
+  { [ "$e1" -eq $((g1 + 1)) ] && [ "$e2" -eq $((g2 + 1)) ]; } || fail "$c: expected empty groups, ::endgroup:: right after ::group:: (output: $OUT)"
+  [ "$(tail -n 1 "$OUT")" = "::endgroup::" ] || fail "$c: last line is not exactly ::endgroup:: (output: $OUT)"
+  [ "$RC" -eq 0 ] || fail "$c: expected exit code 0, got $RC (output: $OUT)"
+  { grep -qxF "foo.test.ts" "$TIMING" && grep -qxF "bar.test.ts" "$TIMING"; } || fail "$c: timing file lacks an entry"
+  ! grep -q 'Command exited with non-zero status' "$TIMING" || fail "$c: timing file records a non-zero status"
+  echo "PASS: $c: GHA passing $mode run gives an empty group and does not stop the loop"
+done
+
+# --- G5. run_timed's own return value ---
+# The script's exit code comes from the timing file, so it cannot reveal a
+# filter status leaking out of run_timed; call the function directly.
+awk '/^run_timed\(\) \{/,/^\}/' "$TMP/tests/run-tests.sh" > "$TMP/run_timed.sh"
+grep -q '^run_timed() {' "$TMP/run_timed.sh" || fail "G5: could not extract run_timed from run-tests.sh"
+call_run_timed() {  # call_run_timed <STUB_MODE> <STUB_EXIT>; status in RC
+  ( set +u
+    export GITHUB_ACTIONS=true STUB_MODE="$1" STUB_EXIT="$2" QUARTO_TEST_TIMING="$TMP/g5-timing.txt"
+    unset QUARTO_TESTS_GHA_ORCHESTRATED STUB_NO_TRAILING_NL
+    source "$TMP/run_timed.sh"
+    run_timed g5 "$TMP/package/dist/bin/tools/stub/deno" ) > "$OUT" 2>&1
+  RC=$?
+}
+for mode in markers_only empty; do
+  call_run_timed "$mode" 0
+  [ "$RC" -eq 0 ] || fail "G5: run_timed returned $RC for a passing $mode run, filter status leaked (output: $OUT)"
+done
+call_run_timed plain 3
+[ "$RC" -eq 3 ] || fail "G5: run_timed returned $RC, expected the command's status 3 (output: $OUT)"
+echo "PASS: G5: run_timed returns the command's status, never the filter's"
