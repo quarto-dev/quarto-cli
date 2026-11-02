@@ -1,0 +1,38 @@
+---
+_quarto: {}
+title: inline jupyter expressions
+toc-title: Table of contents
+---
+
+::: {.cell execution_count="1"}
+``` {.python .cell-code}
+from IPython.display import Markdown
+x = 1
+y = "foo"
+z = '"foo"'
+a = '"foo'
+b = '*foo*'
+c = "*foo*"
+d = "'foo"
+e = "1"
+f = False
+g = True
+h = None
+i = Markdown("*foo*")
+```
+:::
+
+Here's inline output:
+
+-   1
+-   foo
+-   "foo"
+-   "foo
+-   \*foo\*
+-   \*foo\*
+-   'foo
+-   1
+-   False
+-   True
+-   None
+-   *foo*
