@@ -1,0 +1,61 @@
+---
+documentclass: article
+classoption: twocolumn
+references:
+  - id: doe2020
+    type: article-journal
+    title: Example study
+    author:
+      - family: Doe
+        given: Jane
+    issued:
+      date-parts: [[2020]]
+---
+
+See @tbl-wide, @tbl-bottom, and @tbl-after.
+
++----------------------+----------------------+
+| Category             | Value                |
++======================+======================+
+| Spanning both columns                       |
++----------------------+----------------------+
+| Row span             | First [@doe2020]     |
++                      +----------------------+
+|                      | Second               |
++----------------------+----------------------+
+
+: Wide caption {#tbl-wide .column-page tbl-pos="t" tbl-cap-location="bottom" fig-scap="Short wide caption"}
+
+| Name | Value |
+|------|------:|
+| Bottom^[Table note text.] | 2 |
+
+: Bottom caption {#tbl-bottom .float tbl-cap-location="bottom" tbl-colwidths="[30,70]"}
+
+::: {layout-ncol=2}
+
+| Name | Value |
+|------|------:|
+| Left | 3 |
+
+| Name | Value |
+|------|------:|
+| Right | 4 |
+
+:::
+
+| Name | Value |
+|------|------:|
+| After | 5 |
+
+: After caption {#tbl-after}
+
+```{=latex}
+\begin{table*}[t]
+\ifdim\linewidth<\textwidth
+  \errmessage{Double-column table lost its full text width}
+\fi
+\centering
+Native double-column table.
+\end{table*}
+```

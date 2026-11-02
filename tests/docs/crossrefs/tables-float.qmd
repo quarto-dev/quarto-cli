@@ -1,0 +1,17 @@
+---
+documentclass: article
+---
+
+See @tbl-long and @tbl-float.
+
+| Name | Value |
+|------|------:|
+| Long | 1 |
+
+: Default caption {#tbl-long}
+
+| Name | Value |
+|------|------:|
+| Float | 2 |
+
+: Floating caption {#tbl-float .float tbl-pos="t"}

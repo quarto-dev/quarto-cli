@@ -99,3 +99,62 @@ function table_classes()
   }
 
 end
+
+-- Use Pandoc's floating tables for ordinary tables in a two-column document.
+-- Panels, subtables, and margin/full-width tables have their own renderers.
+function latex_table_floats()
+  if not _quarto.format.isLatexOutput() then
+    return {}
+  end
+  return {
+    Pandoc = function(doc)
+      local twocolumn = false
+      local options = doc.meta.classoption or {}
+      if pandoc.utils.type(options) == "Inlines" or type(options) == "string" then
+        options = { options }
+      end
+      for _, value in ipairs(options) do
+        for option in pandoc.utils.stringify(value):gmatch("[^,%s]+") do
+          if option == "twocolumn" then
+            twocolumn = true
+          elseif option == "onecolumn" then
+            twocolumn = false
+          end
+        end
+      end
+      if not twocolumn then
+        return nil
+      end
+
+      local function add_float(el)
+        if el.classes:find_if(isStarEnv) or el.classes:find_if(isMarginEnv) then
+          return nil
+        end
+        if not el.classes:includes("float") then
+          el.classes:insert("float")
+        end
+        return el
+      end
+      return _quarto.ast.walk(doc, {
+        traverse = "topdown",
+        Div = function(div)
+          if attr_requires_panel_layout(div.attr) or
+              div.classes:find_if(isStarEnv) or div.classes:find_if(isMarginEnv) then
+            return nil, false
+          end
+        end,
+        FloatRefTarget = function(float)
+          if not float.parent_id and ref_type_from_float(float) == "tbl" and
+              float.content and float.content.t == "Table" then
+            add_float(float)
+          end
+          -- Other floats (including panels) must not acquire nested floats.
+          return float, false
+        end,
+        Table = function(tbl)
+          return add_float(tbl), false
+        end
+      })
+    end
+  }
+end

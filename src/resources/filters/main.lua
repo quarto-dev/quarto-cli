@@ -567,6 +567,10 @@ local quarto_post_filters = {
     filter = render_typst_brand_yaml(),
     traverser = 'jog',
   },
+  { name = "post-render-markdown-code-languages",
+    filter = preserve_markdown_code_languages(),
+    traverser = 'jog',
+  },
   { name = "post-render-gfm-fixups",
     filter = render_gfm_fixups(),
     traverser = 'jog',
@@ -638,6 +642,7 @@ local quarto_finalize_filters = {
 }
 
 local quarto_layout_filters = {
+  { name = "layout-latex-table-floats", filter = latex_table_floats() },
   { name = "manuscript filtering",
     filter = manuscript(),
     traverser = 'jog',

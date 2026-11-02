@@ -29,7 +29,8 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - - '/ Loose term: #block\['
-          - '/ Inner term: #block\['
+          # Pandoc 3.10.1 emits tight plain definitions without a block wrapper.
+          - '/ Inner term:\s*(?:#block\[\s*)?Inner definition\.'
           - '/ Table term: #block\[\s*#table\('
         - []
 ---

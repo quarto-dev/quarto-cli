@@ -1,0 +1,22 @@
+---
+documentclass: article
+classoption: [a4paper, twocolumn]
+---
+
+| Name | Value |
+|------|------:|
+| List option | 1 |
+
+: List caption {#tbl-list}
+
+::: {layout-ncol=2}
+
+| Name | Value |
+|------|------:|
+| Left | 2 |
+
+| Name | Value |
+|------|------:|
+| Right | 3 |
+
+:::
