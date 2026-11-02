@@ -301,7 +301,10 @@ const sidebarContentsHandler = (context: NavigationPipelineContext) => {
       );
       for (let i = 0; i < sidebarSectionEls.length; i++) {
         const sectionEl = sidebarSectionEls[i] as Element;
-        const target = sectionEl.getAttribute("data-bs-target");
+        // The toggle has data-bs-target whether or not the section has an href
+        const target = sectionEl.parentElement
+          ?.querySelector(".sidebar-item-toggle")
+          ?.getAttribute("data-bs-target");
 
         if (target) {
           const id = target.slice(1);
