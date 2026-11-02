@@ -1,7 +1,5 @@
 All changes included in 1.12:
 
-
-
 ## Commands
 
 ### `quarto preview`

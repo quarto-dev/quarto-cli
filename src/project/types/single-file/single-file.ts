@@ -131,9 +131,9 @@ export async function singleFileProjectContext(
   if (outputDir) {
     const intro =
       `An extension contributed 'output-dir: ${outputDir}' metadata for a single file.\n`;
-    const hint =
-      "To suppress this warning, use --output-dir flag instead of extension metadata.";
     if (renderOptions) {
+      const hint =
+        "To suppress this warning, use --output-dir flag instead of extension metadata.";
       const willForceClean = renderOptions.flags?.clean !== false;
       warning(
         `${intro}Output will go to that directory. The temporary .quarto directory will ${
@@ -147,7 +147,7 @@ export async function singleFileProjectContext(
       // inspect, publish and serve build a context repeatedly, and the user
       // cannot act on this at that point, so say it once per process
       warnOnce(
-        `${intro}Output will go to that directory when the file is rendered.\n${hint}`,
+        `${intro}Output will go to that directory when the file is rendered.`,
       );
     }
   }

@@ -176,10 +176,12 @@ const mergeExtensionMetadata = async (
         );
       }
     }
-    context.config.project = mergeProjectMetadata(
-      context.config.project,
-      ...projectMetadata,
-    );
+    if (projectMetadata.length) {
+      context.config.project = mergeProjectMetadata(
+        context.config.project,
+        ...projectMetadata,
+      );
+    }
   }
 };
 
