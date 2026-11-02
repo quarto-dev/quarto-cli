@@ -5,7 +5,8 @@
 *
 */
 
-import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles, findMissingHyphenationPackages } from "../../../src/command/render/latexmk/parse-error.ts"
+import { detectBabelFallback, findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles, findMissingHyphenationPackages } from "../../../src/command/render/latexmk/parse-error.ts"
+import babelHyphen from "../../../src/command/render/latexmk/babel-hyphen.json" with { type: "json" };
 import { unitTest } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 
@@ -430,6 +431,201 @@ unitTest("Detect missing hyphenation from a language description with spaces", a
 (babel)                rebuild the format. Now I will use the patterns
 (babel)                preloaded for \\language=0 instead on input line 1260.`;
   assertEquals(findMissingHyphenationFiles(log), ["hyphen-german"]);
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("babel-hyphen.json maps are well-formed", async () => {
+  const maps: Record<string, Record<string, string>> = babelHyphen;
+  const keyPattern: Record<string, RegExp> = {
+    hyphen_synonyms: /^[a-z0-9-]+$/,
+    babel_hyphen_map: /^[a-z0-9.-]+$/,
+    babel_hyphen_codes: /^[a-z0-9-]+$/,
+  };
+  for (const [name, keys] of Object.entries(keyPattern)) {
+    const map = maps[name];
+    assert(Object.keys(map).length > 0, `${name} is empty`);
+    for (const [k, v] of Object.entries(map)) {
+      assert(keys.test(k), `${name} key ${k} is malformed`);
+      assert(/^[a-z0-9-]+$/.test(v), `${name}[${k}] = ${v} is malformed`);
+    }
+  }
+  const map = maps.babel_hyphen_map;
+  assertEquals(map["spanish"], "spanish");
+  assertEquals(map["mexican"], "spanish");
+  assertEquals(map["spanish-mx"], "spanish");
+  assertEquals(map["canadianfrench"], "french");
+  assertEquals(map["austrian"], "ngerman-x-latest");
+  const codes = maps.babel_hyphen_codes;
+  assertEquals(codes["es"], "spanish");
+  assertEquals(codes["es-mx"], "spanish");
+  assertEquals(codes["fr-ca"], "french");
+  assertEquals(codes["de-at"], "ngerman-x-latest");
+  assertEquals(maps.hyphen_synonyms["ngerman-x-latest"], "ngerman-x-2024-02-28");
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Detect missing hyphenation patterns for babel .ini locales", async () => {
+  // Real lualatex logs from rstudio/tinytex#522 (babel v26.13, TeX Live 2026):
+  // babel loads a language from its .ini file and, without the patterns,
+  // silently falls back to another language with an Info line only.
+  const spanish = [
+    "Package babel Info: Importing data for 'spanish'",
+    "(babel)             from babel-es.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'spanish' set to \\l@english",
+    "(babel)             (\\language0). Reported on input line 3.",
+  ];
+  const x = spanish.join("\n");
+
+  // \babelprovide[import]{canadianfrench,austrian,mexican} with hyphen-english,
+  // hyphen-french and hyphen-german installed: only mexican is a fallback. The
+  // english.ldf dialects (canadian, australian) have no Importing line.
+  const y = [
+    "Package babel Info: Importing font and identification data for 'english'",
+    "(babel)             from babel-en.ini. Reported on input line 4478.",
+    "Package babel Info: Hyphen rules for 'canadian' set to \\l@english",
+    "(babel)             (\\language0). Reported on input line 102.",
+    "Package babel Info: Hyphen rules for 'australian' set to \\l@ukenglish",
+    "(babel)             (\\language6). Reported on input line 105.",
+    "Package babel Info: Importing data for 'canadianfrench'",
+    "(babel)             from babel-fr-CA.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'canadianfrench' set to \\l@french",
+    "(babel)             (\\language8). Reported on input line 3.",
+    "Package babel Info: Importing data for 'austrian'",
+    "(babel)             from babel-de-AT.ini. Reported on input line 4.",
+    "Package babel Info: Hyphen rules for 'austrian' set to \\l@ngerman-x-2024-02-28",
+    "(babel)             (\\language5). Reported on input line 4.",
+    "Package babel Info: Importing data for 'mexican'",
+    "(babel)             from babel-es-MX.ini. Reported on input line 5.",
+    "Package babel Info: Hyphen rules for 'mexican' set to \\l@english",
+    "(babel)             (\\language0). Reported on input line 5.",
+  ].join("\n");
+
+  // a fallback to \l@nil (no hyphenation) is a fallback too (#8684)
+  const z = [
+    "Package babel Info: Importing data for 'spanish'",
+    "(babel)             from babel-es.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'spanish' set to \\l@nil",
+    "(babel)             (\\language23). Reported on input line 3.",
+  ].join("\n");
+
+  // custom language names: only the .ini file name points to the patterns
+  const w = [
+    "Package babel Info: Importing data for 'myspanish'",
+    "(babel)             from babel-es.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'myspanish' set to \\l@english",
+    "(babel)             (\\language0). Reported on input line 3.",
+    "Package babel Info: Importing data for 'mycanadian'",
+    "(babel)             from babel-fr-CA.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'mycanadian' set to \\l@french",
+    "(babel)             (\\language8). Reported on input line 3.",
+  ].join("\n");
+
+  assertEquals(findMissingHyphenationFiles(x), ["hyphen-spanish"]);
+  assertEquals(findMissingHyphenationFiles(y), ["hyphen-spanish"]);
+  assertEquals(findMissingHyphenationFiles(z), ["hyphen-spanish"]);
+  assertEquals(findMissingHyphenationFiles(w), ["hyphen-spanish"]);
+  for (const log of [x, y, z, w]) {
+    assertEquals(detectBabelFallback(log), ["hyphen-spanish"]);
+  }
+  assertEquals(detectBabelFallback(""), []);
+
+  // no Importing line: no detection
+  assertEquals(
+    findMissingHyphenationFiles("Package babel Info: Hyphen rules for 'spanish' set to \\l@english"),
+    [],
+  );
+  assertEquals(findMissingHyphenationFiles(""), []);
+
+  // locale names that are properties of Object.prototype are not in the maps
+  assertEquals(
+    findMissingHyphenationFiles([
+      "Package babel Info: Importing data for 'constructor'",
+      "(babel)             from babel-toString.ini. Reported on input line 3.",
+      "Package babel Info: Hyphen rules for 'constructor' set to \\l@english",
+    ].join("\n")),
+    [],
+  );
+
+  // Windows TeX logs use CRLF
+  assertEquals(findMissingHyphenationFiles(spanish.join("\r\n")), ["hyphen-spanish"]);
+
+  // synthetic log: language.dat names can be mixed case (UKenglish)
+  assertEquals(
+    findMissingHyphenationFiles([
+      "Package babel Info: Importing data for 'british'",
+      "(babel)             from babel-en-GB.ini. Reported on input line 3.",
+      "Package babel Info: Hyphen rules for 'british' set to \\l@UKenglish",
+    ].join("\n")),
+    [],
+  );
+
+  // synthetic logs: an .ini without hyphenrules (not in babel_hyphen_codes)
+  // expects the patterns named like the locale if it is a language.dat name
+  assertEquals(
+    findMissingHyphenationFiles([
+      "Package babel Info: Importing data for 'swissgerman'",
+      "(babel)             from babel-gsw.ini. Reported on input line 3.",
+      "Package babel Info: Hyphen rules for 'swissgerman' set to \\l@english",
+    ].join("\n")),
+    ["hyphen-german"],
+  );
+  // ... and expects none otherwise (#10291)
+  assertEquals(
+    findMissingHyphenationFiles([
+      "Package babel Info: Importing data for 'chinese'",
+      "(babel)             from babel-zh.ini. Reported on input line 3.",
+      "Package babel Info: Hyphen rules for 'chinese' set to \\l@nil",
+    ].join("\n")),
+    [],
+  );
+
+  // warnings first, then the fallback
+  const italian = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'Italian' into the format.`;
+  assertEquals(
+    findMissingHyphenationFiles(`${x}\n\n${italian}`),
+    ["hyphen-italian", "hyphen-spanish"],
+  );
+}, {
+  cwd: () => "unit/latexmk/"
+})
+
+unitTest("Ignore babel .ldf languages and detect basic and unquoted .ini imports", async () => {
+  // Real lualatex logs (babel v26.13, TeX Live 2026, hyphen-german installed):
+  // languages loaded from an .ldf file (what Pandoc emits for lang: de-AT and
+  // de-CH) log the identification-only import, then their dialect patterns
+  // (\l@ngerman, \l@german), which are not a fallback.
+  const ldf = (locale: string, ini: string, target: string) =>
+    [
+      `Package babel Info: Importing font and identification data for '${locale}'`,
+      `(babel)             from babel-${ini}.ini. Reported on input line 4478.`,
+      `Package babel Info: Hyphen rules for '${locale}' set to \\l@${target}`,
+      "(babel)             (\\language10). Reported on input line 200.",
+    ].join("\n");
+  assertEquals(findMissingHyphenationFiles(ldf("naustrian", "de-AT", "ngerman")), []);
+  assertEquals(findMissingHyphenationFiles(ldf("nswissgerman", "de-CH", "ngerman")), []);
+  assertEquals(findMissingHyphenationFiles(ldf("austrian", "de-AT", "german")), []);
+
+  // \babelprovide{spanish} without `import` logs the basic level
+  const basic = [
+    "Package babel Info: Importing basic data for 'spanish'",
+    "(babel)             from babel-es.ini. Reported on input line 12.",
+    ")",
+    "Package babel Info: Hyphen rules for 'spanish' set to \\l@nil",
+  ].join("\n");
+  assertEquals(findMissingHyphenationFiles(basic), ["hyphen-spanish"]);
+
+  // babel 3.84 and later until the quoting change write the language name
+  // without quotes in the Importing line (synthetic log from babel.dtx)
+  const unquoted = [
+    "Package babel Info: Importing data for spanish",
+    "(babel)             from babel-es.ini. Reported on input line 3.",
+    "Package babel Info: Hyphen rules for 'spanish' set to \\l@nil",
+    "(babel)             (\\language23). Reported on input line 3.",
+  ].join("\n");
+  assertEquals(findMissingHyphenationFiles(unquoted), ["hyphen-spanish"]);
 }, {
   cwd: () => "unit/latexmk/"
 })
