@@ -337,7 +337,7 @@ Dry run first, show it, remove only after approval. The release branches were cr
 
 ```bash
 for x in "$QC|$W|upstream/main" "$QW|$P|upstream/prerelease" "$QW|$M|upstream/main" "$PYPI|$Y|origin/main"; do
-  IFS='|' read repo wt rb <<< "$x"; git -C "$wt" fetch -q "${rb%%/*}"
+  IFS='|' read -r repo wt rb <<< "$x"; git -C "$wt" fetch -q "${rb%%/*}"
   b=$(git -C "$wt" branch --show-current)
   d=$(git -C "$wt" status --porcelain | wc -l)
   git -C "$wt" merge-base --is-ancestor HEAD "$rb" && m=merged || m=NOT-MERGED
