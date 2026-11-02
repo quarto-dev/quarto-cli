@@ -1,0 +1,32 @@
+---
+title: "Code annotation line highlight contrast"
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    respect-user-color-scheme: true
+code-annotations: below
+---
+
+```{.python}
+# Some comment
+# to avoid overlapping copy button and annotation marker
+import polars as pl # <1>
+df = pl.DataFrame({"a": [1, 2]}) # <2>
+df.head() # <2>
+```
+
+1. Import the library.
+2. Build and show a data frame.
+
+```{.python code-line-numbers="true"}
+# Some comment
+# to avoid overlapping copy button and annotation marker
+import polars as pl # <1>
+df = pl.DataFrame({"a": [1, 2]}) # <2>
+df.head() # <2>
+```
+
+1. Import the library.
+2. Build and show a data frame.

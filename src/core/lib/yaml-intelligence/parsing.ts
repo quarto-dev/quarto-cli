@@ -56,7 +56,7 @@ export async function getTreeSitter(): Promise<any> {
 
   const treeSitterYamlJson = (await import(
     "../../../resources/editor/tools/yaml/tree-sitter-yaml.json",
-    { assert: { type: "json" } }
+    { with: { type: "json" } }
   )).default as { data: number[] };
 
   const YAML = await Parser.Language.load(

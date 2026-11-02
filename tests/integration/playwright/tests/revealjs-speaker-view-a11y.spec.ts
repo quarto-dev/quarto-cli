@@ -21,10 +21,13 @@ test.describe('revealjs speaker view accessibility (#15159, #15160)', () => {
     const indices = await page.evaluate(() => (window as any).Reveal.getIndices());
     await select.focus();
     await expect(speaker.locator('#speaker-layout')).toHaveCSS('outline-style', 'solid');
-    await select.press('ArrowDown');
+    await select.selectOption('wide');
     await expect(select).toHaveValue('wide');
     await expect(speaker.locator('.speaker-layout-value')).toHaveText(': Wide');
     await expect(select).toHaveAccessibleName('Layout');
+    // Arrow keys on a closed select open the popup on macOS and change the
+    // value elsewhere, so only the deck position is checked after the press.
+    await select.press('ArrowDown');
     // Speaker-to-deck state forwarding is debounced by 500 ms. Check after
     // that window so a select arrow key cannot silently advance the deck. The
     // first slide has a fragment, so compare the fragment index too.

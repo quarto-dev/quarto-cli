@@ -1,6 +1,6 @@
 Change version numbers in `./configuration` to correspond to new versions.
 
-Update hardcoded version strings in `src/command/check/check.ts` (`versionConstraints` array, ~line 249) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment.
+Update hardcoded version strings in `src/command/check/check.ts` (the `versionConstraints` array in `checkVersions`) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment, and `tests/smoke/check/check-versions-no-mismatch.test.ts` fails until they match.
 
 ## Verify installer signing & notarization before merging (bundled binaries)
 

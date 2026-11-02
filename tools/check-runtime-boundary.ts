@@ -107,15 +107,22 @@ const kCommentLineRe = /^\s*(\/\/|\/\*|\*)/;
 const kStdImportAllRe = new RegExp(kStdImportRe.source, "g");
 
 /** Per-file counts. `deno` maps the API key to its occurrences: "build.os" for `Deno.build.os`,
- * "readTextFileSync" for `Deno.readTextFileSync(`, "" for a `Deno.` followed by no identifier,
- * so the sum equals the old \bDeno\. count. `std` lists counted std specifiers (allow-listed excluded), in source order, duplicates kept. */
+ * "readTextFileSync" for `Deno.readTextFileSync(`, "" for a `Deno.` followed by no identifier.
+ * Indirect access keys the same way: `Deno?.errors` and `globalThis["Deno"]?.errors` as "errors",
+ * a bare `globalThis.Deno` or `globalThis["Deno"]` as "". `std` lists counted std specifiers
+ * (allow-listed excluded), in source order, duplicates kept. */
 export interface FileCounts {
   deno: Record<string, number>;
   std: string[];
 }
 
-// The key is read inside a lookahead so a following `Deno.` is never consumed.
-const kDenoRe = /\bDeno\.(?=(\w*)(?:\.(\w+))?)/g;
+// Three alternatives: `Deno.` or `Deno?.`; `globalThis["Deno"]` (any quote, also `globalThis?.[`);
+// a bare `globalThis.Deno` not followed by an access (the first alternative counts that one).
+// The globalThis receiver may be cast, `(globalThis as any)`; requiring it keeps `["Deno"]` in an
+// array or on another object uncounted. The key is read inside a lookahead so a following
+// `Deno.` is never consumed.
+const kDenoRe =
+  /\bDeno\??\.(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*(?:\?\.)?\[\s*["'`]Deno["'`]\s*\](?:\??\.)?(?=(\w*)(?:\??\.(\w+))?)|\bglobalThis(?:\s+as\s+\w+\s*\))?\s*\??\.\s*Deno\b(?!\??\.)/g;
 
 /** Scans every import in the text, so an allow-listed import does not hide a counted one on the
  * same line, and a `from` separated from its specifier by a newline is still seen. Comment lines
@@ -124,7 +131,9 @@ export function countText(text: string): FileCounts {
   // No prototype: `Deno.constructor` or `Deno.__proto__` in a comment must be an ordinary key.
   const deno: Record<string, number> = Object.create(null);
   for (const match of text.matchAll(kDenoRe)) {
-    const key = match[1] + (match[2] ? "." + match[2] : "");
+    const first = match[1] ?? match[3] ?? "";
+    const second = match[2] ?? match[4];
+    const key = first + (second ? "." + second : "");
     deno[key] = (deno[key] ?? 0) + 1;
   }
   const code = text

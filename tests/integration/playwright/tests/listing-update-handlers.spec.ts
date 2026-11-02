@@ -26,8 +26,7 @@ async function countUpdateHandlerRuns(page: Page) {
   });
 }
 
-// A pagination click updates the list twice (list.js and Quarto both handle
-// it), so trigger exactly one update through the List.js API instead.
+// Trigger exactly one update through the List.js API.
 async function updateRunsForOneUpdate(page: Page, listingId: string) {
   return page.evaluate((id) => {
     const w = window as any;
@@ -55,6 +54,18 @@ test.describe("Listing update handlers", () => {
       }
 
       expect(await updateRunsForOneUpdate(page, listingId)).toBe(1);
+    });
+
+    test(`${listingId} updates once per pagination click`, async ({ page }) => {
+      await page.goto(fixture);
+      await countUpdateHandlerRuns(page);
+
+      const id = `listing-${listingId}`;
+      await page.locator(`#${id} .pagination .page-link[data-i="2"]`).click();
+
+      await expect(page).toHaveURL(new RegExp(`${id}-page=2`));
+      expect(await page.evaluate((id) => (window as any).updateRuns[id], id))
+        .toBe(1);
     });
   }
 });

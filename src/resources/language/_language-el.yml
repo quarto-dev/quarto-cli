@@ -95,6 +95,9 @@ navigation-breadcrumbs-label: "Διαδρομή"      # libreoffice sw 'Path' (n
 scrollable-code-label: "Κώδικας με δυνατότητα κύλισης"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Έξοδος με δυνατότητα κύλισης"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+# Accessible name for the Reveal.js slide menu button (never shown as visible text).
+revealjs-menu-button-label: "Μενού διαφανειών"
+
 crossref-fig-title: "Σχήμα"
 crossref-tbl-title: "Πίνακας"
 crossref-lst-title: "Κατάλογος"
