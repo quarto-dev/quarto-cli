@@ -24,7 +24,11 @@
               - `project`: Use the root directory of the project.
         output-dir:
           path:
-            description: "Output directory"
+            description:
+              short: "Output directory"
+              long: >
+              The directory in which all outputs are placed. If a directory with this name
+              already exists, it will be deleted and replaced with a new directory.
         lib-dir:
           path:
             description: "HTML library (JS/CSS/etc.) directory"
