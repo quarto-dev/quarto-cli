@@ -22,5 +22,5 @@ authors:
 title: "Quarto"
 version: "1.11"
 doi: 10.5281/zenodo.5960048
-date-released: 2026-10-30
+date-released: 2026-11-02
 url: "https://github.com/quarto-dev/quarto-cli"
