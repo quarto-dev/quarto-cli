@@ -94,7 +94,6 @@ Order matters. quarto-web's `update-downloads.yml` and `publish.yml` both use th
 
   After committing, the merge must differ from `prerelease` only in `_axe-report.md` (and the step-6 profile line, if any); anything else is drift the check missed. `_quarto.yml` `version` must be `'1.x'`.
 - [ ] **GATE** Push to `main` (direct push; it does not trigger `port-to-prerelease.yml`), wait for Quarto Publish to succeed.
-- [ ] **GATE** Refresh the accessibility reports: `gh workflow run axe-report.yml --repo quarto-dev/quarto-web --ref main`.
 - [ ] **GATE** CITATION on quarto-cli `main`. If the relabel happened on a different date than the one in `CITATION.cff`, do not amend: add a commit `Update CITATION.cff release date for v1.x` on `v1.x`, push it, and cherry-pick it with `-x` too. Rebase onto `upstream/main` (it gained an `Update version.txt` commit from the 1.y build, as expected) and push.
 
 ## 10. quarto-web: merge back, tag, reference pages
@@ -102,6 +101,7 @@ Order matters. quarto-web's `update-downloads.yml` and `publish.yml` both use th
 - [ ] **GATE** Merge `main` into `prerelease` (normally a fast-forward), push, wait for Quarto Publish to succeed.
 - [ ] **GATE** Tag quarto-web `main` to mark when the new site went live: `git tag -a v1.x -m "v1.x" upstream/main && git push upstream v1.x`. It needs only the step 9 push to `main`; it does not wait for the `prerelease` publish.
 - [ ] On both `main` and `prerelease`: `_quarto.yml` `version` is `'1.x'`, `_quarto-prerelease-docs.yml` `version` is `'1.y'`.
+- [ ] **GATE** After the merge-back push, refresh the accessibility reports: `gh workflow run axe-report.yml --repo quarto-dev/quarto-web --ref main`. It commits a report to both `main` and `prerelease`, so running it before the merge-back breaks the fast-forward.
 - [ ] **GATE** Any time after the merge-back push, merge the **Update reference pages (prerelease)** PR (squash, subject `Update reference pages for prerelease v1.y.0`); it can wait until packaging is done. If no such PR is open, start it with `gh workflow run update-prerelease-reference.yml --repo quarto-dev/quarto-web --ref main -f version=1.y.0` and merge the PR it opens.
 - [ ] Publish the release announcement post on the Posit Open Source site (opensource.posit.co; since the June 2026 blog migration it is not a quarto-web PR, and `quarto-web/docs/blog/posts` only redirects there). Date it with the actual release date.
 - [ ] Announce in the #quarto Slack channel, linking the post (its preview while the post is still in review).

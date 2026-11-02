@@ -25,7 +25,7 @@ Guarded push of worktree `<wt>` to branch `<b>` on remote `<r>` (`upstream`, or 
 
 ```bash
 git -C "<wt>" fetch <r>
-git -C "<wt>" merge-base --is-ancestor <r>/<b> HEAD || echo "STOP: <r>/<b> moved"
+git -C "<wt>" merge-base --is-ancestor <r>/<b> HEAD || { echo "STOP: <r>/<b> moved"; exit 1; }
 git -C "<wt>" push <r> HEAD:<b>
 git -C "<wt>" ls-remote --heads <r> <b>      # must equal: git -C "<wt>" rev-parse HEAD
 ```
@@ -45,7 +45,7 @@ quarto-web build check after pushing `<sha>` to `<b>`:
 
 ```bash
 gh run list --repo quarto-dev/quarto-web --workflow publish.yml --branch <b> --limit 5 --json databaseId,headSha,status,conclusion
-# take the run whose headSha == <sha>, then gh run watch <id> --exit-status
+# take the run whose headSha == <sha>, then gh run watch <id> --repo quarto-dev/quarto-web --exit-status
 ```
 
 quarto.org is served by Netlify; a JSON or page check right after a successful deploy can lag by a few minutes. Recheck once after 5 minutes before stopping.
@@ -127,7 +127,7 @@ git -C "$W" show --stat --format=%s $CIT      # CITATION.cff only
 git -C "$V" push upstream "v$REL"
 git -C "$QC" ls-remote --heads upstream "v$REL"    # = git -C "$V" rev-parse HEAD
 git -C "$W" fetch upstream
-git -C "$W" merge-base --is-ancestor upstream/main $BUMP || echo "STOP: main moved"
+git -C "$W" merge-base --is-ancestor upstream/main $BUMP || { echo "STOP: main moved"; exit 1; }
 git -C "$W" push upstream $BUMP:refs/heads/main
 git -C "$QC" ls-remote --heads upstream main       # = $BUMP
 ```
@@ -143,7 +143,7 @@ During the build, list update-downloads runs: `gh run list --repo quarto-dev/qua
 ```bash
 NEXTTAG=$(gh release list --repo quarto-dev/quarto-cli --limit 5 --json tagName,isPrerelease \
   --jq ".[]|select(.isPrerelease and (.tagName|startswith(\"v$NEXT.\")))|.tagName" | head -1)
-[ -n "$NEXTTAG" ] || echo "STOP: no v$NEXT prerelease"
+[ -n "$NEXTTAG" ] || { echo "STOP: no v$NEXT prerelease"; exit 1; }
 gh release view "$NEXTTAG" --repo quarto-dev/quarto-cli --json isPrerelease,assets --jq '"\(.isPrerelease) \(.assets|length)"'
 # relabel only after the line above prints "true $ASSETS":
 gh release edit "$TAG" --repo quarto-dev/quarto-cli --prerelease=false --latest
@@ -175,7 +175,7 @@ Guarded push `$M` to `main`, then the build check. Step 9 reuses this worktree.
 gh run view <update-downloads id> --repo quarto-dev/quarto-web --json jobs --jq '.jobs[]|"\(.conclusion) \(.name)"'
 ```
 
-Expect `success` for `update-downloads`, `publish-changes-release / build-deploy`, `publish-changes-prerelease / build-deploy`, and for the `update-prerelease-reference` job (it opens the reference PR). If the `publish-changes-*` jobs are skipped, an earlier cron run may already have published: list `gh run list --repo quarto-dev/quarto-web --workflow update-downloads.yml --limit 5 --json databaseId,conclusion,createdAt` and check the jobs of the first run created after the relabel. None found: dispatch once more; still skipped: stop and report.
+Expect `success` for `update-downloads`, `publish-changes-release / build-deploy`, `publish-changes-prerelease / build-deploy`, and for `update-prerelease-reference / update-reference` (it opens the reference PR). If the `publish-changes-*` jobs are skipped, an earlier cron run may already have published: list `gh run list --repo quarto-dev/quarto-web --workflow update-downloads.yml --limit 5 --json databaseId,conclusion,createdAt` and check the jobs of the first run created after the relabel. None found: dispatch once more; still skipped: stop and report.
 
 ```bash
 curl -s https://quarto.org/docs/download/_download.json | jq -r .version     # = $STABLE
@@ -282,12 +282,10 @@ git -C "$W" log --oneline upstream/main..HEAD           # only the CITATION comm
 gh api 'repos/quarto-dev/quarto-cli/contents/CITATION.cff?ref=main' -H 'Accept: application/vnd.github.raw' | grep -E '^(version|date-released)'
 ```
 
-Axe report: dispatch and capture `axe-report.yml` (no inputs); stop on failure.
-
 ## 10. Merge back, tag, reference pages
 
 ```bash
-git -C "$P" fetch upstream && git -C "$P" merge --ff-only upstream/main || echo "STOP: not a fast-forward"
+git -C "$P" fetch upstream && git -C "$P" merge --ff-only upstream/main || { echo "STOP: not a fast-forward"; exit 1; }
 ```
 
 Not a fast-forward means `prerelease` got commits after the release merge: list them (`git -C "$P" log --oneline upstream/main..upstream/prerelease`) and ask before a real merge. Then guarded push `$P` to `prerelease` and the build check.
@@ -300,6 +298,8 @@ git -C "$QW" ls-remote --tags upstream "v$REL"
 for b in main prerelease; do for f in _quarto.yml _quarto-prerelease-docs.yml; do
   echo "$b $f $(git -C "$QW" show upstream/$b:$f | grep -m1 '^version')"; done; done
 ```
+
+Axe report, after the merge-back push: dispatch and capture `axe-report.yml` (no inputs); stop on failure. It commits `_axe-report.md` to `main` and `prerelease` separately; that is expected.
 
 Reference PR, any time after the merge-back push (v1.11 merged it after packaging):
 
