@@ -97,7 +97,6 @@ All changes included in 1.11:
 - ([#14982](https://github.com/quarto-dev/quarto-cli/issues/14982)): Fix a footnote in document metadata, such as `title` or `author`, making PDF and Typst output shift heading levels, which turned the first level-1 heading into the document title.
 - ([#15027](https://github.com/quarto-dev/quarto-cli/issues/15027)): Fix PDF rendering with regional German variants such as `lang: de-CH` failing when German hyphenation patterns are not installed, instead of installing them automatically.
 - ([#15035](https://github.com/quarto-dev/quarto-cli/issues/15035)): Fix automatic installation of missing hyphenation patterns for the pinned German patterns (`ngerman-x-latest`), for several languages at once, and for languages loaded with `polyglossia`.
-- ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) having an italic body. They now use the amsthm `definition` style, as the amsthm documentation lists, with an upright body like definitions, examples and exercises. (author: @mcanouil)
 
 ### `revealjs`
 
@@ -113,7 +112,6 @@ All changes included in 1.11:
 - ([#14290](https://github.com/quarto-dev/quarto-cli/issues/14290)): Fix `proof`, `remark` and `solution` blocks in Typst output, which rendered as plain text and could not be cross-referenced. They now use the same frames as theorems. Theorem and proof titles set in the language files may now contain Typst markup characters, and a `style` attribute on a theorem or proof now applies in Typst too. (author: @mcanouil)
 - ([#14847](https://github.com/quarto-dev/quarto-cli/pull/14847)): Fix `toc_title` auto-fallback in typst outline template that was ignoring the computed fallback value when `toc_title` is `none`.
 - ([#14947](https://github.com/quarto-dev/quarto-cli/issues/14947)): Fix Typst compilation failing with `invalid number suffix: px` when an image with alt text (`fig-alt`, `alt`, or an inline image caption) has its `width` or `height` in pixels. These images are now written by Pandoc's Typst writer like other images, which also fixes URL-encoded image paths and unsupported size units for them.
-- ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) using the colours of theorems in the `fancy` theorem appearance. They now use the colours of definitions, examples and exercises, as they share the amsthm `definition` style. (author: @mcanouil)
 
 ## Projects
 
