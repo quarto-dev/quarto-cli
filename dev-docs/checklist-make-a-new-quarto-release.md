@@ -87,10 +87,10 @@ Order matters. quarto-web's `update-downloads.yml` and `publish.yml` both use th
 ## 9. quarto-web: merge `prerelease` into `main`; CITATION on quarto-cli
 
 - [ ] Drift check: find commits on quarto-web `main` that never reached `prerelease` (direct pushes, failed auto-backports) and cherry-pick genuine fixes onto `prerelease` first. Match by `cherry picked from commit` trailers, then by subject or PR number for squashed backports (`git log --cherry-pick` over-reports those). Ignore bot commits (`Apply automatic changes`, `Update the axe accessibility report`).
+- [ ] Check `docs/cli/cli-info.json` on `prerelease`: its `version` must be `1.x.N`. If it is not, regenerate it on `prerelease` first with `quarto dev-call cli-info` from a 1.x.N binary, commit as `Regenerate CLI reference for v1.x.N`, **GATE** push, and wait for Quarto Publish.
 - [ ] In a worktree on `upstream/main`, `git merge upstream/prerelease`. Resolve conflicts:
   - `_axe-report.md`: keep `main`;
-  - `docs/cli/cli-info.json`: keep `prerelease` if its `version` is `1.x.N`, else regenerate it with `quarto dev-call cli-info` from a 1.x.N binary;
-  - everything else (`_quarto.yml`, pages, `_axe-baseline.json`, `_freeze/`): keep `prerelease`, including deletions (a `_freeze/` entry follows its page). Exception: if step 6 flipped the profile group, keep `main`'s `[prerelease, rc]`.
+  - everything else (`_quarto.yml`, pages, `docs/cli/cli-info.json`, `_axe-baseline.json`, `_freeze/`): keep `prerelease`, including deletions (a `_freeze/` entry follows its page). Exception: if step 6 flipped the profile group, keep `main`'s `[prerelease, rc]`.
 
   After committing, the merge must differ from `prerelease` only in `_axe-report.md` (and the step-6 profile line, if any); anything else is drift the check missed. `_quarto.yml` `version` must be `'1.x'`.
 - [ ] **GATE** Push to `main` (direct push; it does not trigger `port-to-prerelease.yml`), wait for Quarto Publish to succeed.

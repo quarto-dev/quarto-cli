@@ -10,8 +10,7 @@ They hold the checklist's placeholders: `REL` = `1.x`, `NEXT` = `1.y`, `TAG` = `
 export MSYS_NO_PATHCONV=1                 # Git Bash: keep "ref:path" and "/..." arguments intact
 REL=<1.x>; NEXT=<1.y>                    # checklist placeholders 1.x and 1.y, e.g. REL=1.12 NEXT=1.13
 QC='<quarto-cli clone>'; QW='<quarto-web clone>'; PYPI='<quarto-cli-pypi clone>'; SCRATCH='<temp dir>'
-TAG=$(gh release list --repo quarto-dev/quarto-cli --limit 30 --json tagName,isPrerelease \
-  --jq ".[]|select(.isPrerelease and (.tagName|startswith(\"v$REL.\")))|.tagName" | head -1)
+TAG=<v1.x.N>      # resolve ONCE in step 1 (query below) and write the literal: after step 5 it is no longer a prerelease
 STABLE=${TAG#v}
 PREV=<1.w.P>      # checklist placeholder 1.w.P, the current stable: curl -s https://quarto.org/docs/download/_download.json | jq -r .version, read BEFORE step 5
 V="$QC.worktrees/v$REL"; W="$QC.worktrees/release-main-$NEXT"
@@ -38,7 +37,7 @@ Dispatch and capture (never "the latest run" without the time filter):
 ```bash
 T0=$(date -u +%FT%TZ); gh workflow run <workflow> --repo <repo> --ref main <inputs>
 gh run list --repo <repo> --workflow <workflow> --limit 5 --json databaseId,createdAt,headSha,event \
-  --jq "map(select(.createdAt > \"$T0\"))"      # empty: retry; still empty after 2 minutes: stop and report
+  --jq "map(select(.createdAt >= \"$T0\" and .event == \"workflow_dispatch\"))"   # empty: retry; still empty after 2 minutes: stop and report
 gh run watch <id> --repo <repo> --exit-status   # run_in_background, act on the notification
 ```
 
@@ -52,6 +51,13 @@ gh run list --repo quarto-dev/quarto-web --workflow publish.yml --branch <b> --l
 quarto.org is served by Netlify; a JSON or page check right after a successful deploy can lag by a few minutes. Recheck once after 5 minutes before stopping.
 
 ## 1. Preflight
+
+Resolve the promoted tag, then write its literal value into the variables file:
+
+```bash
+gh release list --repo quarto-dev/quarto-cli --limit 30 --json tagName,isPrerelease \
+  --jq ".[]|select(.isPrerelease and (.tagName|startswith(\"v$REL.\")))|.tagName" | head -1
+```
 
 ```bash
 git -C "$QC" fetch upstream --tags
@@ -232,6 +238,14 @@ git -C "$QW" log upstream/prerelease --oneline --fixed-strings --grep='<subject 
 
 Also ignore: the step-6 flip commit and `Update downloads` commits by github-actions. For every other remaining commit, list it with its diff stat and ask the user: cherry-pick onto prerelease, or leave as intentional divergence. Cherry-picks: in `$P`, `git cherry-pick -x <sha>`, guarded push to `prerelease` (a GATE), build check.
 
+CLI reference, before merging:
+
+```bash
+git -C "$QW" show upstream/prerelease:docs/cli/cli-info.json | jq -r .version     # $STABLE: nothing to do
+```
+
+Anything else: stop and ask the user for a `$STABLE` binary (`qvm`). In `$P`, run `quarto dev-call cli-info > docs/cli/cli-info.json` with it, commit as `Regenerate CLI reference for $TAG`, guarded push to `prerelease` (a GATE), build check. The merge then takes `prerelease`'s file like any other.
+
 Merge and resolve (reuse `$M` if step 6 created it, after `git -C "$M" fetch upstream && git -C "$M" merge --ff-only upstream/main`):
 
 ```bash
@@ -239,14 +253,12 @@ git -C "$QW" worktree add "$M" upstream/main -b "release/$REL-main" --no-track
 git -C "$M" merge upstream/prerelease
 git -C "$M" diff --name-only --diff-filter=U          # conflicted paths
 git -C "$M" status --short | grep -E '^(DU|UD) '      # modify/delete conflicts
-git -C "$QW" show upstream/prerelease:docs/cli/cli-info.json | jq -r .version     # $STABLE → keep prerelease
 git -C "$M" checkout --ours -- _axe-report.md && git -C "$M" add _axe-report.md
 git -C "$M" checkout --theirs -- <each other conflicted path> && git -C "$M" add <path>
 # modify/delete: if the path is absent on prerelease, git -C "$M" rm <path>; else checkout --theirs as above
 ```
 
-If step 6 flipped the profile group, take `main`'s side for that hunk of `_quarto.yml` (it must keep `[prerelease, rc]`). If `cli-info.json` is not at `$STABLE` on prerelease: stop and ask the user for a `$STABLE` binary (`qvm`), then `quarto dev-call cli-info > docs/cli/cli-info.json` with it.
-
+If step 6 flipped the profile group, take `main`'s side for that hunk of `_quarto.yml` (it must keep `[prerelease, rc]`).
 ```bash
 git -C "$M" commit --no-edit
 git -C "$M" diff --stat upstream/prerelease HEAD      # only _axe-report.md (plus _quarto.yml if step 6 flipped)
