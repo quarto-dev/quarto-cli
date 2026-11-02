@@ -213,7 +213,7 @@ function layout_cells(float_or_div, cells)
   -- check for layout
   elseif layout ~= nil then
     -- parse the layout
-    layout = parseLayoutWidths(layout, #cells)
+    layout = parseLayoutWidths(layout, cells)
     
     -- manage/perform next insertion into the layout
     local cellIndex = 1
