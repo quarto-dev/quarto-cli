@@ -71,11 +71,11 @@ Order matters. quarto-web's `update-downloads.yml` and `publish.yml` both use th
 
 - [ ] Highlights, in one commit (`Add v1.y prerelease highlights placeholder`):
   - `docs/prerelease/1.y/index.qmd`: copy of `docs/prerelease/1.x/index.qmd` with the title `Quarto 1.y Pre-Release`;
-  - `docs/prerelease/1.y/_highlights.qmd`: the line `Quarto v1.x was just released, nothing to see here -- yet!`;
+  - `docs/prerelease/1.y/_highlights.qmd`: the line `Quarto v1.y was just released, nothing to see here -- yet!`;
   - `docs/prerelease/_highlights-prerelease.qmd`: include `/docs/prerelease/1.y/_highlights.qmd`;
   - `docs/prerelease/_highlights-release.qmd`: include `/docs/prerelease/1.x/_highlights.qmd`.
 - [ ] Wait until update-downloads has synced the download JSONs to `prerelease` (commit `Sync generated download redirects from main`), and rebase onto it. `docs/download/_download.json` and `_prerelease.json` must show 1.x.N and 1.y.0 locally: the script below reads them.
-- [ ] Run `Rscript _tools/release-notes.R` with the R version from `renv.lock` (fresh worktree: `renv::restore()` first; needs a GitHub token for the `gh` R package). It must print `Release: 1.w.P -> 1.x.N` and `Prerelease: 1.x -> 1.y`; stop otherwise. Expected changes, nothing else:
+- [ ] Run `_tools/release-notes.R` with the R version pinned in `renv.lock`, e.g. `rig run --r-version <version> _tools/release-notes.R` (fresh worktree: `rig run --r-version <version> -e "renv::restore(prompt = FALSE)"` first; your default R may lack the packages). It must print `Release: 1.w.P -> 1.x.N` and `Prerelease: 1.x -> 1.y`; stop otherwise. Expected changes, nothing else:
   - `_quarto.yml` `version: '1.x'`, `_quarto-prerelease-docs.yml` `version: '1.y'`;
   - aliases `changelog/1.x/` in `docs/download/release.qmd` and `changelog/1.y/` in `docs/download/prerelease.qmd`;
   - a `1.w.P` entry in `docs/download/_download-older.yml`;
@@ -97,13 +97,14 @@ Order matters. quarto-web's `update-downloads.yml` and `publish.yml` both use th
 - [ ] **GATE** Refresh the accessibility reports: `gh workflow run axe-report.yml --repo quarto-dev/quarto-web --ref main`.
 - [ ] **GATE** CITATION on quarto-cli `main`. If the relabel happened on a different date than the one in `CITATION.cff`, do not amend: add a commit `Update CITATION.cff release date for v1.x` on `v1.x`, push it, and cherry-pick it with `-x` too. Rebase onto `upstream/main` (it gained an `Update version.txt` commit from the 1.y build, as expected) and push.
 
-## 10. quarto-web: merge back, reference pages, tag
+## 10. quarto-web: merge back, tag, reference pages
 
 - [ ] **GATE** Merge `main` into `prerelease` (normally a fast-forward), push, wait for Quarto Publish to succeed.
-- [ ] **GATE** Merge the **Update reference pages (prerelease)** PR (squash, subject `Update reference pages for prerelease v1.y.0`). If no such PR is open, start it with `gh workflow run update-prerelease-reference.yml --repo quarto-dev/quarto-web --ref main -f version=1.y.0` and merge the PR it opens.
-- [ ] **GATE** Tag quarto-web `main` to mark when the new site went live: `git tag -a v1.x -m "v1.x" upstream/main && git push upstream v1.x`.
+- [ ] **GATE** Tag quarto-web `main` to mark when the new site went live: `git tag -a v1.x -m "v1.x" upstream/main && git push upstream v1.x`. It needs only the step 9 push to `main`; it does not wait for the `prerelease` publish.
 - [ ] On both `main` and `prerelease`: `_quarto.yml` `version` is `'1.x'`, `_quarto-prerelease-docs.yml` `version` is `'1.y'`.
+- [ ] **GATE** Any time after the merge-back push, merge the **Update reference pages (prerelease)** PR (squash, subject `Update reference pages for prerelease v1.y.0`); it can wait until packaging is done. If no such PR is open, start it with `gh workflow run update-prerelease-reference.yml --repo quarto-dev/quarto-web --ref main -f version=1.y.0` and merge the PR it opens.
 - [ ] Publish the release announcement post on the Posit Open Source site (opensource.posit.co; since the June 2026 blog migration it is not a quarto-web PR, and `quarto-web/docs/blog/posts` only redirects there). Date it with the actual release date.
+- [ ] Announce in the #quarto Slack channel, linking the post (its preview while the post is still in review).
 
 ## 11. Packaging and package managers
 

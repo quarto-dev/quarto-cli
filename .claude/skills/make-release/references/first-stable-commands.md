@@ -185,7 +185,7 @@ The browser link check: use `agent-browser` if available, else ask the user to l
 git -C "$QW" worktree add "$P" upstream/prerelease -b "release/$REL-prerelease" --no-track
 mkdir -p "$P/docs/prerelease/$NEXT"
 sed "s/Quarto $REL Pre-Release/Quarto $NEXT Pre-Release/" "$P/docs/prerelease/$REL/index.qmd" > "$P/docs/prerelease/$NEXT/index.qmd"
-printf '%s\n' "Quarto v$REL was just released, nothing to see here -- yet!" > "$P/docs/prerelease/$NEXT/_highlights.qmd"
+printf '%s\n' "Quarto v$NEXT was just released, nothing to see here -- yet!" > "$P/docs/prerelease/$NEXT/_highlights.qmd"
 sed -i -E "s#/docs/prerelease/[0-9.]+/_highlights.qmd#/docs/prerelease/$NEXT/_highlights.qmd#" "$P/docs/prerelease/_highlights-prerelease.qmd"
 sed -i -E "s#/docs/prerelease/[0-9.]+/_highlights.qmd#/docs/prerelease/$REL/_highlights.qmd#" "$P/docs/prerelease/_highlights-release.qmd"
 git -C "$P" diff; git -C "$P" status --short       # one include line changed in each file, two new files
@@ -202,12 +202,12 @@ jq -r .version "$P/docs/download/_download.json" "$P/docs/download/_prerelease.j
 jq -r .R.Version "$P/renv.lock"
 ```
 
-Run R from PowerShell with that R version (`rig run --r-version <version>` if rig is installed, else the matching `Rscript`), with a literal path:
+Run R from PowerShell with that R version, with a literal path. Bare `quarto run` or `Rscript` uses the default R, which may lack the packages (v1.11: `there is no package called 'fs'`). Without rig, use the matching R installation's `Rscript` the same way.
 
 ```powershell
-cd '<P path>'; $env:GITHUB_PAT = (gh auth token)
-Rscript -e 'renv::restore(prompt = FALSE)'
-Rscript _tools/release-notes.R
+Set-Location '<P path>'
+rig run --r-version <version> -e "renv::restore(prompt = FALSE)"
+rig run --r-version <version> _tools/release-notes.R
 ```
 
 ```bash
@@ -272,7 +272,7 @@ gh api 'repos/quarto-dev/quarto-cli/contents/CITATION.cff?ref=main' -H 'Accept: 
 
 Axe report: dispatch and capture `axe-report.yml` (no inputs); stop on failure.
 
-## 10. Merge back, reference pages, tag
+## 10. Merge back, tag, reference pages
 
 ```bash
 git -C "$P" fetch upstream && git -C "$P" merge --ff-only upstream/main || echo "STOP: not a fast-forward"
@@ -280,15 +280,22 @@ git -C "$P" fetch upstream && git -C "$P" merge --ff-only upstream/main || echo 
 
 Not a fast-forward means `prerelease` got commits after the release merge: list them (`git -C "$P" log --oneline upstream/main..upstream/prerelease`) and ask before a real merge. Then guarded push `$P` to `prerelease` and the build check.
 
+The tag does not wait for the `prerelease` publish:
+
+```bash
+git -C "$QW" fetch upstream && git -C "$QW" tag -a "v$REL" -m "v$REL" upstream/main && git -C "$QW" push upstream "v$REL"
+git -C "$QW" ls-remote --tags upstream "v$REL"
+for b in main prerelease; do for f in _quarto.yml _quarto-prerelease-docs.yml; do
+  echo "$b $f $(git -C "$QW" show upstream/$b:$f | grep -m1 '^version')"; done; done
+```
+
+Reference PR, any time after the merge-back push (v1.11 merged it after packaging):
+
 ```bash
 N=$(gh pr list --repo quarto-dev/quarto-web --base prerelease --search 'Update reference pages in:title' --json number --jq '.[0].number')
 gh pr checks "$N" --repo quarto-dev/quarto-web --watch      # wait for its checks
 gh pr merge "$N" --repo quarto-dev/quarto-web --squash --subject "Update reference pages for prerelease $NEXTTAG"
 git -C "$QW" fetch upstream && git -C "$QW" show upstream/prerelease:docs/cli/cli-info.json | jq -r .version   # ${NEXTTAG#v}
-git -C "$QW" tag -a "v$REL" -m "v$REL" upstream/main && git -C "$QW" push upstream "v$REL"
-git -C "$QW" ls-remote --tags upstream "v$REL"
-for b in main prerelease; do for f in _quarto.yml _quarto-prerelease-docs.yml; do
-  echo "$b $f $(git -C "$QW" show upstream/$b:$f | grep -m1 '^version')"; done; done
 ```
 
 `gh pr merge` refused (branch protection, required review): stop and ask the user to merge it.
