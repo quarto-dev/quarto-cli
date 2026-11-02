@@ -454,7 +454,9 @@ export async function quartoMdToJupyter(
     // yaml front matter
     if (
       yamlRegEx.test(line) && !inCodeCell && !inCode &&
-      contentLines[currentLine + 1]?.trim() !== "" // https://github.com/quarto-dev/quarto-cli/issues/8998
+      // For closing delimiter when inYaml=true, allow blank line after (fixes #10436)
+      // For opening delimiter, require non-empty next line to avoid slide separators (fixes #8998)
+      (inYaml || contentLines[currentLine + 1]?.trim() !== "")
     ) {
       if (inYaml) {
         lineBuffer.push(line);
