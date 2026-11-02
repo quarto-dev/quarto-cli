@@ -14,7 +14,8 @@
  */
 
 import { unitTest } from "../test.ts";
-import { assert, assertEquals, assertRejects } from "testing/asserts";
+import { assert, assertEquals, assertRejects } from "../asserts.ts";
+import { ensureDirSync } from "../../src/deno_ral/fs.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { LightDarkBrandDarkFlag } from "../../src/core/brand/brand.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
@@ -27,7 +28,7 @@ import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { renderServices } from "../../src/command/render/render-services.ts";
 import { RenderOptions } from "../../src/command/render/types.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
-import { safeRemoveSync } from "../../src/core/path.ts";
+import { withTempDir } from "../utils.ts";
 
 const BRAND_YML = `color:
   palette:
@@ -56,7 +57,7 @@ function writeExtension(
   name = "test-extension",
 ) {
   const extensionDir = join(dir, "_extensions", name);
-  Deno.mkdirSync(extensionDir, { recursive: true });
+  ensureDirSync(extensionDir);
   Deno.writeTextFileSync(
     join(extensionDir, "_extension.yml"),
     extensionYml(projectMetadata),
@@ -86,24 +87,27 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    let project;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      let project;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, "      brand: brand.yml\n");
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, "      brand: brand.yml\n");
 
-      // preview builds the context this way: no renderOptions.
-      project = await singleFileProjectContext(file, notebookContext());
+        // preview builds the context this way: no renderOptions.
+        project = await singleFileProjectContext(file, notebookContext());
 
-      assertContributedBrand(await project.resolveBrand(), "for a single file");
-    } finally {
-      // Release the project's disk cache before removing the dir, otherwise
-      // Windows holds a lock on the temp directory.
-      project?.cleanup?.();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertContributedBrand(
+          await project.resolveBrand(),
+          "for a single file",
+        );
+      } finally {
+        // Release the project's disk cache before removing the dir, otherwise
+        // Windows holds a lock on the temp directory.
+        project?.cleanup?.();
+      }
+    });
   },
 );
 
@@ -112,29 +116,29 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    let project;
+    await withTempDir(async (tmpDir) => {
+      let project;
 
-    try {
-      Deno.writeTextFileSync(
-        join(tmpDir, "_quarto.yml"),
-        "project:\n  type: default\n",
-      );
-      Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
-      writeExtension(tmpDir, "      brand: brand.yml\n");
+      try {
+        Deno.writeTextFileSync(
+          join(tmpDir, "_quarto.yml"),
+          "project:\n  type: default\n",
+        );
+        Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
+        writeExtension(tmpDir, "      brand: brand.yml\n");
 
-      // preview builds the context this way: no renderOptions.
-      project = await projectContext(tmpDir, notebookContext());
-      assert(
-        project !== undefined,
-        "projectContext must resolve for a _quarto.yml dir",
-      );
+        // preview builds the context this way: no renderOptions.
+        project = await projectContext(tmpDir, notebookContext());
+        assert(
+          project !== undefined,
+          "projectContext must resolve for a _quarto.yml dir",
+        );
 
-      assertContributedBrand(await project.resolveBrand(), "for a project");
-    } finally {
-      project?.cleanup?.();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertContributedBrand(await project.resolveBrand(), "for a project");
+      } finally {
+        project?.cleanup?.();
+      }
+    });
   },
 );
 
@@ -143,26 +147,30 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    const nbContext = notebookContext();
-    const services = renderServices(nbContext);
-    const renderOptions = { services, flags: {} } as RenderOptions;
-    let project;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      const nbContext = notebookContext();
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
+      let project;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, "      brand: brand.yml\n");
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, "      brand: brand.yml\n");
 
-      // render builds the context this way: renderOptions present.
-      project = await singleFileProjectContext(file, nbContext, renderOptions);
+        // render builds the context this way: renderOptions present.
+        project = await singleFileProjectContext(
+          file,
+          nbContext,
+          renderOptions,
+        );
 
-      assertContributedBrand(await project.resolveBrand(), "for a render");
-    } finally {
-      project?.cleanup?.();
-      services.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertContributedBrand(await project.resolveBrand(), "for a render");
+      } finally {
+        project?.cleanup?.();
+        services.cleanup();
+      }
+    });
   },
 );
 
@@ -171,34 +179,38 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    const nbContext = notebookContext();
-    const services = renderServices(nbContext);
-    const renderOptions = { services, flags: {} } as RenderOptions;
-    let project;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      const nbContext = notebookContext();
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
+      let project;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, '      output-dir: "_out"\n');
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, '      output-dir: "_out"\n');
 
-      project = await singleFileProjectContext(file, nbContext, renderOptions);
+        project = await singleFileProjectContext(
+          file,
+          nbContext,
+          renderOptions,
+        );
 
-      assertEquals(
-        project.config?.project?.["output-dir"],
-        "_out",
-        "the contributed output-dir must be merged",
-      );
-      assertEquals(
-        renderOptions.forceClean,
-        true,
-        "the render path must force the clean that --output-dir implies",
-      );
-    } finally {
-      project?.cleanup?.();
-      services.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertEquals(
+          project.config?.project?.["output-dir"],
+          "_out",
+          "the contributed output-dir must be merged",
+        );
+        assertEquals(
+          renderOptions.forceClean,
+          true,
+          "the render path must force the clean that --output-dir implies",
+        );
+      } finally {
+        project?.cleanup?.();
+        services.cleanup();
+      }
+    });
   },
 );
 
@@ -207,25 +219,25 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    let project;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      let project;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, '      output-dir: "_out"\n');
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, '      output-dir: "_out"\n');
 
-      project = await singleFileProjectContext(file, notebookContext());
+        project = await singleFileProjectContext(file, notebookContext());
 
-      assertEquals(
-        project.config?.project?.["output-dir"],
-        "_out",
-        "the contributed output-dir must be merged without renderOptions too",
-      );
-    } finally {
-      project?.cleanup?.();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertEquals(
+          project.config?.project?.["output-dir"],
+          "_out",
+          "the contributed output-dir must be merged without renderOptions too",
+        );
+      } finally {
+        project?.cleanup?.();
+      }
+    });
   },
 );
 
@@ -239,26 +251,26 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    let project;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      let project;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, MALFORMED_METADATA);
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, MALFORMED_METADATA);
 
-      // preview and inspect must degrade to "metadata not applied" here.
-      project = await singleFileProjectContext(file, notebookContext());
+        // preview and inspect must degrade to "metadata not applied" here.
+        project = await singleFileProjectContext(file, notebookContext());
 
-      assertEquals(
-        project.config?.project?.["output-dir"],
-        undefined,
-        "the whole contribution of a malformed extension must be dropped",
-      );
-    } finally {
-      project?.cleanup?.();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertEquals(
+          project.config?.project?.["output-dir"],
+          undefined,
+          "the whole contribution of a malformed extension must be dropped",
+        );
+      } finally {
+        project?.cleanup?.();
+      }
+    });
   },
 );
 
@@ -267,31 +279,31 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    let project;
+    await withTempDir(async (tmpDir) => {
+      let project;
 
-    try {
-      Deno.writeTextFileSync(
-        join(tmpDir, "_quarto.yml"),
-        "project:\n  type: default\n",
-      );
-      Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
-      writeExtension(tmpDir, MALFORMED_METADATA);
+      try {
+        Deno.writeTextFileSync(
+          join(tmpDir, "_quarto.yml"),
+          "project:\n  type: default\n",
+        );
+        Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
+        writeExtension(tmpDir, MALFORMED_METADATA);
 
-      project = await projectContext(tmpDir, notebookContext());
-      assert(
-        project !== undefined,
-        "projectContext must still resolve with a malformed extension",
-      );
-      assertEquals(
-        project.config?.project?.["output-dir"],
-        undefined,
-        "the whole contribution of a malformed extension must be dropped",
-      );
-    } finally {
-      project?.cleanup?.();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        project = await projectContext(tmpDir, notebookContext());
+        assert(
+          project !== undefined,
+          "projectContext must still resolve with a malformed extension",
+        );
+        assertEquals(
+          project.config?.project?.["output-dir"],
+          undefined,
+          "the whole contribution of a malformed extension must be dropped",
+        );
+      } finally {
+        project?.cleanup?.();
+      }
+    });
   },
 );
 
@@ -300,28 +312,28 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    const nbContext = notebookContext();
-    const services = renderServices(nbContext);
-    const renderOptions = { services, flags: {} } as RenderOptions;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      const nbContext = notebookContext();
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, MALFORMED_METADATA);
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, MALFORMED_METADATA);
 
-      await assertRejects(
-        () =>
-          singleFileProjectContext(file, nbContext, renderOptions, {
-            extensionMetadataPolicy: "fatal",
-          }),
-        Error,
-        "contributes invalid project metadata",
-      );
-    } finally {
-      services.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        await assertRejects(
+          () =>
+            singleFileProjectContext(file, nbContext, renderOptions, {
+              extensionMetadataPolicy: "fatal",
+            }),
+          Error,
+          "contributes invalid project metadata",
+        );
+      } finally {
+        services.cleanup();
+      }
+    });
   },
 );
 
@@ -330,31 +342,31 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const nbContext = notebookContext();
-    const services = renderServices(nbContext);
-    const renderOptions = { services, flags: {} } as RenderOptions;
+    await withTempDir(async (tmpDir) => {
+      const nbContext = notebookContext();
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
 
-    try {
-      Deno.writeTextFileSync(
-        join(tmpDir, "_quarto.yml"),
-        "project:\n  type: default\n",
-      );
-      Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
-      writeExtension(tmpDir, MALFORMED_METADATA);
+      try {
+        Deno.writeTextFileSync(
+          join(tmpDir, "_quarto.yml"),
+          "project:\n  type: default\n",
+        );
+        Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
+        writeExtension(tmpDir, MALFORMED_METADATA);
 
-      await assertRejects(
-        () =>
-          projectContext(tmpDir, nbContext, renderOptions, false, {
-            extensionMetadataPolicy: "fatal",
-          }),
-        Error,
-        "contributes invalid project metadata",
-      );
-    } finally {
-      services.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        await assertRejects(
+          () =>
+            projectContext(tmpDir, nbContext, renderOptions, false, {
+              extensionMetadataPolicy: "fatal",
+            }),
+          Error,
+          "contributes invalid project metadata",
+        );
+      } finally {
+        services.cleanup();
+      }
+    });
   },
 );
 
@@ -363,30 +375,30 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    let project;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      let project;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, MALFORMED_METADATA, "broken-extension");
-      writeExtension(tmpDir, "      brand: brand.yml\n", "brand-extension");
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, MALFORMED_METADATA, "broken-extension");
+        writeExtension(tmpDir, "      brand: brand.yml\n", "brand-extension");
 
-      project = await singleFileProjectContext(file, notebookContext());
+        project = await singleFileProjectContext(file, notebookContext());
 
-      assertContributedBrand(
-        await project.resolveBrand(),
-        "when a sibling extension is malformed",
-      );
-      assertEquals(
-        project.config?.project?.["output-dir"],
-        undefined,
-        "the contribution of the malformed extension must still be dropped",
-      );
-    } finally {
-      project?.cleanup?.();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertContributedBrand(
+          await project.resolveBrand(),
+          "when a sibling extension is malformed",
+        );
+        assertEquals(
+          project.config?.project?.["output-dir"],
+          undefined,
+          "the contribution of the malformed extension must still be dropped",
+        );
+      } finally {
+        project?.cleanup?.();
+      }
+    });
   },
 );
 
@@ -425,39 +437,39 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const contexts: ProjectContext[] = [];
+    await withTempDir(async (tmpDir) => {
+      const contexts: ProjectContext[] = [];
 
-    try {
-      writeProject(tmpDir);
-      writeExtension(tmpDir, MALFORMED_METADATA, "once-broken-extension");
-      writeExtension(
-        tmpDir,
-        "      brand: brand.yml\n",
-        "once-brand-extension",
-      );
+      try {
+        writeProject(tmpDir);
+        writeExtension(tmpDir, MALFORMED_METADATA, "once-broken-extension");
+        writeExtension(
+          tmpDir,
+          "      brand: brand.yml\n",
+          "once-brand-extension",
+        );
 
-      const warnings = await recordWarnings(async () => {
-        for (let i = 0; i < 2; i++) {
-          const context = await projectContext(tmpDir, notebookContext());
-          assert(context !== undefined, "projectContext must resolve");
-          contexts.push(context);
-        }
-      });
+        const warnings = await recordWarnings(async () => {
+          for (let i = 0; i < 2; i++) {
+            const context = await projectContext(tmpDir, notebookContext());
+            assert(context !== undefined, "projectContext must resolve");
+            contexts.push(context);
+          }
+        });
 
-      assertEquals(
-        warnings.filter((w) => w.includes("once-broken-extension")).length,
-        1,
-        "the warning must be logged once for two builds",
-      );
-      assertContributedBrand(
-        await contexts[1].resolveBrand(),
-        "next to an invalid extension",
-      );
-    } finally {
-      contexts.forEach((context) => context.cleanup());
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assertEquals(
+          warnings.filter((w) => w.includes("once-broken-extension")).length,
+          1,
+          "the warning must be logged once for two builds",
+        );
+        assertContributedBrand(
+          await contexts[1].resolveBrand(),
+          "next to an invalid extension",
+        );
+      } finally {
+        contexts.forEach((context) => context.cleanup());
+      }
+    });
   },
 );
 
@@ -466,41 +478,41 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const nbContext = notebookContext();
-    const services = renderServices(nbContext);
-    const renderOptions = { services, flags: {} } as RenderOptions;
-    let refreshed: ProjectContext | undefined;
+    await withTempDir(async (tmpDir) => {
+      const nbContext = notebookContext();
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
+      let refreshed: ProjectContext | undefined;
 
-    try {
-      writeProject(tmpDir);
-      writeExtension(tmpDir, MALFORMED_METADATA, "refresh-broken-extension");
-      writeExtension(
-        tmpDir,
-        "      brand: brand.yml\n",
-        "refresh-brand-extension",
-      );
+      try {
+        writeProject(tmpDir);
+        writeExtension(tmpDir, MALFORMED_METADATA, "refresh-broken-extension");
+        writeExtension(
+          tmpDir,
+          "      brand: brand.yml\n",
+          "refresh-brand-extension",
+        );
 
-      const previous = await projectContext(tmpDir, nbContext);
-      assert(previous !== undefined, "projectContext must resolve");
+        const previous = await projectContext(tmpDir, nbContext);
+        assert(previous !== undefined, "projectContext must resolve");
 
-      const next = await refreshProjectContext(
-        previous,
-        nbContext,
-        renderOptions,
-      );
-      refreshed = next;
+        const next = await refreshProjectContext(
+          previous,
+          nbContext,
+          renderOptions,
+        );
+        refreshed = next;
 
-      assert(
-        next !== previous,
-        "a successful refresh builds a new context",
-      );
-      assertContributedBrand(await next.resolveBrand(), "after a refresh");
-    } finally {
-      refreshed?.cleanup();
-      services.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assert(
+          next !== previous,
+          "a successful refresh builds a new context",
+        );
+        assertContributedBrand(await next.resolveBrand(), "after a refresh");
+      } finally {
+        refreshed?.cleanup();
+        services.cleanup();
+      }
+    });
   },
 );
 
@@ -509,34 +521,34 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const nbContext = notebookContext();
-    const services = renderServices(nbContext);
-    const renderOptions = { services, flags: {} } as RenderOptions;
-    let previous: ProjectContext | undefined;
+    await withTempDir(async (tmpDir) => {
+      const nbContext = notebookContext();
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
+      let previous: ProjectContext | undefined;
 
-    try {
-      writeProject(tmpDir);
-      previous = await projectContext(tmpDir, nbContext);
-      assert(previous !== undefined, "projectContext must resolve");
+      try {
+        writeProject(tmpDir);
+        previous = await projectContext(tmpDir, nbContext);
+        assert(previous !== undefined, "projectContext must resolve");
 
-      Deno.writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
+        Deno.writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
 
-      const refreshed = await refreshProjectContext(
-        previous,
-        nbContext,
-        renderOptions,
-      );
+        const refreshed = await refreshProjectContext(
+          previous,
+          nbContext,
+          renderOptions,
+        );
 
-      assert(
-        refreshed === previous,
-        "a failed rebuild must keep the previous context",
-      );
-    } finally {
-      previous?.cleanup();
-      services.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assert(
+          refreshed === previous,
+          "a failed rebuild must keep the previous context",
+        );
+      } finally {
+        previous?.cleanup();
+        services.cleanup();
+      }
+    });
   },
 );
 
@@ -545,9 +557,7 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-
-    try {
+    await withTempDir(async (tmpDir) => {
       writeProject(tmpDir);
       writeExtension(tmpDir, MALFORMED_METADATA, "fatal-broken-extension");
 
@@ -560,11 +570,9 @@ unitTest(
         "contributes invalid project metadata",
       );
 
-      // Fails on Windows if the context still holds its disk cache open.
-      Deno.removeSync(tmpDir, { recursive: true });
-    } finally {
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+      // withTempDir removes the directory afterwards, which fails on Windows
+      // if the context still holds its disk cache open.
+    });
   },
 );
 
@@ -573,10 +581,9 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
 
-    try {
       Deno.writeTextFileSync(file, DOCUMENT);
       writeExtension(tmpDir, MALFORMED_METADATA, "fatal-single-extension");
 
@@ -588,11 +595,7 @@ unitTest(
         Error,
         "contributes invalid project metadata",
       );
-
-      Deno.removeSync(tmpDir, { recursive: true });
-    } finally {
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+    });
   },
 );
 
@@ -601,27 +604,27 @@ unitTest(
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
 
-    const tmpDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-    const file = join(tmpDir, "test.qmd");
-    let project: ProjectContext | undefined;
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      let project: ProjectContext | undefined;
 
-    try {
-      Deno.writeTextFileSync(file, DOCUMENT);
-      writeExtension(tmpDir, MALFORMED_METADATA, "message-extension");
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, MALFORMED_METADATA, "message-extension");
 
-      const warnings = await recordWarnings(async () => {
-        project = await singleFileProjectContext(file, notebookContext());
-      });
+        const warnings = await recordWarnings(async () => {
+          project = await singleFileProjectContext(file, notebookContext());
+        });
 
-      assert(
-        warnings.some((w) =>
-          w.includes("No project metadata from message-extension was applied")
-        ),
-        `expected the "not applied" warning, got: ${warnings.join(" | ")}`,
-      );
-    } finally {
-      project?.cleanup();
-      safeRemoveSync(tmpDir, { recursive: true });
-    }
+        assert(
+          warnings.some((w) =>
+            w.includes("No project metadata from message-extension was applied")
+          ),
+          `expected the "not applied" warning, got: ${warnings.join(" | ")}`,
+        );
+      } finally {
+        project?.cleanup();
+      }
+    });
   },
 );
