@@ -12,7 +12,7 @@ import { Metadata } from "../../config/types.ts";
 import { lines } from "../lib/text.ts";
 import { markdownWithExtractedHeading } from "../pandoc/pandoc-partition.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
-import { JupyterNotebook, JupyterOutput } from "./types.ts";
+import { JupyterCell, JupyterNotebook, JupyterOutput } from "./types.ts";
 import {
   jupyterCellSrcAsLines,
   jupyterCellSrcAsStr,
@@ -148,6 +148,34 @@ export function fixupFrontMatter(nb: JupyterNotebook): JupyterNotebook {
   const nbLines = (lns: string[]) => {
     return lns.map((line) => line.endsWith("\n") ? line : `${line}\n`);
   };
+
+  // https://github.com/quarto-dev/quarto-cli/issues/12440
+  // first, we need to find cells that have front matter _and_ markdown content,
+  // and split them into two cells.
+  const newCells: JupyterCell[] = [];
+  nb.cells.forEach((cell) => {
+    if (cell.cell_type === "raw" || cell.cell_type === "markdown") {
+      const partitioned = partitionYamlFrontMatter(jupyterCellSrcAsStr(cell)) ||
+        undefined;
+      if (partitioned?.yaml.trim()) {
+        newCells.push({
+          cell_type: "raw",
+          source: nbLines(partitioned.yaml.split("\n")),
+          metadata: {},
+        });
+      }
+      if (partitioned?.markdown.trim()) {
+        newCells.push({
+          cell_type: "markdown",
+          source: nbLines(partitioned.markdown.split("\n")),
+          metadata: {},
+        });
+      }
+    } else {
+      newCells.push(cell);
+    }
+  });
+  nb.cells = newCells;
 
   // look for the first raw block that has a yaml object
   let partitioned: { yaml: string; markdown: string } | undefined;
