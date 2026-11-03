@@ -7,7 +7,7 @@
  */
 
 import { unitTest } from "../test.ts";
-import { assert, assertEquals } from "testing/asserts";
+import { assert, assertEquals } from "../asserts.ts";
 import {
   applyPatch,
   injectMissingAnnotationHelpers,
