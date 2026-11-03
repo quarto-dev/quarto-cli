@@ -491,7 +491,7 @@ export interface QuartoAPI {
      * Returns the appropriate runtime/state directory based on platform:
      * - macOS: ~/Library/Caches/quarto/{subdir}
      * - Windows: %LOCALAPPDATA%/quarto/{subdir}
-     * - Linux: $XDG_RUNTIME_DIR or ~/.local/share/quarto/{subdir}
+     * - Linux: $XDG_RUNTIME_DIR/{subdir} (no quarto segment), or ~/.local/share/quarto/{subdir} when unset
      *
      * Automatically creates the directory if it doesn't exist.
      *

@@ -14,7 +14,7 @@ The layer code is mechanical, but the codemod's symbol-based collision handling,
 **Size:** M.
 3 layer modules (1 extended), 1 tool with its own test and 21 fixture files, 3 unit test files, 2 rules docs, the backport checklist, one changelog line; no application caller changes.
 **Ships on:** Deno; the existing test suite must stay green.
-The ratchet baseline does not change (no caller moves).
+The ratchet baseline's `tests` count rises by one for the error-predicate test; no caller moves.
 
 ## Spec
 
@@ -258,7 +258,7 @@ Names outside the tables (`existsSync`, `safeRemoveSync`, `isNotFound`, …) are
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed` (on Windows `23 passed | 1 ignored`: "safeRemoveDirSync with symlinks" is `ignore: isWindows`) (12 fs + 4 errors + 5 temp + the 3 existing cases in `$(find unit/ral/ -name '*.test.ts')`).
 - `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 29 passed | 0 failed`; `run-tests.sh` does not discover it (it lives outside `tests/`).
 - `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dry-run` runs to completion, reports `src/core/deno/monkey-patch.ts` and `src/core/performance/metrics.ts` as skipped (only the first if PR 20b has landed), reports the collisions in `src/core/copy.ts` (`copyFileSync`, local function first referenced at line 60) and `src/core/qualified-path.ts` (`readTextFile` line 69, `readTextFileSync` line 73), never lists a file under `src/core/lib/`, and leaves the tree unchanged (`git status --short src` is empty).
-- `quarto run --dev tools/check-runtime-boundary.ts` passes; the baseline's `tests` count rises by one (874 → 875), every other scope is unchanged.
+- `quarto run --dev tools/check-runtime-boundary.ts` passes; the baseline's `tests` count rises by one (895 → 896), every other scope is unchanged.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 
 ## Plan
@@ -2453,31 +2453,7 @@ If PR 02b landed first, the step already exists (it runs `tools/codemod/` for 02
 
 - [x] **Step 3: Backport checklist**
 
-In `dev-docs/checklist-backport-a-pr.md`, after the bullet "Cherry-pick the commits from the development branch" (and its two sub-bullets), add:
-
-````markdown
-- If the stable branch predates the runtime-layer codemods (v1.10 and earlier: `src/deno_ral/fs.ts` there has no `readTextFileSync`) and a commit touches TypeScript, cherry-picking conflicts wherever its context lines were codemodded. Build the patch in the stable branch's `Deno.*` form instead, from the `main` checkout:
-
-  ```bash
-  c=<commit>
-  w=$(mktemp -d)/bp
-  git worktree add --detach "$w" "$c^"
-  rev() {
-    for f in $(git diff --name-only --diff-filter=AM "$c^" "$c" -- '*.ts'); do
-      quarto run --dev tools/codemod-deno-ral.ts --reverse --rules fs,temp,env,process,platform \
-        --ral-dir "$w/src/deno_ral" --file "$w/$f"
-    done
-  }
-  rev && git -C "$w" commit -qam "reversed base" --allow-empty
-  git -C "$w" checkout "$c" -- $(git diff --name-only --diff-filter=AM "$c^" "$c")
-  for f in $(git diff --name-only --diff-filter=D "$c^" "$c"); do git -C "$w" rm -q "$f"; done
-  rev
-  git -C "$w" add -A && git -C "$w" diff --cached HEAD > "$w.patch"
-  git worktree remove --force "$w"
-  ```
-
-  Then, on the stable branch: `git apply -3 "$w.patch" && git commit -C "$c"`. The tool prints `left:` for any layer name it cannot express (for example `args` used without a call) and never rewrites `deno_ral/errors.ts` predicates: grep the patch for `deno_ral/errors.ts` and `isNotFound(` and turn them into `instanceof Deno.errors.X` by hand. The tool reports `canonicalPathSync` as `left` (stable branches patch `Deno.realPathSync`): import `originalRealPathSync` from `deno_ral/original-real-path.ts` there.
-````
+Add the reverse-codemod procedure to `dev-docs/checklist-backport-a-pr.md` after the cherry-pick bullet. Decide whether to use it from the target branch's `src/deno_ral/fs.ts`, not its release number: v1.11 and earlier lack `readTextFileSync` and predate the codemods.
 
 Check the procedure on a real commit before committing the doc: pick the PR 10 commit "core: codemod Deno fs/temp calls to deno_ral (mechanical)" once it exists, or this PR's own `src/deno_ral/fs.ts` change otherwise, and confirm `git apply --check` succeeds on `v1.10`.
 
@@ -2540,7 +2516,7 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/ral/ -name '*.test.ts')` → `ok | 24 passed | 0 failed` (on Windows `23 passed | 1 ignored`: "safeRemoveDirSync with symlinks" is `ignore: isWindows`).
 - `package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/` → `ok | 29 passed | 0 failed`.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- `quarto run --dev tools/check-runtime-boundary.ts` → passes; `git diff upstream/main...HEAD -- tools/runtime-boundary-baseline.json` (three dots: against the merge base, so it holds whether or not the branch is rebased onto PR 02d) shows only `tests` 874 → 875 (the `typeof Deno` guard in `errors.test.ts`, Review of Tasks 1–3).
+- `quarto run --dev tools/check-runtime-boundary.ts` → passes; `git diff upstream/main...HEAD -- tools/runtime-boundary-baseline.json` shows only `tests` 895 → 896 (the `typeof Deno` guard in `errors.test.ts`, Review of Tasks 1–3).
 - The Task 4 step 6 dry run → the lines shown there; `git status --short src` clean.
 - `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts unit/ral/safe-remove-dir.test.ts smoke/check/check-info-project.test.ts` → pass (`safeRemoveDirSync` now resolves through `canonicalPathSync`).
 
@@ -2556,7 +2532,7 @@ git commit -m "codemod CI step, backport step, rules docs and changelog for deno
 - [ ] Collisions are symbol-based: an existing import of the same export from the same layer module never collides; an existing alias is reused; `import type` declarations stay type-only; aliases survive a merge.
 - [ ] `kCodemodExclusions` is `kSrcExclusions` plus `src/core/lib` and `src/resources/tools/ast-diagram`; the codemod test never runs under `run-tests.sh`.
 - [ ] `--reverse` round-trips the basic fixtures and reports, rather than guesses, uses it cannot express; `canonicalPathSync` is always reported, never reversed.
-- [ ] No file outside `src/deno_ral/`, `tools/`, `tests/unit/ral/`, the two rules docs, the backport checklist, the workflow, the changelog and `deno.lock` changed; the ratchet baseline changes only `tests` (874 → 875).
+- [ ] No file outside `src/deno_ral/`, `tools/`, `tests/unit/ral/`, the two rules docs, the backport checklist, the workflow, the changelog and `deno.lock` changed; the ratchet baseline changes only `tests` (895 → 896).
 
 ## Risks and rollback
 
@@ -2726,5 +2702,5 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
 ### Rebase onto the release reconciliation (`708e443aa`, 2026-11-03)
 
 - Only README and HANDOFF conflicted: `main`'s sequence row 09 and HANDOFF status lines were kept as written there; its new "Open decisions" rows were kept, with the two PR 09 Task 3 rows in their 2.9.8 wording.
-- README row "PRs 09, 10 and 37, backports" asks this PR's backport checklist to cover `v1.11`. `upstream/v1.11` (`c5fc6c50e`, Deno 2.9.8) has no `readTextFileSync` in `src/deno_ral/fs.ts`, so it predates the codemods like `v1.10`. `dev-docs/checklist-backport-a-pr.md` no longer says "v1.10 and earlier": the condition is the target branch's `fs.ts`, with v1.11 and earlier named as qualifying (the Task 5 Step 3 text above still says v1.10).
+- README row "PRs 09, 10 and 37, backports" asks this PR's backport checklist to cover `v1.11`. `upstream/v1.11` (`c5fc6c50e`, Deno 2.9.8) has no `readTextFileSync` in `src/deno_ral/fs.ts`, so it predates the codemods like `v1.10`. `dev-docs/checklist-backport-a-pr.md` no longer says "v1.10 and earlier": the condition is the target branch's `fs.ts`, with v1.11 and earlier named as qualifying.
 - The checklist recipe re-run as written on this PR's `fs.ts` commit (`5b7cd9e65`) against `upstream/v1.11`: reverse at the new revision → `1 rewritten, 49 replacements, 1 left` (`canonicalPathSync`, with the `originalRealPathSync` hint); `git apply --check` exit 0 and `git apply -3 --check` exit 0 (`Applied patch to 'src/deno_ral/fs.ts' cleanly`, three-way falls back to direct application for the new test file).
