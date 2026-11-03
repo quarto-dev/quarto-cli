@@ -301,7 +301,7 @@ async function checkVersions(conf: CheckConfiguration) {
   // with our installers
   const versionConstraints: [string | undefined, string, string][] = [
     [pandocVersion, "3.10.0", "Pandoc"],
-    [sassVersion, "1.101.0", "Dart Sass"],
+    [sassVersion, "1.107.1", "Dart Sass"],
     [denoVersion, "2.9.8", "Deno"],
     [typstVersion, "0.15.1", "Typst"],
   ];
