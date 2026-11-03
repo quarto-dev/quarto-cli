@@ -21,6 +21,13 @@ export async function bundle(
     throw Error("QUARTO_DENO is not defined");
   }
   denoBundleCmd.push("run");
+  // Use deno.lock frozen (deno.jsonc doesn't freeze it), so this fails if it is out of date.
+  denoBundleCmd.push("--lock=../deno.lock");
+  denoBundleCmd.push(
+    Deno.env.get("QUARTO_UPDATE_DENO_LOCK") === "1"
+      ? "--frozen=false"
+      : "--frozen",
+  );
   denoBundleCmd.push("--allow-all");
   denoBundleCmd.push("../tools/deno-esbuild-bundle.ts");
   /*

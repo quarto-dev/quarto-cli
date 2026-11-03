@@ -16,7 +16,7 @@ Then, rerun `./configure.sh`, which calls the `./package/scripts/vendoring/vendo
 
 `deno.lock` at the repository root pins the exact version and integrity hash of every remote (`jsr:`, `npm:`, `https:`) module reachable from the vendored entrypoints (`src/quarto.ts`, `src/vendor_deps.ts`, `tests/test-deps.ts`, `package/scripts/deno_std/deno_std.ts`, `package/src/bld.ts`, `tools/deno-esbuild-bundle.ts`). It is committed so that builds, including downstream packaging (e.g. Homebrew), are reproducible and verified.
 
-The lockfile is frozen everywhere: `vendor.sh` / `vendor.cmd` run `deno install --frozen`, and `deno.jsonc` sets `"lock": { "frozen": true }`, so any Deno command that picks up `deno.jsonc` (including `quarto-bld` and the bundler) fails with `The lockfile is out of date` instead of silently adding entries to it. After changing `src/import_map.json` or adding an import to one of the entrypoints, update the lockfile and commit it with your change:
+The build tools use the lockfile frozen: `vendor.sh` / `vendor.cmd` run `deno install --frozen`, and `quarto-bld` and the bundler run with `--lock=deno.lock --frozen`, so they fail with `The lockfile is out of date` instead of silently adding entries to it. Since `configure.sh` / `configure.cmd` run `quarto-bld` first, a stale lockfile stops `configure`. (`deno.jsonc` does not freeze the lockfile, because other scripts run in the repository, e.g. test helpers and `quarto-bld compile-quarto-latexmk`, use modules outside the vendored entrypoints.) After changing `src/import_map.json` or adding an import to one of the entrypoints, update the lockfile and commit it with your change:
 
 ```
 QUARTO_UPDATE_DENO_LOCK=1 ./configure.sh
