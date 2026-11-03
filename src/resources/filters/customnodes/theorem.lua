@@ -47,7 +47,7 @@ theorem_types = {
   },
   alg = {
     env = "algorithm",
-    style = "plain",
+    style = "definition",
     title = "Algorithm"
   },
 }

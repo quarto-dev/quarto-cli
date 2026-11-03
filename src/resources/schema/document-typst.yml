@@ -40,7 +40,7 @@
     long: |
       Controls how theorems, lemmas, definitions, etc. are rendered:
 
-      - `simple`: Classic LaTeX style (default). Theorems and similar blocks have a bold title and an italic body; definitions, examples and exercises have a bold title and an upright body; proofs, remarks and solutions have an italic title and an upright body
+      - `simple`: Classic LaTeX style (default). Theorems and similar blocks have a bold title and an italic body; definitions, examples, exercises and algorithms have a bold title and an upright body; proofs, remarks and solutions have an italic title and an upright body
       - `fancy`: Colored boxes using brand colors
       - `clouds`: Rounded colored background boxes
       - `rainbow`: Colored left border with colored title
