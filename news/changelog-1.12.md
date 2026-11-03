@@ -26,3 +26,9 @@ All changes included in 1.12:
 - ([#15225](https://github.com/quarto-dev/quarto-cli/pull/15225)): Fix several Brazilian Portuguese (`pt-BR`) translations, including the table of contents title (now "Sumário") and the proof title (now "Demonstração"), and translate the `link-external-newwindow-label` language key. (author: @bonijoao)
 - ([#15268](https://github.com/quarto-dev/quarto-cli/issues/15268)): Translate the `skip-to-content` language key in Bulgarian, Catalan, Czech, Danish, Finnish, Hebrew, Indonesian, Korean, Lithuanian, Norwegian Bokmål, Norwegian Nynorsk, Polish, Russian, Serbian (Latin), Slovak, Slovenian, Swedish, Turkish and Ukrainian, using reviewed machine translation.
 - ([#15271](https://github.com/quarto-dev/quarto-cli/issues/15271)): Translate the `tools-share` and `tools-download` language keys in Catalan, Chinese, Czech, Danish, Dutch, Finnish, French, German, Hebrew, Indonesian, Italian, Japanese, Korean, Lithuanian, Norwegian Bokmål, Norwegian Nynorsk, Polish, Portuguese, Russian, Slovak, Swedish, Turkish and Ukrainian, and `tools-share` in Serbian (Latin), using reviewed machine translation.
+
+## Dependencies
+
+- Update `esbuild` to 0.28.2 (fixes a CSS minification bug involving `&` and a TypeScript import-alias tree-shaking bug).
+- Update `typst-gather` to 0.2.4.
+- Update `verapdf` to 1.30.3 (used by `quarto install verapdf` for PDF/A validation).
