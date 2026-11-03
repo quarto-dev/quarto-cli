@@ -1,5 +1,9 @@
 All changes included in 1.12:
 
+## Accessibility
+
+- ([#13126](https://github.com/quarto-dev/quarto-cli/pull/13126)): Label the pagination control of website listings for screen readers: the control has a localised name, each page link is named "Page n", the current page is marked, and the "..." gaps are no longer focusable. (author: @mcanouil)
+
 ## Formats
 
 ### `pdf`
@@ -15,7 +19,7 @@ All changes included in 1.12:
 
 ### Websites
 
-- ([#13126](https://github.com/quarto-dev/quarto-cli/pull/13126)): Add `pagination` options to listings to set how many page links are shown (`inner-window`, `outer-window`, `outer-window-left`, `outer-window-right`), and label the pagination control for screen readers. (author: @mcanouil)
+- ([#13126](https://github.com/quarto-dev/quarto-cli/pull/13126)): Add `pagination` options to listings to set how many page links are shown (`inner-window`, `outer-window`, `outer-window-left`, `outer-window-right`). (author: @mcanouil)
 
 ## Commands
 
