@@ -28,13 +28,13 @@ import {
   kFieldSort,
   kFieldTypes,
   kImageHeight,
+  kInnerWindow,
+  kLeftOuterWindow,
   kMaxDescLength,
   kMaxItems,
+  kOuterWindow,
   kPageSize,
   kPaginationOptions,
-  kInnerWindow,
-  kOuterWindow,
-  kLeftOuterWindow,
   kRightOuterWindow,
   kSortAsc,
   kSortDesc,
@@ -42,7 +42,6 @@ import {
   ListingItem,
   ListingSort,
   ListingType,
-  PaginationOptions,
 } from "./website-listing-shared.ts";
 import { resourcePath } from "../../../../core/resources.ts";
 import { localizedString } from "../../../../config/localization.ts";
@@ -530,17 +529,22 @@ export function templateJsScript(
   itemCount: number,
 ) {
   const pageSize = listing[kPageSize] as number || 50;
-  const listingPaginationOptions = listing[kPaginationOptions] as PaginationOptions || {};
+  const listingPaginationOptions = listing[kPaginationOptions] || {};
 
   // If columns are present, factor that in
   const columns = listing[kFields] as string[] || [];
 
+  // list.js reads `left || outerWindow`, so a side of 0 cannot override
+  // outerWindow; both sides are resolved here and outerWindow is never emitted.
+  const outerWindow = listingPaginationOptions[kOuterWindow];
+  const left = listingPaginationOptions[kLeftOuterWindow] ?? outerWindow;
+  const right = listingPaginationOptions[kRightOuterWindow] ?? outerWindow;
+  const innerWindow = listingPaginationOptions[kInnerWindow];
   const paginationOptions = [
-    listingPaginationOptions[kInnerWindow] !== undefined ? `innerWindow: ${listingPaginationOptions[kInnerWindow]}` : "",
-    listingPaginationOptions[kOuterWindow] !== undefined ? `outerWindow: ${listingPaginationOptions[kOuterWindow]}` : "",
-    listingPaginationOptions[kLeftOuterWindow] !== undefined ? `leftOuterWindow: ${listingPaginationOptions[kLeftOuterWindow]}` : "",
-    listingPaginationOptions[kRightOuterWindow] !== undefined ? `rightOuterWindow: ${listingPaginationOptions[kRightOuterWindow]}` : "",
-    'item: "<li class=\'page-item\'><a class=\'page page-link\' href=\'#\'></a></li>"',
+    innerWindow !== undefined ? `innerWindow: ${innerWindow}` : "",
+    left !== undefined ? `left: ${left}` : "",
+    right !== undefined ? `right: ${right}` : "",
+    "item: \"<li class='page-item'><a class='page page-link' href='#'></a></li>\"",
   ]
     .filter((v) => v !== "")
     .join(", ");

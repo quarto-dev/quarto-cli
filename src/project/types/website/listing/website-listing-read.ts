@@ -15,10 +15,7 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
-import {
-  existsSync,
-  safeExistsFileSync,
-} from "../../../../deno_ral/fs.ts";
+import { existsSync, safeExistsFileSync } from "../../../../deno_ral/fs.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
@@ -69,13 +66,13 @@ import {
   kImageLazyLoading,
   kImagePlaceholder,
   kInclude,
+  kInnerWindow,
+  kLeftOuterWindow,
   kListing,
   kMaxDescLength,
+  kOuterWindow,
   kPageSize,
   kPaginationOptions,
-  kInnerWindow,
-  kOuterWindow,
-  kLeftOuterWindow,
   kRightOuterWindow,
   kSortAsc,
   kSortDesc,
@@ -157,12 +154,39 @@ const kDefaultFields = [
   kFieldDescription,
 ];
 
-const kDefaultPaginationOptions: PaginationOptions = {
-  [kInnerWindow]: 2,
+const kPaginationMinimums: Record<keyof PaginationOptions, number> = {
+  [kInnerWindow]: 1,
   [kOuterWindow]: 0,
   [kLeftOuterWindow]: 0,
   [kRightOuterWindow]: 0,
 };
+
+// Keeps the pagination options that are whole numbers at or above their
+// minimum; warns about and drops the others.
+export function resolvePaginationOptions(
+  listingId: string,
+  raw: unknown,
+): PaginationOptions | undefined {
+  if (raw === undefined || raw === null || typeof raw !== "object") {
+    return undefined;
+  }
+  const resolved: PaginationOptions = {};
+  for (const [key, min] of Object.entries(kPaginationMinimums)) {
+    const value = (raw as Record<string, unknown>)[key];
+    if (value === undefined) {
+      continue;
+    }
+    const n = Number(value);
+    if (Number.isInteger(n) && n >= min) {
+      resolved[key as keyof PaginationOptions] = n;
+    } else {
+      warning(
+        `Listing '${listingId}': pagination option '${key}' must be a whole number of ${min} or more, got '${value}'. The option is ignored.`,
+      );
+    }
+  }
+  return Object.keys(resolved).length > 0 ? resolved : undefined;
+}
 
 const defaultFieldDisplayNames = (format: Format) => {
   return {
@@ -675,7 +699,6 @@ function hydrateListing(
     [kFieldFilter]: hydratedFields,
     [kFieldRequired]: kDefaultFieldRequired,
     [kPageSize]: defaultPageSize(),
-    [kPaginationOptions]: kDefaultPaginationOptions,
     [kFilterUi]: listing[kFilterUi] !== undefined
       ? listing[kFilterUi]
       : listing.type === ListingType.Table,
@@ -684,6 +707,11 @@ function hydrateListing(
       : listing.type === ListingType.Table,
     ...listing,
   });
+
+  listingHydrated[kPaginationOptions] = resolvePaginationOptions(
+    listingHydrated.id,
+    listing[kPaginationOptions],
+  );
 
   // Apply a default sort if the title field is present and the sources contain documents
   const sort: ListingSort[] | undefined = hydratedFields.includes(kFieldTitle)
