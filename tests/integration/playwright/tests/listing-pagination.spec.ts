@@ -1,6 +1,7 @@
 import { expect, Page, test } from "@playwright/test";
 
 const fixture = "./listings/pagination/_site/index.html";
+const singleFixture = "./listings/pagination/_site/single.html";
 
 // Link texts of each listing; the active page is wrapped in brackets.
 const expected: Record<string, { page1: string; page6: string }> = {
@@ -207,21 +208,26 @@ test.describe("Listing pagination accessibility", () => {
     `);
   });
 
-  // landmark-unique: every listing nav shares one label, as it did before.
-  // region: the skip link sits outside any landmark. Neither comes from the
-  // pagination options or the ARIA attributes tested here.
-  const ignoredAxeRules = ["landmark-unique", "region"];
+  // With five listings on one page, every nav shares one label, so axe reports
+  // landmark-unique. The single-listing page below checks that rule too.
+  // region: the skip link sits outside any landmark, which has nothing to do
+  // with pagination.
+  const axeCases = [
+    { name: "page 1", page: fixture, hash: "", ignored: ["landmark-unique", "region"] },
+    { name: "page 6", page: fixture, hash: "#listing-outer-page=6", ignored: ["landmark-unique", "region"] },
+    { name: "single listing page 1", page: singleFixture, hash: "", ignored: ["region"] },
+    { name: "single listing page 6", page: singleFixture, hash: "#listing-only-page=6", ignored: ["region"] },
+  ];
 
-  for (const state of ["page 1", "page 6"]) {
-    test(`axe finds no violation on ${state}`, async ({ page }) => {
+  for (const { name, page: url, hash, ignored } of axeCases) {
+    test(`axe finds no violation on ${name}`, async ({ page }) => {
       const messages = collectLogs(page);
-      const hash = state === "page 6" ? "#listing-outer-page=6" : "";
-      await page.goto(`${fixture}${hash}`, { waitUntil: "networkidle" });
+      await page.goto(`${url}${hash}`, { waitUntil: "networkidle" });
       const violations = await axeViolations(page, messages);
       expect(violations).toBeDefined();
       const ids = violations.map((v: { id: string }) => v.id).filter((
         id: string,
-      ) => !ignoredAxeRules.includes(id));
+      ) => !ignored.includes(id));
       expect(ids).toEqual([]);
     });
   }

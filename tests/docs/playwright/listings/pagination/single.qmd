@@ -1,0 +1,16 @@
+---
+title: Single Listing Pagination Test
+listing:
+  - id: only
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+    pagination:
+      outer-window: 1
+---
+
+## Posts
+
+::: {#only}
+:::
