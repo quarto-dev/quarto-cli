@@ -178,8 +178,9 @@ listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
 # Accessible name for the pagination landmark of a listing (never shown as visible text).
-# "Page navigation" = moving between pages of results, not a web page; "navigation" is the landmark, not a menu.
-listing-page-navigation: "Page navigation"
+# It names the group of page links that moves between pages of listing results, not a web page.
+# Follow the landmark label rules above: do not include the word "navigation", and use a noun.
+listing-page-pagination: "Pagination"
 # Accessible name for each numbered page link of a paginated listing (never shown as visible text); the link itself shows only the number.
 # "Page" means a page of listing results, not a web page. {0} is the page number and must be kept.
 listing-page-number: "Page {0}"
