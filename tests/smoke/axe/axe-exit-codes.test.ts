@@ -21,19 +21,20 @@ import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { unitTest } from "../../test.ts";
+import { writeFixture } from "../../utils.ts";
 import { quartoDevBinCmd, quartoSpawnEnvOptions } from "../../quarto-cmd.ts";
 import { AxeFindings } from "../../../src/command/call/axe/schemas.ts";
 
 const workingDir = Deno.makeTempDirSync({ prefix: "quarto-axe-exit" });
-Deno.mkdirSync(join(workingDir, "site"));
-Deno.writeTextFileSync(
-  join(workingDir, "site", "index.html"),
+writeFixture(
+  workingDir,
+  "site/index.html",
   `<!DOCTYPE html>
 <html lang="en"><head><title>exit codes</title></head>
 <body><main><h1>Exit codes</h1><img src="dot.png"></main></body></html>
 `,
 );
-Deno.writeTextFileSync(join(workingDir, "site", "dot.png"), "not-really-a-png");
+writeFixture(workingDir, "site/dot.png", "not-really-a-png");
 
 function findings(): AxeFindings {
   return JSON.parse(
@@ -158,10 +159,8 @@ unitTest(
     const notABrowser = join(workingDir, "not-a-browser");
     Deno.writeTextFileSync(notABrowser, "");
     // a previous scan's summary must not survive to be read as current
-    const artifacts = join(workingDir, "_axe-checks");
-    Deno.mkdirSync(artifacts, { recursive: true });
-    const staleFindings = join(artifacts, "findings.json");
-    Deno.writeTextFileSync(staleFindings, `{"stale": true}`);
+    writeFixture(workingDir, "_axe-checks/findings.json", `{"stale": true}`);
+    const staleFindings = join(workingDir, "_axe-checks", "findings.json");
 
     const result = await execProcess({
       cmd: quartoDevBinCmd(),

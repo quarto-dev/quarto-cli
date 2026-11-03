@@ -14,11 +14,11 @@ import {
   assertStringIncludes,
 } from "../asserts.ts";
 import { join } from "../../src/deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "../../src/deno_ral/fs.ts";
+import { existsSync } from "../../src/deno_ral/fs.ts";
 import { v8Branch } from "../../src/deno_ral/platform.ts";
 import { md5HashBytes } from "../../src/core/hash.ts";
 import { createProjectCache } from "../../src/core/cache/cache.ts";
-import { withTempDir } from "../utils.ts";
+import { withTempDir, writeFixture } from "../utils.ts";
 import { noErrors, printsMessage } from "../verify.ts";
 import {
   damageKvRow,
@@ -35,9 +35,8 @@ unitTest(
   async () => {
     await withTempDir(async (scratch) => {
       const legacyDir = join(scratch, "project-cache");
-      ensureDirSync(legacyDir);
       const legacy = join(legacyDir, "deno-kv-file");
-      Deno.writeTextFileSync(legacy, LEGACY_SENTINEL);
+      writeFixture(legacyDir, "deno-kv-file", LEGACY_SENTINEL);
 
       const cache = await createProjectCache(scratch);
       try {
