@@ -81,6 +81,8 @@ Later executors apply the open-decisions rows at step 0; historical assessments 
 - Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09 before 10.
   PR 22 depends on PR 04 (Phase 0, behind 00b and 00a), so 10–13 and 14 wait for that part of Phase 0 too.
   `tests/asserts.ts` lands in PR 02; tests written by PRs 09 and later use the layer, never raw `Deno.*`.
+  A test that must touch a Deno-only object (the `Deno.errors` classes in `tests/unit/ral/errors.test.ts`) writes `Deno.` directly and accepts the `tests` baseline increase; it never reaches it through `globalThis` to stay out of the count.
+- Code comments in `src/` and `tests/` describe the code as it is now, without plan or PR numbers ("until PR 25", "PR 27 moves this"); what a later PR changes belongs in that PR's plan (decided 2026-10-28, PR 09 review).
 - Migration page for script authors: `https://quarto.org/docs/projects/scripts-deno-to-node.html` (PRs 00c, 35; created in quarto-web).
 - `tests/run-tests.sh` accepts files only, never directories: plans write `$(find unit/ral -name '*.test.ts')`.
 
@@ -132,6 +134,8 @@ The rows below are the ones that still need a named person or an external answer
 | PR 33 and PR 35 size | whether PR 33 lands as one PR or as 33a (Tasks 1, 11, 12, 16) + 33b (the flip), and PR 35 as one PR or 35a (Task 1 builder) + 35b (scripts) | maintainer | before Phase 3 starts |
 | User breakage after the flip | issue label, weekly triage owner during the soak, criterion to extend the dual-runtime window or the shim | release manager | before the first 1.13 prerelease |
 | PR 18, all tasks (from #15180) | the Deno backend keeps the `v8-<v8Branch>` store directory; reconcile it with the store names `index`/`sass-index` and the `<identifierHash>-<inputHash>.css` naming. Task 2 Step 2 shrinks to the API change: `this.index.list({ prefix: [] })` becomes `this.index.list([])`, and the `clear()` body #15180 shipped stays as is (`storeDir` paths, `safeRemoveSync`, immediate entries skipped; test `projectCache - clear() removes disk and immediate entries of a populated cache`). Drop the Context sentence saying `join` throws in `clear()`, and the Risks lines about that throwing path; one `cache.ts` `Deno.removeSync` is now `safeRemoveSync`. Refresh every Verified usage line number | coordinator | PR 18 step 0 |
+| PR 20b Task 4 (from PR 09) | add `tools/codemod-deno-ral.ts` and `tools/codemod/codemod-deno-ral.test.ts` to Task 4's Modify list, and a step: remove `src/core/performance/metrics.ts` from `kCodemodPatchFiles` and from the backstop test's path list, then run the codemod suite. Once metrics.ts uses `onFileRead`, the codemod must convert its `Deno.env.get`/`Deno.writeTextFileSync` sites (PR 25:27) | coordinator | PR 20b step 0 |
+| PR 25 Task 4 (from PR 09) | same two files in Task 4's Modify list, and a step: remove `src/core/deno/monkey-patch.ts` from `kCodemodPatchFiles` and the backstop test, then run the codemod suite. If the list is then empty, delete `kCodemodPatchFiles`, its check, the backstop test and `patch-file-backstop.input.ts` | coordinator | PR 25 step 0 |
 | PR 18 Tasks 1–3 (from the #15119 fix, once `src/deno_ral/kv.ts` is on `main`) | `kv.ts` already exists (`openKv`, `getKv`, `kvOp`, `KvDamagedError`) and both caches go through it, so Task 1 extends the file instead of creating it and its "Module not found" RED step no longer holds. `openKeyValueStore` keeps the damage mapping: a damaged value reads as a miss with one warning, a damaged file fails with `KvDamagedError` naming the folder to delete, any other error is wrapped with the path. The `src` baseline drops by 5, not 7 (the two `Deno.openKv` calls are already in the layer). The `Deno.openKv` grep acceptance check covers `src` and `package` only, since three cache tests build damaged fixtures with `Deno.openKv` on purpose. The `kv.ts` row in `.claude/rules/typescript/deno-ral.md` exists: update it | coordinator | PR 18 step 0 |
 | PR 19 Task 1, PR 27b | both replace the whole body of `platform.ts`: keep the `v8Branch` export (`_TEMPLATE.md`, "`platform.ts`"); PR 27b computes it from `process.versions.v8` | coordinator | step 0 of each |
 | PR 02c (from #15202, which turned `main` red) | Decided 2026-10-27: PR runs fail on any increase that leaves a count above their own `tools/runtime-boundary-baseline.json` (exactly what the push check on `main` will compare), instead of only warning; an increase that still fits because `main` sits below its baseline is a notice; 02c's "everything else is a warning for the maintainer" and its "exit 1 if any error, else 0" no longer hold. Per-line findings stay warnings saying the contributor has nothing to change, plus one `::error` saying a maintainer pushes the baseline update before merging; the remedy is unchanged (update the branch with `main`, `--update-baseline --accept-increase`, push to the PR). Rejected: an acceptance label (the merged tree still carries the old baseline, so `main` fails anyway) and warn-only with a merge checklist (the human step is what failed). A plan whose expected delta raises a count runs `--accept-increase` in its PR (PRs 01 and 05 already do) | maintainer | step 0 of any plan that raises a count |
@@ -146,6 +150,8 @@ The rows below are the ones that still need a named person or an external answer
 | PR 32 and milestone J, dependency | J is a soft prerequisite for PR 32: the parity allowlist may contain Julia tests until the subtree pull. Track J as related work, not a blocking dependency; require an empty Julia allowlist once the port is pulled. The stable-release condition for revisiting the upstream port is now met by 1.11.9; verify upstream progress before choosing the subtree to pull. | coordinator (dependency), external contact (upstream port) | PR 32 step 0 and next milestone J update |
 | PR 08, output decoding | The standalone `execProcess` fix for UTF-8 characters split across stdout/stderr chunks must land before PR 08 starts. Preserve its separate streaming decoders and EOF flush, and include a split-multibyte parity case when moving the process layer. | coordinator | PR 08 step 0 |
 | PR 00c, Phase 1 plans, PRs 33–37 and tooling PR 38, release correction | Decided 2026-11-03: boundary work and the script notice target 1.12 on Deno; Node and script/extension changes target 1.13; bundled-Deno removal targets 1.14. In 00c, change "Starting with Quarto 1.12" to 1.13 in text and tests and publish the migration page before the 1.12 notice. Unlanded Phase 0/1 user-visible changes use `changelog-1.12.md`; PRs 33–36 use `changelog-1.13.md`, PR 37 uses `changelog-1.14.md`, and later tooling changes use their actual landing release. Shift the supported-surface matrix, compatibility warnings, retirement dates and soak from 1.12/1.13 to 1.13/1.14; rollback targets the last stable Deno release, expected 1.12. Do not change shipped 1.11 entries or historical evidence. | coordinator (plan refresh), release manager (cut dates) | step 0 of each affected plan; PR 09 review |
+| Any plan that type-checks `src/quarto.ts` (from PR 09 Task 3, 2026-10-28) | the command `deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` fails on Deno 2.7.14 and on 2.9.8 (re-checked 2026-11-03) with `Requires import access to "cdn.skypack.dev:443"` (a remote import in `src/core/yaml.ts:31`); add `--allow-import` | coordinator | step 0 of each |
+| PR 27 (from PR 09 Task 3, 2026-10-28) | The Deno types (2.7.14, and 2.9.8 re-checked 2026-11-03) make `Deno.SymlinkOptions.type` required and `Deno.truncateSync` string-only, so the layer's `symlink[Sync]` forwards an options object only when a `type` is given and `truncateSync` converts a URL with `toPathString`; the node:fs reimplementation keeps both behaviours | coordinator | PR 27 step 0 |
 
 ## Shared rules and tables
 
@@ -179,6 +185,22 @@ Re-grep every `path:line` the plan cites, check each "assumes PR xx landed with 
 against `main`, check the plan's `**Depends on:**` PRs are merged, read the "Open decisions with an owner" table above for a row that names this PR, and set the plan's row in "The sequence" to `in progress`.
 The person who merges the PR sets it to `merged`.
 
+Step 0 also audits the plan's code blocks, because the executor transcribes them verbatim and a defect in them lands in the PR (all three findings of PR 09's review came from its plan).
+Fix each hit in the plan, and record it in the execution log, before Task 1:
+
+- Every function the plan's code defines (`rg -n 'function \w+' <plan>`) is searched for in `tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts` and `src/`; an existing helper is reused, and a helper two new test files need lives in one shared file.
+- No code outside `src/deno_ral/` reaches `Deno` indirectly to stay out of the ratchet count: through `globalThis`, `self` or `window`, by destructuring, or through an alias (`const d = Deno`) (`rg -nP '\bglobalThis\b|\bDeno\b(?!\??\.)' <plan>`; `typeof Deno` and prose hits are fine). A `Deno.` access the code needs is written as such and the baseline increase is accepted.
+- Comments inside code blocks state the current reason only: no plan or PR numbers, no description of what a later PR will change (`rg -n '(//|\*).*\bPR [0-9]' <plan>`; a hit in a shell or YAML block that is not a code comment is fine).
+
+After each task's commit, the reviewer runs a reuse and simplification pass over the task's diff, on top of the plan's own review checklist: the plan checks behaviour, this pass checks the three points above on the code as committed.
+On the whole branch before the PR opens:
+
+```bash
+git diff main...HEAD -- src tests ':!src/deno_ral' | rg -nP '^\+.*(\bglobalThis\b|\bDeno\b(?!\??\.))'   # the layer itself is exempt; typeof Deno and prose hits are fine
+git diff main...HEAD -- src tests | rg -n '^\+.*(//|\*).*\bPR [0-9]'
+git diff main...HEAD -- tests | rg -n '^\+\s*(export )?(async )?function \w+'   # each name: rg it in tests/ and src/
+```
+
 ```bash
 git checkout main && git pull
 git worktree add ../<branch-named-in-the-plan> -b <branch-named-in-the-plan>   # rule 7: one worktree per PR
@@ -199,6 +221,15 @@ A test that fails on an OS the executor cannot run: CI on that OS is the evidenc
 
 Commits follow the plan's steps as written (a failing-test step followed by its implementation step may leave one red commit; no squash is required).
 Changelog: a dependency bump gets a line under `## Dependencies` of `news/changelog-<version>.md` (created by PR 00a); a plan with no user-visible change says `Out: changelog` in its Scope with the reason.
+
+Progress tracking while executing (decided 2026-10-28, from PR 09's run):
+
+- The plan file ends with an "Execution log" section: one entry per task with the commands run and their quoted output; numbers reported anywhere (test counts, ratchet counts, dry-run summaries) are copied from real output.
+  The executor ticks the plan's checkboxes as steps complete; the execution-log and checkbox updates fold into each task's own commit.
+- Status in a tracker, if the maintainer keeps one, stays in that tracker (HANDOFF "Tracking"); nothing about it is committed.
+- A plan may be executed over several sessions: hand off at a task boundary (a commit point), not mid-task.
+  The ticked checkboxes, the execution log and the git log make the plan file self-sufficient; a fresh session resumes with "Continue executing PR NN in worktree `<path>`; the plan is `dev-docs/runtime-migration/NN-*.md` — resume at Task N per its checkboxes and execution log."
+  This is the fallback for `superpowers:subagent-driven-development` when the executor has no sub-agent tooling: the artifacts above replace the orchestrator's memory.
 
 ## The sequence
 

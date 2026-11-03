@@ -32,6 +32,8 @@ src/resources/library/dayjs/** linguist-vendored
 
 # use lf line-endings for source files
 src/** text eol=lf
+# codemod fixtures and tests compare file bytes verbatim
+tools/codemod/** text eol=lf
 
 # Denote all files that are truly binary and should not be modified.
 *.png binary
