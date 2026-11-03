@@ -76,10 +76,34 @@ export async function refreshProjectContext(
   return project;
 }
 
-interface WatchChanges {
+export interface WatchChanges {
   config: boolean;
   output: boolean;
   reloadTarget?: string;
+}
+
+// Debounced handler for watch changes that accumulates the requested changes
+// across calls: a bare debounce keeps only the latest call's arguments, so a
+// render-driven reload landing within the window would discard a pending
+// config refresh (config: true) or full project render (output: false).
+export function debouncedWatchChanges(
+  handler: (changes: WatchChanges) => Promise<void>,
+  wait: number,
+): (changes: WatchChanges) => void {
+  let pending: WatchChanges | undefined;
+  const debounced = ld.debounce(() => {
+    const changes = pending!;
+    pending = undefined;
+    return handler(changes);
+  }, wait);
+  return (changes: WatchChanges) => {
+    pending = {
+      config: pending?.config || changes.config,
+      output: (pending?.output ?? true) && changes.output,
+      reloadTarget: changes.reloadTarget ?? pending?.reloadTarget,
+    };
+    debounced();
+  };
 }
 
 export function watchProject(
@@ -314,7 +338,7 @@ export function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
-  const reloadClients = ld.debounce(async (changes: WatchChanges) => {
+  const reloadClients = debouncedWatchChanges(async (changes) => {
     const services = renderServices(nbContext);
     try {
       // fully render project if we aren't already rendering on reload (e.g. for pdf)
@@ -401,7 +425,7 @@ export function watchProject(
     for await (const event of watcher) {
       const result = await handleWatchEvent(event);
       if (result) {
-        await reloadClients(result);
+        reloadClients(result);
       }
     }
   };
@@ -425,12 +449,13 @@ export function watchProject(
       return devServer.clientHtml(req, inputFile);
     },
     hasClients: () => devServer.hasClients(),
-    reloadClients: async (output: boolean, reloadTarget?: string) => {
-      await reloadClients({
+    reloadClients: (output: boolean, reloadTarget?: string) => {
+      reloadClients({
         config: false,
         output,
         reloadTarget,
       });
+      return Promise.resolve();
     },
     project: () => project,
     refreshProject: async () => {
