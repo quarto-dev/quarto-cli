@@ -15,7 +15,6 @@
 
 import { unitTest } from "../test.ts";
 import { assert, assertEquals, assertRejects } from "../asserts.ts";
-import { ensureDirSync } from "../../src/deno_ral/fs.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { LightDarkBrandDarkFlag } from "../../src/core/brand/brand.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
@@ -28,7 +27,7 @@ import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { renderServices } from "../../src/command/render/render-services.ts";
 import { RenderOptions } from "../../src/command/render/types.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
-import { withTempDir } from "../utils.ts";
+import { withTempDir, writeFixture } from "../utils.ts";
 
 const BRAND_YML = `color:
   palette:
@@ -56,13 +55,13 @@ function writeExtension(
   projectMetadata: string,
   name = "test-extension",
 ) {
-  const extensionDir = join(dir, "_extensions", name);
-  ensureDirSync(extensionDir);
-  Deno.writeTextFileSync(
-    join(extensionDir, "_extension.yml"),
+  const extensionDir = `_extensions/${name}`;
+  writeFixture(
+    dir,
+    `${extensionDir}/_extension.yml`,
     extensionYml(projectMetadata),
   );
-  Deno.writeTextFileSync(join(extensionDir, "brand.yml"), BRAND_YML);
+  writeFixture(dir, `${extensionDir}/brand.yml`, BRAND_YML);
 }
 
 // The palette entry is unique to the extension's brand.yml, so asserting it
@@ -92,7 +91,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, "      brand: brand.yml\n");
 
         // preview builds the context this way: no renderOptions.
@@ -120,11 +119,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(
-          join(tmpDir, "_quarto.yml"),
-          "project:\n  type: default\n",
-        );
-        Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
+        writeProject(tmpDir);
         writeExtension(tmpDir, "      brand: brand.yml\n");
 
         // preview builds the context this way: no renderOptions.
@@ -155,7 +150,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, "      brand: brand.yml\n");
 
         // render builds the context this way: renderOptions present.
@@ -187,7 +182,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, '      output-dir: "_out"\n');
 
         project = await singleFileProjectContext(
@@ -224,7 +219,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, '      output-dir: "_out"\n');
 
         project = await singleFileProjectContext(file, notebookContext());
@@ -256,7 +251,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, MALFORMED_METADATA);
 
         // preview and inspect must degrade to "metadata not applied" here.
@@ -283,11 +278,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(
-          join(tmpDir, "_quarto.yml"),
-          "project:\n  type: default\n",
-        );
-        Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
+        writeProject(tmpDir);
         writeExtension(tmpDir, MALFORMED_METADATA);
 
         project = await projectContext(tmpDir, notebookContext());
@@ -319,7 +310,7 @@ unitTest(
       const renderOptions = { services, flags: {} } as RenderOptions;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, MALFORMED_METADATA);
 
         await assertRejects(
@@ -348,11 +339,7 @@ unitTest(
       const renderOptions = { services, flags: {} } as RenderOptions;
 
       try {
-        Deno.writeTextFileSync(
-          join(tmpDir, "_quarto.yml"),
-          "project:\n  type: default\n",
-        );
-        Deno.writeTextFileSync(join(tmpDir, "index.qmd"), DOCUMENT);
+        writeProject(tmpDir);
         writeExtension(tmpDir, MALFORMED_METADATA);
 
         await assertRejects(
@@ -380,7 +367,7 @@ unitTest(
       let project;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, MALFORMED_METADATA, "broken-extension");
         writeExtension(tmpDir, "      brand: brand.yml\n", "brand-extension");
 
@@ -425,11 +412,8 @@ async function recordWarnings(run: () => Promise<void>): Promise<string[]> {
 }
 
 function writeProject(dir: string) {
-  Deno.writeTextFileSync(
-    join(dir, "_quarto.yml"),
-    "project:\n  type: default\n",
-  );
-  Deno.writeTextFileSync(join(dir, "index.qmd"), DOCUMENT);
+  writeFixture(dir, "_quarto.yml", "project:\n  type: default\n");
+  writeFixture(dir, "index.qmd", DOCUMENT);
 }
 
 unitTest(
@@ -532,7 +516,7 @@ unitTest(
         previous = await projectContext(tmpDir, nbContext);
         assert(previous !== undefined, "projectContext must resolve");
 
-        Deno.writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
+        writeFixture(tmpDir, "_quarto.yml", "project: [\n");
 
         const refreshed = await refreshProjectContext(
           previous,
@@ -584,7 +568,7 @@ unitTest(
     await withTempDir(async (tmpDir) => {
       const file = join(tmpDir, "test.qmd");
 
-      Deno.writeTextFileSync(file, DOCUMENT);
+      writeFixture(tmpDir, "test.qmd", DOCUMENT);
       writeExtension(tmpDir, MALFORMED_METADATA, "fatal-single-extension");
 
       await assertRejects(
@@ -609,7 +593,7 @@ unitTest(
       let project: ProjectContext | undefined;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeFixture(tmpDir, "test.qmd", DOCUMENT);
         writeExtension(tmpDir, MALFORMED_METADATA, "message-extension");
 
         const warnings = await recordWarnings(async () => {

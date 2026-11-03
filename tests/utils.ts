@@ -11,6 +11,7 @@ import { kMetadataFormat, kOutputExt, kOutputFile } from "../src/config/constant
 import { pathWithForwardSlashes, safeExistsSync } from "../src/core/path.ts";
 import { readYaml } from "../src/core/yaml.ts";
 import { isWindows } from "../src/deno_ral/platform.ts";
+import { ensureDirSync } from "../src/deno_ral/fs.ts";
 import { originalRealPathSync } from "../src/deno_ral/original-real-path.ts";
 import { bookOutputStem } from "../src/project/types/book/book-shared.ts";
 import { ProjectConfig } from "../src/project/types.ts";
@@ -31,6 +32,14 @@ export async function withTempDir<T>(
   } finally {
     Deno.removeSync(dir, { recursive: true });
   }
+}
+
+// Write contents at the slash-separated path rel under root, creating any
+// missing parent directories.
+export function writeFixture(root: string, rel: string, contents: string) {
+  const parts = rel.split("/");
+  ensureDirSync(join(root, ...parts.slice(0, -1)));
+  Deno.writeTextFileSync(join(root, ...parts), contents);
 }
 
 // Run fn from dir and restore the process cwd afterward.
