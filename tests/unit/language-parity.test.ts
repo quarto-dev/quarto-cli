@@ -12,9 +12,9 @@
 import { unitTest } from "../test.ts";
 import { assertEquals } from "../asserts.ts";
 import { join } from "../../src/deno_ral/path.ts";
+import { walkSync } from "../../src/deno_ral/fs.ts";
 import { readYaml } from "../../src/core/yaml.ts";
 import { resourcePath } from "../../src/core/resources.ts";
-import { withTempDir } from "../utils.ts";
 
 type Translations = Record<string, unknown>;
 
@@ -23,26 +23,28 @@ const placeholders = (value: unknown): string[] =>
     ? (value.match(/\{\d+\}/g) ?? []).sort()
     : [];
 
+// Reads `_language.yml` and every `_language-<lang>.yml` in `dir`, keyed by <lang>.
+function loadLanguageFiles(dir: string) {
+  const english = readYaml(join(dir, "_language.yml")) as Translations;
+  const languages = new Map<string, Translations>();
+  for (const entry of walkSync(dir, { maxDepth: 1, includeDirs: false })) {
+    const match = entry.name.match(/^_language-(.+)\.yml$/);
+    if (match) {
+      languages.set(match[1], readYaml(entry.path) as Translations);
+    }
+  }
+  return { english, languages };
+}
+
 // Returns one line per problem; empty when the files are consistent.
 // An overlay (`xx-YY` where `_language-xx.yml` exists) inherits from its base,
 // so it may omit keys but not carry unknown ones.
 function checkLanguageParity(
-  dir: string,
+  english: Translations,
+  languages: Map<string, Translations>,
   knownGaps: Record<string, string[]>,
 ): string[] {
   const problems: string[] = [];
-  const english = readYaml(join(dir, "_language.yml")) as Translations;
-
-  const languages = new Map<string, Translations>();
-  for (const entry of Deno.readDirSync(dir)) {
-    const match = entry.name.match(/^_language-(.+)\.yml$/);
-    if (match) {
-      languages.set(
-        match[1],
-        readYaml(join(dir, entry.name)) as Translations,
-      );
-    }
-  }
 
   const isOverlay = (lang: string) =>
     lang.includes("-") && languages.has(lang.split("-")[0]);
@@ -93,24 +95,14 @@ function checkLanguageParity(
   return problems;
 }
 
-async function parityOf(
+function parityOf(
   base: Translations,
   files: Record<string, Translations>,
   knownGaps: Record<string, string[]> = {},
 ): Promise<string[]> {
-  return await withTempDir((dir) => {
-    Deno.writeTextFileSync(
-      join(dir, "_language.yml"),
-      JSON.stringify(base),
-    );
-    for (const [lang, translations] of Object.entries(files)) {
-      Deno.writeTextFileSync(
-        join(dir, `_language-${lang}.yml`),
-        JSON.stringify(translations),
-      );
-    }
-    return checkLanguageParity(dir, knownGaps);
-  });
+  return Promise.resolve(
+    checkLanguageParity(base, new Map(Object.entries(files)), knownGaps),
+  );
 }
 
 function assertOneProblem(problems: string[], ...fragments: string[]) {
@@ -204,13 +196,17 @@ unitTest("parity - unexpected placeholder fails", async () => {
   );
 });
 
-unitTest("parity - discovers languages by glob", async () => {
-  const problems = await parityOf(
-    { a: "A", b: "B" },
-    { xx: { a: "x" }, yy: { a: "y" } },
-  );
-  assertEquals(problems.length, 2, problems.join("\n"));
-});
+unitTest(
+  "parity - loads base, region and script language files",
+  // deno-lint-ignore require-await
+  async () => {
+    const { english, languages } = loadLanguageFiles(resourcePath("language"));
+    assertEquals(english["search-label"], "Search");
+    for (const lang of ["fr", "fr-CA", "sr-Latn", "zh-TW"]) {
+      assertEquals(languages.has(lang), true, `'${lang}' not loaded`);
+    }
+  },
+);
 
 unitTest(
   "parity - shipped language files match _language.yml",
@@ -219,8 +215,9 @@ unitTest(
     const knownGaps = readYaml(
       join(import.meta.dirname!, "language-known-gaps.yml"),
     ) as Record<string, string[]>;
+    const { english, languages } = loadLanguageFiles(resourcePath("language"));
     assertEquals(
-      checkLanguageParity(resourcePath("language"), knownGaps ?? {}),
+      checkLanguageParity(english, languages, knownGaps ?? {}),
       [],
     );
   },
