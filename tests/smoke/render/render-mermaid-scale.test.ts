@@ -9,8 +9,9 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { assertAlmostEquals, assertEquals } from "testing/asserts";
+import { assertAlmostEquals, assertEquals } from "../../asserts.ts";
 import { safeExistsSync, safeRemoveSync } from "../../../src/core/path.ts";
+import { readTextFileSync } from "../../../src/deno_ral/fs.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { docs } from "../../utils.ts";
 import { noErrorsOrWarnings } from "../../verify.ts";
@@ -48,7 +49,7 @@ for (const { format, output, sizes } of formats) {
         `mermaid-scale resizes the natural size and fig-width takes precedence (${format})`,
       verify: () => {
         const [natural, scaled, explicit] = sizes(
-          Deno.readTextFileSync(output),
+          readTextFileSync(output),
         );
         // sizes are rounded to 0.01in before they reach the output
         assertAlmostEquals(scaled.width, natural.width * 0.5, 0.01);
