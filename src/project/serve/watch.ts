@@ -37,7 +37,10 @@ import { isPdfContent } from "../../core/mime.ts";
 import { ServeRenderManager } from "./render.ts";
 import { existsSync1 } from "../../core/file.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
-import { extensionFilesFromDirs } from "../../extension/extension.ts";
+import {
+  createExtensionContext,
+  extensionFilesFromDirs,
+} from "../../extension/extension.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 // Build the new context before dropping the old one, so a failed rebuild
@@ -52,7 +55,15 @@ export async function refreshProjectContext(
     const next = await projectContext(
       project.dir,
       nbContext,
-      renderOptions,
+      // The preview's services live for the whole session, and their extension
+      // cache would return the _extension.yml read at startup.
+      {
+        ...renderOptions,
+        services: {
+          ...renderOptions.services,
+          extension: createExtensionContext(),
+        },
+      },
       false,
     );
     if (next) {
