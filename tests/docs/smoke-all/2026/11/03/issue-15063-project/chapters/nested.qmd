@@ -12,4 +12,7 @@ _quarto:
 
 ## Section
 
-Body.
+This document is in a subdirectory of the project, and the `langfile` extension is at the root of the project.
+The path to the language file of the extension starts with `../`.
+Before the fix, this case worked by chance, because the wrong base directory and the `../` offset cancelled each other out.
+This test makes sure that the case continues to work.

@@ -12,4 +12,6 @@ _quarto:
 
 ## Section
 
-Body.
+The `langfile` extension sets `language: _language.yml` for its HTML format.
+Before the fix, Quarto looked for this file in `_extensions/_extensions/langfile/` and the render stopped.
+The table of contents must show the title from the language file of the extension.

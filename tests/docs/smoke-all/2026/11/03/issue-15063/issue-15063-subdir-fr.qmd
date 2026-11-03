@@ -13,4 +13,6 @@ _quarto:
 
 ## Section
 
-Body.
+The `subdirfile` extension keeps its language files in the `i18n/` subfolder.
+Quarto must find `i18n/strings.yml`, and then load `i18n/strings-fr.yml` next to it for `lang: fr`.
+The table of contents must show the French title, not the English title.

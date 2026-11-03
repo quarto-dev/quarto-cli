@@ -12,4 +12,6 @@ _quarto:
 
 ## Section
 
-Body.
+The `orgfile` extension is in an organisation directory, `_extensions/acme/orgfile/`.
+Before the fix, Quarto looked for the language file in `_extensions/acme/_extensions/acme/orgfile/`.
+The table of contents must show the title from the language file of the extension.

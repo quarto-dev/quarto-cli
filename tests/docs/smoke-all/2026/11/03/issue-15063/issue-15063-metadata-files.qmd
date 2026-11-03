@@ -12,4 +12,6 @@ _quarto:
 
 ## Section
 
-Body.
+The `metafile` extension sets `metadata-files` for its HTML format, and the file sets `toc-title`.
+Before the fix, Quarto looked for the file in the wrong directory and ignored it without a message.
+The table of contents must show the title from this file.

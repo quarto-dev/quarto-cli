@@ -12,4 +12,6 @@ _quarto:
 
 ## Section
 
-Body.
+This document is at the root of a project, and the `langfile` extension is in the `_extensions/` directory of the project.
+Before the fix, Quarto looked for the language file in `_extensions/_extensions/langfile/` and the render stopped.
+The table of contents must show the title from the language file of the extension.

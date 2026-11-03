@@ -13,4 +13,6 @@ _quarto:
 
 ## Section
 
-Body.
+The `langfile` extension has a `_language-fr.yml` file next to its `_language.yml` file.
+With `lang: fr`, Quarto must load the French file.
+Its title replaces the English title of the extension and the built-in French title of Quarto.
