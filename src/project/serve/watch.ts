@@ -22,6 +22,7 @@ import {
 } from "../../project/types.ts";
 import { projectOutputDir } from "../../project/project-shared.ts";
 import { projectContext } from "../../project/project-context.ts";
+import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 
 import { ProjectWatcher, ServeOptions } from "./types.ts";
 import { httpDevServer } from "../../core/http-devserver.ts";
@@ -38,6 +39,31 @@ import { existsSync1 } from "../../core/file.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
 import { extensionFilesFromDirs } from "../../extension/extension.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
+
+// Build the new context before dropping the old one, so a failed rebuild
+// (for example a broken _quarto.yml saved during preview) keeps the preview
+// running on the previous context.
+export async function refreshProjectContext(
+  project: ProjectContext,
+  nbContext: NotebookContext,
+  renderOptions: RenderOptions,
+): Promise<ProjectContext> {
+  try {
+    const next = await projectContext(
+      project.dir,
+      nbContext,
+      renderOptions,
+      false,
+    );
+    if (next) {
+      project.cleanup();
+      return next;
+    }
+  } catch (e) {
+    logError(e);
+  }
+  return project;
+}
 
 interface WatchChanges {
   config: boolean;
@@ -60,9 +86,7 @@ export function watchProject(
   const flags = renderOptions.flags;
   // helper to refresh project config
   const refreshProjectConfig = async () => {
-    project.cleanup();
-    project =
-      (await projectContext(project.dir, nbContext, renderOptions, false))!;
+    project = await refreshProjectContext(project, nbContext, renderOptions);
   };
 
   // proj dir

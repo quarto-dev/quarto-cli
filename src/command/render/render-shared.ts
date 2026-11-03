@@ -47,7 +47,10 @@ export async function render(
   const nbContext = pContext?.notebookContext || notebookContext();
 
   // determine target context/files
-  let context = pContext || (await projectContext(path, nbContext, options));
+  let context = pContext ||
+    (await projectContext(path, nbContext, options, false, {
+      extensionMetadataPolicy: "fatal",
+    }));
 
   // Create a synthetic project when --output-dir is used without a real project.
   // Triggers in two situations:
@@ -58,7 +61,9 @@ export async function render(
   // The synthetic project provides a temporary .quarto directory so output-dir
   // handling works the same as for real projects (see #9745, #13625).
   if (options.flags?.outputDir && (!context || context.isSingleFile)) {
-    context = await projectContextForDirectory(path, nbContext, options);
+    context = await projectContextForDirectory(path, nbContext, options, {
+      extensionMetadataPolicy: "fatal",
+    });
 
     // forceClean signals this is a synthetic project that needs full cleanup
     // including removing the .quarto scratch directory after rendering (#13625)
@@ -67,7 +72,9 @@ export async function render(
 
   // Fall back to single file context if we still don't have a context
   if (!context) {
-    context = await singleFileProjectContext(path, nbContext, options);
+    context = await singleFileProjectContext(path, nbContext, options, {
+      extensionMetadataPolicy: "fatal",
+    });
   }
 
   // set env var if requested
