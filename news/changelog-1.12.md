@@ -2,6 +2,10 @@ All changes included in 1.12:
 
 ## Formats
 
+### All Formats
+
+- ([#15277](https://github.com/quarto-dev/quarto-cli/pull/15277)): Fix `out-width` being ignored for Mermaid diagrams rendered as `png` or `svg` images, so wide diagrams can be fitted to the text width in Typst and PDF output. (author: @faysou)
+
 ### `pdf`
 
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics. Their body is now upright, like definitions, examples and exercises. (author: @mcanouil)

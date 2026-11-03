@@ -1,0 +1,24 @@
+---
+title: "Mermaid out-width"
+keep-typ: true
+mermaid-format: png
+format:
+  typst: default
+  latex: default
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['image\("[^"]*mermaid-figure-1\.png", width: 50(\.0)?%\)']
+        - ['mermaid-figure-1\.png", height:']
+    latex:
+      ensureFileRegexMatches:
+        - ['\\includegraphics\[width=0\.5\\linewidth,[^\]]*\]\{[^}]*mermaid-figure-1\.png\}']
+        - []
+---
+
+```{mermaid}
+%%| out-width: 50%
+flowchart LR
+  A --> B
+```

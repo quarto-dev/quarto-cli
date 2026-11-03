@@ -30,6 +30,7 @@ import {
 } from "../svg.ts";
 import {
   kCellFigAlt,
+  kCellOutWidth,
   kFigAlign,
   kFigHeight,
   kFigResponsive,
@@ -218,10 +219,15 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
       const idSpecifier = (cell.options?.label && includeCaption)
         ? ` #${cell.options?.label}`
         : "";
-      const widthSpecifier = width
+      // out-width sets the displayed width, such as 75% of the text width,
+      // and drops the height so the image keeps its aspect ratio.
+      const outWidth = options[kCellOutWidth];
+      const widthSpecifier = typeof outWidth === "string"
+        ? `width="${outWidth}"`
+        : width
         ? `width="${Math.round(width * 100) / 100}in"`
         : "";
-      const heightSpecifier = height
+      const heightSpecifier = height && typeof outWidth !== "string"
         ? ` height="${Math.round(height * 100) / 100}in"`
         : "";
       const captionSpecifier = includeCaption
