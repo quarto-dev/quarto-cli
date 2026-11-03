@@ -177,8 +177,8 @@ listing-page-field-categories: "Categories"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
-# Accessible name for the navigation landmark that holds the page links of a paginated listing (never shown as visible text).
-# Read by screen readers so that users can find the page links; "Page" means a page of listing results, not a web page.
+# Accessible name for the pagination landmark of a listing (never shown as visible text).
+# "Page navigation" = moving between pages of results, not a web page; "navigation" is the landmark, not a menu.
 listing-page-navigation: "Page navigation"
 # Accessible name for each numbered page link of a paginated listing (never shown as visible text); the link itself shows only the number.
 # "Page" means a page of listing results, not a web page. {0} is the page number and must be kept.
