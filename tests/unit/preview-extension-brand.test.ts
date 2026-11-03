@@ -15,6 +15,7 @@
 
 import { unitTest } from "../test.ts";
 import { assert, assertEquals, assertRejects } from "../asserts.ts";
+import { writeTextFileSync } from "../../src/deno_ral/fs.ts";
 import { join } from "../../src/deno_ral/path.ts";
 import { LightDarkBrandDarkFlag } from "../../src/core/brand/brand.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
@@ -518,7 +519,7 @@ unitTest(
         writeProject(tmpDir);
         writeExtension(tmpDir, "      brand: brand.yml\n", "switch-extension");
         const extensionDir = join(tmpDir, "_extensions", "switch-extension");
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           join(extensionDir, "other-brand.yml"),
           'color:\n  palette:\n    cobalt: "#1E5ABC"\n  primary: cobalt\n',
         );
@@ -527,7 +528,7 @@ unitTest(
         assert(project !== undefined, "projectContext must resolve");
         assertContributedBrand(await project.resolveBrand(), "at startup");
 
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           join(extensionDir, "_extension.yml"),
           extensionYml("      brand: other-brand.yml\n"),
         );
@@ -641,10 +642,10 @@ unitTest(
       let next: ProjectContext | undefined;
 
       try {
-        Deno.writeTextFileSync(file, DOCUMENT);
+        writeTextFileSync(file, DOCUMENT);
         writeExtension(tmpDir, "      brand: brand.yml\n", "switch-extension");
         const extensionDir = join(tmpDir, "_extensions", "switch-extension");
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           join(extensionDir, "other-brand.yml"),
           'color:\n  palette:\n    cobalt: "#1E5ABC"\n  primary: cobalt\n',
         );
@@ -659,7 +660,7 @@ unitTest(
           originalCleanup();
         };
 
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           join(extensionDir, "_extension.yml"),
           extensionYml("      brand: other-brand.yml\n"),
         );
@@ -703,7 +704,7 @@ unitTest(
         previous = await projectContext(tmpDir, nbContext);
         assert(previous !== undefined, "projectContext must resolve");
 
-        Deno.writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
+        writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
 
         const refreshed = await refreshPreviewProject(
           join(tmpDir, "index.qmd"),
