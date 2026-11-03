@@ -74,6 +74,10 @@ function checkLanguageParity(
   }
 
   for (const [key, langs] of Object.entries(knownGaps)) {
+    if (!Object.hasOwn(english, key)) {
+      problems.push(`known gap '${key}' is not a key in _language.yml`);
+      continue;
+    }
     for (const lang of langs) {
       const translations = languages.get(lang);
       if (!translations) {
@@ -157,6 +161,13 @@ unitTest("parity - known gap for unknown language fails", async () => {
     a: ["zz"],
   });
   assertOneProblem(problems, "zz");
+});
+
+unitTest("parity - known gap for key not in _language.yml fails", async () => {
+  const problems = await parityOf({ a: "A" }, { xx: { a: "x" } }, {
+    gone: ["xx"],
+  });
+  assertOneProblem(problems, "gone");
 });
 
 unitTest("parity - duplicated placeholder fails", async () => {
