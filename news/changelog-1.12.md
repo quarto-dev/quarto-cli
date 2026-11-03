@@ -1,6 +1,14 @@
 All changes included in 1.12:
 
+## Accessibility
+
+- ([#12276](https://github.com/quarto-dev/quarto-cli/discussions/12276)): Announce every link that opens a new tab to screen readers, not only links opened by `link-external-newwindow`. (author: @mcanouil)
+
 ## Formats
+
+### `html`
+
+- ([#12276](https://github.com/quarto-dev/quarto-cli/discussions/12276)): Fix `link-external-newwindow` overriding a `target` set explicitly on a link. (author: @mcanouil)
 
 ### `pdf`
 
@@ -16,8 +24,7 @@ All changes included in 1.12:
 ### `website`
 
 - ([#12276](https://github.com/quarto-dev/quarto-cli/discussions/12276)): Fix listing `image-alt` values containing quotes or `&` rendering broken or double-escaped alt text. (author: @mcanouil)
-- ([#12276](https://github.com/quarto-dev/quarto-cli/discussions/12276)): Add `target` and `rel` to listings and listing items, with the listing value as the default for its items.
-  An explicit `target` is no longer overridden by `link-external-newwindow`, and every link that opens a new tab is now announced to screen readers. (author: @mcanouil)
+- ([#12276](https://github.com/quarto-dev/quarto-cli/discussions/12276)): Add `target` and `rel` options to listings and listing items, with the listing value as the default for its items. (author: @mcanouil)
 
 ## Commands
 
