@@ -244,6 +244,10 @@
           link.setAttribute("aria-describedby", describedBy.join(" "));
         }
       }
+      var opensNewContext = (link) => {
+        var target = (link.getAttribute("target") || "").toLowerCase();
+        return target !== "" && !["_self", "_parent", "_top"].includes(target);
+      }
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }
@@ -262,9 +266,9 @@
             // an explicit target wins over the site-wide setting
             if (link.getAttribute("target") === null) {
               link.setAttribute("target", "_blank");
-              if (link.getAttribute("rel") === null) {
-                link.setAttribute("rel", "noopener");
-              }
+            }
+            if (link.getAttribute("rel") === null && opensNewContext(link)) {
+              link.setAttribute("rel", "noopener");
             }
           <% } %>
   
@@ -284,8 +288,7 @@
           <% } %>
           }
         }
-        var linkTarget = (link.getAttribute("target") || "").toLowerCase();
-        if (linkTarget !== "" && !["_self", "_parent", "_top"].includes(linkTarget)) {
+        if (opensNewContext(link)) {
           describeNewWindow(link);
         }
       }

@@ -12,3 +12,5 @@ listing:
 
 ::: {#self-listing}
 :::
+
+[Explicit blank link](https://example.com/explicit-blank){target="_blank"}

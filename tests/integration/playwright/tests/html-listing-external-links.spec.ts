@@ -152,6 +152,14 @@ test.describe("Explicit target with link-external-newwindow", () => {
     await expect(link).not.toHaveAttribute("rel");
     await expect(link).not.toHaveAttribute("aria-describedby");
   });
+
+  test("explicit _blank link still gets rel=noopener", async ({ page: browserPage }) => {
+    await browserPage.goto("./listings/external-links/_site/self-target.html");
+
+    const link = browserPage.locator('main a[href="https://example.com/explicit-blank"]');
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAttribute("rel", "noopener");
+  });
 });
 
 test.describe("External links shown after listing updates", () => {
