@@ -92,8 +92,11 @@ Tests follow the same runtime rule as `src/`: no new `Deno.*` calls, import the 
 
 **Temp files:**
 ```typescript
-const workingDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-// Use workingDir, clean up in teardown
+import { withTempDir } from "../utils.ts";
+
+await withTempDir(async (workingDir) => {
+  // Use workingDir; it is removed when the callback returns
+});
 ```
 
 **Fixtures:**
