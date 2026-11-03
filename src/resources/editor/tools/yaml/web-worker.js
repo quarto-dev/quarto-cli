@@ -10605,6 +10605,8 @@ try {
                 "listing-page-minutes-compact": "string",
                 "listing-page-category-all": "string",
                 "listing-page-no-matches": "string",
+                "listing-page-pagination": "string",
+                "listing-page-number": "string",
                 "listing-page-words": "string",
                 "listing-page-filter": "string",
                 draft: "string"
@@ -25858,12 +25860,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221310,
+          _internalId: 221314,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221302,
+              _internalId: 221306,
               type: "enum",
               enum: [
                 "png",
@@ -25879,7 +25881,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221309,
+              _internalId: 221313,
               type: "anyOf",
               anyOf: [
                 {

@@ -860,6 +860,8 @@ export const ZodFormatLanguage = z.object({
   "listing-page-minutes-compact": z.string(),
   "listing-page-category-all": z.string(),
   "listing-page-no-matches": z.string(),
+  "listing-page-pagination": z.string(),
+  "listing-page-number": z.string(),
   "listing-page-words": z.string(),
   "listing-page-filter": z.string(),
   draft: z.string(),

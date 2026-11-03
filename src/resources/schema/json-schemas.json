@@ -2162,6 +2162,12 @@
           "listing-page-no-matches": {
             "type": "string"
           },
+          "listing-page-pagination": {
+            "type": "string"
+          },
+          "listing-page-number": {
+            "type": "string"
+          },
           "listing-page-words": {
             "type": "string"
           },
