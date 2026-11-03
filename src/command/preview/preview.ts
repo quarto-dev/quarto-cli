@@ -169,9 +169,10 @@ export async function preview(
   // Reuse the project context from cmd.ts if provided, avoiding redundant
   // context creation and transient notebook file duplication (#14281).
   const nbContext = pProject?.notebookContext ?? notebookContext();
-  const project = pProject ??
+  let project = pProject ??
     (await projectContext(file, nbContext)) ??
     (await singleFileProjectContext(file, nbContext));
+  let extensionsChanged = false;
   onCleanup(() => {
     project.cleanup();
   });
@@ -184,6 +185,19 @@ export async function preview(
   // render for preview (create function we can pass to watcher then call it)
   let isRendering = false;
   const render = async (to?: string) => {
+    // An extension file changed since the last render: rebuild the context
+    // first so the render uses the newly contributed metadata. The flag is
+    // cleared before the await (a change landing during the rebuild sets it
+    // again) and set back if the rebuild fails, so no change is lost.
+    if (extensionsChanged) {
+      extensionsChanged = false;
+      const next = await refreshPreviewProject(file, project);
+      if (next === project) {
+        extensionsChanged = true;
+      } else {
+        project = next;
+      }
+    }
     const renderFlags = { ...flags, to: to || flags.to };
     const services = renderServices(nbContext);
     try {
@@ -234,6 +248,11 @@ export async function preview(
     reloader,
     render,
     options[kProjectWatchInputs]!,
+    undefined,
+    undefined,
+    () => {
+      extensionsChanged = true;
+    },
   );
 
   // create file request handler (hook clients up to reloader, provide
@@ -247,11 +266,11 @@ export async function preview(
       options.port!,
       reloader,
       changeHandler.render,
-      project,
+      () => project,
     )
     : project && !project.isSingleFile
     ? projectHtmlFileRequestHandler(
-      project,
+      () => project,
       normalizePath(file),
       flags,
       result.format,
@@ -265,7 +284,7 @@ export async function preview(
       result.format,
       reloader,
       changeHandler.render,
-      project,
+      () => project,
     );
 
   // open browser if this is a browseable format
@@ -299,6 +318,27 @@ export async function preview(
     },
   );
   await server.finished;
+}
+
+// Rebuild the preview's project context the way cmd.ts built it, so metadata
+// an extension contributes reaches the next render after _extension.yml
+// changes. A failed rebuild (e.g. a broken _quarto.yml saved during preview)
+// keeps the previous context, and the old context is cleaned up only once
+// the new one exists.
+export async function refreshPreviewProject(
+  file: string,
+  project: ProjectContext,
+): Promise<ProjectContext> {
+  try {
+    const next =
+      (await projectContext(dirname(file), project.notebookContext)) ??
+        (await singleFileProjectContext(file, project.notebookContext));
+    project.cleanup();
+    return next;
+  } catch (e) {
+    logError(e);
+    return project;
+  }
 }
 
 export interface PreviewRenderRequest {
@@ -548,6 +588,7 @@ export function createChangeHandler(
   renderOnChange: boolean,
   reloadFileFilter: (file: string) => boolean = () => true,
   ignoreChanges?: (files: string[]) => boolean,
+  onExtensionChange?: () => void,
 ): ChangeHandler {
   const renderQueue = new PromiseQueue<RenderForPreviewResult | undefined>();
   let watcher: Watcher | undefined;
@@ -607,7 +648,10 @@ export function createChangeHandler(
       // the changes as they do w/ e.g. css files)
       watches.push({
         files: result.extensionFiles,
-        handler: ld.debounce(renderHandler, 50),
+        handler: ld.debounce(async () => {
+          onExtensionChange?.();
+          await renderHandler();
+        }, 50),
       });
 
       // reload on output or resource changed (but wait for
@@ -707,7 +751,7 @@ function previewWatcher(
 }
 
 function projectHtmlFileRequestHandler(
-  context: ProjectContext,
+  project: () => ProjectContext,
   inputFile: string,
   flags: RenderFlags,
   format: Format,
@@ -716,14 +760,15 @@ function projectHtmlFileRequestHandler(
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
-      projectOutputDir(context),
+      // output-dir is fixed at startup; a refresh never changes it
+      projectOutputDir(project()),
       "index.html",
       inputFile,
       flags,
       format,
       reloader,
       renderHandler,
-      context,
+      project,
     ),
   );
 }
@@ -735,7 +780,7 @@ function htmlFileRequestHandler(
   format: Format,
   reloader: HttpDevServer,
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
-  context: ProjectContext,
+  project: () => ProjectContext,
 ) {
   return httpFileRequestHandler(
     htmlFileRequestHandlerOptions(
@@ -746,7 +791,7 @@ function htmlFileRequestHandler(
       format,
       reloader,
       renderHandler,
-      context,
+      project,
     ),
   );
 }
@@ -759,7 +804,7 @@ function htmlFileRequestHandlerOptions(
   format: Format,
   devserver: HttpDevServer,
   renderHandler: (to?: string) => Promise<RenderForPreviewResult | undefined>,
-  project: ProjectContext,
+  project: () => ProjectContext,
 ): HttpFileRequestOptions {
   // if we an alternate format on the fly we need to do a full re-render
   // to get the correct state back. this flag will be set whenever
@@ -790,7 +835,7 @@ function htmlFileRequestHandlerOptions(
           prevReq &&
           existsSync(prevReq.path) &&
           pathsEqual(prevReq.path, inputFile) &&
-          await previewRenderRequestIsCompatible(prevReq, project, flags.to)
+          await previewRenderRequestIsCompatible(prevReq, project(), flags.to)
         ) {
           // don't wait for the promise so the
           // caller gets an immediate reply
@@ -838,7 +883,7 @@ function htmlFileRequestHandlerOptions(
       let renderFormat = format;
       if (project) {
         const input = await inputFileForOutputFile(
-          project,
+          project(),
           relative(baseDir, file),
         );
         if (input) {
@@ -901,7 +946,7 @@ function pdfFileRequestHandler(
   port: number,
   reloader: HttpDevServer,
   renderHandler: () => Promise<RenderForPreviewResult | undefined>,
-  project: ProjectContext,
+  project: () => ProjectContext,
 ) {
   // start w/ the html handler (as we still need it's http reload injection)
   const pdfOptions = htmlFileRequestHandlerOptions(

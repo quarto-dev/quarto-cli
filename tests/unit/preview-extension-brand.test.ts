@@ -21,6 +21,7 @@ import { LightDarkBrandDarkFlag } from "../../src/core/brand/brand.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
 import { projectContext } from "../../src/project/project-context.ts";
 import { refreshProjectContext } from "../../src/project/serve/watch.ts";
+import { refreshPreviewProject } from "../../src/command/preview/preview.ts";
 import { getLogger } from "../../src/deno_ral/log.ts";
 import { BaseHandler } from "log/base-handler";
 import { ProjectContext } from "../../src/project/types.ts";
@@ -641,6 +642,97 @@ unitTest(
         Error,
         "contributes invalid project metadata",
       );
+    });
+  },
+);
+
+unitTest(
+  "refreshPreviewProject: a single file picks up a contribution changed in _extension.yml",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    await withTempDir(async (tmpDir) => {
+      const file = join(tmpDir, "test.qmd");
+      let previous: ProjectContext | undefined;
+      let next: ProjectContext | undefined;
+
+      try {
+        Deno.writeTextFileSync(file, DOCUMENT);
+        writeExtension(tmpDir, "      brand: brand.yml\n", "switch-extension");
+        const extensionDir = join(tmpDir, "_extensions", "switch-extension");
+        Deno.writeTextFileSync(
+          join(extensionDir, "other-brand.yml"),
+          'color:\n  palette:\n    cobalt: "#1E5ABC"\n  primary: cobalt\n',
+        );
+
+        previous = await singleFileProjectContext(file, notebookContext());
+        assertContributedBrand(await previous.resolveBrand(), "at startup");
+
+        let cleanedUp = false;
+        const originalCleanup = previous.cleanup;
+        previous.cleanup = () => {
+          cleanedUp = true;
+          originalCleanup();
+        };
+
+        Deno.writeTextFileSync(
+          join(extensionDir, "_extension.yml"),
+          extensionYml("      brand: other-brand.yml\n"),
+        );
+        next = await refreshPreviewProject(file, previous);
+
+        assert(
+          next !== previous,
+          "a successful rebuild must return a new context",
+        );
+        const brand = await next.resolveBrand();
+        assertEquals(
+          brand?.light?.data.color?.palette?.["cobalt"],
+          "#1E5ABC",
+          "the rebuilt context must use the brand now named in _extension.yml",
+        );
+        assert(cleanedUp, "the previous context must be cleaned up");
+      } finally {
+        // the helper cleans up previous on success; clean up whichever
+        // context is still live
+        if (next && next !== previous) {
+          next.cleanup();
+        } else {
+          previous?.cleanup();
+        }
+      }
+    });
+  },
+);
+
+unitTest(
+  "refreshPreviewProject: keeps the previous context when the rebuild fails",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    await withTempDir(async (tmpDir) => {
+      const nbContext = notebookContext();
+      let previous: ProjectContext | undefined;
+
+      try {
+        writeProject(tmpDir);
+        previous = await projectContext(tmpDir, nbContext);
+        assert(previous !== undefined, "projectContext must resolve");
+
+        Deno.writeTextFileSync(join(tmpDir, "_quarto.yml"), "project: [\n");
+
+        const refreshed = await refreshPreviewProject(
+          join(tmpDir, "index.qmd"),
+          previous,
+        );
+
+        assert(
+          refreshed === previous,
+          "a failed rebuild must keep the previous context",
+        );
+      } finally {
+        previous?.cleanup();
+      }
     });
   },
 );
