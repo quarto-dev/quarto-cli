@@ -5,7 +5,7 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { withTempDir } from "../../utils.ts";
+import { withTempDir, writeFixture } from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
@@ -104,10 +104,8 @@ unitTest("isInstalled - returns false when only binary exists (no version file)"
     const { platform } = detectChromePlatform();
     const binName = chromeHeadlessShellBinaryName();
     // CfT layout (all platforms, including Playwright CDN arm64): chrome-headless-shell-{platform}/binary
-    const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
-    Deno.mkdirSync(subdir);
     const target = isWindows ? `${binName}.exe` : binName;
-    Deno.writeTextFileSync(join(subdir, target), "fake");
+    writeFixture(tempDir, `chrome-headless-shell-${platform}/${target}`, "fake");
     assertEquals(isInstalled(tempDir), false);
   } finally {
     safeRemoveSync(tempDir, { recursive: true });
@@ -120,10 +118,8 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
     noteInstalledVersion(tempDir, "145.0.0.0");
     const { platform } = detectChromePlatform();
     const binName = chromeHeadlessShellBinaryName();
-    const subdir = join(tempDir, `chrome-headless-shell-${platform}`);
-    Deno.mkdirSync(subdir);
     const target = isWindows ? `${binName}.exe` : binName;
-    Deno.writeTextFileSync(join(subdir, target), "fake");
+    writeFixture(tempDir, `chrome-headless-shell-${platform}/${target}`, "fake");
 
     assertEquals(isInstalled(tempDir), true);
   } finally {
@@ -150,24 +146,19 @@ unitTest("isInstalled - returns true when version file and binary exist", async 
 // ".exe" whenever the host is Windows, so the fixture matches that to exercise
 // the same code path off-Linux.
 function writeLegacyPlaywrightFixture(dir: string): string {
-  const legacyDir = join(dir, "chrome-linux");
-  Deno.mkdirSync(legacyDir, { recursive: true });
   const target = isWindows ? "headless_shell.exe" : "headless_shell";
-  const path = join(legacyDir, target);
-  Deno.writeTextFileSync(path, "fake");
-  return path;
+  writeFixture(dir, `chrome-linux/${target}`, "fake");
+  return join(dir, "chrome-linux", target);
 }
 
 // Current CfT fixture: chrome-headless-shell-{platform}/chrome-headless-shell.
 function writeCftFixture(dir: string): string {
   const { platform } = detectChromePlatform();
   const binName = chromeHeadlessShellBinaryName();
-  const subdir = join(dir, `chrome-headless-shell-${platform}`);
-  Deno.mkdirSync(subdir, { recursive: true });
   const target = isWindows ? `${binName}.exe` : binName;
-  const path = join(subdir, target);
-  Deno.writeTextFileSync(path, "fake");
-  return path;
+  const rel = `chrome-headless-shell-${platform}/${target}`;
+  writeFixture(dir, rel, "fake");
+  return join(dir, rel);
 }
 
 unitTest(

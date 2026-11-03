@@ -5,17 +5,13 @@
  */
 
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
-import { dirname, join } from "../../../src/deno_ral/path.ts";
+import { join } from "../../../src/deno_ral/path.ts";
 import { directoryListingsMatch } from "../../../src/core/run/deno.ts";
 import { unitTest } from "../../test.ts";
 import { assertEquals } from "../../asserts.ts";
-import { withTempDir } from "../../utils.ts";
+import { withTempDir, writeFixture } from "../../utils.ts";
 
-const touch = (root: string, rel: string) => {
-  const file = join(root, rel);
-  ensureDirSync(dirname(file));
-  Deno.writeTextFileSync(file, "");
-};
+const touch = (root: string, rel: string) => writeFixture(root, rel, "");
 
 const populate = (root: string, rels: string[]) => {
   ensureDirSync(root);

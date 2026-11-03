@@ -15,6 +15,7 @@ import {
   makeUnreadableDir,
   removeProject,
   tempProject,
+  writeFixture,
 } from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 
@@ -23,8 +24,7 @@ import { assert, assertEquals } from "testing/asserts";
 if (canMakeUnreadableDir) {
   const projectDir = tempProject("quarto-check-project");
   const locked = join(projectDir, "locked");
-  Deno.mkdirSync(locked);
-  Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
+  writeFixture(projectDir, "locked/doc.qmd", "# Locked\n");
   const output = join(projectDir, "check-info.json");
   let restore: (() => void) | undefined;
   testQuartoCmdJson(
