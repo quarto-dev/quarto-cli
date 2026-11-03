@@ -161,6 +161,10 @@ export function watchProject(
       }
 
       if (["modify", "create"].includes(event.kind)) {
+        // an extension file can share a poll event with changed inputs, so
+        // detect it before the input branch below returns early
+        const extensionFile = paths.some(isExtensionFile);
+
         // render changed input files (if we are watching). then
         // arrange for client reload
         if (options[kProjectWatchInputs]) {
@@ -177,7 +181,13 @@ export function watchProject(
             // render
             const services = renderServices(nbContext);
             try {
-              const result = await renderManager.submitRender(() => {
+              const result = await renderManager.submitRender(async () => {
+                // A changed extension file invalidates the extension metadata
+                // merged into the project context, so refresh it in this same
+                // queue slot, before the invalidation loop and the render.
+                if (extensionFile) {
+                  await refreshProjectConfig();
+                }
                 // Invalidate the persistent project context's cache for
                 // each changed input. The HTTP-handler render in
                 // serve.ts reuses watcher.project() with its long-lived
@@ -271,7 +281,6 @@ export function watchProject(
           !project.files.input.includes(path)
         );
         const resourceFile = paths.some(isResourceFile);
-        const extensionFile = paths.some(isExtensionFile);
 
         const reload = configFile || configResourceFile ||
           resourceFile || extensionFile ||
@@ -279,7 +288,8 @@ export function watchProject(
 
         if (reload) {
           return {
-            config: configFile || configResourceFile || inputFileRemoved,
+            config: configFile || configResourceFile || inputFileRemoved ||
+              extensionFile,
             output: false,
           };
         } else {
@@ -309,9 +319,11 @@ export function watchProject(
     try {
       // fully render project if we aren't already rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
-        await refreshProjectConfig();
-        const result = await renderManager.submitRender(() =>
-          renderProject(
+        const result = await renderManager.submitRender(async () => {
+          // refresh in the same queue slot, so the render below reads the
+          // swapped context and no in-flight render loses it mid-render
+          await refreshProjectConfig();
+          return renderProject(
             project,
             {
               services,
@@ -321,8 +333,8 @@ export function watchProject(
               pandocArgs,
               previewServer: true,
             },
-          )
-        );
+          );
+        });
         if (result.error) {
           renderManager.onRenderError(result.error);
         } else {
@@ -335,9 +347,10 @@ export function watchProject(
         }
       }
 
-      // refresh config if necess
+      // refresh config if necess (on the render queue, so the context swap
+      // cannot race an in-flight render)
       if (changes.config) {
-        await refreshProjectConfig();
+        await renderManager.submit(refreshProjectConfig);
       }
 
       // if this is a reveal presentation running inside rstudio then bail
@@ -421,7 +434,7 @@ export function watchProject(
     },
     project: () => project,
     refreshProject: async () => {
-      await refreshProjectConfig();
+      await renderManager.submit(refreshProjectConfig);
       return project;
     },
   });
