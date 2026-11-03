@@ -421,9 +421,9 @@ export function reshapeListing(
     const value = val || item[field] || "&nbsp;";
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
-      return `<a href="${encodeAttributeValue(path)}"${targetAttrs(item)} class="${field}${
-        clz ? ` ${clz}` : ""
-      }">${value}</a>`;
+      return `<a href="${encodeAttributeValue(path)}"${
+        targetAttrs(item)
+      } class="${field}${clz ? ` ${clz}` : ""}">${value}</a>`;
     } else {
       if (clz) {
         return `<span class="${clz}">${value}</span>`;
