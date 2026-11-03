@@ -39,7 +39,7 @@ callout-tip-title: "Tips"
 callout-note-title: "Notera"
 callout-warning-title: "Varning"
 callout-important-title: "Viktigt"
-callout-danger-title: "Försiktigt"
+callout-caution-title: "Försiktigt"
 
 code-summary: "Kod"
 
