@@ -2722,3 +2722,9 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
   - `deno types`: `SymlinkOptions.type` is still required and `truncateSync(name: string, …)` still string-only, so the Task 3 adaptations stand; both README rows now say they hold on 2.9.8.
   - ral suite → `ok | 23 passed | 0 failed | 1 ignored`; smoke trio → `ok | 7 passed | 0 failed | 2 ignored`; no warnings in either log. No PR 09 check relies on test sanitizers (off by default in Deno 2.9).
   - Forward dry run (`--rules fs,temp,env,process,platform --dir src --dry-run`) → `624 files scanned, 224 would be rewritten, 816 replacements, 18 with collisions, 2 skipped`, unchanged; `git status --short src` empty.
+
+### Rebase onto the release reconciliation (`708e443aa`, 2026-11-03)
+
+- Only README and HANDOFF conflicted: `main`'s sequence row 09 and HANDOFF status lines were kept as written there; its new "Open decisions" rows were kept, with the two PR 09 Task 3 rows in their 2.9.8 wording.
+- README row "PRs 09, 10 and 37, backports" asks this PR's backport checklist to cover `v1.11`. `upstream/v1.11` (`c5fc6c50e`, Deno 2.9.8) has no `readTextFileSync` in `src/deno_ral/fs.ts`, so it predates the codemods like `v1.10`. `dev-docs/checklist-backport-a-pr.md` no longer says "v1.10 and earlier": the condition is the target branch's `fs.ts`, with v1.11 and earlier named as qualifying (the Task 5 Step 3 text above still says v1.10).
+- The checklist recipe re-run as written on this PR's `fs.ts` commit (`5b7cd9e65`) against `upstream/v1.11`: reverse at the new revision → `1 rewritten, 49 replacements, 1 left` (`canonicalPathSync`, with the `originalRealPathSync` hint); `git apply --check` exit 0 and `git apply -3 --check` exit 0 (`Applied patch to 'src/deno_ral/fs.ts' cleanly`, three-way falls back to direct application for the new test file).

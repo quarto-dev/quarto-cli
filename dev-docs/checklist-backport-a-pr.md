@@ -8,7 +8,7 @@ We backport development PRs to the stable branch using the following steps:
 - Cherry-pick the commits from the development branch:
   - `git cherry-pick <commit>` for every commit identified above.
   - Resolve conflicts as needed.
-- If the stable branch predates the runtime-layer codemods (v1.10 and earlier: `src/deno_ral/fs.ts` there has no `readTextFileSync`) and a commit touches TypeScript, cherry-picking conflicts wherever its context lines were codemodded. Build the patch in the stable branch's `Deno.*` form instead, from the `main` checkout:
+- If the stable branch predates the runtime-layer codemods (`src/deno_ral/fs.ts` there has no `readTextFileSync`; decide from that file, not the release number: v1.11 and earlier all qualify) and a commit touches TypeScript, cherry-picking conflicts wherever its context lines were codemodded. Build the patch in the stable branch's `Deno.*` form instead, from the `main` checkout:
 
   ```bash
   c=<commit>
