@@ -1028,7 +1028,7 @@ If no `id` is provided for a listing, Quarto will synthesize one when rendering 
   rel?:
     string /* Value for rel attribute. Multiple space-separated values are permitted.
 See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
-for a details. */;
+for details. */;
   sort?:
     | boolean
     | MaybeArrayOf<
@@ -1062,7 +1062,7 @@ export type WebsiteListingContentsObject = {
   rel?:
     string /* Value for rel attribute. Multiple space-separated values are permitted.
 See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
-for a details. */;
+for details. */;
   subtitle?: string;
   title?: string;
   target?: string; /* Value for target attribute.
