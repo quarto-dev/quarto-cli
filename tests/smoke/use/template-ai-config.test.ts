@@ -9,6 +9,7 @@
 
 import { testQuartoCmd } from "../../test.ts";
 import { fileExists, noErrorsOrWarnings, pathDoNotExists } from "../../verify.ts";
+import { writeFixture } from "../../utils.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
 
@@ -16,29 +17,34 @@ const tempDir = Deno.makeTempDirSync();
 
 // Create a mock template source with AI config files
 const templateSourceDir = join(tempDir, "template-source");
-ensureDirSync(templateSourceDir);
-Deno.writeTextFileSync(
-  join(templateSourceDir, "template.qmd"),
+writeFixture(
+  templateSourceDir,
+  "template.qmd",
   "---\ntitle: Template Document\n---\n\nThis is a template document."
 );
-Deno.writeTextFileSync(
-  join(templateSourceDir, "CLAUDE.md"),
+writeFixture(
+  templateSourceDir,
+  "CLAUDE.md",
   "# Claude Configuration\n\nThis should be excluded."
 );
-Deno.writeTextFileSync(
-  join(templateSourceDir, "AGENTS.md"),
+writeFixture(
+  templateSourceDir,
+  "AGENTS.md",
   "# Agents Configuration\n\nThis should be excluded."
 );
-Deno.writeTextFileSync(
-  join(templateSourceDir, "CLAUDE.local.md"),
+writeFixture(
+  templateSourceDir,
+  "CLAUDE.local.md",
   "# Claude Local Configuration\n\nThis should be excluded."
 );
-Deno.writeTextFileSync(
-  join(templateSourceDir, "AGENTS.local.md"),
+writeFixture(
+  templateSourceDir,
+  "AGENTS.local.md",
   "# Agents Local Configuration\n\nThis should be excluded."
 );
-Deno.writeTextFileSync(
-  join(templateSourceDir, "README.md"),
+writeFixture(
+  templateSourceDir,
+  "README.md",
   "# Template README\n\nThis should also be excluded."
 );
 

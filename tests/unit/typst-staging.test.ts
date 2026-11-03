@@ -7,6 +7,7 @@
  */
 
 import { unitTest } from "../test.ts";
+import { writeFixture } from "../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join } from "../../src/deno_ral/path.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
@@ -27,12 +28,12 @@ function createFakePackage(
   content = "default",
 ): string {
   const pkgDir = join(baseDir, namespace, name, version);
-  ensureDirSync(pkgDir);
-  Deno.writeTextFileSync(
-    join(pkgDir, "typst.toml"),
+  writeFixture(
+    pkgDir,
+    "typst.toml",
     `[package]\nname = "${name}"\nversion = "${version}"\n`,
   );
-  Deno.writeTextFileSync(join(pkgDir, "lib.typ"), `// ${content}\n`);
+  writeFixture(pkgDir, "lib.typ", `// ${content}\n`);
   return pkgDir;
 }
 
@@ -270,12 +271,10 @@ unitTest("stageSelectedPackages - preserves package contents", async () => {
 
     // Create package with subdirectory
     const pkgDir = join(source, "preview/cetz/0.4.1");
-    ensureDirSync(pkgDir);
-    Deno.writeTextFileSync(join(pkgDir, "typst.toml"), '[package]\nname = "cetz"\n');
-    Deno.writeTextFileSync(join(pkgDir, "lib.typ"), "// main\n");
-    ensureDirSync(join(pkgDir, "src"));
-    Deno.writeTextFileSync(join(pkgDir, "src/draw.typ"), "// draw\n");
-    Deno.writeTextFileSync(join(pkgDir, "src/canvas.typ"), "// canvas\n");
+    writeFixture(pkgDir, "typst.toml", '[package]\nname = "cetz"\n');
+    writeFixture(pkgDir, "lib.typ", "// main\n");
+    writeFixture(pkgDir, "src/draw.typ", "// draw\n");
+    writeFixture(pkgDir, "src/canvas.typ", "// canvas\n");
 
     const needed: NeededPackage[] = [
       { namespace: "preview", name: "cetz", version: "0.4.1" },

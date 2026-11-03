@@ -5,6 +5,7 @@
  */
 import { assert, assertEquals } from "testing/asserts";
 import { unitTest } from "../test.ts";
+import { writeFixture } from "../utils.ts";
 import { dirname, fromFileUrl, join } from "../../src/deno_ral/path.ts";
 import { safeExistsSync } from "../../src/core/path.ts";
 
@@ -67,10 +68,10 @@ unitTest(
     try {
       const smokeAllDir = join(tmpRoot, "smoke-all");
       const projectDir = join(smokeAllDir, "_prerender-crash");
-      Deno.mkdirSync(projectDir, { recursive: true });
 
-      Deno.writeTextFileSync(
-        join(projectDir, "_quarto.yml"),
+      writeFixture(
+        projectDir,
+        "_quarto.yml",
         "project:\n  type: default\n  render:\n" +
           "    - broken-b.qmd\n    - broken-c.qmd\n",
       );
@@ -78,8 +79,9 @@ unitTest(
       // This file does not request a project pre-render. It sorts before files
       // that do, but project.render excludes it. Its HTML test spec registers
       // cleanup paths for a skipped file.
-      Deno.writeTextFileSync(
-        join(projectDir, "broken-a.qmd"),
+      writeFixture(
+        projectDir,
+        "broken-a.qmd",
         [
           "---",
           "title: a",
@@ -96,20 +98,14 @@ unitTest(
       );
       // Pre-create outputs for broken-a.qmd. Because project.render excludes
       // the file, their removal verifies cleanup for a skipped file.
-      Deno.writeTextFileSync(
-        join(projectDir, "broken-a.html"),
-        "<html><body>sentinel</body></html>\n",
-      );
+      writeFixture(projectDir, "broken-a.html", "<html><body>sentinel</body></html>\n");
       const supportDir = join(projectDir, "broken-a_files");
-      Deno.mkdirSync(supportDir, { recursive: true });
-      Deno.writeTextFileSync(
-        join(supportDir, "sentinel.txt"),
-        "sentinel\n",
-      );
+      writeFixture(supportDir, "sentinel.txt", "sentinel\n");
 
       // This file requests the project pre-render and makes it fail.
-      Deno.writeTextFileSync(
-        join(projectDir, "broken-b.qmd"),
+      writeFixture(
+        projectDir,
+        "broken-b.qmd",
         [
           "---",
           "title: b",
@@ -125,8 +121,9 @@ unitTest(
       );
       // A second file requests the same project pre-render, verifying that it
       // runs once per project.
-      Deno.writeTextFileSync(
-        join(projectDir, "broken-c.qmd"),
+      writeFixture(
+        projectDir,
+        "broken-c.qmd",
         [
           "---",
           "title: c",
@@ -141,8 +138,9 @@ unitTest(
 
       // This healthy control file sorts after the broken project and must
       // still run.
-      Deno.writeTextFileSync(
-        join(smokeAllDir, "healthy-canary.qmd"),
+      writeFixture(
+        smokeAllDir,
+        "healthy-canary.qmd",
         ["---", "title: healthy", "---", "", "# healthy", ""].join("\n"),
       );
 

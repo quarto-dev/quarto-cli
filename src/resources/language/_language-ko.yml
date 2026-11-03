@@ -60,6 +60,8 @@ repo-action-links-issue: "이슈 보고"
 
 back-to-top: "맨 위로"
 
+skip-to-content: "본문으로 건너뛰기"
+
 search-no-results-text: "일치 없음"
 search-matching-documents-text: "일치된 문서"
 search-copy-link-title: "검색 링크 복사"

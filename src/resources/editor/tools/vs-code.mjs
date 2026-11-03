@@ -10529,6 +10529,7 @@ var init_yaml_intelligence_resources = __esm({
               "scrollable-output-label": "string",
               "link-external-newwindow-label": "string",
               "revealjs-menu-button-label": "string",
+              "announcement-dismiss-label": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
               "repo-action-links-issue": "string",
@@ -20613,7 +20614,7 @@ var init_yaml_intelligence_resources = __esm({
           },
           description: {
             short: "Visual style for theorem environments in Typst output.",
-            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Plain text with bold title and italic body (default)\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
+            long: "Controls how theorems, lemmas, definitions, etc. are rendered:\n\n- `simple`: Classic LaTeX style (default). Theorems and similar blocks have a bold title and an italic body; definitions, examples, exercises and algorithms have a bold title and an upright body; proofs, remarks and solutions have an italic title and an upright body\n- `fancy`: Colored boxes using brand colors\n- `clouds`: Rounded colored background boxes\n- `rainbow`: Colored left border with colored title\n"
           }
         }
       ],
@@ -25823,12 +25824,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 221297,
+        _internalId: 221299,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 221289,
+            _internalId: 221291,
             type: "enum",
             enum: [
               "png",
@@ -25844,7 +25845,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 221296,
+            _internalId: 221298,
             type: "anyOf",
             anyOf: [
               {

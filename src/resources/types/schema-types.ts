@@ -788,6 +788,7 @@ export type FormatLanguage = {
   "scrollable-output-label"?: string;
   "link-external-newwindow-label"?: string;
   "revealjs-menu-button-label"?: string;
+  "announcement-dismiss-label"?: string;
   "repo-action-links-edit"?: string;
   "repo-action-links-source"?: string;
   "repo-action-links-issue"?: string;
