@@ -10530,6 +10530,7 @@ try {
                 "scrollable-output-label": "string",
                 "link-external-newwindow-label": "string",
                 "revealjs-menu-button-label": "string",
+                "announcement-dismiss-label": "string",
                 "repo-action-links-edit": "string",
                 "repo-action-links-source": "string",
                 "repo-action-links-issue": "string",
@@ -25824,12 +25825,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221297,
+          _internalId: 221299,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221289,
+              _internalId: 221291,
               type: "enum",
               enum: [
                 "png",
@@ -25845,7 +25846,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221296,
+              _internalId: 221298,
               type: "anyOf",
               anyOf: [
                 {
