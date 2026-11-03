@@ -517,6 +517,52 @@ unitTest(
 );
 
 unitTest(
+  "refreshProjectContext: picks up a contribution changed in _extension.yml during preview",
+  async () => {
+    await initYamlIntelligenceResourcesFromFilesystem();
+
+    await withTempDir(async (tmpDir) => {
+      const nbContext = notebookContext();
+      // preview keeps one set of services for its whole lifetime and the
+      // watcher refreshes with it, so reuse the same renderOptions throughout
+      const services = renderServices(nbContext);
+      const renderOptions = { services, flags: {} } as RenderOptions;
+      let project: ProjectContext | undefined;
+
+      try {
+        writeProject(tmpDir);
+        writeExtension(tmpDir, "      brand: brand.yml\n", "switch-extension");
+        const extensionDir = join(tmpDir, "_extensions", "switch-extension");
+        Deno.writeTextFileSync(
+          join(extensionDir, "other-brand.yml"),
+          'color:\n  palette:\n    cobalt: "#1E5ABC"\n  primary: cobalt\n',
+        );
+
+        project = await projectContext(tmpDir, nbContext, renderOptions);
+        assert(project !== undefined, "projectContext must resolve");
+        assertContributedBrand(await project.resolveBrand(), "at startup");
+
+        Deno.writeTextFileSync(
+          join(extensionDir, "_extension.yml"),
+          extensionYml("      brand: other-brand.yml\n"),
+        );
+        project = await refreshProjectContext(project, nbContext, renderOptions);
+
+        const brand = await project.resolveBrand();
+        assertEquals(
+          brand?.light?.data.color?.palette?.["cobalt"],
+          "#1E5ABC",
+          "the refreshed context must use the brand now named in _extension.yml",
+        );
+      } finally {
+        project?.cleanup();
+        services.cleanup();
+      }
+    });
+  },
+);
+
+unitTest(
   "refreshProjectContext: keeps the previous context when the rebuild fails (#14783)",
   async () => {
     await initYamlIntelligenceResourcesFromFilesystem();
