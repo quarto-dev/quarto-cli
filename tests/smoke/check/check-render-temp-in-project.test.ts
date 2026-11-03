@@ -21,6 +21,7 @@ import {
   canMakeUnreadableDir,
   makeUnreadableDir,
   tempProject,
+  writeFixture,
 } from "../../utils.ts";
 import { checkRender } from "../../../src/command/check/check-render.ts";
 import { renderServices } from "../../../src/command/render/render-services.ts";
@@ -36,8 +37,7 @@ unitTest(
   async () => {
     const projectDir = tempProject("quarto-check-render-temp");
     const locked = join(projectDir, "locked");
-    Deno.mkdirSync(locked);
-    Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
+    writeFixture(projectDir, "locked/doc.qmd", "# Locked\n");
     const tmp = join(projectDir, "tmp");
     Deno.mkdirSync(tmp);
     const restore = makeUnreadableDir(locked);
@@ -72,8 +72,7 @@ unitTest(
     await initYamlIntelligenceResourcesFromFilesystem();
     const projectDir = tempProject("quarto-check-render-temp");
     const locked = join(projectDir, "locked");
-    Deno.mkdirSync(locked);
-    Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
+    writeFixture(projectDir, "locked/doc.qmd", "# Locked\n");
     const restore = makeUnreadableDir(locked);
     const services = {
       ...renderServices(notebookContext()),

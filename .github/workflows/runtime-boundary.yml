@@ -21,6 +21,8 @@ on:
       - "tests/**"
       - "tools/check-runtime-boundary.ts"
       - "tools/runtime-boundary-baseline.json"
+      - "tools/codemod-deno-ral.ts"
+      - "tools/codemod/**"
       - ".github/workflows/runtime-boundary.yml"
   push:
     branches: [main]
@@ -30,6 +32,8 @@ on:
       - "tests/**"
       - "tools/check-runtime-boundary.ts"
       - "tools/runtime-boundary-baseline.json"
+      - "tools/codemod-deno-ral.ts"
+      - "tools/codemod/**"
       - ".github/workflows/runtime-boundary.yml"
 
 permissions:
@@ -51,6 +55,9 @@ jobs:
 
       - name: Configure Quarto
         uses: ./.github/workflows/actions/quarto-dev
+
+      - name: Codemod contract test (tools/codemod)
+        run: package/dist/bin/tools/x86_64/deno test --allow-all --import-map=src/import_map.json tools/codemod/
 
       - name: Check runtime boundary
         shell: bash

@@ -9,14 +9,16 @@ The `deno_ral/` directory provides a runtime abstraction layer over Deno's stand
 
 ## Available Modules
 
-| Module | Purpose | Key exports |
-|--------|---------|-------------|
-| `fs.ts` | File system | `existsSync`, `ensureDirSync`, `copySync`, `safeMoveSync`, `safeRemoveSync` |
-| `path.ts` | Path utilities | `join`, `dirname`, `basename`, `extname` |
-| `log.ts` | Logging | `debug`, `info`, `warning`, `error` |
-| `kv.ts` | Deno KV cache stores | `openKv`, `getKv`, `kvOp`, `KvDamagedError` |
-| `platform.ts` | Platform detection | `isWindows` |
-| `process.ts` | Process execution | Process utilities |
+| Module        | Purpose                                  | Key exports                                                                                                                                                                                                                                                                                  |
+| ------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fs.ts`       | File system                              | `readTextFileSync`, `writeTextFileSync`, `statSync`, `readDirSync` (sorted), `removeSync`, `mkdirSync`, `copyFileSync`, `open`, `canonicalPathSync` (resolves symlinks), `existsSync`, `ensureDirSync`, `copySync`, `safeMoveSync`, `safeRemoveSync`; types `FileInfo`, `DirEntry`, `FsFile` |
+| `temp.ts`     | Temp files/dirs (retry on AlreadyExists) | `makeTempDirSync`, `makeTempDir`, `makeTempFileSync`, `makeTempFile`; type `TempOptions`                                                                                                                                                                                                     |
+| `errors.ts`   | Runtime-neutral error predicates         | `isNotFound`, `isAlreadyExists`, `isPermissionDenied`, `isAddrInUse`, `isConnectionRefused`, `isConnectionError`, `errorWithPath`                                                                                                                                                            |
+| `path.ts`     | Path utilities                           | `join`, `dirname`, `basename`, `extname`                                                                                                                                                                                                                                                     |
+| `log.ts`      | Logging                                  | `debug`, `info`, `warning`, `error`                                                                                                                                                                                                                                                          |
+| `kv.ts`       | Deno KV cache stores                     | `openKv`, `getKv`, `kvOp`, `KvDamagedError`                                                                                                                                                                                                                                                  |
+| `platform.ts` | Platform detection                       | `isWindows`                                                                                                                                                                                                                                                                                  |
+| `process.ts`  | Process execution                        | Process utilities                                                                                                                                                                                                                                                                            |
 
 ## Why Use deno_ral
 
@@ -28,6 +30,7 @@ The `deno_ral/` directory provides a runtime abstraction layer over Deno's stand
 ## Common Utilities
 
 **Temp files** (`src/core/temp.ts`):
+
 ```typescript
 import { createTempContext } from "../core/temp.ts";
 
@@ -40,6 +43,7 @@ try {
 ```
 
 **Process execution** (`src/core/process.ts`):
+
 ```typescript
 import { execProcess } from "../core/process.ts";
 
@@ -60,8 +64,18 @@ const result = await execProcess({
 ## Module Loading Order
 
 `src/quarto.ts` loads monkey patches first:
+
 ```typescript
-import "./core/deno/monkey-patch.ts";  // Must be first!
+import "./core/deno/monkey-patch.ts"; // Must be first!
 ```
 
 This ensures compatibility shims load before any code runs.
+
+## Moving code off `Deno.*`
+
+Outside `deno_ral/`, never add new `Deno.*` calls; import the equivalent from `deno_ral/`. The `deno_ral/` modules themselves implement those functions with `Deno.*`. To migrate existing files mechanically:
+
+    quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/<dir> --dry-run
+    quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/<dir>
+
+The tool reports local-name collisions (left as `Deno.*`; fix with an alias import such as `import { stat as fsStat } ...`, which later runs reuse) and skips files that assign to `Deno.*`, `src/core/lib` and the standalone scripts. Replace `instanceof Deno.errors.X` with the predicates in `deno_ral/errors.ts`. After a rebase conflict in a codemodded file, reset the file to `main` and re-run the codemod; never resolve by hand. `--reverse` produces the `Deno.*` form for backports (`dev-docs/checklist-backport-a-pr.md`).

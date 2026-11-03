@@ -9,6 +9,7 @@
  */
 
 import { dirname, join, resolve } from "../../../src/deno_ral/path.ts";
+import { writeDefaultProject } from "../../utils.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { originalRealPathSync } from "../../../src/deno_ral/original-real-path.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
@@ -30,7 +31,7 @@ function tempDir(prefix: string): string {
 // The tree must exist at registration: the harness enters `cwd` before setup.
 function tempProject(): string {
   const dir = tempDir("quarto-check-info-project");
-  Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: default\n");
+  writeDefaultProject(dir);
   Deno.mkdirSync(join(dir, "sub"));
   return dir;
 }
