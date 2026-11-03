@@ -1025,6 +1025,10 @@ If no `id` is provided for a listing, Quarto will synthesize one when rendering 
   include?: MaybeArrayOf<
     JsonObject
   > /* Items with matching field values will be included in the listing. */;
+  rel?:
+    string /* Value for rel attribute. Multiple space-separated values are permitted.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+for a details. */;
   sort?:
     | boolean
     | MaybeArrayOf<
@@ -1046,14 +1050,24 @@ Use `sort:false` to use the unsorted original order of items. */;
 - `table`: A table of items
 - `grid`: A grid of item cards
 - `custom`: A custom template, provided by the `template` field */;
-  template?: string; /* The path to a custom listing template. */
+  template?: string /* The path to a custom listing template. */;
+  target?: string; /* Value for target attribute.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+for details. */
 };
 
 export type WebsiteListingContentsObject = {
   author?: MaybeArrayOf<string>;
   date?: string;
+  rel?:
+    string /* Value for rel attribute. Multiple space-separated values are permitted.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>
+for a details. */;
   subtitle?: string;
   title?: string;
+  target?: string; /* Value for target attribute.
+See <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>
+for details. */
 };
 
 export type CslDate = string | MaybeArrayOf<number> | {

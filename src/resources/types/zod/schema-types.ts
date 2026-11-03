@@ -936,6 +936,8 @@ export const ZodWebsiteListing = z.object({
     z.object({}).passthrough(),
     z.array(z.object({}).passthrough()),
   ]),
+  rel: z.string(),
+  target: z.string(),
 }).strict().partial();
 
 export const ZodWebsiteListingContentsObject = z.object({
@@ -943,6 +945,8 @@ export const ZodWebsiteListingContentsObject = z.object({
   date: z.string(),
   title: z.string(),
   subtitle: z.string(),
+  rel: z.string(),
+  target: z.string(),
 }).passthrough().partial();
 
 export const ZodCslDate = z.union([
