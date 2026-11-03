@@ -2708,3 +2708,17 @@ Seven review rounds on the forward guard that skips files patching `Deno.*` (for
 - Step 4 (rules docs): `deno-ral.md` gained the fuller `fs.ts` row, the `temp.ts` and `errors.ts` rows, and the "Moving code off `Deno.*`" subsection. In `deno-essentials.md` the example block is the plan's runtime-layer one; its intro line changed with it ("Use Deno APIs directly:" would contradict the new example).
 - Step 5 (changelog): the PR opened as draft #15223 and the plan's line went into `news/changelog-1.11.md` under `## Other fixes and improvements` with that number.
 - Step 6 (verification, re-run after the Task 5 commits): ral suite `ok | 23 passed | 0 failed | 1 ignored` (Windows), codemod suite `ok | 29 passed | 0 failed`, boundary check `OK: no count exceeds the baseline` (the baseline diff is still only `tests` 874 → 875), `deno check --allow-import` exit 0. The Task 4 step 6 dry run and the smoke trio stand from the post-rebase run; no code changed since.
+
+### Rebase onto main after the v1.11 release (2026-11-03)
+
+- `git fetch upstream && git rebase upstream/main` (`8b0f68b95`): 23 upstream commits since the last rebase, among them the Deno 2.9.8 bump (#15186) and `QUARTO_VERSION` 1.12; 45 commits replayed.
+- Conflicts, all in docs or counts: README "Open decisions with an owner" (both sides added rows, all kept) and "The sequence" (upstream's `00a` `in progress` kept); HANDOFF status line and "How to resume" step 5 (upstream's 00a status plus 09 in progress); `tools/runtime-boundary-baseline.json` `tests` 895 on `main` plus this PR's one occurrence = 896.
+- Changelog: 1.11 has shipped, so the Task 5 step 5 line moved from `news/changelog-1.11.md` to `news/changelog-1.12.md` under `## Other fixes and improvements`; the plan's Task 5 text still names the 1.11 file.
+- `tools/codemod/**` came out `w/crlf` again (files replayed before the `eol=lf` commit); deleting the tracked files and `git checkout -- tools/codemod` restored all 76 to `w/lf`.
+- Re-verified on the vendored Deno 2.9.8 (`configure.cmd` re-run):
+  - codemod suite → `ok | 29 passed | 0 failed`.
+  - `quarto run --dev tools/check-runtime-boundary.ts` → `tests 896 (baseline 896)`, all other scopes unchanged, `OK: no count exceeds the baseline`; `git diff upstream/main...HEAD -- tools/runtime-boundary-baseline.json` shows only `tests` 895 → 896.
+  - `deno check` without `--allow-import` still fails with `Requires import access to "cdn.skypack.dev:443"`; with it → `Check quarto.ts`, exit 0.
+  - `deno types`: `SymlinkOptions.type` is still required and `truncateSync(name: string, …)` still string-only, so the Task 3 adaptations stand; both README rows now say they hold on 2.9.8.
+  - ral suite → `ok | 23 passed | 0 failed | 1 ignored`; smoke trio → `ok | 7 passed | 0 failed | 2 ignored`; no warnings in either log. No PR 09 check relies on test sanitizers (off by default in Deno 2.9).
+  - Forward dry run (`--rules fs,temp,env,process,platform --dir src --dry-run`) → `624 files scanned, 224 would be rewritten, 816 replacements, 18 with collisions, 2 skipped`, unchanged; `git status --short src` empty.
