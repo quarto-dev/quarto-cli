@@ -1,0 +1,34 @@
+---
+title: Tabset
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1\)'
+          - 'Skylighting\(cell-id: "annotated-cell-2", annotations: \("1": 1\)'
+        -
+          - 'quarto-code-annotations:'
+          - '# <1>'
+---
+
+::: {.panel-tabset}
+## A
+```{.python}
+z = 1  # <1>
+```
+
+1. Assign z.
+
+## B
+```{.python}
+w = 2  # <1>
+```
+
+1. Assign w.
+:::

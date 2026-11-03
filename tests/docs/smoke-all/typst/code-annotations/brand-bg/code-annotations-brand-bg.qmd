@@ -1,0 +1,23 @@
+---
+title: Code Annotations (brand background, Skylighting)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'let bgcolor = rgb\("#ffeecc"\)'
+          - '#quarto-code-annotation\(|annotations: \("1": 1\)'
+          - 'set block\(fill: rgb\("#ffeecc"\)\)'
+        -
+          - 'fill: luma\(230\), width'
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.

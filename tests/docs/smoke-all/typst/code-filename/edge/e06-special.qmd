@@ -1,0 +1,48 @@
+---
+title: Filename special characters
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-code-filename\("a\$b\.py"'
+          - 'quarto-code-filename\("c#d\.py"'
+          - 'quarto-code-filename\("e\*f_g\.py"'
+          - 'quarto-code-filename\("123"'
+          - 'replace\(regex\("\[/_\.-\]"\), m => m\.text \+ "\\u\{200b\}"\)'
+          - 'replace\(regex\("\[\.\]\\u\{200b\}\(\[\^\.\]\*\)\\\\z"\)'
+          - 'replace\(regex\("\[\^/_\.\\u\{200b\}-\]\{31,\}"\)'
+        - []
+---
+
+```{.python filename="a$b.py"}
+x = 1
+```
+
+```{.python filename="c#d.py"}
+x = 1
+```
+
+```{.python filename="e*f_g.py"}
+x = 1
+```
+
+```{.python filename="`tick`.py"}
+x = 1
+```
+
+```{.python filename="say \"hi\".py"}
+x = 1
+```
+
+```{.python filename="LONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAMELONGNAME.py"}
+x = 1
+```
+
+```{.python filename=123}
+x = 1
+```

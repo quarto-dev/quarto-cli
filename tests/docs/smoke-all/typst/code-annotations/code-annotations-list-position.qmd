@@ -1,0 +1,28 @@
+---
+title: Code Annotations (list between code and output)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'annotations: \("1": 1\)[\s\S]*quarto-annotation-item\("annotated-cell-1"[\s\S]*OUTPUT-MARKER'
+        - []
+---
+
+::: {.cell}
+```{.python .cell-code}
+x = 1  # <1>
+```
+
+::: {.cell-output .cell-output-stdout}
+```
+OUTPUT-MARKER
+```
+:::
+:::
+
+1. Assign x.

@@ -1,0 +1,50 @@
+---
+title: Comment characters
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'cell-id: "annotated-cell-1", annotations: \("1": 1\)'
+          - 'cell-id: "annotated-cell-5", annotations: \("1": 1\)'
+        -
+          - 'quarto-code-annotations:'
+          - '<1>'
+          - '/\* <1>'
+          - '-- <'
+---
+
+```{.c}
+int x = 1;  /* <1> */
+```
+
+1. C.
+
+```{.js}
+let x = 1;  // <1>
+```
+
+1. JS.
+
+```{.sql}
+SELECT 1;  -- <1>
+```
+
+1. SQL.
+
+```{.matlab}
+x = 1;  % <1>
+```
+
+1. MATLAB.
+
+```{.bash}
+echo hi  # <1>
+```
+
+1. Bash.

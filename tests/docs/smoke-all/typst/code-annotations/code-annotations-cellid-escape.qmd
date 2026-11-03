@@ -1,0 +1,21 @@
+---
+title: Code Annotations (cell id with a quote)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'cell-id: "lst-a\\"b"'
+          - 'quarto-annotation-item\("lst-a\\"b"'
+        - []
+---
+
+```{.python id='lst-a"b'}
+x = 1  # <1>
+```
+
+1. Assign x.

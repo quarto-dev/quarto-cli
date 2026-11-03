@@ -33,6 +33,9 @@ local kAsciidocNativeCites = 'use-asciidoc-native-cites'
 local kShowNotes = 'showNotes'
 local kProjectResolverIgnore = 'project-resolve-ignore'
 
+local kSyntaxHighlightingMode = 'syntax-highlighting-mode'
+local kSyntaxHighlightingSkylighting = 'skylighting'
+local kSyntaxHighlightingNone = 'none'
 local kCodeAnnotationsParam = 'code-annotations'
 local kDataCodeCellTarget = 'data-code-cell'
 local kDataCodeCellLines = 'data-code-lines'
@@ -202,6 +205,9 @@ return {
   kAsciidocNativeCites = kAsciidocNativeCites,
   kShowNotes = kShowNotes,
   kProjectResolverIgnore = kProjectResolverIgnore,
+  kSyntaxHighlightingMode = kSyntaxHighlightingMode,
+  kSyntaxHighlightingSkylighting = kSyntaxHighlightingSkylighting,
+  kSyntaxHighlightingNone = kSyntaxHighlightingNone,
   kCodeAnnotationsParam = kCodeAnnotationsParam,
   kDataCodeCellTarget = kDataCodeCellTarget,
   kDataCodeCellLines = kDataCodeCellLines,

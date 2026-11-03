@@ -1,0 +1,24 @@
+---
+title: Extension that replaces definitions.typ
+keep-typ: true
+format:
+  fake-typst:
+    code-annotations: true
+_quarto:
+  tests:
+    fake-typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - '#let quarto-code-filename\('
+          - '#let quarto-annote-link\('
+          - '#let quarto-annotation-item\('
+          - 'quarto-code-filename\("a\.py"'
+        - []
+---
+
+```{.python filename="a.py"}
+x = 1  # <1>
+```
+
+1. Assign x.

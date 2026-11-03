@@ -1,0 +1,21 @@
+---
+title: Code Annotations (list item without annotation)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      printsMessage:
+        level: INFO
+        regex: 'List item 2 has no corresponding annotation'
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.
+2. No annotation for this item.

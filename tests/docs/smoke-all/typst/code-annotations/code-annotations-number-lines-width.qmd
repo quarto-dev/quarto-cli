@@ -1,0 +1,22 @@
+---
+title: Code Annotations (number-lines row width)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'box\(width: 100% - annote-ln-width\)'
+          - 'annotations: \("1": 1\)'
+        -
+          - 'box\(width: 100%\)\[#ln'
+---
+
+```{.python .number-lines}
+x = 1  # <1>
+```
+
+1. Assign x.

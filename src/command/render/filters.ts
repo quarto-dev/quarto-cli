@@ -25,6 +25,7 @@ import {
   kFigResponsive,
   kFormatIdentifier,
   kHeaderIncludes,
+  kHighlightStyle,
   kHtmlMathMethod,
   kHtmlPreTagProcessing,
   kHtmlTableProcessing,
@@ -50,11 +51,13 @@ import {
   kRemoveHidden,
   kResourcePath,
   kShortcodes,
+  kSyntaxHighlighting,
   kTblColwidths,
   kTocTitleDocument,
   kUnrollMarkdownCells,
   kUseRsvgConvert,
 } from "../../config/constants.ts";
+import { kDefaultHighlightStyle } from "./constants.ts";
 import { PandocOptions } from "./types.ts";
 import {
   Format,
@@ -944,12 +947,24 @@ async function resolveFilterExtension(
   return results.flat();
 }
 
+const kSyntaxHighlightingMode = "syntax-highlighting-mode";
+
 const extractTypstFilterParams = (format: Format) => {
+  const theme = format.pandoc[kSyntaxHighlighting] ||
+    format.pandoc[kHighlightStyle] ||
+    kDefaultHighlightStyle;
+  // Object themes (light/dark) resolve to a single .theme file for Typst
+  // (resolveTextHighlightStyle), so Skylighting is active for them too.
+  const highlightingMode = theme === "none" || theme === "idiomatic"
+    ? theme
+    : "skylighting";
+
   return {
     [kTocIndent]: format.metadata[kTocIndent],
     [kLogo]: format.metadata[kLogo],
     [kCssPropertyProcessing]: format.metadata[kCssPropertyProcessing],
     [kBrandMode]: format.metadata[kBrandMode],
     [kHtmlPreTagProcessing]: format.metadata[kHtmlPreTagProcessing],
+    [kSyntaxHighlightingMode]: highlightingMode,
   };
 };

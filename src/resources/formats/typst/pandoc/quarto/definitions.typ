@@ -24,12 +24,115 @@
 
 // Some quarto-specific definitions.
 
-#show raw.where(block: true): set block(
-    fill: luma(230),
-    width: 100%,
-    inset: 8pt,
-    radius: 2pt
-  )
+// Code annotation support
+#let quarto-circled-number(n, color: none) = context {
+  let c = if color != none { color } else { text.fill }
+  // A zero-height box lets the circle overflow instead of making its row taller.
+  // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
+  // The equation wrapper carries the text alternative.
+  box(height: 0pt, baseline: 0.55em, move(dy: -0.63em, math.equation(alt: "Annotation " + str(n), block: false, circle(
+    radius: 0.55em,
+    stroke: 0.5pt + c,
+  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))
+}
+
+// Link to `target` only if that label exists in the document; otherwise
+// render `body` unlinked. Keeps annotation rendering resilient when the
+// counterpart (annotation item or code line) is missing.
+#let quarto-annote-link(target, body) = context {
+  if query(label(target)).len() > 0 { link(label(target), body) } else { body }
+}
+
+// Derive a contrasting annotation colour from a background fill.
+// Light backgrounds get dark circles; dark backgrounds get light circles.
+#let quarto-annote-color(bg) = {
+  if type(bg) == color {
+    let comps = bg.components(alpha: false)
+    let lum = if comps.len() == 1 {
+      comps.at(0) / 100%
+    } else {
+      0.2126 * comps.at(0) / 100% + 0.7152 * comps.at(1) / 100% + 0.0722 * comps.at(2) / 100%
+    }
+    if lum < 0.5 { luma(200) } else { luma(60) }
+  } else {
+    luma(60)
+  }
+}
+
+#let quarto-code-filename(filename, body) = {
+  // Long names would be clipped: allow breaks after separators (but not after the
+  // last dot, which keeps the extension attached) first, and
+  // inside runs of more than 30 characters without a separator
+  let filename = if type(filename) == str and filename.len() > 40 {
+    filename
+      .replace(regex("[/_.-]"), m => m.text + "\u{200b}")
+      .replace(regex("[.]\u{200b}([^.]*)\\z"), m => "." + m.captures.at(0))
+      .replace(regex("[^/_.\u{200b}-]{31,}"), m => m.text.clusters().join("\u{200b}"))
+  } else { filename }
+  show raw.where(block: true): it => it
+  block(width: 100%, radius: 2pt, clip: true, stroke: 0.5pt + luma(128))[
+    #set block(spacing: 0pt)
+    #block(fill: luma(220), width: 100%, inset: (x: 8pt, y: 4pt))[
+      #text(size: 0.85em, weight: "bold", fill: luma(30))[#filename]]
+    #body
+  ]
+}
+
+#let quarto-code-annotation(annotations, cell-id: "", color: none, body) = {
+  // Build a set of first-line positions per annotation number so that
+  // back-labels are only emitted once (avoiding duplicate labels when
+  // one annotation spans multiple lines).
+  let first-lines = (:)
+  for (line, num) in annotations {
+    let key = str(num)
+    if key not in first-lines or int(line) < int(first-lines.at(key)) {
+      first-lines.insert(key, line)
+    }
+  }
+  show raw.where(block: true): it => it
+  show raw.line: it => {
+    let annote-num = annotations.at(str(it.number), default: none)
+    if annote-num != none {
+      if cell-id != "" {
+        let lbl = cell-id + "-annote-" + str(annote-num)
+        let is-first = first-lines.at(str(annote-num), default: none) == str(it.number)
+        if is-first {
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
+        } else {
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color)]]
+        }
+      } else {
+        box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
+      }
+    } else {
+      it
+    }
+  }
+  body
+}
+
+#let quarto-annotation-item(cell-id, n, content) = {
+  if cell-id != "" {
+    [#block(above: 0.4em, below: 0.4em)[
+      #quarto-annote-link(cell-id + "-annote-" + str(n) + "-back")[#quarto-circled-number(n)]
+      #h(0.4em)
+      #content
+    ] #label(cell-id + "-annote-" + str(n))]
+  } else {
+    block(above: 0.4em, below: 0.4em)[
+      #quarto-circled-number(n)
+      #h(0.4em)
+      #content
+    ]
+  }
+}
+
+// Style native raw code blocks with default inset and radius
+// Default fill is a set rule so a later `set block(fill: ...)` (brand or user) wins
+#show raw.where(block: true): set block(fill: luma(230))
+#show raw.where(block: true): it => block(
+  width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(128), it,
+)
 
 #let block_with_new_content(old_block, new_content) = {
   let fields = old_block.fields()
