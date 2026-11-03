@@ -112,8 +112,7 @@ local function ensure_typst_theorems(reftype)
   local render_code = _quarto.modules.theorems.render_code(appearance, {
     color_scheme = color_scheme,
     color = theme_colors[reftype] or "gray",
-    simple_render = "simple-theorem-render",
-    simple_style = "theorem",
+    simple_style = theorem_type.style,
   })
 
   _quarto.modules.theorems.ensure_frame(theorem_type.env, title, render_code, true)
