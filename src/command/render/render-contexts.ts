@@ -717,6 +717,8 @@ const readExtensionFormat = async (
       extensionMetadata[kExtensionName] = extensionMetadata[kExtensionName] ||
         effectiveExtension;
 
+      // resolveExtensionPaths made the extension paths relative to the
+      // document, so the document is the base, not the extension directory
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,
         file,
