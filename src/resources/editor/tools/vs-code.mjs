@@ -10806,14 +10806,12 @@ var init_yaml_intelligence_resources = __esm({
                     },
                     "outer-window-left": {
                       number: {
-                        description: "The number of page links to show at the start of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`.",
-                        default: 0
+                        description: "The number of page links to show at the start of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
                       }
                     },
                     "outer-window-right": {
                       number: {
-                        description: "The number of page links to show at the end of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`.",
-                        default: 0
+                        description: "The number of page links to show at the end of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
                       }
                     }
                   }
