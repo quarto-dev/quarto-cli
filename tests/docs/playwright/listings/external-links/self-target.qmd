@@ -1,0 +1,14 @@
+---
+title: "External Links Test - Explicit Target"
+listing:
+  id: self-listing
+  type: default
+  contents:
+    - path: https://example.com/self
+      title: "Self Target Article"
+      description: "An external article that keeps its explicit target."
+      target: _self
+---
+
+::: {#self-listing}
+:::

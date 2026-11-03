@@ -261,12 +261,14 @@
             link.href = link.dataset.originalHref;
           }
           <% if (linkExternalNewwindow) { %> 
-            // target, if specified
-            link.setAttribute("target", "_blank");
-            if (link.getAttribute("rel") === null) {
-              link.setAttribute("rel", "noopener");
+            // an explicit target wins over the site-wide setting
+            if (link.getAttribute("target") === null) {
+              link.setAttribute("target", "_blank");
+              if (link.getAttribute("rel") === null) {
+                link.setAttribute("rel", "noopener");
+              }
+              describeNewWindow(link);
             }
-            describeNewWindow(link);
           <% } %>
   
           

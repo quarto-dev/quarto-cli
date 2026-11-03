@@ -140,6 +140,20 @@ test.describe("External links without link-external-newwindow", () => {
   });
 });
 
+test.describe("Explicit target with link-external-newwindow", () => {
+  test("explicit target survives newwindow", async ({ page: browserPage }) => {
+    await browserPage.goto("./listings/external-links/_site/self-target.html");
+    await browserPage.waitForSelector(".quarto-listing-default");
+
+    const link = browserPage.locator(
+      '.quarto-listing-default .listing-title a[href="https://example.com/self"]',
+    );
+    await expect(link).toHaveAttribute("target", "_self");
+    await expect(link).not.toHaveAttribute("rel");
+    await expect(link).not.toHaveAttribute("aria-describedby");
+  });
+});
+
 test.describe("External links shown after listing updates", () => {
   test("item on page 2 is decorated after pagination", async ({ page: browserPage }) => {
     await browserPage.goto("./listings/external-links/_site/paged.html");
