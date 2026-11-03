@@ -719,7 +719,7 @@ const readExtensionFormat = async (
 
       const formats = await resolveFormatsFromMetadata(
         extensionMetadata,
-        extension.path,
+        file,
         [formatDesc.baseFormat],
       );
 
