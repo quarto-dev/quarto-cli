@@ -2,6 +2,9 @@ import { expect, test } from "@playwright/test";
 
 const base = "./listings/link-target/_site";
 
+const newWindowLabel = "(opens in a new tab)";
+const newWindowNoteId = "quarto-ext-newwindow-label";
+
 const listingTypes = [
   {
     name: "default",
@@ -76,6 +79,29 @@ listingTypes.forEach(({ name, page, containerSelector }) => {
       }
     });
 
+    test("new-tab item is described", async ({ page: browserPage }) => {
+      await browserPage.goto(`${base}/${page}`);
+      await browserPage.waitForSelector(containerSelector);
+
+      const link = browserPage
+        .locator(
+          `${containerSelector} a[href="https://example.com/a"]:not([aria-hidden])`,
+        )
+        .first();
+      await expect(link).toHaveAccessibleDescription(newWindowLabel);
+      await expect(link).not.toHaveAccessibleName(/opens in a new tab/);
+    });
+
+    test("same-tab item is not described", async ({ page: browserPage }) => {
+      await browserPage.goto(`${base}/${page}`);
+      await browserPage.waitForSelector(containerSelector);
+
+      const link = browserPage
+        .locator(`${containerSelector} a[href$="local-post.html"]`)
+        .first();
+      await expect(link).not.toHaveAttribute("aria-describedby");
+    });
+
     test("listing has no axe-core violations", async ({ page: browserPage }) => {
       await browserPage.goto(`${base}/${page}`);
       await browserPage.waitForSelector(containerSelector);
@@ -134,7 +160,29 @@ test.describe("Hostile target value", () => {
   });
 });
 
+test.describe("Description after listing updates", () => {
+  test("description survives paging", async ({ page: browserPage }) => {
+    await browserPage.goto(`${base}/paged.html`);
+    await browserPage
+      .locator("#paged-listing-pagination .page.page-link", { hasText: "2" })
+      .click();
+
+    const link = browserPage.locator(
+      '.quarto-listing-default .listing-title a[href="https://example.com/b"]',
+    );
+    await expect(link).toHaveAttribute("target", "_blank");
+    await expect(link).toHaveAccessibleDescription(newWindowLabel);
+  });
+});
+
 test.describe("Option absent", () => {
+  test("page without new-tab links has no label node", async ({ page: browserPage }) => {
+    await browserPage.goto(`${base}/absent.html`);
+    await browserPage.waitForSelector(".quarto-listing-default");
+
+    await expect(browserPage.locator(`#${newWindowNoteId}`)).toHaveCount(0);
+  });
+
   test("no target, rel or description on any anchor", async ({ page: browserPage }) => {
     await browserPage.goto(`${base}/absent.html`);
     await browserPage.waitForSelector(".quarto-listing-default");
