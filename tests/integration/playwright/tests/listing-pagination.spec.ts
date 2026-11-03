@@ -99,7 +99,7 @@ test.describe("Listing pagination accessibility", () => {
           await expect(nav(page, id).locator("li.active")).toHaveText("6");
         }
         const n = nav(page, id);
-        await expect(n).toHaveAttribute("aria-label", "Page navigation");
+        await expect(n).toHaveAttribute("aria-label", "Pagination");
 
         const items = await n.locator("li.page-item").all();
         for (const item of items) {
@@ -144,68 +144,48 @@ test.describe("Listing pagination accessibility", () => {
     expect(texts).toEqual(["1", "4", "5", "6", "7", "8", "10"]);
   });
 
-  test("ARIA snapshot of the outer nav on page 1", async ({ page }) => {
+  // Explicit assertions rather than toMatchAriaSnapshot: CI runs Playwright
+  // with --ignore-snapshots, which turns snapshot assertions into no-ops.
+  async function expectLinkNames(page: Page, names: string[]) {
+    const links = nav(page, "outer").getByRole("link");
+    await expect(links).toHaveCount(names.length);
+    for (const [i, name] of names.entries()) {
+      await expect(links.nth(i)).toHaveAccessibleName(name);
+    }
+  }
+
+  test("every listing has a pagination landmark", async ({ page }) => {
     await gotoReady(page);
-    await expect(nav(page, "outer")).toMatchAriaSnapshot(`
-      - navigation "Page navigation":
-        - list:
-          - listitem:
-            - link "Page 1":
-              - /url: "#"
-              - text: "1"
-          - listitem:
-            - link "Page 2":
-              - /url: "#"
-              - text: "2"
-          - listitem:
-            - link "Page 3":
-              - /url: "#"
-              - text: "3"
-          - listitem:
-            - link "Page 10":
-              - /url: "#"
-              - text: "10"
-    `);
+    await expect(page.getByRole("navigation", { name: "Pagination" }))
+      .toHaveCount(listingIds.length);
   });
 
-  test("ARIA snapshot of the outer nav on page 6", async ({ page }) => {
+  test("the outer nav names its links on page 1", async ({ page }) => {
+    await gotoReady(page);
+    await expectLinkNames(page, ["Page 1", "Page 2", "Page 3", "Page 10"]);
+    await expect(
+      nav(page, "outer").getByRole("link", { name: "Page 1", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
+  });
+
+  test("the outer nav names its links on page 6", async ({ page }) => {
     await gotoReady(page);
     await page.evaluate(() => {
       window.location.hash = "#listing-outer-page=6";
     });
     await expect(nav(page, "outer").locator("li.active")).toHaveText("6");
-    await expect(nav(page, "outer")).toMatchAriaSnapshot(`
-      - navigation "Page navigation":
-        - list:
-          - listitem:
-            - link "Page 1":
-              - /url: "#"
-              - text: "1"
-          - listitem:
-            - link "Page 4":
-              - /url: "#"
-              - text: "4"
-          - listitem:
-            - link "Page 5":
-              - /url: "#"
-              - text: "5"
-          - listitem:
-            - link "Page 6":
-              - /url: "#"
-              - text: "6"
-          - listitem:
-            - link "Page 7":
-              - /url: "#"
-              - text: "7"
-          - listitem:
-            - link "Page 8":
-              - /url: "#"
-              - text: "8"
-          - listitem:
-            - link "Page 10":
-              - /url: "#"
-              - text: "10"
-    `);
+    await expectLinkNames(page, [
+      "Page 1",
+      "Page 4",
+      "Page 5",
+      "Page 6",
+      "Page 7",
+      "Page 8",
+      "Page 10",
+    ]);
+    await expect(
+      nav(page, "outer").getByRole("link", { name: "Page 6", exact: true }),
+    ).toHaveAttribute("aria-current", "page");
   });
 
   // With five listings on one page, every nav shares one label, so axe reports
