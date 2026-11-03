@@ -28,8 +28,8 @@ export function typstGather(version: string): Dependency {
         }
         // When binaries are not vendored (e.g. building from source for a
         // package manager), the caller provides typst-gather. It is only needed
-        // later (QUARTO_TYPST_GATHER, or on PATH when running
-        // `quarto dev-call typst-gather`), so don't require it at configure time.
+        // at render time via QUARTO_TYPST_GATHER or the tools directory, so
+        // don't require it at configure time.
       }
     }
   }
