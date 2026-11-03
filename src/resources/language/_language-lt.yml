@@ -71,7 +71,7 @@ search-clear-button-title: "Išvalyti"
 search-text-placeholder: ""
 search-detached-cancel-button-title: "Atšaukti"
 search-submit-button-title: "Pateikti"
-search: "Paieška"
+search-label: "Paieška"
 
 toggle-section: "Rodyti/Slėpti skiltį"
 toggle-sidebar: "Rodyti/Slėpti šoninę navigacijos skiltį"
