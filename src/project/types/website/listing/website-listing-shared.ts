@@ -222,6 +222,8 @@ export interface ListingItem extends Record<string, unknown> {
   image?: string;
   [kImageAlt]?: string;
   [kImageLazyLoading]?: boolean;
+  [kTarget]?: string;
+  [kRel]?: string;
   path?: string;
   filename?: string;
   [kFieldFileModified]?: Date;
