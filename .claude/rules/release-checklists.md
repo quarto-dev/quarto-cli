@@ -9,3 +9,5 @@ paths:
 The `dev-docs/checklist-make-a-new-*.md` files are the human-first source of truth: anyone releasing by hand gets every step, command, and conditional from the checklist (or a link it follows). The `make-release` skill holds only how an agent carries itself while driving them: detecting which checklist applies, verifying real state before ticking a step, confirmation gates, escalating a stale step.
 
 When editing either side, ask whether a human releasing by hand needs the sentence. If yes, it goes in the checklist. If it is about agent conduct, it goes in the skill, which routes to the checklist steps without restating them. `checklist-backport-a-pr.md` is outside the skill's scope.
+
+Keep the checklist readable: each step gives the action, its main command, ordering facts and the stop condition in prose. Exact verification plumbing (jq filters, run capture, ancestor checks before a push) goes in the skill's `references/`, keyed by checklist section, e.g. `references/first-stable-commands.md`.
