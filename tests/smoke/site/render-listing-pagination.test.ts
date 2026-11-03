@@ -9,7 +9,7 @@ import { testQuartoCmd } from "../../test.ts";
 import { docs } from "../../utils.ts";
 import { ensureFileRegexMatches, printsMessage } from "../../verify.ts";
 
-const projectDir = docs("listings/pagination-warning");
+const projectDir = docs("listings-pagination-warning");
 const outputDir = join(projectDir, "_site");
 
 testQuartoCmd("render", [projectDir], [
