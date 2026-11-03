@@ -16,6 +16,7 @@ import {
   makeUnreadableDir,
   removeProject,
   tempProject,
+  writeFixture,
 } from "../../utils.ts";
 import { assert, assertEquals } from "testing/asserts";
 
@@ -42,11 +43,10 @@ function registerUnreadableDirTest(
 ) {
   const root = normalizePath(tempProject("quarto-unreadable-project"));
   if (quartoYml) {
-    Deno.writeTextFileSync(join(root, "_quarto.yml"), quartoYml);
+    writeFixture(root, "_quarto.yml", quartoYml);
   }
   const locked = join(root, "locked");
-  Deno.mkdirSync(locked);
-  Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
+  writeFixture(root, "locked/doc.qmd", "# Locked\n");
   let restore: (() => void) | undefined;
   testQuartoCmd(cmd, ["index.qmd"], [verify(root, locked)], {
     cwd: () => join(root, "sub"),

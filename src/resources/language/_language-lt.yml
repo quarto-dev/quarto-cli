@@ -61,6 +61,8 @@ repo-action-links-issue: "Pranešti apie problemą"
 
 back-to-top: "Grįžti į viršų"
 
+skip-to-content: "Pereiti prie pagrindinio turinio"
+
 search-no-results-text: "Nėra rezultatų"
 search-matching-documents-text: "atitinkančių dokumentų"
 search-copy-link-title: "Kopijuoti nuorodą į paiešką"
@@ -71,7 +73,7 @@ search-clear-button-title: "Išvalyti"
 search-text-placeholder: ""
 search-detached-cancel-button-title: "Atšaukti"
 search-submit-button-title: "Pateikti"
-search: "Paieška"
+search-label: "Paieška"
 
 toggle-section: "Rodyti/Slėpti skiltį"
 toggle-sidebar: "Rodyti/Slėpti šoninę navigacijos skiltį"

@@ -23,7 +23,7 @@ import { v8Branch } from "../../src/deno_ral/platform.ts";
 import { safeRemoveIfExists } from "../../src/core/path.ts";
 import { createTempContext, TempContext } from "../../src/core/temp.ts";
 import { sassCache } from "../../src/core/sass/cache.ts";
-import { withTempDir } from "../utils.ts";
+import { withTempDir, writeFixture } from "../utils.ts";
 import { noErrors, printsMessage } from "../verify.ts";
 import { md5HashAsync } from "../../src/core/hash.ts";
 import {
@@ -86,9 +86,8 @@ unitTest(
   async () => {
     await withTempDir(async (root) => {
       const cachePath = join(root, "sass");
-      ensureDirSync(cachePath);
       const legacy = join(cachePath, "sass.kv");
-      Deno.writeTextFileSync(legacy, LEGACY_SENTINEL);
+      writeFixture(cachePath, "sass.kv", LEGACY_SENTINEL);
 
       const temp = createTempContext();
       try {

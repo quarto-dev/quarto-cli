@@ -80,7 +80,6 @@ local function ensure_typst_proofs(proof_env)
   local render_code = _quarto.modules.theorems.render_code(appearance, {
     color_scheme = "tertiary",
     color = proof_theme_colors[proof_env] or "gray",
-    simple_render = "simple-proof-render",
     simple_style = "proof",
   })
 

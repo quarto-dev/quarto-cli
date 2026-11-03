@@ -23,6 +23,7 @@ import { projectContext } from "../../src/project/project-context.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
 import { safeRemoveSync } from "../../src/core/path.ts";
+import { writeDefaultProject } from "../utils.ts";
 
 const BRAND_YML = `color:
   palette:
@@ -108,10 +109,7 @@ unitTest(
 
     try {
       // A real multi-file project with a _quarto.yml, no brand declared.
-      Deno.writeTextFileSync(
-        join(tmpDir, "_quarto.yml"),
-        "project:\n  type: default\n",
-      );
+      writeDefaultProject(tmpDir);
       Deno.writeTextFileSync(
         join(tmpDir, "index.qmd"),
         "---\ntitle: test\nformat: typst\n---\n",
@@ -150,10 +148,7 @@ unitTest(
 
     try {
       // A real multi-file project with a _quarto.yml and a _brand.yml present.
-      Deno.writeTextFileSync(
-        join(tmpDir, "_quarto.yml"),
-        "project:\n  type: default\n",
-      );
+      writeDefaultProject(tmpDir);
       Deno.writeTextFileSync(
         join(tmpDir, "index.qmd"),
         "---\ntitle: test\nformat: typst\n---\n",

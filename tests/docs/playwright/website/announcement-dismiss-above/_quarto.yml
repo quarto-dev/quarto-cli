@@ -1,0 +1,16 @@
+project:
+  type: website
+
+website:
+  title: "announcement-dismiss-above"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+  announcement:
+    content: "This is an announcement."
+    type: info
+    dismissable: true
+    position: above-navbar
+
+format: html

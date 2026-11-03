@@ -12,7 +12,8 @@ import { unitTest } from "../../test.ts";
 import { assert, assertEquals, assertRejects, assertThrows } from "../../asserts.ts";
 import { join, resolve } from "../../../src/deno_ral/path.ts";
 import { quartoDevBinCmd } from "../../quarto-cmd.ts";
-import { ensureDirSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
+import { safeRemoveSync } from "../../../src/deno_ral/fs.ts";
+import { writeFixture } from "../../utils.ts";
 import { execProcess } from "../../../src/core/process.ts";
 import { createTempContext } from "../../../src/core/temp.ts";
 import {
@@ -42,12 +43,6 @@ import {
 const DENO = ["De", "no"].join("") + ".";
 const FROM = ["fr", "om"].join("");
 const IMPORT = ["im", "port"].join("");
-
-function writeFixture(root: string, rel: string, contents: string) {
-  const parts = rel.split("/");
-  ensureDirSync(join(root, ...parts.slice(0, -1)));
-  Deno.writeTextFileSync(join(root, ...parts), contents);
-}
 
 function makeRepo(root: string) {
   writeFixture(root, "src/quarto.ts", "export {};\n");

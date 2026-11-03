@@ -1,0 +1,3 @@
+interface:
+  display_name: "Review Quarto Release Content"
+  short_description: "Verify changelogs and prepare release highlights"

@@ -16,7 +16,7 @@ import { isWindows } from "../../../src/deno_ral/platform.ts";
 import { projectContext } from "../../../src/project/project-context.ts";
 import { notebookContext } from "../../../src/render/notebook/notebook-context.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
-import { withTempDir } from "../../utils.ts";
+import { withTempDir, writeFixture } from "../../utils.ts";
 
 // `config/` and `content/` at the root and `work/doc.qmd` below it, with no
 // _quarto.yml, so only the Hugo detectors can claim the root.
@@ -24,14 +24,10 @@ function hugoLikeTree(tmp: string, configToml: boolean) {
   const root = normalizePath(tmp);
   Deno.mkdirSync(join(root, "config", "_default"), { recursive: true });
   if (configToml) {
-    Deno.writeTextFileSync(
-      join(root, "config", "_default", "config.toml"),
-      "",
-    );
+    writeFixture(root, "config/_default/config.toml", "");
   }
   Deno.mkdirSync(join(root, "content"));
-  Deno.mkdirSync(join(root, "work"));
-  Deno.writeTextFileSync(join(root, "work", "doc.qmd"), "# Hello\n");
+  writeFixture(root, "work/doc.qmd", "# Hello\n");
   return root;
 }
 

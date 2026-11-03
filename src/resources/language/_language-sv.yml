@@ -39,7 +39,7 @@ callout-tip-title: "Tips"
 callout-note-title: "Notera"
 callout-warning-title: "Varning"
 callout-important-title: "Viktigt"
-callout-danger-title: "Försiktigt"
+callout-caution-title: "Försiktigt"
 
 code-summary: "Kod"
 
@@ -60,6 +60,8 @@ repo-action-links-source: "Visa källa"
 repo-action-links-issue: "Rapportera ett problem"
 
 back-to-top: "Tillbaka till toppen"
+
+skip-to-content: "Hoppa till huvudinnehållet"
 
 search-no-results-text: "Inget resultat"
 search-matching-documents-text: "matchande dokument"

@@ -4,17 +4,21 @@
   - Actions -> Parallel Smokes Tests -> Run Workflow ->
     - Select the current stable branch in the "Use workflow from... v1.x" dropdown
     - [ ] Click "Run Workflow"
+  - Or from the CLI: `gh workflow run test-smokes-parallel.yml --repo quarto-dev/quarto-cli --ref v1.x`
 - [ ] create new stable installers
   - Click Actions -> Build Installers -> "Run Workflow" Dropdown Menu
     - Select the current stable branch in the "Use workflow from..." dropdown
     - Uncheck "Pre-release" (or ensure it's unchecked)
     - Check "Publish release" (or ensure it's checked)
     - [ ] Click "Run Workflow"
+    - Or from the CLI (both flags default to `true`, so pass `pre-release=false` explicitly):
+      `gh workflow run create-release.yml --repo quarto-dev/quarto-cli --ref v1.x -f publish-release=true -f pre-release=false -f os=all`
     - Take a sip of tea ☕, bask in the glory of automation.
 - [ ] Trigger update for quarto.org website once new stable release is available
   - Go to quarto-dev/quarto-web repo in [Update Downloads](https://github.com/quarto-dev/quarto-web/actions/workflows/update-downloads.yml) workflow
   - Run the workflow with 'Run Workflow' button on `main` branch.
     This will check the new release, and update the files in quarto-web to update the Download page.
+  - Or from the CLI: `gh workflow run update-downloads.yml --repo quarto-dev/quarto-web --ref main`
   - While this automation is running, update the release on pypi below.
 - [ ] update release on pypi repo
   - Goto the [quarto-cli-pypi repo](https://github.com/quarto-dev/quarto-cli-pypi)
@@ -31,10 +35,13 @@
         - Published to: <https://test.pypi.org/project/quarto-cli/>
       - **Publishing Production**: You may elect to publish to production pypyi by checking the `Production Release` option
         - Published to: <https://pypi.org/project/quarto-cli/>
+      - Or from the CLI (`publish-release` is the `Production Release` option, default `false`):
+        `gh workflow run publish.yml --repo quarto-dev/quarto-cli-pypi --ref main -f publish-release=true`
     - Take a sip of tea ☕, bask in the glory of automation.
 - [ ] push release to chocolatey (Only once quarto.org download page is updated with the new release)
   - Got to <https://github.com/quarto-dev/quarto-release-bundles/actions/workflows/build-and-publish-choco.yaml>
   - In the "Build Choco package & Publish" workflow, click "Run Workflow" and be sure to check the "Whether to publish or not the package on chocolatey" checkbox
+  - Or from the CLI (`publish` defaults to `false`; the version is read from quarto.org): `gh workflow run build-and-publish-choco.yaml --repo quarto-dev/quarto-release-bundles --ref main -f publish=true`
   - Wait for @cderv to receive email confirmation, no action needed.
 - [ ] Update the stable changelog `news/changelog-1.x.md` by moving entries from `# v1.(x+1) backports` > `## In this release` down to `## In previous releases` — they've now shipped in this patch. Commit and push the change to the stable `v1.x` branch, using `[release checklist]` in the commit message to make it easier to spot if a new release is needed next month.
 

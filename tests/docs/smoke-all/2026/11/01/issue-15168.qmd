@@ -1,0 +1,60 @@
+---
+title: "Definition-style theorems have an upright body in the simple appearance"
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          # plain style: bold header, italic body
+          - '#let simple-theorem-render\(prefix: none, title: "", full-title: auto, body\) = \{(\r\n?|\n)(.*(\r\n?|\n)){4}\s*emph\(body\)'
+          - 'make-frame\((\r\n?|\n)\s*"theorem",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-theorem-render,'
+          # definition style: bold header, upright body
+          - '#let simple-definition-render\(prefix: none, title: "", full-title: auto, body\) = \{(\r\n?|\n)(.*(\r\n?|\n)){4}\s*body(\r\n?|\n)'
+          - 'make-frame\((\r\n?|\n)\s*"definition",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
+          - 'make-frame\((\r\n?|\n)\s*"exercise",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
+          - 'make-frame\((\r\n?|\n)\s*"example",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
+          - 'make-frame\((\r\n?|\n)\s*"algorithm",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
+        -
+          - 'make-frame\((\r\n?|\n)\s*"theorem",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
+          - 'make-frame\((\r\n?|\n)\s*"definition",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-theorem-render,'
+          - 'make-frame\((\r\n?|\n)\s*"algorithm",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-theorem-render,'
+      ensurePdfRegexMatches:
+        -
+          - 'Exercise 1 \(Mean\)\.'
+          - 'Definition 1\.'
+          - 'Theorem 1\.'
+        - []
+---
+
+In the `simple` appearance, which the documentation describes as classic
+LaTeX style, theorems in the amsthm `plain` style have an italic body, and
+theorems in the `definition` style (definitions, examples, exercises and
+algorithms) have an upright body.
+
+::: {#exr-a}
+## Mean
+
+Compute the mean of the following data.
+
+| x | y |
+|---|---|
+| 1 | 2 |
+:::
+
+::: {#def-b}
+A definition.
+:::
+
+::: {#exm-c}
+An example.
+:::
+
+::: {#thm-d}
+A theorem.
+:::
+
+::: {#alg-e}
+An algorithm.
+:::

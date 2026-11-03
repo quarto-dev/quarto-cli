@@ -24,6 +24,7 @@ Current subtrees (see [`src/command/dev-call/pull-git-subtree/cmd.ts`](../../src
    ```
 4. The command adds two commits (squash + merge) — **do not edit those commits**
 5. **Do not rebase** a branch that contains the subtree-pull commits — they cannot be rebased cleanly. Merge to `main` without rebasing, or remove the two commits before rebasing and re-run the pull command.
+6. **Merge the PR with "Create a merge commit" and GitHub's default message.** Never squash-merge, and never paste the commit list into the merge message. A copied `git-subtree-dir:`/`git-subtree-split:` trailer on a non-squash commit becomes the base of the next pull, which then silently overwrites in-tree changes (#14864 → #15156). See `dev-docs/subtree-extensions.md` § Merging the subtree-pull PR.
 
 ## Reference
 

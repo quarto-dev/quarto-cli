@@ -1937,6 +1937,9 @@
           "revealjs-menu-button-label": {
             "type": "string"
           },
+          "announcement-dismiss-label": {
+            "type": "string"
+          },
           "repo-action-links-edit": {
             "type": "string"
           },
