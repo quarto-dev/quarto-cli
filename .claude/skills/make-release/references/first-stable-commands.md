@@ -227,43 +227,15 @@ Any other changed file (for example under `renv/`): do not stage it; report it.
 
 ## 9. Release merge
 
-Drift:
+The quarto-web merge (drift check, `cli-info.json` check, merge and resolve, push to `main`) belongs to quarto-web's `release-merge` skill. It is not installed in a quarto-cli session, so read it from the clone:
 
 ```bash
 git -C "$QW" fetch upstream
-git -C "$QW" log upstream/main..upstream/prerelease --format=%B | grep -o 'cherry picked from commit [0-9a-f]*' | awk '{print $5}' | sort -u > "$SCRATCH/ported.txt"
-git -C "$QW" log upstream/prerelease..upstream/main --no-merges --format='%H %an %s' | grep -vFf "$SCRATCH/ported.txt"
-git -C "$QW" log upstream/prerelease --oneline --fixed-strings --grep='<subject or #PR>'   # per remaining commit
+git -C "$QW" show upstream/main:.claude/skills/release-merge/SKILL.md
+git -C "$QW" show upstream/main:.claude/skills/release-merge/references/release-merge.md
 ```
 
-Also ignore: the step-6 flip commit and `Update downloads` commits by github-actions. For every other remaining commit, list it with its diff stat and ask the user: cherry-pick onto prerelease, or leave as intentional divergence. Cherry-picks: in `$P`, `git cherry-pick -x <sha>`, guarded push to `prerelease` (a GATE), build check.
-
-CLI reference, before merging:
-
-```bash
-git -C "$QW" show upstream/prerelease:docs/cli/cli-info.json | jq -r .version     # $STABLE: nothing to do
-```
-
-Anything else: stop and ask the user for a `$STABLE` binary (`qvm`). In `$P`, run `quarto dev-call cli-info > docs/cli/cli-info.json` with it, commit as `Regenerate CLI reference for $TAG`, guarded push to `prerelease` (a GATE), build check. The merge then takes `prerelease`'s file like any other.
-
-Merge and resolve (reuse `$M` if step 6 created it, after `git -C "$M" fetch upstream && git -C "$M" merge --ff-only upstream/main`):
-
-```bash
-git -C "$QW" worktree add "$M" upstream/main -b "release/$REL-main" --no-track
-git -C "$M" merge upstream/prerelease
-git -C "$M" diff --name-only --diff-filter=U          # conflicted paths
-git -C "$M" status --short | grep -E '^(DU|UD) '      # modify/delete conflicts
-git -C "$M" checkout --ours -- _axe-report.md && git -C "$M" add _axe-report.md
-git -C "$M" checkout --theirs -- <each other conflicted path> && git -C "$M" add <path>
-# modify/delete: if the path is absent on prerelease, git -C "$M" rm <path>; else checkout --theirs as above
-```
-
-If step 6 flipped the profile group, take `main`'s side for that hunk of `_quarto.yml` (it must keep `[prerelease, rc]`).
-```bash
-git -C "$M" commit --no-edit
-git -C "$M" diff --stat upstream/prerelease HEAD      # only _axe-report.md (plus _quarto.yml if step 6 flipped)
-git -C "$M" show HEAD:_quarto.yml | grep '^version'   # version: '$REL'
-```
+Follow it with the variables file sourced: it uses the same names (`REL`, `TAG`, `STABLE`, `QW`, `SCRATCH`, `P`, `M`). Take the direct-push merge path, the checklist default. Its pushes to `prerelease` and `main` are GATEs. Come back here after its build check on `main` succeeds.
 
 CITATION on quarto-cli:
 
