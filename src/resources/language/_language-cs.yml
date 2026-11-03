@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Skrýt celý kód"
 code-tools-view-source: "Zobrazit zdrojový kód"
 code-tools-source-code: "Zdrojový kód"
 
+tools-share: "Sdílet"
+tools-download: "Stáhnout"
+
 copy-button-tooltip: "Zkopírovat do schránky"
 copy-button-tooltip-success: "Zkopírováno!"
 

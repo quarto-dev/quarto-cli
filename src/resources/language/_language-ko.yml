@@ -51,6 +51,9 @@ code-tools-hide-all-code: "전체 코드 숨기기"
 code-tools-view-source: "소스 코드 표시"
 code-tools-source-code: "소스 코드"
 
+tools-share: "공유"
+tools-download: "다운로드"
+
 copy-button-tooltip: "클립보드 복사"
 copy-button-tooltip-success: "복사완료!"
 

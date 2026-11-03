@@ -52,6 +52,9 @@ code-tools-hide-all-code: "隐藏所有代码"
 code-tools-view-source: "查看源代码"
 code-tools-source-code: "源代码"
 
+tools-share: "分享"
+tools-download: "下载"
+
 copy-button-tooltip: "复制到剪贴板"
 copy-button-tooltip-success: "已复制"
 

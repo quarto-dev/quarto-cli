@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Сховати код"
 code-tools-view-source: "Показати код"
 code-tools-source-code: "Вихідний код"
 
+tools-share: "Поділитися"
+tools-download: "Завантажити"
+
 code-line: "Лінія"
 code-lines: "Лінії"
 

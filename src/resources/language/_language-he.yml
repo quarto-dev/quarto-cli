@@ -49,6 +49,9 @@ code-tools-hide-all-code: "הסתר את הקוד כולו"
 code-tools-view-source: "הצג מקור"
 code-tools-source-code: "קוד מקור"
 
+tools-share: "שתף"
+tools-download: "הורד"
+
 code-line: "שורה"
 code-lines: "שורות"
 

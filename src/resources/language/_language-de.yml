@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Gesamten Code verbergen"
 code-tools-view-source: "Quellcode anzeigen"
 code-tools-source-code: "Quellcode"
 
+tools-share: "Teilen"
+tools-download: "Herunterladen"
+
 copy-button-tooltip: "In die Zwischenablage kopieren"
 copy-button-tooltip-success: "Kopiert"
 

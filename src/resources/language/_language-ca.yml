@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Amaga tot el codi"
 code-tools-view-source: "Visualitza el codi"
 code-tools-source-code: "Codi font"
 
+tools-share: "Comparteix"
+tools-download: "Descarrega"
+
 code-line: "Línia"
 code-lines: "Línies"
 

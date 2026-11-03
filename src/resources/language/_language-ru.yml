@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Скрыть код"
 code-tools-view-source: "Показать код"
 code-tools-source-code: "Исходный код"
 
+tools-share: "Поделиться"
+tools-download: "Скачать"
+
 copy-button-tooltip: "Скопировать текст"
 copy-button-tooltip-success: "Скопировано"
 

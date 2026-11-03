@@ -52,6 +52,9 @@ code-tools-hide-all-code: "すべてのコードを非表示"
 code-tools-view-source: "ソースコードを表示"
 code-tools-source-code: "ソースコード"
 
+tools-share: "共有"
+tools-download: "ダウンロード"
+
 copy-button-tooltip: "コピー"
 copy-button-tooltip-success: "コピーしました"
 
