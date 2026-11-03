@@ -157,9 +157,9 @@ function attachPaginationHandler(listingId) {
 // Label the page links for assistive technology: name each page, mark the
 // current one and hide the gaps, which are not links to anywhere.
 function decoratePagination(listingId) {
-  const navEl = window.document.querySelector(
-    `#${listingId} nav.listing-pagination`
-  );
+  const navEl = window.document
+    .getElementById(listingId)
+    ?.querySelector("nav.listing-pagination");
   if (!navEl) {
     return;
   }
