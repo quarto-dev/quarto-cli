@@ -9,6 +9,8 @@ SET DEV_PATH=..\..\..
 for %%i in ("%~dp0\%DEV_PATH%") do SET "QUARTO_ROOT=%%~fi"
 SET "QUARTO_TS_PATH=!QUARTO_ROOT!\src\quarto.ts"
 
+SET "QUARTO_LOCK_OPTIONS=--no-lock"
+
 IF EXIST "!QUARTO_TS_PATH!" (
 	set QUARTO_DEV_MODE=true
 
@@ -39,6 +41,10 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		SET QUARTO_ACTION=run
 	)
 	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""!QUARTO_SRC_PATH!\import_map.json"""
+	REM Resolve dependencies through the checked-in lockfile, as vendoring does.
+	REM Without it, Deno re-resolves npm packages, which needs registry metadata that
+	REM the vendored cache doesn't contain (and may pick versions other than the pinned ones).
+	SET "QUARTO_LOCK_OPTIONS=--lock=""!QUARTO_ROOT!\deno.lock"" --frozen"
 
 	IF NOT DEFINED QUARTO_TARGET (
 		SET "QUARTO_TARGET=!QUARTO_TS_PATH!"
@@ -128,7 +134,7 @@ SET "DENO_TLS_CA_STORE=system,mozilla"
 SET "DENO_NO_UPDATE_CHECK=1"
 REM Using --allow-all as there is otherwise an issue in Deno 1.46.3 with --allow-read and --allow-write with network drives
 REM https://github.com/quarto-dev/quarto-cli/issues/11332
-SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config --no-lock --allow-all !QUARTO_DENO_OPTIONS!"
+SET "QUARTO_DENO_OPTIONS=--unstable-kv --unstable-ffi --no-config !QUARTO_LOCK_OPTIONS! --allow-all !QUARTO_DENO_OPTIONS!"
 
 REM Add expected V8 options to QUARTO_DENO_V8_OPTIONS
 IF DEFINED QUARTO_DENO_V8_OPTIONS (

@@ -9,7 +9,7 @@ if NOT DEFINED QUARTO_DENO (
 SET "RUST_BACKTRACE=full"
 SET "DENO_NO_UPDATE_CHECK=1"
 
-REM Use deno.lock frozen (deno.jsonc doesn't freeze it), so this fails if it is out of date.
+REM deno.jsonc disables the lockfile, so pass it explicitly. It is frozen, so this fails if it is out of date.
 REM QUARTO_UPDATE_DENO_LOCK=1 allows updating it (see dev-docs\add-typescript-dependency.md).
 SET "LOCK_FLAGS=--frozen"
 IF "%QUARTO_UPDATE_DENO_LOCK%"=="1" SET "LOCK_FLAGS=--frozen=false"

@@ -15,7 +15,7 @@ fi
 export RUST_BACKTRACE=full
 export DENO_NO_UPDATE_CHECK=1
 
-# Use deno.lock frozen (deno.jsonc doesn't freeze it), so this fails if it is out of date.
+# deno.jsonc disables the lockfile, so pass it explicitly. It is frozen, so this fails if it is out of date.
 # QUARTO_UPDATE_DENO_LOCK=1 allows updating it (see dev-docs/add-typescript-dependency.md).
 LOCK_FLAGS=("--lock=${SCRIPT_PATH}/../../deno.lock" --frozen)
 if [ "${QUARTO_UPDATE_DENO_LOCK}" = "1" ]; then
