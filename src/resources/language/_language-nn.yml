@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Skjul heile koden"
 code-tools-view-source: "Sjå kjelde"
 code-tools-source-code: "Kjeldekode"
 
+tools-share: "Del"
+tools-download: "Last ned"
+
 code-line: "Linje"
 code-lines: "Linjer"
 

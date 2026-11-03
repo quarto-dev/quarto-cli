@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Slėpti visą kodą"
 code-tools-view-source: "Rodyti pirminį kodą"
 code-tools-source-code: "Pirminis kodas"
 
+tools-share: "Bendrinti"
+tools-download: "Atsisiųsti"
+
 code-line: "Eilutė"
 code-lines: "Eilutės"
 

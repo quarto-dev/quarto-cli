@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Skjul al kode"
 code-tools-view-source: "Vis kilde"
 code-tools-source-code: "Kildekode"
 
+tools-share: "Del"
+tools-download: "Download"
+
 copy-button-tooltip: "Kopier til udklipsholder"
 copy-button-tooltip-success: "Kopieret!"
 

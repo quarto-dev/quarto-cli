@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Tüm Kodu Gizle"
 code-tools-view-source: "Kaynağı Görüntüle"
 code-tools-source-code: "Kaynak Kodu"
 
+tools-share: "Paylaş"
+tools-download: "İndir"
+
 copy-button-tooltip: "Panoya Kopyala"
 copy-button-tooltip-success: "Kopyalandı"
 
