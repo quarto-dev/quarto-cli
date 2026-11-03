@@ -12,6 +12,7 @@
 
 export {
   assert,
+  assertAlmostEquals,
   assertEquals,
   AssertionError,
   assertMatch,

@@ -8,3 +8,14 @@
           enum: ["default", "dark", "forest", "neutral"]
           description: The mermaid built-in theme to use.
   description: Mermaid diagram options
+
+- name: mermaid-scale
+  schema:
+    string:
+      pattern: "^[0-9]+(\\.[0-9]+)?%$"
+  description:
+    short: "Scale for Mermaid diagrams rendered as images"
+    long: |
+      Percentage of their natural size at which Mermaid diagrams rendered
+      with `mermaid-format: png` or `svg` are shown, for example `75%`.
+      An explicit `fig-width` or `fig-height` takes precedence.

@@ -2,6 +2,10 @@ All changes included in 1.12:
 
 ## Formats
 
+### All Formats
+
+- ([#15192](https://github.com/quarto-dev/quarto-cli/pull/15192)): Add a `mermaid-scale` option, such as `mermaid-scale: 75%`, that resizes Mermaid diagrams rendered as `png` or `svg` images by a percentage of their natural size, at the document or cell level. An explicit `fig-width` or `fig-height` still takes precedence. (author: @faysou)
+
 ### `pdf`
 
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics. Their body is now upright, like definitions, examples and exercises. (author: @mcanouil)
