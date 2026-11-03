@@ -70,7 +70,8 @@ for (const { position, url, label } of testCases) {
 
 // A button centers its content vertically, so in a wrapped announcement the
 // icon would drop to the middle of the bar; it stays aligned with the first
-// line of text, as the bare icon was.
+// line of text, as the bare icon was. The check is on the button box: the
+// inner <i> box takes the body font's metrics, so its offset varies by OS font.
 test.describe("wrapped announcement", () => {
   test.use({ viewport: { width: 400, height: 800 } });
 
@@ -80,11 +81,13 @@ test.describe("wrapped announcement", () => {
       { waitUntil: "load" },
     );
     const content = page.locator("#quarto-announcement .quarto-announcement-content");
-    const icon = page.locator("#quarto-announcement .quarto-announcement-action i");
+    const button = page.locator("#quarto-announcement .quarto-announcement-action");
     const contentBox = await content.boundingBox();
-    const iconBox = await icon.boundingBox();
-    // The text wraps, so the bar is taller than one icon.
-    expect(contentBox!.height).toBeGreaterThan(2 * iconBox!.height);
-    expect(Math.abs(iconBox!.y - contentBox!.y)).toBeLessThan(2);
+    const buttonBox = await button.boundingBox();
+    // The text wraps, so the bar is taller than one line.
+    expect(contentBox!.height).toBeGreaterThan(1.5 * buttonBox!.height);
+    // The button starts at the first line and is not stretched to the bar's height.
+    expect(Math.abs(buttonBox!.y - contentBox!.y)).toBeLessThan(1);
+    expect(buttonBox!.height).toBeLessThan(contentBox!.height);
   });
 });
