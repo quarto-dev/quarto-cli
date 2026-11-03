@@ -158,6 +158,15 @@ test.describe("Hostile target value", () => {
     expect(await link.getAttribute("target")).toBe('_blank" onmouseover="x');
     expect(await link.getAttribute("onmouseover")).toBeNull();
   });
+
+  test("hostile path stays one attribute in table links", async ({ page: browserPage }) => {
+    await browserPage.goto(`${base}/hostile-path.html`);
+    await browserPage.waitForSelector(".quarto-listing-table");
+
+    const link = browserPage.locator(".quarto-listing-table a.title").first();
+    expect(await link.getAttribute("href")).toContain("onmouseover");
+    expect(await link.getAttribute("onmouseover")).toBeNull();
+  });
 });
 
 test.describe("Description after listing updates", () => {
