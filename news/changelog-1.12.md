@@ -11,6 +11,12 @@ All changes included in 1.12:
 - ([#15168](https://github.com/quarto-dev/quarto-cli/issues/15168)): Fix definitions, examples and exercises being set in italics in Typst output with the default `theorem-appearance: simple`. Their body is now upright, as in LaTeX output, while theorems, lemmas, corollaries, propositions and conjectures keep an italic body. (author: @mcanouil)
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics with `theorem-appearance: simple` and using the colours of theorems with `theorem-appearance: fancy`. They now look like definitions, examples and exercises. (author: @mcanouil)
 
+## Projects
+
+### Websites
+
+- ([#13126](https://github.com/quarto-dev/quarto-cli/pull/13126)): Add `pagination` options to listings to set how many page links are shown (`inner-window`, `outer-window`, `outer-window-left`, `outer-window-right`), and label the pagination control for screen readers. (author: @mcanouil)
+
 ## Commands
 
 ### `quarto preview`
