@@ -170,7 +170,13 @@ export function resolvePaginationOptions(
   listingId: string,
   raw: unknown,
 ): PaginationOptions | undefined {
-  if (raw === undefined || raw === null || typeof raw !== "object") {
+  if (raw === undefined) {
+    return undefined;
+  }
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    warning(
+      `Listing '${listingId}': pagination must be an object with inner-window, outer-window, outer-window-left or outer-window-right, got '${raw}'. The option is ignored.`,
+    );
     return undefined;
   }
   const resolved: PaginationOptions = {};
@@ -179,9 +185,8 @@ export function resolvePaginationOptions(
     if (value === undefined) {
       continue;
     }
-    const n = Number(value);
-    if (Number.isInteger(n) && n >= min) {
-      resolved[key as keyof PaginationOptions] = n;
+    if (typeof value === "number" && Number.isInteger(value) && value >= min) {
+      resolved[key as keyof PaginationOptions] = value;
     } else {
       warning(
         `Listing '${listingId}': pagination option '${key}' must be a whole number of ${min} or more, got '${value}'. The option is ignored.`,

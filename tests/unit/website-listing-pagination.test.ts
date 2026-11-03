@@ -78,8 +78,33 @@ unitTest("listing pagination - invalid values resolve to nothing", async () => {
 });
 
 // deno-lint-ignore require-await
-unitTest("listing pagination - numeric strings are coerced", async () => {
-  assertEquals(resolvePaginationOptions("x", { "inner-window": "3" }), {
-    "inner-window": 3,
-  });
+unitTest("listing pagination - only numbers are accepted", async () => {
+  for (const value of ["3", null, true, [], {}]) {
+    assertEquals(
+      resolvePaginationOptions("x", { "inner-window": value }),
+      undefined,
+      `inner-window: ${JSON.stringify(value)}`,
+    );
+  }
 });
+
+// deno-lint-ignore require-await
+unitTest(
+  "listing pagination - valid options survive an invalid one",
+  async () => {
+    assertEquals(
+      resolvePaginationOptions("x", { "inner-window": 0, "outer-window": 1 }),
+      { "outer-window": 1 },
+    );
+  },
+);
+
+// deno-lint-ignore require-await
+unitTest(
+  "listing pagination - a block that is not an object resolves to nothing",
+  async () => {
+    for (const value of ["wide", 3, true, ["inner-window"]]) {
+      assertEquals(resolvePaginationOptions("x", value), undefined);
+    }
+  },
+);
