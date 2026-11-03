@@ -15,9 +15,11 @@ _quarto:
           - 'make-frame\((\r\n?|\n)\s*"definition",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
           - 'make-frame\((\r\n?|\n)\s*"exercise",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
           - 'make-frame\((\r\n?|\n)\s*"example",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
+          - 'make-frame\((\r\n?|\n)\s*"algorithm",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
         -
           - 'make-frame\((\r\n?|\n)\s*"theorem",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-definition-render,'
           - 'make-frame\((\r\n?|\n)\s*"definition",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-theorem-render,'
+          - 'make-frame\((\r\n?|\n)\s*"algorithm",(\r\n?|\n)(.*(\r\n?|\n)){3}\s*render: simple-theorem-render,'
       ensurePdfRegexMatches:
         -
           - 'Exercise 1 \(Mean\)\.'
@@ -28,8 +30,8 @@ _quarto:
 
 In the `simple` appearance, which the documentation describes as classic
 LaTeX style, theorems in the amsthm `plain` style have an italic body, and
-theorems in the `definition` style (definitions, examples and exercises) have
-an upright body.
+theorems in the `definition` style (definitions, examples, exercises and
+algorithms) have an upright body.
 
 ::: {#exr-a}
 ## Mean
@@ -51,4 +53,8 @@ An example.
 
 ::: {#thm-d}
 A theorem.
+:::
+
+::: {#alg-e}
+An algorithm.
 :::
