@@ -7,10 +7,14 @@ import { denoPlugins } from "jsr:@luca/esbuild-deno-loader@^0.11.1";
 import { assert } from "https://deno.land/std@0.196.0/testing/asserts.ts";
 
 const importMapURL = `file://${Deno.cwd()}/import_map.json`;
+// The loader resolves modules in a `deno info` subprocess that doesn't pick up
+// the lockfile by itself. Pass it explicitly so npm packages resolve from the
+// pinned versions (and the local cache) instead of querying the registry.
+const lockPath = `${import.meta.dirname}/../deno.lock`;
 // console.log("importMapURL", importMapURL);
 
 await esbuild.build({
-  plugins: [...denoPlugins({ importMapURL })
+  plugins: [...denoPlugins({ importMapURL, lockPath })
     // I wish I could do it this way, but it doesn't work; either
     // the plugin is called with an unresolved name before import map,
     // or the plugin isn't called at all..

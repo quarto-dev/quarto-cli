@@ -4,7 +4,6 @@ import { ensureDirSync, existsSync } from "../../../../src/deno_ral/fs.ts"
 
 import { Configuration } from "../config.ts";
 import { Dependency } from "./dependencies.ts";
-import { which } from "../../../../src/core/path.ts";
 import { unTar } from "../../util/tar.ts";
 
 export function typstGather(version: string): Dependency {
@@ -26,14 +25,11 @@ export function typstGather(version: string): Dependency {
           // move the binary and cleanup
           const extractedPath = join(dir, file);
           Deno.renameSync(extractedPath, join(targetDir, file));
-        } else {
-          // verify that the binary is on PATH, but otherwise don't do anything
-          if ((await which(file)) === undefined) {
-            throw new Error(
-              `${file} is not on PATH. Please install it and add it to PATH.`,
-            );
-          }
         }
+        // When binaries are not vendored (e.g. building from source for a
+        // package manager), the caller provides typst-gather. It is only needed
+        // at render time via QUARTO_TYPST_GATHER or the tools directory, so
+        // don't require it at configure time.
       }
     }
   }

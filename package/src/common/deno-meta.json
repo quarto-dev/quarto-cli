@@ -17,6 +17,7 @@
       "src/resources/projects/website/**/*.js"
     ]
   },
+  "lock": false,
   "lint": {
     "include": ["src/"],
     "rules": {
