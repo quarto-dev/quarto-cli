@@ -1,0 +1,16 @@
+---
+title: Label Override Test
+language:
+  listing-page-number: "Page"
+listing:
+  - id: override
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+---
+
+## Posts
+
+::: {#override}
+:::

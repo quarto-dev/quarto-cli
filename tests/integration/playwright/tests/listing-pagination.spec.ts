@@ -1,6 +1,7 @@
 import { expect, Page, test } from "@playwright/test";
 
 const fixture = "./listings/pagination/_site/index.html";
+const overrideFixture = "./listings/pagination/_site/override.html";
 const singleFixture = "./listings/pagination/_site/single.html";
 
 // Link texts of each listing; the active page is wrapped in brackets.
@@ -186,6 +187,15 @@ test.describe("Listing pagination accessibility", () => {
     await expect(
       nav(page, "outer").getByRole("link", { name: "Page 6", exact: true }),
     ).toHaveAttribute("aria-current", "page");
+  });
+
+  test("a page label without {0} still ends with the page number", async ({ page }) => {
+    await page.goto(overrideFixture);
+    await expect(nav(page, "override").locator("li.active")).toBeVisible();
+    const links = nav(page, "override").getByRole("link");
+    await expect(links.first()).toHaveAccessibleName("Page 1");
+    await expect(links.nth(1)).toHaveAccessibleName("Page 2");
+    await expect(links.nth(2)).toHaveAccessibleName("Page 3");
   });
 
   // With five listings on one page, every nav shares one label, so axe reports

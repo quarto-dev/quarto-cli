@@ -177,9 +177,13 @@ function decoratePagination(listingId) {
       itemEl.setAttribute("aria-hidden", "true");
       continue;
     }
+    const pageNumber = linkEl.getAttribute("data-i");
+    // A translation may drop the placeholder; keep the number in the name.
     linkEl.setAttribute(
       "aria-label",
-      pageLabel.replace("{0}", linkEl.getAttribute("data-i"))
+      pageLabel.includes("{0}")
+        ? pageLabel.replace("{0}", pageNumber)
+        : `${pageLabel} ${pageNumber}`
     );
     if (itemEl.classList.contains("active")) {
       linkEl.setAttribute("aria-current", "page");
