@@ -4,6 +4,9 @@
   "compilerOptions": {
     "noErrorTruncation": true
   },
+  "lock": {
+    "frozen": true
+  },
   "lint": {
     "include": ["src/"],
     "exclude": [

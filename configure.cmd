@@ -96,6 +96,7 @@ POPD
 
 REM download typescript dependencies
 CALL package\scripts\vendoring\vendor.cmd
+IF ERRORLEVEL 1 EXIT /B 1
 
 ECHO Downloading Deno Stdlib
 CALL !QUARTO_PACKAGE_PATH!\scripts\deno_std\download.bat

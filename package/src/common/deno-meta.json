@@ -17,6 +17,9 @@
       "src/resources/projects/website/**/*.js"
     ]
   },
+  "lock": {
+    "frozen": true
+  },
   "lint": {
     "include": ["src/"],
     "rules": {

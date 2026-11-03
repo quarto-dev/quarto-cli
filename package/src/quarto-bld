@@ -15,7 +15,14 @@ fi
 export RUST_BACKTRACE=full
 export DENO_NO_UPDATE_CHECK=1
 
+# deno.jsonc sets a frozen lockfile, so this fails if deno.lock is out of date.
+# QUARTO_UPDATE_DENO_LOCK=1 allows updating it (see dev-docs/add-typescript-dependency.md).
+LOCK_FLAGS=()
+if [ "${QUARTO_UPDATE_DENO_LOCK}" = "1" ]; then
+  LOCK_FLAGS=(--frozen=false)
+fi
+
 # TODO: Consider generating a source map or something to get a good stack
 # Create the Deno bundle
 # --enable-experimental-regexp-engine is required for /regex/l, https://github.com/quarto-dev/quarto-cli/issues/9737
-"$QUARTO_DENO" run --no-check --unstable-kv --unstable-ffi --allow-all --v8-flags=--enable-experimental-regexp-engine,--stack-trace-limit=100 --importmap="${SCRIPT_PATH}/../../src/import_map.json" "$SCRIPT_PATH/bld.ts" $@
+"$QUARTO_DENO" run "${LOCK_FLAGS[@]}" --no-check --unstable-kv --unstable-ffi --allow-all --v8-flags=--enable-experimental-regexp-engine,--stack-trace-limit=100 --importmap="${SCRIPT_PATH}/../../src/import_map.json" "$SCRIPT_PATH/bld.ts" $@
