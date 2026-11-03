@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Piilota kaikki koodi"
 code-tools-view-source: "Näytä lähdekoodi"
 code-tools-source-code: "Lähdekoodi"
 
+tools-share: "Jaa"
+tools-download: "Lataa"
+
 copy-button-tooltip: "Kopioi leikepöydälle"
 copy-button-tooltip-success: "Kopioitu!"
 

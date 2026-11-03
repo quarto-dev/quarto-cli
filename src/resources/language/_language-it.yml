@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Nascondere il codice"
 code-tools-view-source: "Vedere il codice"
 code-tools-source-code: "Eseguire il codice"
 
+tools-share: "Condividi"
+tools-download: "Scarica"
+
 copy-button-tooltip: "Copia negli appunti"
 copy-button-tooltip-success: "Copiato!"
 

@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Alle code verbergen"
 code-tools-view-source: "Broncode bekijken"
 code-tools-source-code: "Broncode"
 
+tools-share: "Delen"
+tools-download: "Download"
+
 copy-button-tooltip: "Kopieer naar klembord"
 copy-button-tooltip-success: "Gekopieerd!"
 

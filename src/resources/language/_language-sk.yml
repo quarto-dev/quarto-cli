@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Skryť celý kód"
 code-tools-view-source: "Zobraziť zdrojový kód"
 code-tools-source-code: "Zdrojový kód"
 
+tools-share: "Zdieľať"
+tools-download: "Stiahnuť"
+
 code-line: "Riadok"
 code-lines: "Riadky"
 

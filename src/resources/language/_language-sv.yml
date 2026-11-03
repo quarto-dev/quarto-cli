@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Göm all kod"
 code-tools-view-source: "Visa källa"
 code-tools-source-code: "Källkod"
 
+tools-share: "Dela"
+tools-download: "Ladda ner"
+
 code-line: "Rad"
 code-lines: "Rader"
 

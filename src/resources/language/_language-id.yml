@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Sembunyikan Semua Kode"
 code-tools-view-source: "Lihat Sumber"
 code-tools-source-code: "Kode Sumber"
 
+tools-share: "Bagikan"
+tools-download: "Unduh"
+
 code-line: "Baris"
 code-lines: "Baris"
 
