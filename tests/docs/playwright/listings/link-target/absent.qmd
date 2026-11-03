@@ -1,0 +1,16 @@
+---
+title: "Link target - absent"
+listing:
+  id: absent-listing
+  type: default
+  contents:
+    - path: https://example.com/a
+      title: "Item A"
+      description: "No target and no rel."
+    - path: local-post.qmd
+      title: "Local Post"
+      description: "No target and no rel."
+---
+
+::: {#absent-listing}
+:::
