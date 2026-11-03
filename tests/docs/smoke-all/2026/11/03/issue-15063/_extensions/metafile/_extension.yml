@@ -1,0 +1,8 @@
+title: Metadata file
+author: Quarto Dev Team
+version: 1.0.0
+contributes:
+  formats:
+    html:
+      metadata-files:
+        - _metadata-extra.yml

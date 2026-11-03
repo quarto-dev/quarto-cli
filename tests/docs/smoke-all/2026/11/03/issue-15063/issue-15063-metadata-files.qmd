@@ -1,0 +1,15 @@
+---
+title: "A format extension reads its own metadata files"
+format: metafile-html
+toc: true
+_quarto:
+  tests:
+    metafile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the extension metadata file</h2>']
+        - []
+---
+
+## Section
+
+Body.

@@ -1,0 +1,17 @@
+---
+title: "The document language overrides the extension language file"
+format: langfile-html
+toc: true
+language:
+  toc-title-document: "Contents from the document"
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the document</h2>']
+        - ['Contents from the extension']
+---
+
+## Section
+
+Body.

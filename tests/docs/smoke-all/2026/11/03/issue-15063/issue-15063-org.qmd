@@ -1,0 +1,15 @@
+---
+title: "An extension under an organisation directory reads its own language file"
+format: orgfile-html
+toc: true
+_quarto:
+  tests:
+    orgfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the organisation extension</h2>']
+        - []
+---
+
+## Section
+
+Body.

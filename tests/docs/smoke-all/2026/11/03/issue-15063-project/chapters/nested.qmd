@@ -1,0 +1,15 @@
+---
+title: "A document in a project subdirectory reads the language file of a root extension"
+format: langfile-html
+toc: true
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the extension</h2>']
+        - []
+---
+
+## Section
+
+Body.

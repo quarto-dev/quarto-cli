@@ -1,0 +1,16 @@
+---
+title: "A format extension reads the per-language file beside its language file"
+format: langfile-html
+toc: true
+lang: fr
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Sommaire de l extension</h2>']
+        - ['Contents from the extension']
+---
+
+## Section
+
+Body.

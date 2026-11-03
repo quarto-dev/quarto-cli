@@ -1,0 +1,15 @@
+---
+title: "A format extension reads its own language file"
+format: langfile-html
+toc: true
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the extension</h2>']
+        - []
+---
+
+## Section
+
+Body.

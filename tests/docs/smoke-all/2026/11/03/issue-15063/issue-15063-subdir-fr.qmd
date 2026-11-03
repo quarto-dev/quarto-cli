@@ -1,0 +1,16 @@
+---
+title: "The per-language file beside a language file in a subfolder is found"
+format: subdirfile-html
+toc: true
+lang: fr
+_quarto:
+  tests:
+    subdirfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Sommaire du sous-dossier</h2>']
+        - ['Contents from the extension subfolder']
+---
+
+## Section
+
+Body.

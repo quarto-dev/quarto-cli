@@ -1,0 +1,15 @@
+---
+title: "A language file in a subfolder of the extension is found"
+format: subdirfile-html
+toc: true
+_quarto:
+  tests:
+    subdirfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the extension subfolder</h2>']
+        - []
+---
+
+## Section
+
+Body.
