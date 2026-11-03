@@ -118,8 +118,7 @@ g=$(line_of "::group::$LABEL"); e=$(line_of "::endgroup::")
 p=$(line_of "------- pre-test output -------" "$g"); k=$(line_of "ok | 1 passed | 0 failed (1s)" "$g")
 { [ -n "$p" ] && [ "$p" -lt "$e" ]; } || fail "A: pre-test banner not inside the group (output: $OUT)"
 { [ -n "$k" ] && [ "$k" -lt "$e" ]; } || fail "A: 'ok |' summary not inside the group (output: $OUT)"
-t=$(line_of "> timing $LABEL")
-{ [ -n "$t" ] && [ "$t" -lt "$g" ]; } || fail "A: '> timing $LABEL' line missing or not before the group (output: $OUT)"
+[ "$(count_prefix "> timing ")" -eq 0 ] || fail "A: passing run must not repeat the group title in a '> timing' line (output: $OUT)"
 [ "$RC" -eq 0 ] || fail "A: expected exit code 0, got $RC (output: $OUT)"
 grep -qxF "$SMOKE -- docs/smoke-all/fixture.qmd" "$TIMING" || fail "A: timing file lacks the smoke-all entry"
 grep -qE ' real .* user .* sys' "$TIMING" || fail "A: timing file lacks the real/user/sys line"
@@ -132,6 +131,8 @@ g=$(line_of "::group::smoke/smoke-all.test.ts"); e=$(line_of "::endgroup::")
 { [ -n "$g" ] && [ -n "$e" ]; } || fail "B: the stub's own group markers must be replayed verbatim (output: $OUT)"
 f=$(line_of "FAILED | 0 passed | 1 failed (1s)" "$e")
 [ -n "$f" ] || fail "B: FAILED summary missing after the stub's ::endgroup:: (output: $OUT)"
+t=$(line_of "> timing $LABEL")
+{ [ -n "$t" ] && [ "$t" -lt "$g" ]; } || fail "B: '> timing $LABEL' line missing or not before the replayed output (output: $OUT)"
 [ "$RC" -ne 0 ] || fail "B: expected non-zero exit code (output: $OUT)"
 grep -q 'Command exited with non-zero status 1' "$TIMING" || fail "B: timing file lacks the non-zero status record"
 echo "PASS: B: GHA failing smoke-all document is replayed unchanged"
