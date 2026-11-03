@@ -1,11 +1,12 @@
 ---
-main_commit: 16257efdc
-analyzed_date: 2026-06-15
+main_commit: 8b0f68b95
+analyzed_date: 2026-11-03
 key_files:
   - src/command/preview/cmd.ts
   - src/command/preview/preview.ts
   - src/project/serve/serve.ts
   - src/project/serve/watch.ts
+  - src/project/serve/render.ts
   - src/project/project-shared.ts
   - src/project/types.ts
   - src/execute/jupyter/jupyter.ts
@@ -100,7 +101,17 @@ When the watched source file changes:
 4. `render()` runs with the project context, which creates a fresh target/notebook
 5. Browser reloads
 
-The project context persists across all re-renders. Only the per-file cache entry is invalidated.
+The project context persists across input re-renders; only the per-file cache
+entry is invalidated. The exception is an extension-file change (for example
+an `_extension.yml` edit switching the contributed `brand`): the extension
+watch sets a dirty flag via `createChangeHandler`'s `onExtensionChange`, and
+the queued `render` closure rebuilds the context with `refreshPreviewProject()`
+before rendering. A dirty flag, not a queued job, because the render queue is
+enqueued with `clearPending` and could drop a standalone rebuild job; the flag
+is cleared before the rebuild awaits and restored if the rebuild fails, so a
+change landing mid-rebuild is not lost. `refreshPreviewProject()` rebuilds the
+way `cmd.ts` built the context, cleans up the old context only once the new
+one exists, and keeps the old context (logged) when the rebuild fails.
 
 ## Render Request Compatibility Check
 
@@ -177,6 +188,27 @@ serve.ts ── renderProject(watcher.project(), [input])
    future caller forgets to invalidate, invocation #2 re-reads on the mtime/size
    mismatch. The two layers are complementary, not redundant: the guard refreshes
    only `fullMarkdown`; `invalidateForFile` refreshes all fields.
+
+### Extension changes and context swaps (#15266)
+
+An extension-file change (for example an `_extension.yml` edit) counts as a
+config change in `handleWatchEvent`, so `watcher.project()` is refreshed and
+the next render uses the newly contributed project metadata. When an
+extension file shares a poll event with changed inputs, the queued render
+refreshes the context in its own queue slot first, before the
+`invalidateForFile` loop.
+
+Every context swap in project preview runs on `ServeRenderManager`'s queue:
+the refresh calls `cleanup()` on the old context, which closes its disk cache
+and deletes transient `.quarto_ipynb` files, and running that outside the
+queue could race an in-flight render. `ServeRenderManager.submit()` queues
+such non-render tasks (the PDF reload path, the `changes.config` path, and
+the HTTP handler's `refreshProject()`) alongside renders; it must never be
+called from inside a queued task, because `PromiseQueue` deadlocks on nested
+submission. The refresh itself (`refreshProjectContext`) builds the new
+context with a fresh `ExtensionContext`, because the preview's long-lived
+render services cache `_extension.yml` per directory and would return the
+startup version.
 
 ### Out of scope for #10392
 
@@ -302,6 +334,8 @@ When rendering a `.qmd` with a Jupyter kernel, the engine creates a transient `.
 | Project: single input changed | — | 1 (watcher render() without pContext) + 0 (serve.ts HTTP-handler renderProject reuses persistent ctx) |
 | Project: multiple inputs changed | — | 0 new (watcher renderProject reuses cached) |
 | Project: config file changed (HTML) | — | 1 (refreshProjectConfig) |
+| Single file: extension file changed | — | 1 (refreshPreviewProject, before the queued render) |
+| Project: extension file changed (HTML) | — | 1 (refreshProjectConfig, on the render queue) |
 
 The single-input row's `+ 0` reflects two render invocations but only one new
 context computation: the watcher render builds a fresh context, while the
