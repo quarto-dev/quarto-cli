@@ -24,7 +24,7 @@ import { isWindows } from "../../deno_ral/platform.ts";
 
 // Download base URL (quarto.org redirects to S3 bucket)
 const kDownloadBaseUrl = "https://quarto.org/download";
-const kDefaultVersion = "1.28.2";
+const kDefaultVersion = "1.30.3";
 
 // Minimum Java version required
 const kMinJavaVersion = 8;
@@ -231,7 +231,10 @@ async function install(
   }
 
   // Create auto-install.xml for headless installation
-  // Panel IDs and pack names must match the IzPack installer configuration
+  // Panel IDs and pack names must match the IzPack installer configuration.
+  // Pack names verified against the 1.30.3 installer (resources/packs.info in
+  // the installer JAR): 1.30.x consolidated scripts and validation model into
+  // a single "veraPDF CLI" pack.
   const autoInstallXml = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <AutomatedInstallation langpack="eng">
   <com.izforge.izpack.panels.htmlhello.HTMLHelloPanel id="welcome"/>
@@ -240,11 +243,9 @@ async function install(
   </com.izforge.izpack.panels.target.TargetPanel>
   <com.izforge.izpack.panels.packs.PacksPanel id="sdk_pack_select">
     <pack index="0" name="veraPDF GUI" selected="false"/>
-    <pack index="1" name="veraPDF Mac and *nix Scripts" selected="true"/>
-    <pack index="2" name="veraPDF Batch files" selected="true"/>
-    <pack index="3" name="veraPDF Validation model" selected="true"/>
-    <pack index="4" name="veraPDF Documentation" selected="false"/>
-    <pack index="5" name="veraPDF Sample Plugins" selected="false"/>
+    <pack index="1" name="veraPDF CLI" selected="true"/>
+    <pack index="2" name="veraPDF Documentation" selected="false"/>
+    <pack index="3" name="veraPDF Sample Plugins" selected="false"/>
   </com.izforge.izpack.panels.packs.PacksPanel>
   <com.izforge.izpack.panels.install.InstallPanel id="install"/>
   <com.izforge.izpack.panels.finish.FinishPanel id="finish"/>
