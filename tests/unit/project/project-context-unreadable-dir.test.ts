@@ -30,6 +30,7 @@ import {
   canMakeUnreadableDir,
   makeUnreadableDir,
   withTempDir,
+  writeFixture,
 } from "../../utils.ts";
 
 function sessionTempDirs(root: string) {
@@ -60,12 +61,11 @@ if (canMakeUnreadableDir) {
         await withTempDir(async (tmp) => {
           const root = normalizePath(tmp);
           if (quartoYml) {
-            Deno.writeTextFileSync(join(root, "_quarto.yml"), quartoYml);
+            writeFixture(root, "_quarto.yml", quartoYml);
           }
-          Deno.writeTextFileSync(join(root, "index.qmd"), "# Hello\n");
+          writeFixture(root, "index.qmd", "# Hello\n");
           const locked = join(root, "locked");
-          Deno.mkdirSync(locked);
-          Deno.writeTextFileSync(join(locked, "doc.qmd"), "# Locked\n");
+          writeFixture(root, "locked/doc.qmd", "# Locked\n");
           const restore = makeUnreadableDir(locked);
           let walkError: unknown;
           try {

@@ -1,7 +1,7 @@
 import { testQuartoCmd, ExecuteOutput, Verify } from "../../test.ts";
 import { fileExists, folderExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join, fromFileUrl, dirname } from "../../../src/deno_ral/path.ts";
-import { writeDefaultProject } from "../../utils.ts";
+import { writeDefaultProject, writeFixture } from "../../utils.ts";
 import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../src/core/path.ts";
 
@@ -191,12 +191,10 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(forceOverwriteDir);
       // Create existing _brand directory with files
-      const brandDir = join(forceOverwriteDir, "_brand");
-      ensureDirSync(brandDir);
       // This file exists in source - should be overwritten
-      Deno.writeTextFileSync(join(brandDir, "_brand.yml"), "meta:\n  name: Old Brand\n");
+      writeFixture(forceOverwriteDir, "_brand/_brand.yml", "meta:\n  name: Old Brand\n");
       // This file does NOT exist in source - should be preserved
-      Deno.writeTextFileSync(join(brandDir, "unrelated.txt"), "keep me");
+      writeFixture(forceOverwriteDir, "_brand/unrelated.txt", "keep me");
       return Promise.resolve();
     },
     cwd: () => forceOverwriteDir,
@@ -260,10 +258,8 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(dryRunOverwriteDir);
       // Create existing _brand directory with _brand.yml and extra.txt (not logo.png)
-      const brandDir = join(dryRunOverwriteDir, "_brand");
-      ensureDirSync(brandDir);
-      Deno.writeTextFileSync(join(brandDir, "_brand.yml"), "meta:\n  name: Old Brand\n");
-      Deno.writeTextFileSync(join(brandDir, "extra.txt"), "extra file not in source");
+      writeFixture(dryRunOverwriteDir, "_brand/_brand.yml", "meta:\n  name: Old Brand\n");
+      writeFixture(dryRunOverwriteDir, "_brand/extra.txt", "extra file not in source");
       return Promise.resolve();
     },
     cwd: () => dryRunOverwriteDir,
@@ -467,12 +463,10 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(nestedOverwriteDir);
       // Create existing _brand/images directory with files
-      const imagesDir = join(nestedOverwriteDir, "_brand", "images");
-      ensureDirSync(imagesDir);
       // This file exists in source - should be overwritten
-      Deno.writeTextFileSync(join(imagesDir, "logo.png"), "old logo\n");
+      writeFixture(nestedOverwriteDir, "_brand/images/logo.png", "old logo\n");
       // This file does NOT exist in source - should be preserved
-      Deno.writeTextFileSync(join(imagesDir, "unrelated.png"), "keep me nested");
+      writeFixture(nestedOverwriteDir, "_brand/images/unrelated.png", "keep me nested");
       return Promise.resolve();
     },
     cwd: () => nestedOverwriteDir,
@@ -524,11 +518,9 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(dryRunNestedDir);
       // Create existing _brand/images directory with only logo.png (not header.png)
-      const imagesDir = join(dryRunNestedDir, "_brand", "images");
-      ensureDirSync(imagesDir);
-      Deno.writeTextFileSync(join(imagesDir, "logo.png"), "old logo\n");
+      writeFixture(dryRunNestedDir, "_brand/images/logo.png", "old logo\n");
       // Also create _brand.yml so we're only testing nested behavior
-      Deno.writeTextFileSync(join(dryRunNestedDir, "_brand", "_brand.yml"), "meta:\n  name: Old\n");
+      writeFixture(dryRunNestedDir, "_brand/_brand.yml", "meta:\n  name: Old\n");
       return Promise.resolve();
     },
     cwd: () => dryRunNestedDir,
@@ -568,9 +560,7 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(nestedNewSubdirDir);
       // Create _brand/ but NOT images/ subdirectory
-      const brandDir = join(nestedNewSubdirDir, "_brand");
-      ensureDirSync(brandDir);
-      Deno.writeTextFileSync(join(brandDir, "_brand.yml"), "meta:\n  name: Old Brand\n");
+      writeFixture(nestedNewSubdirDir, "_brand/_brand.yml", "meta:\n  name: Old Brand\n");
       return Promise.resolve();
     },
     cwd: () => nestedNewSubdirDir,
@@ -613,9 +603,7 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(dryRunNewSubdirDir);
       // Create _brand/ but NOT images/ subdirectory
-      const brandDir = join(dryRunNewSubdirDir, "_brand");
-      ensureDirSync(brandDir);
-      Deno.writeTextFileSync(join(brandDir, "_brand.yml"), "meta:\n  name: Old\n");
+      writeFixture(dryRunNewSubdirDir, "_brand/_brand.yml", "meta:\n  name: Old\n");
       return Promise.resolve();
     },
     cwd: () => dryRunNewSubdirDir,
@@ -662,9 +650,7 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(emptyDirCleanupDir);
       // Create _brand/extras/ with a file not in source
-      const extrasDir = join(emptyDirCleanupDir, "_brand", "extras");
-      ensureDirSync(extrasDir);
-      Deno.writeTextFileSync(join(extrasDir, "orphan.txt"), "this file will be removed");
+      writeFixture(emptyDirCleanupDir, "_brand/extras/orphan.txt", "this file will be removed");
       return Promise.resolve();
     },
     cwd: () => emptyDirCleanupDir,
@@ -711,9 +697,7 @@ testQuartoCmd(
     setup: () => {
       writeDefaultProject(deepNestedCleanupDir);
       // Create _brand/deep/nested/path/ with a file not in source
-      const deepDir = join(deepNestedCleanupDir, "_brand", "deep", "nested", "path");
-      ensureDirSync(deepDir);
-      Deno.writeTextFileSync(join(deepDir, "orphan.txt"), "deeply nested orphan");
+      writeFixture(deepNestedCleanupDir, "_brand/deep/nested/path/orphan.txt", "deeply nested orphan");
       return Promise.resolve();
     },
     cwd: () => deepNestedCleanupDir,

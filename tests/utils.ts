@@ -327,9 +327,8 @@ export function makeUnreadableDir(dir: string): () => void {
 // temp dirs live under the /var -> /private/var symlink).
 export function tempProject(prefix: string): string {
   const dir = originalRealPathSync(Deno.makeTempDirSync({ prefix }));
-  Deno.writeTextFileSync(join(dir, "_quarto.yml"), "project:\n  type: website\n");
-  Deno.mkdirSync(join(dir, "sub"));
-  Deno.writeTextFileSync(join(dir, "sub", "index.qmd"), "# Hello\n");
+  writeFixture(dir, "_quarto.yml", "project:\n  type: website\n");
+  writeFixture(dir, "sub/index.qmd", "# Hello\n");
   return dir;
 }
 
