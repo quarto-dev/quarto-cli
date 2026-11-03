@@ -1,0 +1,64 @@
+---
+title: Pagination Test
+listing:
+  - id: absent
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+  - id: left
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+    pagination:
+      outer-window-left: 2
+  - id: outer
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+    pagination:
+      outer-window: 1
+  - id: mixed
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+    pagination:
+      inner-window: 1
+      outer-window: 2
+      outer-window-left: 0
+  - id: invalid
+    contents: posts
+    type: default
+    page-size: 1
+    sort: title
+    pagination:
+      inner-window: 0
+---
+
+## Absent
+
+::: {#absent}
+:::
+
+## Left
+
+::: {#left}
+:::
+
+## Outer
+
+::: {#outer}
+:::
+
+## Mixed
+
+::: {#mixed}
+:::
+
+## Invalid
+
+::: {#invalid}
+:::
