@@ -42,6 +42,11 @@ export function writeFixture(root: string, rel: string, contents: string) {
   Deno.writeTextFileSync(join(root, ...parts), contents);
 }
 
+// Make dir a default-type project by writing its _quarto.yml.
+export function writeDefaultProject(dir: string) {
+  writeFixture(dir, "_quarto.yml", "project:\n  type: default\n");
+}
+
 // Run fn from dir and restore the process cwd afterward.
 export async function withCwd<T>(
   dir: string,

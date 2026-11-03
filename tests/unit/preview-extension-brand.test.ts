@@ -27,7 +27,7 @@ import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
 import { renderServices } from "../../src/command/render/render-services.ts";
 import { RenderOptions } from "../../src/command/render/types.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../src/core/schema/utils.ts";
-import { withTempDir, writeFixture } from "../utils.ts";
+import { withTempDir, writeDefaultProject, writeFixture } from "../utils.ts";
 
 const BRAND_YML = `color:
   palette:
@@ -412,7 +412,7 @@ async function recordWarnings(run: () => Promise<void>): Promise<string[]> {
 }
 
 function writeProject(dir: string) {
-  writeFixture(dir, "_quarto.yml", "project:\n  type: default\n");
+  writeDefaultProject(dir);
   writeFixture(dir, "index.qmd", DOCUMENT);
 }
 

@@ -1,6 +1,7 @@
 import { testQuartoCmd, ExecuteOutput, Verify } from "../../test.ts";
 import { fileExists, folderExists, noErrorsOrWarnings, printsMessage } from "../../verify.ts";
 import { join, fromFileUrl, dirname } from "../../../src/deno_ral/path.ts";
+import { writeDefaultProject } from "../../utils.ts";
 import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../src/core/path.ts";
 
@@ -90,7 +91,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(basicDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(basicDir);
       return Promise.resolve();
     },
     cwd: () => basicDir,
@@ -137,7 +138,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(dryRunDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(dryRunDir);
       return Promise.resolve();
     },
     cwd: () => dryRunDir,
@@ -188,7 +189,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(forceOverwriteDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(forceOverwriteDir);
       // Create existing _brand directory with files
       const brandDir = join(forceOverwriteDir, "_brand");
       ensureDirSync(brandDir);
@@ -257,7 +258,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(dryRunOverwriteDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(dryRunOverwriteDir);
       // Create existing _brand directory with _brand.yml and extra.txt (not logo.png)
       const brandDir = join(dryRunOverwriteDir, "_brand");
       ensureDirSync(brandDir);
@@ -285,7 +286,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(errorFlagDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(errorFlagDir);
       return Promise.resolve();
     },
     cwd: () => errorFlagDir,
@@ -336,7 +337,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(multiFileDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(multiFileDir);
       return Promise.resolve();
     },
     cwd: () => multiFileDir,
@@ -384,7 +385,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(nestedDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(nestedDir);
       return Promise.resolve();
     },
     cwd: () => nestedDir,
@@ -464,7 +465,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(nestedOverwriteDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(nestedOverwriteDir);
       // Create existing _brand/images directory with files
       const imagesDir = join(nestedOverwriteDir, "_brand", "images");
       ensureDirSync(imagesDir);
@@ -521,7 +522,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(dryRunNestedDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(dryRunNestedDir);
       // Create existing _brand/images directory with only logo.png (not header.png)
       const imagesDir = join(dryRunNestedDir, "_brand", "images");
       ensureDirSync(imagesDir);
@@ -565,7 +566,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(nestedNewSubdirDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(nestedNewSubdirDir);
       // Create _brand/ but NOT images/ subdirectory
       const brandDir = join(nestedNewSubdirDir, "_brand");
       ensureDirSync(brandDir);
@@ -610,7 +611,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(dryRunNewSubdirDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(dryRunNewSubdirDir);
       // Create _brand/ but NOT images/ subdirectory
       const brandDir = join(dryRunNewSubdirDir, "_brand");
       ensureDirSync(brandDir);
@@ -659,7 +660,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(emptyDirCleanupDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(emptyDirCleanupDir);
       // Create _brand/extras/ with a file not in source
       const extrasDir = join(emptyDirCleanupDir, "_brand", "extras");
       ensureDirSync(extrasDir);
@@ -708,7 +709,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(deepNestedCleanupDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(deepNestedCleanupDir);
       // Create _brand/deep/nested/path/ with a file not in source
       const deepDir = join(deepNestedCleanupDir, "_brand", "deep", "nested", "path");
       ensureDirSync(deepDir);
@@ -772,7 +773,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(brandExtDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(brandExtDir);
       return Promise.resolve();
     },
     cwd: () => brandExtDir,
@@ -807,7 +808,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(brandExtDryRunDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(brandExtDryRunDir);
       return Promise.resolve();
     },
     cwd: () => brandExtDryRunDir,
@@ -853,7 +854,7 @@ testQuartoCmd(
   ],
   {
     setup: () => {
-      Deno.writeTextFileSync(join(brandExtSubdirDir, "_quarto.yml"), "project:\n  type: default\n");
+      writeDefaultProject(brandExtSubdirDir);
       return Promise.resolve();
     },
     cwd: () => brandExtSubdirDir,
