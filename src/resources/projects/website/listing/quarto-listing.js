@@ -50,6 +50,7 @@ window["quarto-listing-loaded"] = () => {
 
     // Record the page hash on pagination clicks
     attachPaginationHandler(listingId);
+    decoratePagination(listingId);
 
     // Render any visible items that need it
     renderVisibleProgressiveImages(list);
@@ -61,6 +62,10 @@ window["quarto-listing-loaded"] = () => {
 
       // Show or hide the no matching message
       toggleNoMatchingMessage(list);
+
+      // list.js runs its handlers last to first, so its pagination plugin
+      // rebuilds the page links after this handler; label them once it is done.
+      queueMicrotask(() => decoratePagination(listingId));
     });
   }
 };
@@ -147,6 +152,41 @@ function attachPaginationHandler(listingId) {
     event.preventDefault();
     setPageHash(listingId, pageLink.getAttribute("data-i"));
   });
+}
+
+// Label the page links for assistive technology: name each page, mark the
+// current one and hide the gaps, which are not links to anywhere.
+function decoratePagination(listingId) {
+  const navEl = window.document.querySelector(
+    `#${listingId} nav.listing-pagination`
+  );
+  if (!navEl) {
+    return;
+  }
+  const pageLabel = navEl.getAttribute("data-page-label") || "{0}";
+  for (const itemEl of navEl.querySelectorAll("li.page-item")) {
+    const linkEl = itemEl.querySelector("a");
+    if (!linkEl) {
+      continue;
+    }
+    if (
+      itemEl.classList.contains("disabled") &&
+      linkEl.textContent.trim() === "..."
+    ) {
+      linkEl.removeAttribute("href");
+      itemEl.setAttribute("aria-hidden", "true");
+      continue;
+    }
+    linkEl.setAttribute(
+      "aria-label",
+      pageLabel.replace("{0}", linkEl.getAttribute("data-i"))
+    );
+    if (itemEl.classList.contains("active")) {
+      linkEl.setAttribute("aria-current", "page");
+    } else {
+      linkEl.removeAttribute("aria-current");
+    }
+  }
 }
 
 function renderVisibleProgressiveImages(list) {

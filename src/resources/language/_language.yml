@@ -177,6 +177,9 @@ listing-page-field-categories: "Categories"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
+listing-page-navigation: "Page navigation"
+# Label of a page link in the pagination control, e.g. "Page 3"; {0} is the page number.
+listing-page-number: "Page {0}"
 # Word count shown per item in a listing, e.g. "1,234 words"; {0} is the formatted number.
 # A single string serves every count; pick the plural form that reads best for large numbers.
 listing-page-words: "{0} words"
