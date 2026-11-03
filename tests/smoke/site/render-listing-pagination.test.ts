@@ -7,22 +7,20 @@ import { join } from "../../../src/deno_ral/path.ts";
 import { removeIfExists } from "../../../src/core/path.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { docs } from "../../utils.ts";
-import { ensureHtmlElements, printsMessage } from "../../verify.ts";
+import { ensureFileRegexMatches, printsMessage } from "../../verify.ts";
 
-const projectDir = docs("playwright/listings/pagination");
+const projectDir = docs("listings/pagination-warning");
 const outputDir = join(projectDir, "_site");
 
 testQuartoCmd("render", [projectDir], [
   printsMessage({
     level: "WARN",
-    regex: /Listing 'invalid': pagination option 'inner-window'/,
+    regex: /Listing 'warned': pagination option 'inner-window'/,
   }),
-  ensureHtmlElements(join(outputDir, "index.html"), [
-    "nav#absent-pagination.listing-pagination",
-    "nav#left-pagination.listing-pagination",
-    "nav#outer-pagination.listing-pagination",
-    "nav#mixed-pagination.listing-pagination",
-    "nav#invalid-pagination.listing-pagination",
+  ensureFileRegexMatches(join(outputDir, "index.html"), [
+    /pagination: \{ left: 1, right: 1, item:/,
+  ], [
+    /innerWindow/,
   ]),
 ], {
   name: "Listing pagination options are checked at render time",
