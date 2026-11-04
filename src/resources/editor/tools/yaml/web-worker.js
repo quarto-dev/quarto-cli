@@ -7461,6 +7461,22 @@ try {
             }
           },
           {
+            name: "code-line-fragment-indices",
+            tags: {
+              contexts: [
+                "document-code"
+              ],
+              formats: [
+                "revealjs"
+              ]
+            },
+            schema: "string",
+            description: {
+              short: "Fragment index of each step of stepped code-line-numbers highlighting (Reveal.js only).",
+              long: 'Fragment index of each step of stepped `code-line-numbers` highlighting\n(Reveal.js only).\n\nGive one index for each transition between steps, as a comma-separated\nlist of non-negative integers. For example, `code-line-numbers: "|1|2"`\nwith `code-line-fragment-indices: "1,2"` shows line 1 at fragment index 1\nand line 2 at fragment index 2.\n\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, and the steps use sequential fragment\nindices.\n'
+            }
+          },
+          {
             name: "lst-label",
             schema: "string",
             description: "Unique label for code listing (used in cross references)"
@@ -23556,6 +23572,10 @@ try {
             short: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>)",
             long: "Include line numbers in code block output (<code>true</code> or\n<code>false</code>).\nFor revealjs output only, you can also specify a string to highlight\nspecific lines (and/or animate between sets of highlighted lines)."
           },
+          {
+            short: "Fragment index of each step of stepped code-line-numbers highlighting\n(Reveal.js only).",
+            long: 'Fragment index of each step of stepped <code>code-line-numbers</code>\nhighlighting (Reveal.js only).\nGive one index for each transition between steps, as a\ncomma-separated list of non-negative integers. For example,\n<code>code-line-numbers: "|1|2"</code> with\n<code>code-line-fragment-indices: "1,2"</code> shows line 1 at fragment\nindex 1 and line 2 at fragment index 2.\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, and the steps use sequential fragment\nindices.'
+          },
           "Unique label for code listing (used in cross references)",
           "Caption for code listing",
           "Whether to reformat R code.",
@@ -25849,12 +25869,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221307,
+          _internalId: 221473,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221299,
+              _internalId: 221465,
               type: "enum",
               enum: [
                 "png",
@@ -25870,7 +25890,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221306,
+              _internalId: 221472,
               type: "anyOf",
               anyOf: [
                 {

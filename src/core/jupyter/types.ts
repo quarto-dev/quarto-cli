@@ -36,6 +36,7 @@ import {
   kCellTblColumn,
   kCellUserExpressions,
   kCodeFold,
+  kCodeLineFragmentIndices,
   kCodeLineNumbers,
   kCodeOverflow,
   kCodeSummary,
@@ -216,6 +217,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellColumn]?: string;
   [kCodeFold]?: string;
   [kCodeLineNumbers]?: boolean | string;
+  [kCodeLineFragmentIndices]?: string;
   [kCodeSummary]?: string;
   [kCodeOverflow]?: string;
   [kCellMdIndent]?: string;

@@ -106,6 +106,26 @@
         * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10
           and 12
 
+- name: code-line-fragment-indices
+  tags:
+    contexts: [document-code]
+    formats: [revealjs]
+  schema: string
+  description:
+    short: "Fragment index of each step of stepped code-line-numbers highlighting (Reveal.js only)."
+    long: |
+      Fragment index of each step of stepped `code-line-numbers` highlighting
+      (Reveal.js only).
+
+      Give one index for each transition between steps, as a comma-separated
+      list of non-negative integers. For example, `code-line-numbers: "|1|2"`
+      with `code-line-fragment-indices: "1,2"` shows line 1 at fragment index 1
+      and line 2 at fragment index 2.
+
+      The number of indices must equal the number of steps minus one.
+      Otherwise the list is ignored, and the steps use sequential fragment
+      indices.
+
 - name: lst-label
   schema: string
   description: "Unique label for code listing (used in cross references)"

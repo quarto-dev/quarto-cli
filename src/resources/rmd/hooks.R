@@ -349,6 +349,7 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       "label", "lst-cap", "lst-label", "classes", "panel", "column",
       "tbl-column", "tbl-cap-location", "cap-location", "code-fold",
       "code-summary", "code-overflow", "code-line-numbers",
+      "code-line-fragment-indices",
       "layout", "layout-nrow", "layout-ncol", "layout-align", "layout-valign",
       "output", "html-table-processing",
       # duplicating options as they were normalized in knitr < 1.44
@@ -530,6 +531,13 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
         attr <- paste(
           attr,
           paste0('code-line-numbers="', tolower(as.character(lineNumbers)), '"')
+        )
+      }
+      lineFragmentIndices <- options[["code-line-fragment-indices"]]
+      if (!is.null(lineFragmentIndices)) {
+        attr <- paste(
+          attr,
+          paste0('code-line-fragment-indices="', as.character(lineFragmentIndices), '"')
         )
       }
     }
