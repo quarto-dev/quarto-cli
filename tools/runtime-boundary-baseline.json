@@ -12,7 +12,7 @@
     "stdImportFiles": 1
   },
   "package/src": {
-    "denoCalls": 240,
+    "denoCalls": 241,
     "stdImportFiles": 3
   },
   "tests": {
