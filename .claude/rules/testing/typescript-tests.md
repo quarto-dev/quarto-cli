@@ -86,12 +86,17 @@ unitTest("feature - description", async () => {
 
 Assertions come from `tests/asserts.ts` (relative path, e.g. `../asserts.ts` from `tests/unit/`), never from a std assertion module directly; the Runtime Boundary check flags a direct std import in tests. Exports: `assert`, `assertEquals`, `assertThrows`, `assertRejects`, `assertMatch`, `assertObjectMatch`, `assertStringIncludes`, `fail`, `AssertionError`
 
+Tests follow the same runtime rule as `src/`: no new `Deno.*` calls, import the equivalent from `src/deno_ral/` (`fs.ts`, `temp.ts`, `path.ts`). The Runtime Boundary check counts `Deno.*` calls in `tests/` against a baseline and fails the PR on an increase. Before accepting an increase, check `src/deno_ral/` and `tests/utils.ts` (`writeFixture`, `withTempDir`) for an existing helper. See `.claude/rules/typescript/deno-ral.md`.
+
 ## Common Patterns
 
 **Temp files:**
 ```typescript
-const workingDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
-// Use workingDir, clean up in teardown
+import { withTempDir } from "../utils.ts";
+
+await withTempDir(async (workingDir) => {
+  // Use workingDir; it is removed when the callback returns
+});
 ```
 
 **Fixtures:**

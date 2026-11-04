@@ -37,7 +37,10 @@ import { isPdfContent } from "../../core/mime.ts";
 import { ServeRenderManager } from "./render.ts";
 import { existsSync1 } from "../../core/file.ts";
 import { watchForFileChanges } from "../../core/watch.ts";
-import { extensionFilesFromDirs } from "../../extension/extension.ts";
+import {
+  createExtensionContext,
+  extensionFilesFromDirs,
+} from "../../extension/extension.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 
 // Build the new context before dropping the old one, so a failed rebuild
@@ -52,7 +55,15 @@ export async function refreshProjectContext(
     const next = await projectContext(
       project.dir,
       nbContext,
-      renderOptions,
+      // The preview's services live for the whole session, and their extension
+      // cache would return the _extension.yml read at startup.
+      {
+        ...renderOptions,
+        services: {
+          ...renderOptions.services,
+          extension: createExtensionContext(),
+        },
+      },
       false,
     );
     if (next) {
@@ -65,10 +76,34 @@ export async function refreshProjectContext(
   return project;
 }
 
-interface WatchChanges {
+export interface WatchChanges {
   config: boolean;
   output: boolean;
   reloadTarget?: string;
+}
+
+// Debounced handler for watch changes that accumulates the requested changes
+// across calls: a bare debounce keeps only the latest call's arguments, so a
+// render-driven reload landing within the window would discard a pending
+// config refresh (config: true) or full project render (output: false).
+export function debouncedWatchChanges(
+  handler: (changes: WatchChanges) => Promise<void>,
+  wait: number,
+): (changes: WatchChanges) => void {
+  let pending: WatchChanges | undefined;
+  const debounced = ld.debounce(() => {
+    const changes = pending!;
+    pending = undefined;
+    return handler(changes);
+  }, wait);
+  return (changes: WatchChanges) => {
+    pending = {
+      config: pending?.config || changes.config,
+      output: (pending?.output ?? true) && changes.output,
+      reloadTarget: changes.reloadTarget ?? pending?.reloadTarget,
+    };
+    debounced();
+  };
 }
 
 export function watchProject(
@@ -150,6 +185,10 @@ export function watchProject(
       }
 
       if (["modify", "create"].includes(event.kind)) {
+        // an extension file can share a poll event with changed inputs, so
+        // detect it before the input branch below returns early
+        const extensionFile = paths.some(isExtensionFile);
+
         // render changed input files (if we are watching). then
         // arrange for client reload
         if (options[kProjectWatchInputs]) {
@@ -166,7 +205,13 @@ export function watchProject(
             // render
             const services = renderServices(nbContext);
             try {
-              const result = await renderManager.submitRender(() => {
+              const result = await renderManager.submitRender(async () => {
+                // A changed extension file invalidates the extension metadata
+                // merged into the project context, so refresh it in this same
+                // queue slot, before the invalidation loop and the render.
+                if (extensionFile) {
+                  await refreshProjectConfig();
+                }
                 // Invalidate the persistent project context's cache for
                 // each changed input. The HTTP-handler render in
                 // serve.ts reuses watcher.project() with its long-lived
@@ -260,7 +305,6 @@ export function watchProject(
           !project.files.input.includes(path)
         );
         const resourceFile = paths.some(isResourceFile);
-        const extensionFile = paths.some(isExtensionFile);
 
         const reload = configFile || configResourceFile ||
           resourceFile || extensionFile ||
@@ -268,7 +312,8 @@ export function watchProject(
 
         if (reload) {
           return {
-            config: configFile || configResourceFile || inputFileRemoved,
+            config: configFile || configResourceFile || inputFileRemoved ||
+              extensionFile,
             output: false,
           };
         } else {
@@ -293,14 +338,16 @@ export function watchProject(
   // debounced function for notifying all clients of a change
   // (ensures that we wait for bulk file copying to complete
   // before triggering the reload)
-  const reloadClients = ld.debounce(async (changes: WatchChanges) => {
+  const reloadClients = debouncedWatchChanges(async (changes) => {
     const services = renderServices(nbContext);
     try {
       // fully render project if we aren't already rendering on reload (e.g. for pdf)
       if (!changes.output && !renderingOnReload) {
-        await refreshProjectConfig();
-        const result = await renderManager.submitRender(() =>
-          renderProject(
+        const result = await renderManager.submitRender(async () => {
+          // refresh in the same queue slot, so the render below reads the
+          // swapped context and no in-flight render loses it mid-render
+          await refreshProjectConfig();
+          return renderProject(
             project,
             {
               services,
@@ -310,8 +357,8 @@ export function watchProject(
               pandocArgs,
               previewServer: true,
             },
-          )
-        );
+          );
+        });
         if (result.error) {
           renderManager.onRenderError(result.error);
         } else {
@@ -324,9 +371,10 @@ export function watchProject(
         }
       }
 
-      // refresh config if necess
+      // refresh config if necess (on the render queue, so the context swap
+      // cannot race an in-flight render)
       if (changes.config) {
-        await refreshProjectConfig();
+        await renderManager.submit(refreshProjectConfig);
       }
 
       // if this is a reveal presentation running inside rstudio then bail
@@ -377,7 +425,7 @@ export function watchProject(
     for await (const event of watcher) {
       const result = await handleWatchEvent(event);
       if (result) {
-        await reloadClients(result);
+        reloadClients(result);
       }
     }
   };
@@ -401,16 +449,17 @@ export function watchProject(
       return devServer.clientHtml(req, inputFile);
     },
     hasClients: () => devServer.hasClients(),
-    reloadClients: async (output: boolean, reloadTarget?: string) => {
-      await reloadClients({
+    reloadClients: (output: boolean, reloadTarget?: string) => {
+      reloadClients({
         config: false,
         output,
         reloadTarget,
       });
+      return Promise.resolve();
     },
     project: () => project,
     refreshProject: async () => {
-      await refreshProjectConfig();
+      await renderManager.submit(refreshProjectConfig);
       return project;
     },
   });
