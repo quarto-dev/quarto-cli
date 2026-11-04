@@ -19,7 +19,9 @@ QUARTO_PANDOC=/path/to/pandoc-3.10.1/bin/pandoc \
 
 `writePandocTemplates` overwrites the reference copies and mapped Pandoc partials such as `fonts.latex` and `hypersetup.latex`. Port relevant changes to Quarto's templates using the [file list below](#pandoc-templates). Review generated changes to `format-extension.ts` as well. The same review applies to the full Phase 2 run.
 
-To smoke-test rendering before archival, dispatch `.github/workflows/test-smokes.yml` with `pandoc-override-version` set to the new release tag (e.g. `3.10.1`). The workflow downloads Pandoc from GitHub and uses it via `QUARTO_PANDOC` for that run, without S3 access. Limit `buckets` to the relevant smoke-all directories (e.g. `typst`, `latex`, `table`) for a faster run. A full-suite run also works: the action exports the requested version as `QUARTO_TEST_EXPECTED_PANDOC`, and the `check versions` smoke test then verifies Pandoc reports exactly that version (as the strict-mismatch note, or as OK when it equals the bundled constraint) instead of failing on the note.
+To smoke-test rendering before archival, dispatch `.github/workflows/test-smokes.yml` with `pandoc-override-version` set to the new release tag (e.g. `3.10.1`). The workflow downloads Pandoc from GitHub and uses it via `QUARTO_PANDOC` for that run, without S3 access. Limit `buckets` to the relevant smoke-all directories (e.g. `typst`, `latex`, `table`) for a faster run.
+
+For a full-suite run, the action sets `QUARTO_TEST_EXPECTED_PANDOC`. The version check accepts either OK or a strict-mismatch note for the requested version, normalized as in `check.ts`.
 
 ### Phase 2 - archival (S3 credential holder, before merge)
 
@@ -28,7 +30,7 @@ Whoever holds S3 write credentials does this last, right before merging:
 - [ ] Bump `configuration`'s `export PANDOC=` line and the `Pandoc` entry in `src/command/check/check.ts`'s `versionConstraints` array to the new version (this constraint tracks the bundled version exactly).
 - [ ] Ensure archives are upgraded.
 - [ ] Run `AWS_PROFILE=... ./package/src/quarto-bld update-pandoc PANDOC_VERSION` (without `--skip-archive`) to archive the binary to S3, configure it locally, and regenerate templates/variants.
-- [ ] Look at `git diff`, specifically for changes in Pandoc templates, and adjust as needed. As in Phase 1, a diff on an already-patched file means something was missed.
+- [ ] Review `git diff` for regenerated reference copies, mapped Pandoc partials, and `format-extension.ts`. Port any remaining upstream changes to Quarto's templates and reapply any Quarto changes overwritten in mapped partials.
 - [ ] Run the `create-release.yml` dry-run signing/notarization gate (see `dev-docs/upgrade-dependencies.md`), then merge.
 
 Quarto's templates share directories with the Pandoc reference copies, but use different names. Review the reference-copy diffs and port relevant changes manually; the templates have diverged too much to use `patch`.

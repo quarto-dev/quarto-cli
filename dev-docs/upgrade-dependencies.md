@@ -2,7 +2,7 @@ Change version numbers in `./configuration` to correspond to new versions.
 
 Update hardcoded version strings in `src/command/check/check.ts` (the `versionConstraints` array in `checkVersions`) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment, and `tests/smoke/check/check-versions-no-mismatch.test.ts` fails until they match. The constraint tracks the bundled version exactly, not a minimum floor.
 
-**Pandoc specifically** has its own checklist: [update-pandoc-checklist.md](update-pandoc-checklist.md) - template resync (with a naming gotcha that's easy to miss), schema/lua-types checks, and a `QUARTO_PANDOC`-based CI path for smoke-testing a version before it's archived to S3.
+For Pandoc, follow [update-pandoc-checklist.md](update-pandoc-checklist.md) for template updates and filename conventions, schema and Lua type checks, and CI smoke tests using `QUARTO_PANDOC` before S3 archival.
 
 ## Verify installer signing & notarization before merging (bundled binaries)
 

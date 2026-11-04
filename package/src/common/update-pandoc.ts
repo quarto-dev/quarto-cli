@@ -117,7 +117,6 @@ export function updatePandoc() {
         if (!skipArchive) {
           const pandocDependency = pandoc(version);
 
-          // Archive to S3
           await archiveBinaryDependency(pandocDependency, workingDir);
 
           await configureDependency(
@@ -130,8 +129,8 @@ export function updatePandoc() {
         // Templates are downloaded from Pandoc's source archive on GitHub.
         await writePandocTemplates(configuration, version, workingDir);
 
-        // Generate variants (always: uses the resolved Pandoc binary, which
-        // honors QUARTO_PANDOC)
+        // Generate format extensions using the resolved Pandoc binary,
+        // including any QUARTO_PANDOC override.
         await writeVariants(configuration);
       });
 

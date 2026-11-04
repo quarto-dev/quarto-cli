@@ -196,7 +196,7 @@ Not every user-visible difference between Pandoc versions shows up as a diff in 
 
 For example, Pandoc 3.10.1 changed `HorizontalRule` output from `#horizontalrule` to `#divider()`, a native function added in Typst 0.15. The bundled Typst version is 0.15.1, so this call needs no local definition. Quarto's `quarto/definitions.typ` still defines `horizontalrule` for use by `notes.typ`.
 
-The same release changed definition-list output: descriptions are emitted directly rather than wrapped in `#block[...]`, relying on an external `#set terms(hanging-indent: ...)`. Quarto's `#show terms.item` rule reformats the description in either case. These changes were checked against Pandoc 3.10.0 on 2026-07-23; neither required a template change for Quarto.
+The same release changed definition-list output: descriptions are emitted directly rather than wrapped in `#block[...]`, relying on an external `#set terms(hanging-indent: ...)`. Quarto's `#show terms.item` rule reformats the description in either case. Neither change required a template change for Quarto.
 
 When updating Pandoc, render a document with both versions using `QUARTO_PANDOC` and compare the generated `.typ` body content. Template diffs alone do not show changes in writer output.
 

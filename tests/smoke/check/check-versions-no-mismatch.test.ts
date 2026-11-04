@@ -8,14 +8,11 @@
 import { testQuartoCmd, type Verify } from "../../test.ts";
 import { printsMessage } from "../../verify.ts";
 
-// If this test fails, it indicates that there is a version mismatch
-// Check 'src\command\check\check.ts' for the recorded versions, and compare to 'configuration' file
+// For unexpected mismatches, compare versionConstraints in
+// src/command/check/check.ts with configuration.
 
-// A test-smokes.yml dispatch can intentionally run against a Pandoc newer than
-// the bundled one (pandoc-override-version input, via QUARTO_PANDOC). The
-// pandoc-override action records the requested version in
-// QUARTO_TEST_EXPECTED_PANDOC; the strict-mismatch note is then expected for
-// Pandoc, and only for exactly that version.
+// QUARTO_TEST_EXPECTED_PANDOC records an intentional override. Accept either
+// OK or a strict-mismatch note for that version, normalized as in check.ts.
 const expectedPandocOverride = Deno.env.get("QUARTO_TEST_EXPECTED_PANDOC");
 
 // Mirrors the padding/truncation check.ts applies before its strict
@@ -28,7 +25,7 @@ const normalizePandocVersion = (version: string): string => {
   return parts.concat(Array(3 - parts.length).fill("0")).join(".");
 };
 
-// Dart Sass, Deno and Typst are never overridden: no mismatch note for them.
+// The Pandoc override does not change Dart Sass, Deno, or Typst.
 const verifies: Verify[] = [
   printsMessage({
     level: "INFO",
@@ -38,10 +35,8 @@ const verifies: Verify[] = [
 ];
 
 if (expectedPandocOverride) {
-  // The binary check sees must report exactly the requested version: as the
-  // strict-mismatch note when it differs from the bundled constraint, or as
-  // the OK line when it equals it (overriding with the current release).
-  // Any other version means the override resolved to the wrong binary.
+  // Require the requested version, normalized as in check.ts.
+  // Accept OK or a strict-mismatch note.
   verifies.push(
     printsMessage({
       level: "INFO",
@@ -65,5 +60,5 @@ testQuartoCmd(
   ["versions"],
   verifies,
   undefined,
-  "check versions --strict should not show version mismatches",
+  "check versions should report expected dependency versions",
 );
