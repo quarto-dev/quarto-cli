@@ -102,6 +102,8 @@ scrollable-output-label: "Slenkama išvestis"  # firefox devtools + libreoffice 
 
 link-external-newwindow-label: "(atsidaro naujame skirtuke)"
 
+announcement-dismiss-label: "Uždaryti pranešimą"
+
 revealjs-menu-button-label: "Skaidrių meniu"
 
 crossref-fig-title: "Paveikslas"

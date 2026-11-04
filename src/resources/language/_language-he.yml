@@ -102,6 +102,8 @@ scrollable-output-label: "פלט הניתן לגלילה"  # firefox devtools + 
 
 link-external-newwindow-label: "(נפתח בלשונית חדשה)"
 
+announcement-dismiss-label: "סגור את ההודעה"
+
 revealjs-menu-button-label: "תפריט שקופיות"
 
 crossref-fig-title: "תרשים"

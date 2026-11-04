@@ -102,6 +102,8 @@ scrollable-output-label: "Keluaran yang dapat digulir"  # firefox devtools + lib
 
 link-external-newwindow-label: "(dibuka di tab baru)"
 
+announcement-dismiss-label: "Tutup pengumuman"
+
 revealjs-menu-button-label: "Menu slide"
 
 crossref-fig-title: "Gambar"

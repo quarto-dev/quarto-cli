@@ -102,6 +102,8 @@ scrollable-output-label: "Kaydırılabilir çıktı"  # firefox devtools + libre
 
 link-external-newwindow-label: "(yeni sekmede açılır)"
 
+announcement-dismiss-label: "Duyuruyu kapat"
+
 revealjs-menu-button-label: "Slayt menüsü"
 
 crossref-fig-title: "Şekil"

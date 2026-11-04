@@ -102,6 +102,8 @@ scrollable-output-label: "Saída deslocável"  # firefox devtools + libreoffice 
 
 link-external-newwindow-label: "(abre num novo separador)"
 
+announcement-dismiss-label: "Fechar o aviso"
+
 revealjs-menu-button-label: "Menu de diapositivos"
 
 crossref-fig-title: "Figura"

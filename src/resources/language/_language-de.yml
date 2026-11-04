@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Pfad"      # libreoffice sw 'Path' (attested term
 scrollable-code-label: "Scrollbarer Code"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Scrollbare Ausgabe"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+announcement-dismiss-label: "Ankündigung schließen"
+
 revealjs-menu-button-label: "Folienmenü"
 
 crossref-fig-title: "Abbildung"

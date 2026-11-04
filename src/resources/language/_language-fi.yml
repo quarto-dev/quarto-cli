@@ -103,6 +103,8 @@ scrollable-output-label: "Vieritettävä tuloste"  # derived + libreoffice dbacc
 
 link-external-newwindow-label: "(avautuu uudelle välilehdelle)"
 
+announcement-dismiss-label: "Sulje ilmoitus"
+
 revealjs-menu-button-label: "Diavalikko"
 
 crossref-fig-title: "Kuva"

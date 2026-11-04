@@ -102,6 +102,8 @@ scrollable-output-label: "スクロール可能な出力"  # firefox devtools + 
 
 link-external-newwindow-label: "（新しいタブで開きます）"
 
+announcement-dismiss-label: "お知らせを閉じる"
+
 revealjs-menu-button-label: "スライドメニュー"
 
 crossref-fig-title: "図"
