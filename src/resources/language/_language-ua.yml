@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Шлях"             # libreoffice sw 'Path' (at
 scrollable-code-label: "Код, що прокручується"      # firefox devtools (uk) + code-summary — assembled, needs review
 scrollable-output-label: "Вивід, що прокручується"  # firefox devtools (uk) + libreoffice dbaccess (uk) — assembled, needs review
 
+revealjs-menu-button-label: "Меню слайдів"
+
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблиця"
 crossref-lst-title: "Список"

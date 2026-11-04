@@ -101,6 +101,8 @@ scrollable-code-label: "Drseča koda"     # firefox devtools + code-summary — 
 scrollable-output-label: "Drseči izhod"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
 
+revealjs-menu-button-label: "Meni diapozitivov"
+
 crossref-fig-title: "Slika"
 crossref-tbl-title: "Tabela"
 crossref-lst-title: "Seznam"

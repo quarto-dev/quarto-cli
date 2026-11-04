@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Percorso"           # libreoffice sw 'Path' (atte
 scrollable-code-label: "Codice scorrevole"    # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Uscita scorrevole"  # firefox devtools + gnome control-center — assembled, needs review
 
+revealjs-menu-button-label: "Menu delle diapositive"
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabella"
 crossref-lst-title: "Lista"

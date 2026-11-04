@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Camí"       # libreoffice sw 'Path' (attested te
 scrollable-code-label: "Codi desplaçable"       # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Sortida desplaçable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+revealjs-menu-button-label: "Menú de diapositives"
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Taula"
 crossref-lst-title: "Llistat"
