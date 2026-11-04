@@ -152,11 +152,11 @@ These bypass both Pandoc metadata and Lua filters. The string lands directly in 
 
 From any Pandoc template — built-in (`template.html`, `template.tex`, `typst-template.typ`), extension partial, or custom user template — every localized key is then accessible as:
 
-> **Naming note**: Citations below refer to Quarto's rendering templates: `template.html` (HTML), `template.tex` (LaTeX/PDF and Beamer), and `quarto/typst-template.typ` (Typst). See `dev-docs/update-pandoc-checklist.md` for the corresponding Pandoc reference copies.
-
 ```pandoc
 $quarto.language.<key>$
 ```
+
+> **Naming note**: Citations below refer to Quarto's rendering templates: `template.html` (HTML), `template.tex` (LaTeX/PDF and Beamer), and `quarto/typst-template.typ` (Typst). See `dev-docs/update-pandoc-checklist.md` for the corresponding Pandoc reference copies.
 
 For example, `$quarto.language.crossref-ch-prefix$` resolves to `Chapitre` when `lang: fr` is set. Hyphens within the leaf segment are valid Pandoc template-variable syntax (manual: *"Variable names can include letters, numbers, underscores, hyphens, and periods"*).
 

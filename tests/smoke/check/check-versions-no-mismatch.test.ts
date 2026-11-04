@@ -25,7 +25,6 @@ const normalizePandocVersion = (version: string): string => {
   return parts.concat(Array(3 - parts.length).fill("0")).join(".");
 };
 
-// The Pandoc override does not change Dart Sass, Deno, or Typst.
 const verifies: Verify[] = [
   printsMessage({
     level: "INFO",

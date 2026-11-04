@@ -192,7 +192,7 @@ During a Pandoc update, review their diffs and port relevant changes to `quarto/
 
 ### Writer-Level Changes vs. Template-Level Changes
 
-Not every user-visible difference between Pandoc versions shows up as a diff in these template files. Some behavior lives in Pandoc's own Haskell **typst writer** — the code that converts the Pandoc AST into typst body markup — and is emitted directly into the rendered body regardless of which template (if any) is used.
+Pandoc's Typst writer converts the AST into body markup. Changes to its output can affect rendering regardless of the template used.
 
 For example, Pandoc 3.10.1 changed `HorizontalRule` output from `#horizontalrule` to `#divider()`, a native function added in Typst 0.15. The bundled Typst version is 0.15.1, so this call needs no local definition. Quarto's `quarto/definitions.typ` still defines `horizontalrule` for use by `notes.typ`.
 
