@@ -4,7 +4,7 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { assertEquals, assertRejects } from "testing/asserts";
+import { assertEquals, assertRejects } from "../../asserts.ts";
 import { asMappedString } from "../../../src/core/lib/mapped-text.ts";
 import { parseAndValidateCellOptions } from "../../../src/core/lib/partition-cell-options.ts";
 import {
