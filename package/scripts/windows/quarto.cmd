@@ -32,7 +32,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		GOTO end
 	)
 
-  call !QUARTO_ROOT!\win_configuration.bat
+  call "!QUARTO_ROOT!\win_configuration.bat"
   REM overrride share path to point to our dev folder instead of dist
   set QUARTO_SHARE_PATH=!QUARTO_ROOT!\src\resources
   set "DENO_DIR=!QUARTO_BIN_PATH!\deno_cache"
@@ -40,11 +40,11 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	IF NOT DEFINED QUARTO_ACTION (
 		SET QUARTO_ACTION=run
 	)
-	SET "QUARTO_IMPORT_MAP_ARG=--importmap=""!QUARTO_SRC_PATH!\import_map.json"""
+	SET "QUARTO_IMPORT_MAP_ARG=--importmap="!QUARTO_SRC_PATH!\import_map.json""
 	REM Resolve dependencies through the checked-in lockfile, as vendoring does.
 	REM Without it, Deno re-resolves npm packages, which needs registry metadata that
 	REM the vendored cache doesn't contain (and may pick versions other than the pinned ones).
-	SET "QUARTO_LOCK_OPTIONS=--lock=""!QUARTO_ROOT!\deno.lock"" --frozen"
+	SET "QUARTO_LOCK_OPTIONS=--lock="!QUARTO_ROOT!\deno.lock" --frozen"
 
 	IF NOT DEFINED QUARTO_TARGET (
 		SET "QUARTO_TARGET=!QUARTO_TS_PATH!"
@@ -63,7 +63,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	  if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
 			echo !DENO!>"!DENO_VERSION_FILE!"
 
-			cd !QUARTO_ROOT!
+			cd "!QUARTO_ROOT!"
 			call configure.cmd
       echo
 			echo.
@@ -172,7 +172,7 @@ IF DEFINED QUARTO_TS_PROFILE (
 )
 
 IF DEFINED QUARTO_DEV_MODE (
-	!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! !QUARTO_TARGET! %*
+	"!QUARTO_DENO!" !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! "!QUARTO_TARGET!" %*
 ) ELSE (
 	!QUARTO_DENO! !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_TARGET! %*
 )
