@@ -43,7 +43,7 @@ export function updatePandoc() {
     .description("Updates Pandoc to the specified version")
     .option(
       "--skip-archive",
-      "Phase 1 prep only: regenerate templates and format-extension.ts from a QUARTO_PANDOC-provided binary without archiving to S3, configuring the binary, or bumping the configuration file. Requires QUARTO_PANDOC to point at a Pandoc <version> binary.",
+      "Regenerate templates and format-extension.ts without archiving to S3, configuring the binary, or updating configuration. Requires QUARTO_PANDOC to resolve to the requested version.",
     )
     // deno-lint-ignore no-explicit-any
     .action(async (options: any, version: string) => {
@@ -53,32 +53,18 @@ export function updatePandoc() {
       const skipArchive = !!options.skipArchive;
 
       if (skipArchive) {
-        // Phase 1 (prep): no S3, no configuration rewrite. Regenerate the
-        // template files and format-extension.ts against a locally supplied
-        // binary. This requires a real
-        // Pandoc <version> binary resolvable via QUARTO_PANDOC, because
-        // writeVariants() shells out to it to enumerate formats/extensions.
+        // writeVariants() needs the target Pandoc binary to enumerate formats/extensions.
         const overridePath = Deno.env.get("QUARTO_PANDOC");
         if (!overridePath) {
           error(
-            "--skip-archive requires the QUARTO_PANDOC environment variable to " +
-              `point at a Pandoc ${version} binary. Without it, writeVariants() ` +
-              "would regenerate src/core/pandoc/format-extension.ts from whatever " +
-              "Pandoc is currently configured (likely the old version), silently " +
-              "corrupting it. Download the target release and set QUARTO_PANDOC, e.g.\n" +
-              `  QUARTO_PANDOC=/path/to/pandoc-${version}/bin/pandoc \\\n` +
-              `    ./package/src/quarto-bld update-pandoc ${version} --skip-archive`,
+            `QUARTO_PANDOC is not set. Set it to a Pandoc ${version} executable ` +
+              "before using --skip-archive.",
           );
           throw new Error("QUARTO_PANDOC is not set");
         }
 
-        // Fatal check: pandocBinaryPath() silently falls back to the bundled/
-        // configured Pandoc (with only a warnOnce) if QUARTO_PANDOC is unset,
-        // nonexistent, or otherwise fails to resolve (src/core/resources.ts
-        // toolsPath()). If the resolved binary doesn't report the requested
-        // version, continuing would regenerate format-extension.ts from the
-        // wrong (likely old, bundled) Pandoc - the exact silent corruption
-        // this flag exists to prevent - so this must fail, not warn.
+        // An unresolved QUARTO_PANDOC can fall back to the bundled binary.
+        // Verify the version before generating format-extension.ts.
         let reported: string | undefined;
         try {
           reported = lines(
@@ -91,7 +77,7 @@ export function updatePandoc() {
         } catch (_e) {
           error(
             "Could not run the QUARTO_PANDOC binary to verify its version. " +
-              `QUARTO_PANDOC is set to "${overridePath}" - confirm it points at a ` +
+              `QUARTO_PANDOC is set to "${overridePath}". Confirm it points at a ` +
               "runnable Pandoc executable.",
           );
           throw new Error("QUARTO_PANDOC binary is not runnable");
@@ -102,15 +88,13 @@ export function updatePandoc() {
           error(
             `The Pandoc binary resolved via QUARTO_PANDOC reports version ` +
               `${reported}, not the requested ${version}. QUARTO_PANDOC is set to ` +
-              `"${overridePath}" - if that path doesn't exist or isn't a file, ` +
-              "pandocBinaryPath() silently fell back to the bundled/configured " +
-              "Pandoc, which would corrupt format-extension.ts if this continued. " +
-              "Fix QUARTO_PANDOC and retry.",
+              `"${overridePath}". An unresolved override can fall back to the ` +
+              `bundled binary. Set QUARTO_PANDOC to a Pandoc ${version} executable ` +
+              "and retry.",
           );
           throw new Error("QUARTO_PANDOC does not resolve to the requested version");
         }
       } else {
-        // Update the configuration file
         info("  updating configuration file.");
         const configFilePath = join(
           configuration.directoryInfo.root,
@@ -136,7 +120,6 @@ export function updatePandoc() {
           // Archive to S3
           await archiveBinaryDependency(pandocDependency, workingDir);
 
-          // Configure this version of pandoc
           await configureDependency(
             pandocDependency,
             join(configuration.directoryInfo.bin, "tools"),
@@ -144,8 +127,7 @@ export function updatePandoc() {
           );
         }
 
-        // Generate templates (always: downloads Pandoc's source zip from
-        // GitHub, never touches S3)
+        // Templates are downloaded from Pandoc's source archive on GitHub.
         await writePandocTemplates(configuration, version, workingDir);
 
         // Generate variants (always: uses the resolved Pandoc binary, which
@@ -153,20 +135,11 @@ export function updatePandoc() {
         await writeVariants(configuration);
       });
 
-      // print the completion message
       if (skipArchive) {
         console.log(bgBlack(brightWhite(bold(
-          "\n** Phase 1 (prep) complete. **" +
-            "\n** Templates and src/core/pandoc/format-extension.ts were regenerated " +
-            "as an UNCOMMITTED working-tree diff - review with `git diff` and commit " +
-            "yourself. **" +
-            "\n** Only Pandoc-named copies were rewritten. Port each upstream change " +
-            "they show into Quarto's own templates by hand; this run cannot tell " +
-            "whether that was done. **" +
-            "\n** The `configuration` file is still pinned. Phase 2 (bump " +
-            "`configuration` + src/command/check/check.ts, archive the binary to S3, " +
-            "run the create-release.yml dry-run) must be done by an S3 credential " +
-            "holder before merge. See dev-docs/update-pandoc-checklist.md. **",
+          "\n** Templates and src/core/pandoc/format-extension.ts regenerated. **" +
+            "\n** Review `git diff` and port relevant upstream changes to Quarto's templates. **" +
+            "\n** Configuration is unchanged. Complete dev-docs/update-pandoc-checklist.md before merging. **",
         ))));
       } else {
         console.log(bgBlack(brightWhite(bold(
