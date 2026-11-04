@@ -22,6 +22,7 @@ All changes included in 1.12:
 - ([#14822](https://github.com/quarto-dev/quarto-cli/issues/14822)): Translate the `tools-share`, `tools-download`, and `skip-to-content` language keys in Greek. (author: @sogav21)
 - ([#14822](https://github.com/quarto-dev/quarto-cli/issues/14822)): The Lithuanian search label and the Swedish caution callout title no longer fall back to English.
 - ([#15126](https://github.com/quarto-dev/quarto-cli/issues/15126)): Translate the `revealjs-menu-button-label` language key in Brazilian Portuguese. (author: @bonijoao)
+- ([#15219](https://github.com/quarto-dev/quarto-cli/issues/15219)): Tables written as raw HTML no longer get equal-width `<colgroup>` columns when a cell contains block content, so widths set on table cells apply.
 - ([#15223](https://github.com/quarto-dev/quarto-cli/pull/15223)): Directories are now read in a fixed order (sorted by name in character-code order, not by locale) on every platform.
   Extension discovery, the theme list of `quarto capabilities`, and the items of a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
 - ([#15268](https://github.com/quarto-dev/quarto-cli/issues/15268)): Translate the `skip-to-content` language key in Bulgarian, Catalan, Czech, Danish, Finnish, Hebrew, Indonesian, Korean, Lithuanian, Norwegian Bokmål, Norwegian Nynorsk, Polish, Russian, Serbian (Latin), Slovak, Slovenian, Swedish, Turkish and Ukrainian, using reviewed machine translation.

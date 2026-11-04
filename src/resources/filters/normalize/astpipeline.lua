@@ -167,11 +167,20 @@ function quarto_ast_pipeline()
               local tableDoc = pandoc.read(tableHtml, "html+raw_html")
               local found = false
               local skip = false
+              -- Pandoc fills in 1/ncols widths for tables with block content
+              -- when the source declares no <col> widths; those are not
+              -- author widths, so discard them.
+              local hasColWidths = tableHtml:lower():find("<col[%s/>][^>]*width%s*[:=]")
               _quarto.traverser(tableDoc, {
                 Table = function(table)
                   found = true
                   if table.attributes[constants.kDisableProcessing] == "true" then
                     skip = true
+                  end
+                  if not hasColWidths then
+                    for _, spec in ipairs(table.colspecs) do
+                      spec[2] = nil
+                    end
                   end
                 end,
               })

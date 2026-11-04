@@ -1,0 +1,20 @@
+---
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - []
+        - ['colgroup']
+---
+
+```{=html}
+<table>
+<thead>
+<tr><th>a</th><th><div>b</div></th><th>c</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td style="width: 5cm">2</td><td>3</td></tr>
+</tbody>
+</table>
+```
