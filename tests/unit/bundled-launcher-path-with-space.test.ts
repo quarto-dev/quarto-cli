@@ -37,7 +37,8 @@ unitTest(
       );
       writeTextFileSync(
         join(bin, "quarto.js"),
-        'console.log("ARGS=" + JSON.stringify(Deno.args));\n',
+        'import process from "node:process";\n' +
+          'console.log("ARGS=" + JSON.stringify(process.argv.slice(2)));\n',
       );
       const tools = join(bin, "tools");
       const mklink = await execProcess({
