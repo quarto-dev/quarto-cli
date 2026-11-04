@@ -61,8 +61,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 
 		set /p DENO_INSTALLED_VERSION=<"!DENO_VERSION_FILE!"
 	  if NOT "!DENO!"=="!DENO_INSTALLED_VERSION!" (
-			echo !DENO!>"!DENO_VERSION_FILE!"
-
+			REM configure.cmd records the new version once Deno is installed
 			cd "!QUARTO_ROOT!"
 			call configure.cmd
       echo
@@ -70,8 +69,6 @@ IF EXIST "!QUARTO_TS_PATH!" (
 			echo Quarto required reconfiguration to install Deno !DENO!. Please try command again.
 			exit /b 1
 		)
-	) else (
-		echo !DENO!>"!DENO_VERSION_FILE!"
 	)
 
 	SET QUARTO_CACHE_OPTIONS=--cached-only
