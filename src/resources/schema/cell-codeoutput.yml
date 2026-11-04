@@ -109,7 +109,10 @@
 - name: code-line-fragment-indices
   tags:
     formats: [revealjs]
-  schema: string
+  schema:
+    string:
+      pattern: "^\\s*\\d+\\s*(,\\s*\\d+\\s*)*$"
+    errorDescription: "be a comma-separated list of non-negative integers, such as `1,2`"
   description:
     short: "Fragment index of each step of stepped code-line-numbers highlighting (Reveal.js only)."
     long: |
@@ -120,14 +123,18 @@
       of non-negative integers.
       Each value places its highlight step among the other fragments of the
       slide, in the same way as `fragment-index` on any other fragment.
-      A lower value shows earlier, and equal values show together.
+      A lower value shows earlier.
       For example, `code-line-numbers: "|1|2"` with
       `code-line-fragment-indices: "1,2"` shows line 1 at fragment index 1 and
       line 2 at fragment index 2.
 
+      The first step is the code block itself and is not a fragment.
+      Start `code-line-numbers` with `|` to give the first highlight its own
+      index.
+
       The number of indices must equal the number of steps minus one.
       Otherwise the list is ignored, a warning is printed, and the steps use
-      sequential fragment indices.
+      the default order.
 
 - name: lst-label
   schema: string
