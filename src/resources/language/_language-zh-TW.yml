@@ -99,6 +99,8 @@ navigation-breadcrumbs-label: "路徑"  # libreoffice sw zh-TW 'Path'; attested 
 scrollable-code-label: "可滾動的程式碼"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "可滾動的輸出"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+revealjs-menu-button-label: "投影片選單"
+
 crossref-fig-title: "圖"
 crossref-tbl-title: "表"
 crossref-lst-title: "列表"
