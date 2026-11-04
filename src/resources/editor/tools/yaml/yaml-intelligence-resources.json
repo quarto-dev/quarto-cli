@@ -435,9 +435,6 @@
     {
       "name": "code-line-fragment-indices",
       "tags": {
-        "contexts": [
-          "document-code"
-        ],
         "formats": [
           "revealjs"
         ]
@@ -445,7 +442,7 @@
       "schema": "string",
       "description": {
         "short": "Fragment index of each step of stepped code-line-numbers highlighting (Reveal.js only).",
-        "long": "Fragment index of each step of stepped `code-line-numbers` highlighting\n(Reveal.js only).\n\nGive one index for each transition between steps, as a comma-separated\nlist of non-negative integers. For example, `code-line-numbers: \"|1|2\"`\nwith `code-line-fragment-indices: \"1,2\"` shows line 1 at fragment index 1\nand line 2 at fragment index 2.\n\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, and the steps use sequential fragment\nindices.\n"
+        "long": "Fragment index of each step of stepped `code-line-numbers` highlighting\n(Reveal.js only).\n\nGive one index for each step after the first, as a comma-separated list\nof non-negative integers.\nEach value places its highlight step among the other fragments of the\nslide, in the same way as `fragment-index` on any other fragment.\nA lower value shows earlier, and equal values show together.\nFor example, `code-line-numbers: \"|1|2\"` with\n`code-line-fragment-indices: \"1,2\"` shows line 1 at fragment index 1 and\nline 2 at fragment index 2.\n\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, a warning is printed, and the steps use\nsequential fragment indices.\n"
       }
     },
     {
@@ -16546,7 +16543,7 @@
     },
     {
       "short": "Fragment index of each step of stepped code-line-numbers highlighting\n(Reveal.js only).",
-      "long": "Fragment index of each step of stepped <code>code-line-numbers</code>\nhighlighting (Reveal.js only).\nGive one index for each transition between steps, as a\ncomma-separated list of non-negative integers. For example,\n<code>code-line-numbers: \"|1|2\"</code> with\n<code>code-line-fragment-indices: \"1,2\"</code> shows line 1 at fragment\nindex 1 and line 2 at fragment index 2.\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, and the steps use sequential fragment\nindices."
+      "long": "Fragment index of each step of stepped <code>code-line-numbers</code>\nhighlighting (Reveal.js only).\nGive one index for each step after the first, as a comma-separated\nlist of non-negative integers. Each value places its highlight step\namong the other fragments of the slide, in the same way as\n<code>fragment-index</code> on any other fragment. A lower value shows\nearlier, and equal values show together. For example,\n<code>code-line-numbers: \"|1|2\"</code> with\n<code>code-line-fragment-indices: \"1,2\"</code> shows line 1 at fragment\nindex 1 and line 2 at fragment index 2.\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, a warning is printed, and the steps use\nsequential fragment indices."
     },
     "Unique label for code listing (used in cross references)",
     "Caption for code listing",
@@ -18841,12 +18838,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 221473,
+    "_internalId": 221471,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 221465,
+        "_internalId": 221463,
         "type": "enum",
         "enum": [
           "png",
@@ -18862,7 +18859,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 221472,
+        "_internalId": 221470,
         "type": "anyOf",
         "anyOf": [
           {

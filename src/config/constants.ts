@@ -212,7 +212,6 @@ export const kRenderDefaultsKeys = [
   kCodeFold,
   kCodeLink,
   kCodeLineNumbers,
-  kCodeLineFragmentIndices,
   kCodeOverflow,
   kCodeTools,
   kShortcodes,
