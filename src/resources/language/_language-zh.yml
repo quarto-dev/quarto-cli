@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "路径"  # libreoffice sw 'Path' (attested term h
 scrollable-code-label: "可滚动的代码"    # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "可滚动的输出"  # firefox devtools + gnome control-center — assembled, needs review
 
+link-external-newwindow-label: "（在新标签页中打开）"
+
 revealjs-menu-button-label: "幻灯片菜单"
 
 crossref-fig-title: "图"

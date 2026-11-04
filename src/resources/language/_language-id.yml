@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Jalur"   # libreoffice sw 'Path' (no attested ter
 scrollable-code-label: "Kode yang dapat digulir"        # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Keluaran yang dapat digulir"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(dibuka di tab baru)"
+
 revealjs-menu-button-label: "Menu slide"
 
 crossref-fig-title: "Gambar"
