@@ -1,5 +1,13 @@
 All changes included in 1.12:
 
+## Dependencies
+
+- ([#15275](https://github.com/quarto-dev/quarto-cli/pull/15275)): Update dependencies:
+  - Update `dart-sass` to 1.107.1.
+  - Update `esbuild` to 0.28.2 (fixes a CSS minification bug involving `&` and a TypeScript import-alias tree-shaking bug).
+  - Update `typst-gather` to 0.2.4.
+  - Update `verapdf` to 1.30.3 (used by `quarto install verapdf` for PDF/A validation).
+
 ## Accessibility
 
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Announce every link that opens a new tab to screen readers, not only links opened by `link-external-newwindow`. (author: @mcanouil)
