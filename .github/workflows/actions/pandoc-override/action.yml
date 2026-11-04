@@ -16,8 +16,8 @@ runs:
       with:
         pandoc-version: ${{ inputs.pandoc-version }}
 
-    - name: Point QUARTO_PANDOC at override (Linux)
-      if: runner.os == 'Linux' && inputs.pandoc-version != ''
+    - name: Point QUARTO_PANDOC at override (Linux, macOS)
+      if: runner.os != 'Windows' && inputs.pandoc-version != ''
       shell: bash
       run: echo "QUARTO_PANDOC=$(command -v pandoc)" >> "$GITHUB_ENV"
 
@@ -27,8 +27,18 @@ runs:
       run: |
         "QUARTO_PANDOC=$((Get-Command pandoc).Source)" >> $env:GITHUB_ENV
 
-    - name: Confirm Pandoc override is live (Linux)
-      if: runner.os == 'Linux' && inputs.pandoc-version != ''
+    # Lets check-versions-no-mismatch.test.ts tell an intentional override
+    # apart from a real bundled-version mismatch. Passed via env so the
+    # dispatch input is never interpolated into the shell script.
+    - name: Record expected Pandoc version for the version-mismatch test
+      if: inputs.pandoc-version != ''
+      shell: bash
+      env:
+        PANDOC_VERSION: ${{ inputs.pandoc-version }}
+      run: echo "QUARTO_TEST_EXPECTED_PANDOC=$PANDOC_VERSION" >> "$GITHUB_ENV"
+
+    - name: Confirm Pandoc override is live (Linux, macOS)
+      if: runner.os != 'Windows' && inputs.pandoc-version != ''
       shell: bash
       run: quarto pandoc --version
 
