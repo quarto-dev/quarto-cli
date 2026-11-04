@@ -184,19 +184,21 @@ Handles bibliography rendering:
 - Sets bibliography style from CSL file or bibliography style option
 - Renders bibliography from specified files
 
-### typst.template and template.typst - Dev-Reference Copies Only
+### typst.template and template.typst - Reference Copies
 
-`typst.template` (Pandoc's `default.typst`) and `template.typst` (Pandoc's own `template.typst`, kept under the same name) are **not referenced by any runtime TypeScript code path** — a repo-wide grep for either filename across `src/**/*.ts` returns zero matches. `format-typst.ts` wires up only the `quarto/` partials (see above) as the template context.
+`typst.template` (Pandoc's `default.typst`) and `template.typst` (kept under its original name) are reference copies. `format-typst.ts` uses the `quarto/` template and partials described above for rendering.
 
-These two files exist solely so a maintainer running the Pandoc update process (`writePandocTemplates` in `package/src/common/update-pandoc.ts`) can `git diff` them against a fresh Pandoc checkout to see what changed upstream, then manually port the relevant parts into `quarto/definitions.typ` and friends. They are not a "no custom template" fallback path — don't rely on them actually executing for any user-facing render.
+During a Pandoc update, review their diffs and port relevant changes to `quarto/definitions.typ` and the other Quarto partials. See `dev-docs/update-pandoc-checklist.md` for the regeneration and reference-copy maintenance procedure.
 
 ### Writer-Level Changes vs. Template-Level Changes
 
 Not every user-visible difference between Pandoc versions shows up as a diff in these template files. Some behavior lives in Pandoc's own Haskell **typst writer** — the code that converts the Pandoc AST into typst body markup — and is emitted directly into the rendered body regardless of which template (if any) is used.
 
-Example (verified 2026-07-23, Pandoc 3.10.0 → 3.10.1): the typst writer changed how it emits a `HorizontalRule` AST node, from `#horizontalrule` (calling a symbol the template defines) to `#divider()` (typst's own native function, added in typst 0.15). It also changed term-list (definition list) output from wrapping each description in `#block[...]` to emitting it bare, relying on an external `#set terms(hanging-indent: ...)`. Neither change touched `default.typst`/`template.typst` content in a way that mattered for Quarto: Quarto's `quarto/definitions.typ` keeps its own `#let horizontalrule = ...` (still used internally by `notes.typ`) and its own `#show terms.item` rule (which reformats the description regardless of whether Pandoc pre-wrapped it in `#block[...]`), and since Quarto always bundles a recent typst (0.15.1+) where `divider` is a native `std` builtin, `#divider()` in the body just resolves with no local definition needed.
+For example, Pandoc 3.10.1 changed `HorizontalRule` output from `#horizontalrule` to `#divider()`, a native function added in Typst 0.15. The bundled Typst version is 0.15.1, so this call needs no local definition. Quarto's `quarto/definitions.typ` still defines `horizontalrule` for use by `notes.typ`.
 
-**Implication for future Pandoc bumps**: a clean `data/templates/` diff between two Pandoc versions is necessary but not sufficient evidence that "nothing changed" for typst output. Confirm by actually rendering a document with both Pandoc versions (e.g. via a `QUARTO_PANDOC` env override against the bundled binary) and inspecting the generated `.typ` body content, not just diffing the template files.
+The same release changed definition-list output: descriptions are emitted directly rather than wrapped in `#block[...]`, relying on an external `#set terms(hanging-indent: ...)`. Quarto's `#show terms.item` rule reformats the description in either case. These changes were checked against Pandoc 3.10.0 on 2026-07-23; neither required a template change for Quarto.
+
+When updating Pandoc, render a document with both versions using `QUARTO_PANDOC` and compare the generated `.typ` body content. Template diffs alone do not show changes in writer output.
 
 ## 3. Parameter Summary Table
 

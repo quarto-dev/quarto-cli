@@ -16,4 +16,4 @@ For how Pandoc's LaTeX templates are copied into Quarto and restructured into a 
 
 For the equivalent Typst template integration (`typst.template`, `template.typst`), see `llm-docs/pandoc-quarto-typst-templates.md`.
 
-Every format's `pandoc/` directory has the same split: a dev-reference-only copy of Pandoc's own template (unreferenced by any TypeScript code — kept only so a maintainer can diff it against a fresh Pandoc checkout) alongside Quarto's actual, wired-up template. `dev-docs/update-pandoc-checklist.md` has the full per-format file list (pdf, beamer, html, revealjs, asciidoc, typst) and the naming gotcha that makes the reference-copy file easy to miss when checking what's in a directory.
+When updating Pandoc templates, read `dev-docs/update-pandoc-checklist.md` for the per-format file list, reference-copy maintenance, and filename checks.

@@ -152,7 +152,7 @@ These bypass both Pandoc metadata and Lua filters. The string lands directly in 
 
 From any Pandoc template — built-in (`template.html`, `template.tex`, `typst-template.typ`), extension partial, or custom user template — every localized key is then accessible as:
 
-> **Naming note**: Quarto's actual, rendered templates are `template.html` (HTML), `template.tex` (LaTeX/PDF and Beamer), and `quarto/typst-template.typ` (Typst). The similarly-named `html.template`, `latex.template`, `beamer.template`, `typst.template`, `revealjs.template`, and `asciidoc.template` files elsewhere in these `pandoc/` directories are dev-reference-only copies of Pandoc's own default templates (zero references in `src/**/*.ts` — confirmed via grep), kept solely so a maintainer can diff them against a fresh Pandoc checkout during a version bump. Citations below point at the real, rendered files.
+> **Naming note**: Citations below refer to Quarto's rendering templates: `template.html` (HTML), `template.tex` (LaTeX/PDF and Beamer), and `quarto/typst-template.typ` (Typst). See `dev-docs/update-pandoc-checklist.md` for the corresponding Pandoc reference copies.
 
 ```pandoc
 $quarto.language.<key>$

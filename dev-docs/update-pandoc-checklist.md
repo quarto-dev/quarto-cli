@@ -4,20 +4,22 @@ Updating Pandoc happens in two phases. Phase 1 (prep) needs no S3 access and can
 
 ### Phase 1 - prep (no S3, anyone)
 
-Patch Quarto's wired-up template files and regenerate the dev-reference copies + `src/core/pandoc/format-extension.ts`, then verify rendering - all while `configuration`'s `export PANDOC=` line stays pinned at the currently-archived version, so plain `./configure.sh`/`.cmd` keeps working for everyone else.
+Regenerate the reference copies and `src/core/pandoc/format-extension.ts`, port relevant changes to Quarto's templates, and verify rendering. Keep `configuration`'s `export PANDOC=` line at the archived version so `./configure.sh`/`.cmd` continues to work.
 
-Run the template/variant regeneration with `--skip-archive`, pointing `QUARTO_PANDOC` at a real binary of the target version:
+Run the template/variant regeneration with `--skip-archive`, pointing `QUARTO_PANDOC` at an executable of the target version:
 
 ```bash
 QUARTO_PANDOC=/path/to/pandoc-3.10.1/bin/pandoc \
   ./package/src/quarto-bld update-pandoc 3.10.1 --skip-archive
 ```
 
-`--skip-archive` skips the S3 archival, the `configureDependency` download, and the `configuration` rewrite. It still runs `writePandocTemplates` (regenerates every mapped template + dev-reference copy) and `writeVariants` (regenerates `format-extension.ts`). `QUARTO_PANDOC` is **required** with `--skip-archive`: `writeVariants` shells out to that binary to enumerate formats/extensions, and without the override it would silently regenerate `format-extension.ts` from the old configured Pandoc. The command leaves everything as an uncommitted working-tree diff for you to review and commit yourself; it never commits.
+`--skip-archive` skips S3 archival, the `configureDependency` download, and the `configuration` rewrite. It still runs `writePandocTemplates` to regenerate the mapped template files and `writeVariants` to regenerate `format-extension.ts`.
 
-The regeneration only overwrites the files mapped from Pandoc in `writePandocTemplates`: the dev-reference copies, plus the few partials Quarto's templates include under Pandoc's own name (`fonts.latex`, `hypersetup.latex`, ...). It never reads or writes Quarto's own templates (`template.tex`, `common.latex`, `tables.tex`, `styles.html`, `template.html`, `quarto/*.typ`), so it cannot tell whether an upstream change was ported to them. Use its diff on each reference copy as the list of upstream changes, and check each one against the corresponding Quarto template listed below. A diff limited to `format-extension.ts` is a normal generated change to review. The same applies to the full Phase 2 run.
+`QUARTO_PANDOC` is required: `writeVariants` uses that binary to enumerate formats and extensions. The command checks its version before regenerating files. Review and commit the resulting working-tree diff.
 
-Rendering changes can also be smoke-tested before archival: dispatch `.github/workflows/test-smokes.yml` with the `pandoc-override-version` input set to the new release tag (e.g. `3.10.1`). It downloads that Pandoc release directly from GitHub, points `quarto` at it via `QUARTO_PANDOC` for that run only, and leaves the archived/configured version untouched - no S3 access needed. Scope `buckets` to the relevant smoke-all dirs (e.g. `typst`, `latex`, `table`) for a faster signal.
+`writePandocTemplates` overwrites the reference copies and mapped Pandoc partials such as `fonts.latex` and `hypersetup.latex`. Port relevant changes to Quarto's templates using the [file list below](#pandoc-templates). Review generated changes to `format-extension.ts` as well. The same review applies to the full Phase 2 run.
+
+To smoke-test rendering before archival, dispatch `.github/workflows/test-smokes.yml` with `pandoc-override-version` set to the new release tag (e.g. `3.10.1`). The workflow downloads Pandoc from GitHub and uses it via `QUARTO_PANDOC` for that run, without S3 access. Limit `buckets` to the relevant smoke-all directories (e.g. `typst`, `latex`, `table`) for a faster run.
 
 ### Phase 2 - archival (S3 credential holder, before merge)
 
@@ -29,7 +31,7 @@ Whoever holds S3 write credentials does this last, right before merging:
 - [ ] Look at `git diff`, specifically for changes in Pandoc templates, and adjust as needed. As in Phase 1, a diff on an already-patched file means something was missed.
 - [ ] Run the `create-release.yml` dry-run signing/notarization gate (see `dev-docs/upgrade-dependencies.md`), then merge.
 
-As a reminder, our templates are kept in the same directories as Pandoc's templates, but with different names. `git diff` will show the diff in Pandoc's template; we have to manually patch ours. (We can't just use `patch` because the templates have diverged too much)
+Quarto's templates share directories with the Pandoc reference copies, but use different names. Review the reference-copy diffs and port relevant changes manually; the templates have diverged too much to use `patch`.
 
 ### Pandoc templates
 
@@ -69,9 +71,13 @@ Partials:
 
 #### typst
 
-See `llm-docs/pandoc-quarto-typst-templates.md` - typst has an extra wrinkle where Pandoc's own `template.typst` partial is also kept verbatim (same filename) alongside the renamed `typst.template`.
+Typst keeps Pandoc's `template.typst` partial under its original name alongside the renamed `typst.template`. See `llm-docs/pandoc-quarto-typst-templates.md` for Quarto's partials.
 
-**All of the "Pandoc's" files above are dev-reference-only**: none of them are read by any TypeScript code path (confirmed via `grep -rn "<filename>" src/ --include="*.ts"` returning zero matches for each, across every format listed here). They exist purely so `git diff` against a fresh Pandoc checkout shows what changed upstream - patch the corresponding "Ours" file (or its own sub-partials, e.g. `tables.tex`, `toc.tex`) to actually change rendered behavior, and update the "Pandoc's" copy too so the next resync's diff stays meaningful. It's easy to update one and miss the other (or vice versa) since the filenames differ only by which segment comes first - use an unfiltered `ls`/`Glob **/*` on the directory when checking what's there, not an extension-filtered glob (e.g. `*.latex` silently excludes `latex.common`, which ends in `.common`). Because `writePandocTemplates` (in `package/src/common/update-pandoc.ts`) overwrites every "Pandoc's" copy wholesale on each run, never hand-fix an upstream bug in one of those reference copies - the change would silently vanish on the next resync, and the reference copy must stay byte-identical to upstream so the diff stays meaningful, even when upstream has a typo. Behavioral fixes belong only in the corresponding "Ours" file (or its sub-partials).
+The files labelled "Pandoc's" are reference copies used to review upstream changes. Rendering uses the corresponding "Ours" files and their partials, such as `tables.tex` and `toc.tex`.
+
+- Regenerate reference copies from upstream with `writePandocTemplates`; apply rendering changes to Quarto's templates and partials.
+- Keep reference copies identical to upstream, including any upstream typos. Manual edits are overwritten on regeneration. Fix upstream bugs in Quarto's templates.
+- List the directory without filtering by extension when checking the files: `*.latex` excludes `latex.common`, which ends in `.common`.
 
 ## Manual steps
 

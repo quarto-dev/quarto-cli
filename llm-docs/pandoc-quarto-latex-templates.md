@@ -26,7 +26,7 @@ The `writePandocTemplates` function in `package/src/common/update-pandoc.ts` han
 
 ### Files Copied
 
-**Stale-script warning**: `update-pandoc.ts`'s `templateDirFiles` mapping only lists `default.latex`, `common.latex`, `after-header-includes.latex`, `hypersetup.latex`, `font-settings.latex`, `fonts.latex`, and `passoptions.latex`. It does **not** include `document-metadata.latex` (added later, see below), so the script under-copies relative to what `format-pdf.ts` actually wires up. Don't trust the script's file list as the source of truth — cross-check against `partialNamesPandoc` in `format-pdf.ts` instead.
+The `templateDirFiles` mapping in `update-pandoc.ts` omits `document-metadata.latex`. Check `partialNamesPandoc` in `format-pdf.ts` for the complete list of Pandoc-derived partials.
 
 | Pandoc Source                 | Quarto Destination | Notes                                              |
 | ----------------------------- | ------------------ | -------------------------------------------------- |
@@ -93,7 +93,7 @@ Quarto maintains two versions of the common preamble:
 
 This allows Quarto to selectively override specific parts of the common preamble while maintaining compatibility with Pandoc updates.
 
-**Naming gotcha**: `latex.common` and `common.latex` are two *different* files that happen to share the same two words reversed - `latex.common` is Pandoc's own file (named `common.latex` in Pandoc's own repo, renamed on copy), `common.latex` is Quarto's own, unrelated in content. An extension-filtered glob like `*.latex` will silently miss `latex.common` (it ends in `.common`). When checking whether either file exists or is up to date, list the directory unfiltered rather than filtering by extension.
+Pandoc's `common.latex` is copied as `latex.common`; Quarto maintains its own `common.latex`. See `dev-docs/update-pandoc-checklist.md` for reference-copy maintenance and filename checks.
 
 ### Quarto Partials (\*.tex)
 
@@ -191,7 +191,7 @@ const partialNamesQuarto: string[] = [
   "toc",
 ];
 
-// Pandoc-derived partials (.latex) — since Pandoc 3.6.3
+// Pandoc-derived partials (.latex)
 const partialNamesPandoc: string[] = [
   "after-header-includes",
   "common",
