@@ -21,10 +21,11 @@ _quarto:
           count: 0
       ensureHtmlElements:
         -
-          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1,abc"]'
           - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1, 2"]'
         -
           - 'div[data-code-line-numbers="1,2"][data-code-line-fragment-indices]'
+          - 'div[data-code-line-fragment-indices="1,abc"]'
+          - 'div[data-code-line-fragment-indices="1"]'
     html:
       printsMessage:
         level: INFO

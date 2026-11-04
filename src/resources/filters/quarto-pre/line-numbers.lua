@@ -18,13 +18,14 @@ function line_numbers()
           end
           -- only stepped highlighting in reveal has fragments to index
           if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and isSteppedLineNumbers(lineNumbers) then
-            if not validFragmentIndices(fragmentIndices, lineNumbers) then
+            if validFragmentIndices(fragmentIndices, lineNumbers) then
+              el.attr.attributes[_quarto.modules.constants.kCodeLineFragmentIndices] = fragmentIndices
+            else
               warn(
                 'Ignoring code-line-fragment-indices="' .. fragmentIndices .. '"; expected ' ..
                 countSteps(lineNumbers) .. ' non-negative integers, one for each highlight step after the first.'
               )
             end
-            el.attr.attributes[_quarto.modules.constants.kCodeLineFragmentIndices] = fragmentIndices
           end
         end
         if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and not isSteppedLineNumbers(lineNumbers) then

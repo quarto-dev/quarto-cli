@@ -29,18 +29,18 @@ Second note
 
 ## Mismatch {#mismatch}
 
-```{.r code-line-numbers="|2|3" code-line-fragment-indices="1,2,4"}
-x <- 1
-y <- 2
-z <- 3
+```{=html}
+<div class="sourceCode" data-code-line-numbers="|2|3" data-code-line-fragment-indices="1,2,4"><pre class="sourceCode r"><code class="sourceCode r"><span>x &lt;- 1</span>
+<span>y &lt;- 2</span>
+<span>z &lt;- 3</span></code></pre></div>
 ```
 
 ## Invalid {#invalid}
 
-```{.r code-line-numbers="|2|3" code-line-fragment-indices="1,abc"}
-x <- 1
-y <- 2
-z <- 3
+```{=html}
+<div class="sourceCode" data-code-line-numbers="|2|3" data-code-line-fragment-indices="1,abc"><pre class="sourceCode r"><code class="sourceCode r"><span>x &lt;- 1</span>
+<span>y &lt;- 2</span>
+<span>z &lt;- 3</span></code></pre></div>
 ```
 
 ## Raw {#raw}
