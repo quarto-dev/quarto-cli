@@ -38,15 +38,16 @@ const verifies: Verify[] = [
 ];
 
 if (expectedPandocOverride) {
-  // The override differs from the bundled version on purpose: the note must
-  // appear, naming exactly the requested version (anything else means the
-  // override resolved to the wrong binary).
+  // The binary check sees must report exactly the requested version: as the
+  // strict-mismatch note when it differs from the bundled constraint, or as
+  // the OK line when it equals it (overriding with the current release).
+  // Any other version means the override resolved to the wrong binary.
   verifies.push(
     printsMessage({
       level: "INFO",
       regex: `Pandoc version ${
         normalizePandocVersion(expectedPandocOverride).replaceAll(".", "\\.")
-      } does not strictly match`,
+      }(: OK| does not strictly match)`,
     }),
   );
 } else {

@@ -19,7 +19,7 @@ QUARTO_PANDOC=/path/to/pandoc-3.10.1/bin/pandoc \
 
 `writePandocTemplates` overwrites the reference copies and mapped Pandoc partials such as `fonts.latex` and `hypersetup.latex`. Port relevant changes to Quarto's templates using the [file list below](#pandoc-templates). Review generated changes to `format-extension.ts` as well. The same review applies to the full Phase 2 run.
 
-To smoke-test rendering before archival, dispatch `.github/workflows/test-smokes.yml` with `pandoc-override-version` set to the new release tag (e.g. `3.10.1`). The workflow downloads Pandoc from GitHub and uses it via `QUARTO_PANDOC` for that run, without S3 access. Limit `buckets` to the relevant smoke-all directories (e.g. `typst`, `latex`, `table`) for a faster run. A full-suite run also works: the action exports the requested version as `QUARTO_TEST_EXPECTED_PANDOC`, and the `check versions` smoke test then expects Pandoc's strict-mismatch note for exactly that version instead of failing on it.
+To smoke-test rendering before archival, dispatch `.github/workflows/test-smokes.yml` with `pandoc-override-version` set to the new release tag (e.g. `3.10.1`). The workflow downloads Pandoc from GitHub and uses it via `QUARTO_PANDOC` for that run, without S3 access. Limit `buckets` to the relevant smoke-all directories (e.g. `typst`, `latex`, `table`) for a faster run. A full-suite run also works: the action exports the requested version as `QUARTO_TEST_EXPECTED_PANDOC`, and the `check versions` smoke test then verifies Pandoc reports exactly that version (as the strict-mismatch note, or as OK when it equals the bundled constraint) instead of failing on the note.
 
 ### Phase 2 - archival (S3 credential holder, before merge)
 
