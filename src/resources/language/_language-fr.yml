@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Fil d'Ariane"  # wikidata Q846205
 scrollable-code-label: "Code défilable"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Sortie défilable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(s'ouvre dans un nouvel onglet)"
+
 # Accessible name for the Reveal.js slide menu button (never shown as visible text).
 revealjs-menu-button-label: "Menu des diapositives"
 

@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Yol"       # libreoffice sw 'Path' (attested term
 scrollable-code-label: "Kaydırılabilir kod"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Kaydırılabilir çıktı"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(yeni sekmede açılır)"
+
 revealjs-menu-button-label: "Slayt menüsü"
 
 crossref-fig-title: "Şekil"

@@ -101,6 +101,8 @@ navigation-breadcrumbs-label: "Linkkipolku"  # wikidata Q846205
 scrollable-code-label: "Vieritettävä koodi"      # derived + code-summary — assembled, needs review
 scrollable-output-label: "Vieritettävä tuloste"  # derived + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(avautuu uudelle välilehdelle)"
+
 revealjs-menu-button-label: "Diavalikko"
 
 crossref-fig-title: "Kuva"

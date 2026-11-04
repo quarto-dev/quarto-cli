@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Pot"         # libreoffice sw 'Path' (attested te
 scrollable-code-label: "Drseča koda"     # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Drseči izhod"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(odpre se v novem zavihku)"
+
 
 revealjs-menu-button-label: "Meni diapozitivov"
 

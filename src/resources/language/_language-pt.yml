@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Caminho"           # libreoffice sw 'Path' (attes
 scrollable-code-label: "Código deslocável"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Saída deslocável"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(abre num novo separador)"
+
 revealjs-menu-button-label: "Menu de diapositivos"
 
 crossref-fig-title: "Figura"

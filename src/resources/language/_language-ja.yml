@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "パンくずリスト"  # wikidata Q846205
 scrollable-code-label: "スクロール可能なコード"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "スクロール可能な出力"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "（新しいタブで開きます）"
+
 revealjs-menu-button-label: "スライドメニュー"
 
 crossref-fig-title: "図"

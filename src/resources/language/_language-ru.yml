@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Путь"             # libreoffice sw 'Path' (at
 scrollable-code-label: "Прокручиваемый код"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Прокручиваемый вывод"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(открывается в новой вкладке)"
+
 revealjs-menu-button-label: "Меню слайдов"
 
 crossref-fig-title: "Рисунок"

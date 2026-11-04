@@ -101,6 +101,8 @@ navigation-breadcrumbs-label: "Brødsmuler"  # wikidata Q846205
 scrollable-code-label: "Rullbar kode"       # derived + code-summary — assembled, needs review
 scrollable-output-label: "Rullbare utdata"  # derived + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(åpnes i ny fane)"
+
 revealjs-menu-button-label: "Lysbildemeny"
 
 crossref-fig-title: "Figur"

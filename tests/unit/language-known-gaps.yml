@@ -3,7 +3,7 @@ announcement-dismiss-label: [az, bg, ca, cs, da, de, el, es, eu, fi, fr, he, id,
 code-links-title: [sr-Latn]
 launch-binder-title: [sr-Latn]
 launch-dev-container-title: [sr-Latn]
-link-external-newwindow-label: [az, bg, ca, cs, da, de, es, eu, fi, fr, he, id, is, it, ja, ko, lt, nb, nl, nn, pl, pt, ru, sk, sl, sr-Latn, sv, tr, ua, zh]
+link-external-newwindow-label: [az, bg, de]
 listing-page-field-wordcount: [sr-Latn]
 listing-page-words: [sr-Latn]
 revealjs-menu-button-label: [da, nl]

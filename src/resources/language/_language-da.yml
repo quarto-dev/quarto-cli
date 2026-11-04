@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Sti"        # libreoffice sw 'Path' (no attested 
 scrollable-code-label: "Kode, der kan scrolles"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Output, der kan scrolles"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(åbnes i en ny fane)"
+
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabel"
 crossref-lst-title: "Liste"

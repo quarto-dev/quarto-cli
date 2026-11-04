@@ -98,6 +98,8 @@ navigation-breadcrumbs-label: "Bidea"      # LibreOffice 'Bide-izena' is 'path n
 scrollable-code-label: "Korritu daitekeen kodea"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Korritu daitekeen irteera"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(fitxa berri batean irekitzen da)"
+
 revealjs-menu-button-label: "Diapositiben menua"
 
 crossref-fig-title: "Irudia"
