@@ -68,8 +68,8 @@ unitTest(
         const denoVersionAfter = existsSync(denoVersionFile)
           ? readTextFileSync(denoVersionFile)
           : undefined;
-        // The launcher writes the file on first run, so it may not have
-        // existed before; either way it must hold the configured version.
+        // configure.cmd writes the file after installing Deno; the launcher
+        // must leave it holding the configured version.
         assertEquals(
           denoVersionAfter?.trim(),
           configuredDenoVersion(),
