@@ -16,6 +16,7 @@ All changes included in 1.12:
 ### `quarto preview`
 
 - ([#14783](https://github.com/quarto-dev/quarto-cli/issues/14783)): Fix `quarto preview` ignoring project metadata contributed by an extension, such as `brand`. Contributed project metadata now applies to every command that builds a project context, `quarto inspect` included. (author: @mcanouil)
+- ([#15260](https://github.com/quarto-dev/quarto-cli/issues/15260)): Translate the `link-external-newwindow-label` language key, the new-tab announcement for external links, in Basque, Catalan, Chinese (Simplified and Traditional), Czech, Danish, Dutch, Finnish, French, Hebrew, Icelandic, Indonesian, Italian, Japanese, Korean, Lithuanian, Norwegian Bokmål, Norwegian Nynorsk, Polish, Portuguese, Russian, Serbian (Latin), Slovak, Slovenian, Spanish, Swedish, Turkish and Ukrainian, using reviewed machine translation.
 - ([#15266](https://github.com/quarto-dev/quarto-cli/issues/15266)): Fix `quarto preview` keeping the project metadata an extension contributed at startup, such as `brand`, after its `_extension.yml` changes.
 
 ## Other fixes and improvements
