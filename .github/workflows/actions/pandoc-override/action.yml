@@ -1,5 +1,5 @@
 name: "Pandoc Override"
-description: "Installs an unarchived Pandoc release and points quarto at it via QUARTO_PANDOC, for smoke-testing a version before it has been archived to S3. No-op unless pandoc-version is set - the archived/configured binary is used as normal otherwise."
+description: "Installs a Pandoc release for smoke tests before S3 archival and selects it through QUARTO_PANDOC. If pandoc-version is empty, Quarto uses the configured binary."
 
 inputs:
   pandoc-version:

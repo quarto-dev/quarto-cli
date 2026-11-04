@@ -35,8 +35,6 @@ const verifies: Verify[] = [
 ];
 
 if (expectedPandocOverride) {
-  // Require the requested version, normalized as in check.ts.
-  // Accept OK or a strict-mismatch note.
   verifies.push(
     printsMessage({
       level: "INFO",

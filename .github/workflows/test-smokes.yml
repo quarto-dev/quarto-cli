@@ -72,7 +72,7 @@ on:
         type: string
         default: ""
       pandoc-override-version:
-        description: "Pandoc release tag to download from GitHub and use via QUARTO_PANDOC instead of the archived/configured version (e.g. 3.10.1) - for smoke-testing a version before it has been archived to S3. Leave empty for normal behavior."
+        description: "Pandoc release tag to download from GitHub for smoke tests before S3 archival (e.g. 3.10.1). Quarto selects it through QUARTO_PANDOC. Leave empty to use the configured binary."
         required: false
         type: string
         default: ""

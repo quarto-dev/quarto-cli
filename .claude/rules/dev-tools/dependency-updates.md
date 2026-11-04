@@ -7,4 +7,4 @@ paths:
 
 # Bundled Dependency Updates
 
-Bumping any bundled binary version starts here: see `dev-docs/upgrade-dependencies.md` for the general procedure (version numbers, `check.ts` constraints, the installer signing/notarization dry-run gate before merging). For Pandoc specifically, `dev-docs/upgrade-dependencies.md` links to `dev-docs/update-pandoc-checklist.md` (template resync, schema/lua-types checks, CI smoke-test path).
+When updating a bundled binary, follow `dev-docs/upgrade-dependencies.md`. For Pandoc, also follow `dev-docs/update-pandoc-checklist.md`.
