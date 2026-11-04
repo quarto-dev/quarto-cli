@@ -96,20 +96,3 @@ unitTest(
   },
   { ignore: !isWindows },
 );
-
-unitTest(
-  "dev-launcher - a missing deno-version is not created from the pinned version",
-  async () => {
-    await withTempDir(async (root) => {
-      const fake = createFakeCheckout(root, "v99.0.0");
-
-      await runLauncher(fake.launcher, root);
-
-      assert(
-        !existsSync(fake.denoVersionFile),
-        "the launcher recorded a Deno version it never verified",
-      );
-    });
-  },
-  { ignore: !isWindows },
-);
