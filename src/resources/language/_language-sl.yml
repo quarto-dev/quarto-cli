@@ -102,6 +102,8 @@ scrollable-output-label: "Drseči izhod"  # firefox devtools + libreoffice dbacc
 
 link-external-newwindow-label: "(odpre se v novem zavihku)"
 
+announcement-dismiss-label: "Zapri obvestilo"
+
 
 revealjs-menu-button-label: "Meni diapozitivov"
 

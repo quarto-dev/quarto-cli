@@ -102,6 +102,8 @@ scrollable-output-label: "可滚动的输出"  # firefox devtools + gnome contro
 
 link-external-newwindow-label: "（在新标签页中打开）"
 
+announcement-dismiss-label: "关闭公告"
+
 revealjs-menu-button-label: "幻灯片菜单"
 
 crossref-fig-title: "图"

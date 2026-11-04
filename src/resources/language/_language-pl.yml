@@ -102,6 +102,8 @@ scrollable-output-label: "Przewijane wyjście"  # firefox devtools + libreoffice
 
 link-external-newwindow-label: "(otwiera się w nowej karcie)"
 
+announcement-dismiss-label: "Zamknij komunikat"
+
 revealjs-menu-button-label: "Menu slajdów"
 
 crossref-fig-title: "Rysunek"

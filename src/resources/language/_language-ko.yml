@@ -101,6 +101,8 @@ scrollable-output-label: "스크롤 가능한 출력"  # firefox devtools + libr
 
 link-external-newwindow-label: "(새 탭에서 열립니다)"
 
+announcement-dismiss-label: "공지 닫기"
+
 revealjs-menu-button-label: "슬라이드 메뉴"
 
 crossref-fig-title: "그림"

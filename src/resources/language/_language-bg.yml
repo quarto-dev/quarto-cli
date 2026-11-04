@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Път"              # libreoffice sw 'Path' (no 
 scrollable-code-label: "Код с прелистване"         # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Резултат с прелистване"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+announcement-dismiss-label: "Затвори съобщението"
+
 revealjs-menu-button-label: "Меню на слайдовете"
 
 crossref-fig-title: "Фигура"

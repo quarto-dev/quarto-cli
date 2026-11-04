@@ -102,6 +102,8 @@ scrollable-output-label: "Uscita scorrevole"  # firefox devtools + gnome control
 
 link-external-newwindow-label: "(si apre in una nuova scheda)"
 
+announcement-dismiss-label: "Chiudi l'annuncio"
+
 revealjs-menu-button-label: "Menu delle diapositive"
 
 crossref-fig-title: "Figura"

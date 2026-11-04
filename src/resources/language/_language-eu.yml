@@ -100,6 +100,8 @@ scrollable-output-label: "Korritu daitekeen irteera"  # firefox devtools + libre
 
 link-external-newwindow-label: "(fitxa berri batean irekitzen da)"
 
+announcement-dismiss-label: "Itxi oharra"
+
 revealjs-menu-button-label: "Diapositiben menua"
 
 crossref-fig-title: "Irudia"

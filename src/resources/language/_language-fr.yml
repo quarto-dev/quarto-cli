@@ -102,6 +102,8 @@ scrollable-output-label: "Sortie défilable"  # firefox devtools + libreoffice d
 
 link-external-newwindow-label: "(s'ouvre dans un nouvel onglet)"
 
+announcement-dismiss-label: "Fermer l'annonce"
+
 # Accessible name for the Reveal.js slide menu button (never shown as visible text).
 revealjs-menu-button-label: "Menu des diapositives"
 

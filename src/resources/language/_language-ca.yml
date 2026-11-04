@@ -102,6 +102,8 @@ scrollable-output-label: "Sortida desplaçable"  # firefox devtools + libreoffic
 
 link-external-newwindow-label: "(s'obre en una pestanya nova)"
 
+announcement-dismiss-label: "Tanca l'avís"
+
 revealjs-menu-button-label: "Menú de diapositives"
 
 crossref-fig-title: "Figura"

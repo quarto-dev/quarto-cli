@@ -102,6 +102,8 @@ scrollable-output-label: "Scrollbare uitvoer"  # firefox devtools + gnome contro
 
 link-external-newwindow-label: "(opent in een nieuw tabblad)"
 
+announcement-dismiss-label: "Mededeling sluiten"
+
 crossref-fig-title: "Figuur"
 crossref-tbl-title: "Tabel"
 crossref-lst-title: "Listing"
