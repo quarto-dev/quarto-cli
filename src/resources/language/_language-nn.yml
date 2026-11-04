@@ -101,6 +101,8 @@ navigation-breadcrumbs-label: "Sti"       # libreoffice sw 'Path' (no attested t
 scrollable-code-label: "Rullbar kode"       # derived + code-summary — assembled, needs review
 scrollable-output-label: "Rullbare utdata"  # derived + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(opnast i ny fane)"
+
 revealjs-menu-button-label: "Lysbiletmeny"
 
 crossref-fig-title: "Figur"
