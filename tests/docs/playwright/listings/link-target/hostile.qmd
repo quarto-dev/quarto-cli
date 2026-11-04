@@ -1,0 +1,14 @@
+---
+title: "Link target - hostile"
+listing:
+  id: hostile-listing
+  type: default
+  contents:
+    - path: https://example.com/a
+      title: "Item A"
+      description: "Hostile target."
+      target: '_blank" onmouseover="x'
+---
+
+::: {#hostile-listing}
+:::

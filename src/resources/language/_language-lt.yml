@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Kelias"         # gnome gtk lt; LibreOffice has '
 scrollable-code-label: "Slenkamas kodas"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Slenkama išvestis"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(atsidaro naujame skirtuke)"
+
 revealjs-menu-button-label: "Skaidrių meniu"
 
 crossref-fig-title: "Paveikslas"

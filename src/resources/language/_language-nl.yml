@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Pad"   # libreoffice sw 'Path' (attested term hol
 scrollable-code-label: "Scrollbare code"       # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Scrollbare uitvoer"  # firefox devtools + gnome control-center — assembled, needs review
 
+link-external-newwindow-label: "(opent in een nieuw tabblad)"
+
 crossref-fig-title: "Figuur"
 crossref-tbl-title: "Tabel"
 crossref-lst-title: "Listing"

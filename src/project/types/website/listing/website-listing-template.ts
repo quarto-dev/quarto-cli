@@ -31,8 +31,10 @@ import {
   kMaxDescLength,
   kMaxItems,
   kPageSize,
+  kRel,
   kSortAsc,
   kSortDesc,
+  kTarget,
   Listing,
   ListingItem,
   ListingSort,
@@ -311,6 +313,8 @@ export interface ReshapedListing extends Listing {
   utilities: Record<string, unknown>;
 }
 
+const kSameContextTargets = ["_self", "_parent", "_top"];
+
 // Options may also need computation / resolution before being handed
 // off to the template. This function will do any computation on the options
 // so they're ready for the template
@@ -394,6 +398,19 @@ export function reshapeListing(
   utilities.fieldName = (field: string) => {
     return reshaped[kFieldDisplayNames][field] || field;
   };
+  const targetAttrs = (item: ListingItem) => {
+    const asValue = (value: unknown) =>
+      typeof value === "string" && value !== "" ? value : undefined;
+    const target = asValue(item[kTarget]) ?? asValue(listing[kTarget]);
+    const explicitRel = asValue(item[kRel]) ?? asValue(listing[kRel]);
+    const rel = explicitRel ??
+      (target && !kSameContextTargets.includes(target.toLowerCase())
+        ? "noopener"
+        : undefined);
+    return (target ? ` target="${encodeAttributeValue(target)}"` : "") +
+      (rel ? ` rel="${encodeAttributeValue(rel)}"` : "");
+  };
+  utilities.targetAttrs = targetAttrs;
   utilities.outputLink = (
     item: ListingItem,
     field: string,
@@ -404,9 +421,9 @@ export function reshapeListing(
     const value = val || item[field] || "&nbsp;";
     const path = item.path;
     if (path && value !== undefined && fieldLinks.includes(field)) {
-      return `<a href="${path}" class="${field}${
-        clz ? ` ${clz}` : ""
-      }">${value}</a>`;
+      return `<a href="${encodeAttributeValue(path)}"${
+        targetAttrs(item)
+      } class="${field}${clz ? ` ${clz}` : ""}">${value}</a>`;
     } else {
       if (clz) {
         return `<span class="${clz}">${value}</span>`;

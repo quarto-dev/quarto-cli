@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Okruszki chleba"  # wikidata Q846205
 scrollable-code-label: "Przewijany kod"        # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Przewijane wyjście"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(otwiera się w nowej karcie)"
+
 revealjs-menu-button-label: "Menu slajdów"
 
 crossref-fig-title: "Rysunek"

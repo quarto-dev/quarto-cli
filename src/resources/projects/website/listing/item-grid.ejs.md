@@ -33,14 +33,14 @@ const itemNumber = listing.utilities.itemNumber();
 
 // Fields that should be bucketized into the general listing at the bottom
 const otherFields = fields.filter(field => {
-return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "filename", "file-modified", "reading-time", "categories"].includes(field);
+return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "filename", "file-modified", "reading-time", "categories", "target", "rel"].includes(field);
 });
 %>
 
 ::: {.g-col-1 <%= listing.utilities.metadataAttrs(item) %> }
 
 ```{=html}
-<a href="<%- item.path %>" class="quarto-grid-link no-external-icon">
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link no-external-icon">
 <div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 

@@ -26,6 +26,9 @@ return false;
 const hoverCls = listing['table-hover'] ? " table-hover" : "";
 const onclick = (item) => {
 if (listing['table-hover']) {
+if (listing.utilities.targetAttrs(item) !== "") {
+return ` onclick="if (event.target.closest('a')) return; const a = this.querySelector('a'); if (a) { a.click(); return false; }"`;
+}
 return ` onclick="href = this.querySelector('a').getAttribute('href');\n if (href) { window.location=href ; return false; }"`;
 } else {
 return "";

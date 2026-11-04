@@ -100,6 +100,8 @@ navigation-breadcrumbs-label: "Cesta"       # libreoffice sw 'Path' (attested te
 scrollable-code-label: "Rolovatelný kód"       # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Rolovatelný výstup"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(otevře se v nové záložce)"
+
 revealjs-menu-button-label: "Menu snímků"
 
 crossref-fig-title: "Obrázek"

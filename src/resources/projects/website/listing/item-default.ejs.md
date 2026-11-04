@@ -8,7 +8,7 @@ const imageHeight = listing['image-height'];
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
-return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "reading-time", "categories"].includes(field);
+return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "reading-time", "categories", "target", "rel"].includes(field);
 });
 
 // Capture the item number for utility functions that need it
@@ -54,7 +54,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (fields.includes('image')) { %>
 
 ```{=html}
-<div class="thumbnail"><a href="<%- item.path %>" class="no-external-icon"<%= !item.image && !item.outputHref ? ' aria-hidden="true" tabindex="-1"' : '' %>>
+<div class="thumbnail"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon"<%= !item.image && !item.outputHref ? ' aria-hidden="true" tabindex="-1"' : '' %>>
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } else { %>
@@ -68,9 +68,9 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 ::: {.body}
 
 <% if (fields.includes('title')) { %>
-<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external-icon"><%= item.title %></a></h3>
+<h3 class="no-anchor listing-title"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon"><%= item.title %></a></h3>
 <% if (fields.includes('subtitle') && hasText(item.subtitle)) { %>
-<div class="listing-subtitle"><a href="<%- item.path %>" class="no-external-icon"><%= item.subtitle %></a></div>
+<div class="listing-subtitle"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon"><%= item.subtitle %></a></div>
 <% } %>
 <% } %>
 
@@ -91,7 +91,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 ::: {.delink .listing-description}
 
 ```{=html}
-<a href="<%- item.path %>" class="no-external-icon">
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon">
 ```
 
 <%= item.description %>
@@ -111,7 +111,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (hasMetadata(item)) { %>
 
 ```{=html}
-<a href="<%- item.path %>" class="no-external-icon">
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon">
 ```
 
 <% } %>

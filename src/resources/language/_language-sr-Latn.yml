@@ -97,6 +97,8 @@ navigation-breadcrumbs-label: "Putanja"  # libreoffice sw 'Path' (no attested te
 scrollable-code-label: "Kod sa pomeranjem"      # derived + code-summary — assembled, needs review
 scrollable-output-label: "Izlaz sa pomeranjem"  # derived + gnome control-center — assembled, needs review
 
+link-external-newwindow-label: "(otvara se u novom jezičku)"
+
 revealjs-menu-button-label: "Meni slajdova"
 
 crossref-fig-title: "Figura"

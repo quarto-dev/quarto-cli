@@ -15,10 +15,7 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
-import {
-  existsSync,
-  safeExistsFileSync,
-} from "../../../../deno_ral/fs.ts";
+import { existsSync, safeExistsFileSync } from "../../../../deno_ral/fs.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
@@ -72,11 +69,13 @@ import {
   kListing,
   kMaxDescLength,
   kPageSize,
+  kRel,
   kSortAsc,
   kSortDesc,
   kSortUi,
   kTableHover,
   kTableStriped,
+  kTarget,
   Listing,
   ListingDehydrated,
   ListingDescriptor,
@@ -600,7 +599,7 @@ function hydrateListing(
       // If the items have come from metadata, we should just show
       // all the columns in the table. Otherwise, we should use the
       // document default columns
-      const undisplayable = ["path"];
+      const undisplayable = ["path", kTarget, kRel];
       return itemFields.filter((field) => {
         return !undisplayable.includes(field);
       });

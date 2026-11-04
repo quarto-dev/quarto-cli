@@ -11002,6 +11002,16 @@ var init_yaml_intelligence_resources = __esm({
               exclude: {
                 maybeArrayOf: "object",
                 description: "Items with matching field values will be excluded from the listing."
+              },
+              rel: {
+                string: {
+                  description: "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor details.\n"
+                }
+              },
+              target: {
+                string: {
+                  description: "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
+                }
               }
             }
           }
@@ -11015,7 +11025,17 @@ var init_yaml_intelligence_resources = __esm({
               },
               date: "string",
               title: "string",
-              subtitle: "string"
+              subtitle: "string",
+              rel: {
+                string: {
+                  description: "Value for rel attribute. Multiple space-separated values are permitted.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel>\nfor details.\n"
+                }
+              },
+              target: {
+                string: {
+                  description: "Value for target attribute.\nSee <https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target>\nfor details.\n"
+                }
+              }
             }
           }
         },
@@ -22790,6 +22810,10 @@ var init_yaml_intelligence_resources = __esm({
         },
         "Items with matching field values will be included in the listing.",
         "Items with matching field values will be excluded from the\nlisting.",
+        'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor details.',
+        'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
+        'Value for rel attribute. Multiple space-separated values are\npermitted. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel</a>\nfor details.',
+        'Value for target attribute. See <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target" class="uri">https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-target</a>\nfor details.',
         "The year",
         "The month",
         "The day",
@@ -25824,12 +25848,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 221299,
+        _internalId: 221307,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 221291,
+            _internalId: 221299,
             type: "enum",
             enum: [
               "png",
@@ -25845,7 +25869,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 221298,
+            _internalId: 221306,
             type: "anyOf",
             anyOf: [
               {
