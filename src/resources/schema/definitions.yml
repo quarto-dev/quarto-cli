@@ -1605,6 +1605,8 @@
       listing-page-minutes-compact: string
       listing-page-category-all: string
       listing-page-no-matches: string
+      listing-page-pagination: string
+      listing-page-number: string
       listing-page-words: string
       listing-page-filter: string
       draft: string
@@ -1760,6 +1762,24 @@
               - `numbered`: Category list with number of items
               - `unnumbered`: Category list
               - `cloud`: Word cloud style categories
+      pagination:
+        object:
+          closed: true
+          properties:
+            inner-window:
+              number:
+                description: "The number of page links to show on each side of the current page (whole number, 1 or more). Applies only when the listing has more items than `page-size`."
+                default: 2
+            outer-window:
+              number:
+                description: "The number of page links to show at the start and at the end of the pagination control (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
+                default: 0
+            outer-window-left:
+              number:
+                description: "The number of page links to show at the start of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
+            outer-window-right:
+              number:
+                description: "The number of page links to show at the end of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
 
       feed:
         anyOf:

@@ -860,6 +860,8 @@ export const ZodFormatLanguage = z.object({
   "listing-page-minutes-compact": z.string(),
   "listing-page-category-all": z.string(),
   "listing-page-no-matches": z.string(),
+  "listing-page-pagination": z.string(),
+  "listing-page-number": z.string(),
   "listing-page-words": z.string(),
   "listing-page-filter": z.string(),
   draft: z.string(),
@@ -897,6 +899,12 @@ export const ZodWebsiteListing = z.object({
     z.boolean(),
     z.enum(["numbered", "unnumbered", "cloud"] as const),
   ]),
+  pagination: z.object({
+    "inner-window": z.number(),
+    "outer-window": z.number(),
+    "outer-window-left": z.number(),
+    "outer-window-right": z.number(),
+  }).strict().partial(),
   feed: z.union([
     z.boolean(),
     z.object({

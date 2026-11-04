@@ -69,9 +69,14 @@ import {
   kImageLazyLoading,
   kImagePlaceholder,
   kInclude,
+  kInnerWindow,
+  kLeftOuterWindow,
   kListing,
   kMaxDescLength,
+  kOuterWindow,
   kPageSize,
+  kPaginationOptions,
+  kRightOuterWindow,
   kSortAsc,
   kSortDesc,
   kSortUi,
@@ -86,6 +91,7 @@ import {
   ListingSharedOptions,
   ListingSort,
   ListingType,
+  PaginationOptions,
   PreviewImage,
   renderedContentReader,
 } from "./website-listing-shared.ts";
@@ -150,6 +156,45 @@ const kDefaultFields = [
   kFieldImage,
   kFieldDescription,
 ];
+
+const kPaginationMinimums: Record<keyof PaginationOptions, number> = {
+  [kInnerWindow]: 1,
+  [kOuterWindow]: 0,
+  [kLeftOuterWindow]: 0,
+  [kRightOuterWindow]: 0,
+};
+
+// Keeps the pagination options that are whole numbers at or above their
+// minimum; warns about and drops the others.
+export function resolvePaginationOptions(
+  listingId: string,
+  raw: unknown,
+): PaginationOptions | undefined {
+  if (raw === undefined) {
+    return undefined;
+  }
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+    warning(
+      `Listing '${listingId}': pagination must be an object with inner-window, outer-window, outer-window-left or outer-window-right, got '${raw}'. The option is ignored.`,
+    );
+    return undefined;
+  }
+  const resolved: PaginationOptions = {};
+  for (const [key, min] of Object.entries(kPaginationMinimums)) {
+    const value = (raw as Record<string, unknown>)[key];
+    if (value === undefined) {
+      continue;
+    }
+    if (typeof value === "number" && Number.isInteger(value) && value >= min) {
+      resolved[key as keyof PaginationOptions] = value;
+    } else {
+      warning(
+        `Listing '${listingId}': pagination option '${key}' must be a whole number of ${min} or more, got '${value}'. The option is ignored.`,
+      );
+    }
+  }
+  return Object.keys(resolved).length > 0 ? resolved : undefined;
+}
 
 const defaultFieldDisplayNames = (format: Format) => {
   return {
@@ -670,6 +715,11 @@ function hydrateListing(
       : listing.type === ListingType.Table,
     ...listing,
   });
+
+  listingHydrated[kPaginationOptions] = resolvePaginationOptions(
+    listingHydrated.id,
+    listing[kPaginationOptions],
+  );
 
   // Apply a default sort if the title field is present and the sources contain documents
   const sort: ListingSort[] | undefined = hydratedFields.includes(kFieldTitle)

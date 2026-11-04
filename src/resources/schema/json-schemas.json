@@ -2162,6 +2162,12 @@
           "listing-page-no-matches": {
             "type": "string"
           },
+          "listing-page-pagination": {
+            "type": "string"
+          },
+          "listing-page-number": {
+            "type": "string"
+          },
           "listing-page-words": {
             "type": "string"
           },
@@ -2330,6 +2336,24 @@
                 ]
               }
             ]
+          },
+          "pagination": {
+            "object": {
+              "properties": {
+                "inner-window": {
+                  "type": "number"
+                },
+                "outer-window": {
+                  "type": "number"
+                },
+                "outer-window-left": {
+                  "type": "number"
+                },
+                "outer-window-right": {
+                  "type": "number"
+                }
+              }
+            }
           },
           "feed": {
             "anyOf": [

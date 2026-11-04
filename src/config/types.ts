@@ -143,12 +143,14 @@ import {
   kListingPageFilter,
   kListingPageMinutesCompact,
   kListingPageNoMatches,
+  kListingPageNumber,
   kListingPageOrderBy,
   kListingPageOrderByDateAsc,
   kListingPageOrderByDateDesc,
   kListingPageOrderByDefault,
   kListingPageOrderByNumberAsc,
   kListingPageOrderByNumberDesc,
+  kListingPagePagination,
   kListingPageWords,
   kListings,
   kManuscriptMecaBundle,
@@ -770,6 +772,8 @@ export interface FormatLanguage {
   [kListingPageWords]?: string;
   [kListingPageCategoryAll]?: string;
   [kListingPageNoMatches]?: string;
+  [kListingPagePagination]?: string;
+  [kListingPageNumber]?: string;
   [kNotebookPreviewDownload]?: string;
   [kNotebookPreviewDownloadSrc]?: string;
   [kNotebookPreviewBack]?: string;

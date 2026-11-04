@@ -177,6 +177,13 @@ listing-page-field-categories: "Categories"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
+# Accessible name for the pagination landmark of a listing (never shown as visible text).
+# It names the group of page links that moves between pages of listing results, not a web page.
+# Follow the landmark label rules above: do not include the word "navigation", and use a noun.
+listing-page-pagination: "Pagination"
+# Accessible name for each numbered page link of a paginated listing (never shown as visible text); the link itself shows only the number.
+# "Page" means a page of listing results, not a web page. {0} is the page number and must be kept.
+listing-page-number: "Page {0}"
 # Word count shown per item in a listing, e.g. "1,234 words"; {0} is the formatted number.
 # A single string serves every count; pick the plural form that reads best for large numbers.
 listing-page-words: "{0} words"

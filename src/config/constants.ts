@@ -387,6 +387,8 @@ export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageWords = "listing-page-words";
 export const kListingPageCategoryAll = "listing-page-category-all";
 export const kListingPageNoMatches = "listing-page-no-matches";
+export const kListingPagePagination = "listing-page-pagination";
+export const kListingPageNumber = "listing-page-number";
 export const kNotebookPreviewDownload = "notebook-preview-download";
 export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
 export const kNotebookPreviewBack = "notebook-preview-back";
@@ -524,6 +526,8 @@ export const kLanguageDefaultsKeys = [
   kListingPageWords,
   kListingPageCategoryAll,
   kListingPageNoMatches,
+  kListingPagePagination,
+  kListingPageNumber,
   kTitleBlockAuthorSingle,
   kTitleBlockAuthorPlural,
   kTitleBlockAffiliationSingle,

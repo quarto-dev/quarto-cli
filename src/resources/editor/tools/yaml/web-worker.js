@@ -10605,6 +10605,8 @@ try {
                 "listing-page-minutes-compact": "string",
                 "listing-page-category-all": "string",
                 "listing-page-no-matches": "string",
+                "listing-page-pagination": "string",
+                "listing-page-number": "string",
                 "listing-page-words": "string",
                 "listing-page-filter": "string",
                 draft: "string"
@@ -10787,6 +10789,35 @@ try {
                   description: {
                     short: "Display item categories from this listing in the margin of the page.",
                     long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
+                  }
+                },
+                pagination: {
+                  object: {
+                    closed: true,
+                    properties: {
+                      "inner-window": {
+                        number: {
+                          description: "The number of page links to show on each side of the current page (whole number, 1 or more). Applies only when the listing has more items than `page-size`.",
+                          default: 2
+                        }
+                      },
+                      "outer-window": {
+                        number: {
+                          description: "The number of page links to show at the start and at the end of the pagination control (whole number, 0 or more). Applies only when the listing has more items than `page-size`.",
+                          default: 0
+                        }
+                      },
+                      "outer-window-left": {
+                        number: {
+                          description: "The number of page links to show at the start of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
+                        }
+                      },
+                      "outer-window-right": {
+                        number: {
+                          description: "The number of page links to show at the end of the pagination control, overriding `outer-window` for that side (whole number, 0 or more). Applies only when the listing has more items than `page-size`."
+                        }
+                      }
+                    }
                   }
                 },
                 feed: {
@@ -22704,6 +22735,10 @@ try {
             short: "Display item categories from this listing in the margin of the\npage.",
             long: "Display item categories from this listing in the margin of the\npage."
           },
+          "The number of page links to show on each side of the current page\n(whole number, 1 or more). Applies only when the listing has more items\nthan <code>page-size</code>.",
+          "The number of page links to show at the start and at the end of the\npagination control (whole number, 0 or more). Applies only when the\nlisting has more items than <code>page-size</code>.",
+          "The number of page links to show at the start of the pagination\ncontrol, overriding <code>outer-window</code> for that side (whole\nnumber, 0 or more). Applies only when the listing has more items than\n<code>page-size</code>.",
+          "The number of page links to show at the end of the pagination\ncontrol, overriding <code>outer-window</code> for that side (whole\nnumber, 0 or more). Applies only when the listing has more items than\n<code>page-size</code>.",
           "Enables an RSS feed for the listing.",
           "The number of items to include in your feed. Defaults to 20.",
           {
@@ -25825,12 +25860,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221299,
+          _internalId: 221314,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221291,
+              _internalId: 221306,
               type: "enum",
               enum: [
                 "png",
@@ -25846,7 +25881,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221298,
+              _internalId: 221313,
               type: "anyOf",
               anyOf: [
                 {

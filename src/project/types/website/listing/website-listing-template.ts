@@ -28,9 +28,14 @@ import {
   kFieldSort,
   kFieldTypes,
   kImageHeight,
+  kInnerWindow,
+  kLeftOuterWindow,
   kMaxDescLength,
   kMaxItems,
+  kOuterWindow,
   kPageSize,
+  kPaginationOptions,
+  kRightOuterWindow,
   kSortAsc,
   kSortDesc,
   Listing,
@@ -524,13 +529,29 @@ export function templateJsScript(
   itemCount: number,
 ) {
   const pageSize = listing[kPageSize] as number || 50;
+  const listingPaginationOptions = listing[kPaginationOptions] || {};
 
   // If columns are present, factor that in
   const columns = listing[kFields] as string[] || [];
 
+  // list.js reads `left || outerWindow`, so a side of 0 cannot override
+  // outerWindow; both sides are resolved here and outerWindow is never emitted.
+  const outerWindow = listingPaginationOptions[kOuterWindow];
+  const left = listingPaginationOptions[kLeftOuterWindow] ?? outerWindow;
+  const right = listingPaginationOptions[kRightOuterWindow] ?? outerWindow;
+  const innerWindow = listingPaginationOptions[kInnerWindow];
+  const paginationOptions = [
+    innerWindow !== undefined ? `innerWindow: ${innerWindow}` : "",
+    left !== undefined ? `left: ${left}` : "",
+    right !== undefined ? `right: ${right}` : "",
+    "item: \"<li class='page-item'><a class='page page-link' href='#'></a></li>\"",
+  ]
+    .filter((v) => v !== "")
+    .join(", ");
+
   const pageOptions = itemCount > pageSize
     ? `${pageSize ? `page: ${pageSize}` : ""},
-    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },`
+    pagination: { ${paginationOptions} },`
     : "";
 
   const filterOptions = `searchColumns: [${

@@ -1,0 +1,15 @@
+---
+title: Pagination Warning Test
+listing:
+  id: warned
+  contents: posts
+  type: default
+  page-size: 1
+  sort: title
+  pagination:
+    inner-window: 0
+    outer-window: 1
+---
+
+::: {#warned}
+:::
