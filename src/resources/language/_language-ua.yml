@@ -102,6 +102,8 @@ scrollable-output-label: "Вивід, що прокручується"  # firefo
 
 link-external-newwindow-label: "(відкривається в новій вкладці)"
 
+announcement-dismiss-label: "Закрити оголошення"
+
 revealjs-menu-button-label: "Меню слайдів"
 
 crossref-fig-title: "Рисунок"

@@ -102,6 +102,8 @@ scrollable-output-label: "Rullbara utdata"  # firefox devtools + libreoffice sw 
 
 link-external-newwindow-label: "(öppnas i en ny flik)"
 
+announcement-dismiss-label: "Stäng meddelandet"
+
 revealjs-menu-button-label: "Bildmeny"
 
 crossref-fig-title: "Figur"

@@ -1,5 +1,5 @@
 # <key>: [<lang>, ...]   languages whose translation of <key> is still missing (languages sorted)
-announcement-dismiss-label: [ca, cs, da, el, eu, nb, nn, pl, sr-Latn, sv, ua]
+announcement-dismiss-label: [da, el, nb]
 code-links-title: [sr-Latn]
 launch-binder-title: [sr-Latn]
 launch-dev-container-title: [sr-Latn]

@@ -103,6 +103,8 @@ scrollable-output-label: "Rullbare utdata"  # derived + libreoffice dbaccess —
 
 link-external-newwindow-label: "(opnast i ny fane)"
 
+announcement-dismiss-label: "Lukk kunngjeringa"
+
 revealjs-menu-button-label: "Lysbiletmeny"
 
 crossref-fig-title: "Figur"

@@ -102,6 +102,8 @@ scrollable-output-label: "Rolovatelný výstup"  # firefox devtools + libreoffic
 
 link-external-newwindow-label: "(otevře se v nové záložce)"
 
+announcement-dismiss-label: "Zavřít oznámení"
+
 revealjs-menu-button-label: "Menu snímků"
 
 crossref-fig-title: "Obrázek"
