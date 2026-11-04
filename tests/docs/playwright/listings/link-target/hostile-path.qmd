@@ -1,0 +1,14 @@
+---
+title: "Link target - hostile path"
+listing:
+  id: hostile-path-listing
+  type: table
+  contents:
+    - path: 'https://example.com/" onmouseover="x'
+      title: "Item A"
+      target: _blank
+  fields: [title]
+---
+
+::: {#hostile-path-listing}
+:::

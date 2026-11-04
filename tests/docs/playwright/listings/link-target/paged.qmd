@@ -1,0 +1,19 @@
+---
+title: "Link target - paged"
+listing:
+  id: paged-listing
+  type: default
+  page-size: 1
+  target: _blank
+  sort: "title asc"
+  contents:
+    - path: https://example.com/a
+      title: "Item A"
+      description: "First external item."
+    - path: https://example.com/b
+      title: "Item B"
+      description: "Second external item."
+---
+
+::: {#paged-listing}
+:::

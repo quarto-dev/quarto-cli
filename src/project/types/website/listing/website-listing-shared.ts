@@ -90,6 +90,10 @@ export const kDefaultMaxDescLength = 175;
 export const kTableStriped = "table-striped";
 export const kTableHover = "table-hover";
 
+// Link attributes
+export const kTarget = "target";
+export const kRel = "rel";
+
 // Items to include
 export const kInclude = "include";
 export const kExclude = "exclude";
@@ -173,6 +177,8 @@ export interface Listing extends ListingDehydrated {
   [kFilterUi]: boolean;
   [kSortUi]: boolean;
   [kImagePlaceholder]?: string;
+  [kTarget]?: string;
+  [kRel]?: string;
 
   sort?: ListingSort[];
   template?: string;
@@ -216,6 +222,8 @@ export interface ListingItem extends Record<string, unknown> {
   image?: string;
   [kImageAlt]?: string;
   [kImageLazyLoading]?: boolean;
+  [kTarget]?: string;
+  [kRel]?: string;
   path?: string;
   filename?: string;
   [kFieldFileModified]?: Date;
