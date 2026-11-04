@@ -14,6 +14,10 @@ All changes included in 1.12:
 
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics. Their body is now upright, like definitions, examples and exercises. (author: @mcanouil)
 
+### `revealjs`
+
+- ([#7378](https://github.com/quarto-dev/quarto-cli/issues/7378)): Add `code-line-fragment-indices` to set the fragment index of each step of stepped `code-line-numbers` highlighting. (author: @mcanouil)
+
 ### `typst`
 
 - ([#15168](https://github.com/quarto-dev/quarto-cli/issues/15168)): Fix definitions, examples and exercises being set in italics in Typst output with the default `theorem-appearance: simple`. Their body is now upright, as in LaTeX output, while theorems, lemmas, corollaries, propositions and conjectures keep an italic body. (author: @mcanouil)
