@@ -4,7 +4,7 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
-import { assertEquals } from "testing/asserts";
+import { assertEquals } from "../../asserts.ts";
 import { unitTest } from "../../test.ts";
 import { encodeAttributeValue } from "../../../src/core/html.ts";
 
