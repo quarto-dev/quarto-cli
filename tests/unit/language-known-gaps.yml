@@ -1,12 +1,6 @@
 # <key>: [<lang>, ...]   languages whose translation of <key> is still missing (languages sorted)
 announcement-dismiss-label: [da, el, nb]
-code-links-title: [sr-Latn]
-launch-binder-title: [sr-Latn]
-launch-dev-container-title: [sr-Latn]
 link-external-newwindow-label: [az, bg, de]
-listing-page-field-wordcount: [sr-Latn]
-listing-page-words: [sr-Latn]
 revealjs-menu-button-label: [da, nl]
 skip-to-content: [eu, is]
-title-block-modified: [ko]
 tools-download: [sr-Latn]
