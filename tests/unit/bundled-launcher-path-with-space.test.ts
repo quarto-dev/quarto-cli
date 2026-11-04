@@ -67,11 +67,14 @@ unitTest(
         const argsLine = stdout.split(/\r?\n/).find((line) =>
           line.startsWith("ARGS=")
         );
+        const details =
+          `(exit ${result.code})\nstdout:\n${stdout}\nstderr:\n${stderr}`;
         assertEquals(
           argsLine,
           'ARGS=["check","some arg"]',
-          `quarto.cmd did not run quarto.js with its arguments (exit ${result.code})\nstdout:\n${stdout}\nstderr:\n${stderr}`,
+          `quarto.cmd did not run quarto.js with its arguments ${details}`,
         );
+        assert(result.success, `quarto.cmd exited with an error ${details}`);
       } finally {
         // Remove the junction itself (not its target) before the temp dir goes.
         removeSync(tools);
