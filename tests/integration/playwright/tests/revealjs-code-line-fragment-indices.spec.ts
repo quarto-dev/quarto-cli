@@ -145,11 +145,9 @@ test.describe("code-line-fragment-indices sets the fragment index of each highli
         return { color: style.color, opacity };
       };
       const lit = code.querySelector("span.highlight-line");
-      const dim = code.querySelector("span:not(.highlight-line)");
       return {
         bg,
         lit: lit ? toRatio(lit) : null,
-        dim: dim ? toRatio(dim) : null,
       };
     });
 
@@ -164,10 +162,5 @@ test.describe("code-line-fragment-indices sets the fragment index of each highli
 
     expect(ratios.lit).not.toBeNull();
     expect(effective(ratios.lit!)).toBeGreaterThanOrEqual(4.5);
-    if (ratios.dim) {
-      console.log(
-        `dimmed line contrast ratio: ${effective(ratios.dim).toFixed(2)}`,
-      );
-    }
   });
 });
