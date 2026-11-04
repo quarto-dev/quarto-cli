@@ -17,14 +17,46 @@ function line_numbers()
             el.attr.attributes[_quarto.modules.constants.kCodeLineNumbers] = lineNumbers
           end
           -- only stepped highlighting in reveal has fragments to index
-          if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and type(lineNumbers) == "string" and string.find(lineNumbers, "|", 1, true) then
+          if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and isSteppedLineNumbers(lineNumbers) then
+            if not validFragmentIndices(fragmentIndices, lineNumbers) then
+              warn(
+                'Ignoring code-line-fragment-indices="' .. fragmentIndices .. '"; expected ' ..
+                countSteps(lineNumbers) .. ' non-negative integers, one for each highlight step after the first.'
+              )
+            end
             el.attr.attributes[_quarto.modules.constants.kCodeLineFragmentIndices] = fragmentIndices
           end
+        end
+        if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and not isSteppedLineNumbers(lineNumbers) then
+          warn(
+            'code-line-fragment-indices="' .. fragmentIndices ..
+            '" needs a stepped code-line-numbers, such as "|1|2"; the attribute is ignored.'
+          )
         end
         return el
       end
     end
   }
+end
+
+function isSteppedLineNumbers(lineNumbers)
+  return type(lineNumbers) == "string" and string.find(lineNumbers, "|", 1, true) ~= nil
+end
+
+function countSteps(lineNumbers)
+  local _, count = string.gsub(lineNumbers, "|", "")
+  return count
+end
+
+function validFragmentIndices(fragmentIndices, lineNumbers)
+  local count = 0
+  for entry in (fragmentIndices .. ","):gmatch("([^,]*),") do
+    if not entry:match("^%s*%d+%s*$") then
+      return false
+    end
+    count = count + 1
+  end
+  return count == countSteps(lineNumbers)
 end
 
 function lineNumbersAttribute(el)

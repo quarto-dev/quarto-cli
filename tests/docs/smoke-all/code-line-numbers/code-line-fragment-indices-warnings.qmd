@@ -1,0 +1,65 @@
+---
+title: code-line-fragment-indices warnings
+format:
+  revealjs: default
+  html: default
+_quarto:
+  tests:
+    revealjs:
+      printsMessage:
+        - level: INFO
+          regex: 'WARNING.*code-line-fragment-indices="1,2" needs a stepped code-line-numbers'
+          count: 1
+        - level: INFO
+          regex: 'WARNING.*Ignoring code-line-fragment-indices="1,abc"; expected 2 non-negative integers'
+          count: 1
+        - level: INFO
+          regex: 'WARNING.*Ignoring code-line-fragment-indices="1"; expected 2 non-negative integers'
+          count: 1
+        - level: INFO
+          regex: 'WARNING.*code-line-fragment-indices="1, 2"'
+          count: 0
+      ensureHtmlElements:
+        -
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1,abc"]'
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1, 2"]'
+        -
+          - 'div[data-code-line-numbers="1,2"][data-code-line-fragment-indices]'
+    html:
+      printsMessage:
+        level: INFO
+        regex: 'WARNING.*code-line-fragment-indices'
+        count: 0
+      ensureHtmlElements:
+        - []
+        -
+          - '[data-code-line-fragment-indices]'
+---
+
+## Not stepped
+
+```{.r code-line-numbers="1,2" code-line-fragment-indices="1,2"}
+x <- 1
+y <- 2
+```
+
+## Invalid entry
+
+```{.r code-line-numbers="|1|2" code-line-fragment-indices="1,abc"}
+x <- 1
+y <- 2
+```
+
+## Wrong count
+
+```{.r code-line-numbers="|1|2" code-line-fragment-indices="1"}
+x <- 1
+y <- 2
+```
+
+## Valid with whitespace
+
+```{.r code-line-numbers="|1|2" code-line-fragment-indices="1, 2"}
+x <- 1
+y <- 2
+```
