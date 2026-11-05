@@ -11,10 +11,12 @@ Before judging any value, read `src/resources/language/README.md` and `src/resou
 
 ## Step 1: Duplicates and open questions
 
-List every open PR touching the same file:
+List every open PR touching the same file, by changed files rather than text search (a PR titled "Add Arabic translation" rarely names the file):
 
 ```bash
-gh pr list --repo quarto-dev/quarto-cli --state open --search "_language-<code>" --json number,title,author,createdAt
+gh pr list --repo quarto-dev/quarto-cli --state open --limit 300 \
+  --json number,title,author,createdAt,files \
+  --jq '.[] | select(any(.files[]; .path == "src/resources/language/_language-<code>.yml")) | {number,title,author:.author.login,createdAt}'
 ```
 
 Several PRs for one language happen (Arabic had two, a month apart, both unreviewed). Compare them key by key and keep one: prefer the one with a native-speaker review or an engaged author, carry over any value from the other that settles an open question, and close the other with thanks and a pointer. Read the whole thread of the one you keep, inline review comments included, and note earlier maintainer questions and suggestion blocks that never got an answer.
@@ -36,6 +38,8 @@ uv run .claude/skills/verify-l10n-pr/scripts/structural_check.py \
 Catches: missing/extra keys, `{0}`/`{1}` placeholder mismatches, empty values where the base has content, trailing whitespace, and a heuristic for the rule that `navigation-*-label` values must not contain the language's word for "navigation" (it compares each label's words against the same file's `toggle-navigation` value; a shared stem is a lead to confirm, not a verdict). On Windows, set `PYTHONIOENCODING=utf-8`, or non-Latin output raises `UnicodeEncodeError`.
 
 `tests/unit/language-parity.test.ts` is the gate CI applies: it fails on any missing key not listed for that language in `tests/unit/language-known-gaps.yml`. Every key Step 2 reports missing ends up either translated (Step 4) or in that list before merge.
+
+An overlay (`xx-YY` where `_language-xx.yml` exists, e.g. `fr-CA`) inherits from its base and holds only the keys that differ, so ignore its MISSING KEYS: the parity test exempts overlays from missing keys, and filling them would shadow later fixes to the base file. Extra keys and placeholder checks still apply.
 
 ## Step 3: Review the contributor's values
 
