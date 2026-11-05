@@ -7468,14 +7468,21 @@ try {
               ]
             },
             schema: {
-              string: {
-                pattern: "^\\s*\\d+\\s*(,\\s*\\d+\\s*)*$"
-              },
-              errorDescription: "be a comma-separated list of non-negative integers, such as `1,2`"
+              anyOf: [
+                {
+                  string: {
+                    pattern: "^\\s*\\d+\\s*(,\\s*\\d+\\s*)*$"
+                  }
+                },
+                {
+                  maybeArrayOf: "number"
+                }
+              ],
+              errorDescription: "be a non-negative integer, a list of them, or a comma-separated string of them, such as `1,2`"
             },
             description: {
               short: "Fragment index of each step of stepped code-line-numbers highlighting (Reveal.js only).",
-              long: 'Fragment index of each step of stepped `code-line-numbers` highlighting\n(Reveal.js only).\n\nGive one index for each step after the first, as a comma-separated list\nof non-negative integers.\nEach value places its highlight step among the other fragments of the\nslide, in the same way as `fragment-index` on any other fragment.\nA lower value shows earlier.\nFor example, `code-line-numbers: "|1|2"` with\n`code-line-fragment-indices: "1,2"` shows line 1 at fragment index 1 and\nline 2 at fragment index 2.\n\nThe first step is the code block itself and is not a fragment.\nStart `code-line-numbers` with `|` to give the first highlight its own\nindex.\n\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, a warning is printed, and the steps use\nthe default order.\n'
+              long: 'Fragment index of each step of stepped `code-line-numbers` highlighting\n(Reveal.js only).\n\nGive one index for each step after the first, as a comma-separated list\nof non-negative integers, a YAML list, or a single number.\nThe indices must be strictly increasing.\nEach value places its highlight step among the other fragments of the\nslide, in the same way as `fragment-index` on any other fragment.\nA lower value shows earlier.\nFor example, `code-line-numbers: "|1|2"` with\n`code-line-fragment-indices: "1,2"` shows line 1 at fragment index 1 and\nline 2 at fragment index 2.\n\nThe first step is the code block itself and is not a fragment.\nStart `code-line-numbers` with `|` to give the first highlight its own\nindex.\n\nThe number of indices must equal the number of steps minus one.\nIf it does not, or if the indices are not strictly increasing,\nthe list is ignored, a warning is printed, and the steps use\nthe default order.\n'
             }
           },
           {
@@ -23576,7 +23583,7 @@ try {
           },
           {
             short: "Fragment index of each step of stepped code-line-numbers highlighting\n(Reveal.js only).",
-            long: 'Fragment index of each step of stepped <code>code-line-numbers</code>\nhighlighting (Reveal.js only).\nGive one index for each step after the first, as a comma-separated\nlist of non-negative integers. Each value places its highlight step\namong the other fragments of the slide, in the same way as\n<code>fragment-index</code> on any other fragment. A lower value shows\nearlier. For example, <code>code-line-numbers: "|1|2"</code> with\n<code>code-line-fragment-indices: "1,2"</code> shows line 1 at fragment\nindex 1 and line 2 at fragment index 2.\nThe first step is the code block itself and is not a fragment. Start\n<code>code-line-numbers</code> with <code>|</code> to give the first\nhighlight its own index.\nThe number of indices must equal the number of steps minus one.\nOtherwise the list is ignored, a warning is printed, and the steps use\nthe default order.'
+            long: 'Fragment index of each step of stepped <code>code-line-numbers</code>\nhighlighting (Reveal.js only).\nGive one index for each step after the first, as a comma-separated\nlist of non-negative integers, a YAML list, or a single number. The\nindices must be strictly increasing. Each value places its highlight\nstep among the other fragments of the slide, in the same way as\n<code>fragment-index</code> on any other fragment. A lower value shows\nearlier. For example, <code>code-line-numbers: "|1|2"</code> with\n<code>code-line-fragment-indices: "1,2"</code> shows line 1 at fragment\nindex 1 and line 2 at fragment index 2.\nThe first step is the code block itself and is not a fragment. Start\n<code>code-line-numbers</code> with <code>|</code> to give the first\nhighlight its own index.\nThe number of indices must equal the number of steps minus one. If it\ndoes not, or if the indices are not strictly increasing, the list is\nignored, a warning is printed, and the steps use the default order.'
           },
           "Unique label for code listing (used in cross references)",
           "Caption for code listing",
@@ -25871,12 +25878,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 221551,
+          _internalId: 222271,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 221543,
+              _internalId: 222263,
               type: "enum",
               enum: [
                 "png",
@@ -25892,7 +25899,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 221550,
+              _internalId: 222270,
               type: "anyOf",
               anyOf: [
                 {

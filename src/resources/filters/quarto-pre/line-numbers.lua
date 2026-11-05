@@ -23,7 +23,7 @@ function line_numbers()
             else
               warn(
                 'Ignoring code-line-fragment-indices="' .. fragmentIndices .. '"; expected ' ..
-                countSteps(lineNumbers) .. ' non-negative integers, one for each highlight step after the first.'
+                countSteps(lineNumbers) .. ' strictly increasing non-negative integers, one for each highlight step after the first.'
               )
             end
           end
@@ -51,10 +51,16 @@ end
 
 function validFragmentIndices(fragmentIndices, lineNumbers)
   local count = 0
+  local previous = -1
   for entry in (fragmentIndices .. ","):gmatch("([^,]*),") do
     if not entry:match("^%s*%d+%s*$") then
       return false
     end
+    local index = tonumber(entry)
+    if index <= previous then
+      return false
+    end
+    previous = index
     count = count + 1
   end
   return count == countSteps(lineNumbers)

@@ -12,6 +12,8 @@ _quarto:
         -
           - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1,2"]'
           - 'div[data-code-line-numbers="|1"][data-code-line-fragment-indices="3"]'
+          - 'div[data-code-line-numbers="|1"][data-code-line-fragment-indices="5"]'
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="4,6"]'
         -
           - 'div[data-code-line-numbers="1,2"][data-code-line-fragment-indices]'
     html:
@@ -35,6 +37,24 @@ y <- 2
 ```{r}
 #| code-line-numbers: "1,2"
 #| code-line-fragment-indices: "1,2"
+x <- 1
+y <- 2
+```
+
+## Number value
+
+```{r}
+#| code-line-numbers: "|1"
+#| code-line-fragment-indices: 5
+x <- 1
+y <- 2
+```
+
+## List value
+
+```{r}
+#| code-line-numbers: "|1|2"
+#| code-line-fragment-indices: [4, 6]
 x <- 1
 y <- 2
 ```

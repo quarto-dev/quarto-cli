@@ -41,3 +41,28 @@ for (const value of ["1,abc", "1,", "-1", "1.5", ""]) {
     );
   });
 }
+
+const nativeValues: [string, unknown][] = [
+  ["2", 2],
+  ["[2, 4]", [2, 4]],
+];
+
+for (const [yaml, expected] of nativeValues) {
+  unitTest(
+    `code-line-fragment-indices - accepts native YAML ${yaml}`,
+    async () => {
+      assertEquals(
+        await validateCell(`code-line-fragment-indices: ${yaml}\n`),
+        { "code-line-fragment-indices": expected },
+      );
+    },
+  );
+}
+
+for (const yaml of ["true", "[1, abc]", "{a: 1}"]) {
+  unitTest(`code-line-fragment-indices - rejects native YAML ${yaml}`, async () => {
+    await assertRejects(() =>
+      validateCell(`code-line-fragment-indices: ${yaml}\n`)
+    );
+  });
+}

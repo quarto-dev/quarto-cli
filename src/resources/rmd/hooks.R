@@ -537,7 +537,11 @@ knitr_hooks <- function(format, resourceDir, handledLanguages) {
       if (!is.null(lineFragmentIndices)) {
         attr <- paste(
           attr,
-          paste0('code-line-fragment-indices="', as.character(lineFragmentIndices), '"')
+          paste0(
+            'code-line-fragment-indices="',
+            paste(unlist(lineFragmentIndices), collapse = ","),
+            '"'
+          )
         )
       }
     }

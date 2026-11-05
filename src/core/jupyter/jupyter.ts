@@ -1513,7 +1513,7 @@ async function mdFromCodeCell(
       if (typeof cell.options[kCodeLineFragmentIndices] !== "undefined") {
         md.push(
           ` code-line-fragment-indices=\"${
-            cell.options[kCodeLineFragmentIndices]
+            [cell.options[kCodeLineFragmentIndices]].flat().join(",")
           }\"`,
         );
       }

@@ -34,10 +34,13 @@ window.QuartoLineHighlight = function () {
   function parseFragmentIndices(attr, expected) {
     const entries = attr.split(",").map((entry) => entry.trim());
     if (entries.length === expected && entries.every((entry) => /^\d+$/.test(entry))) {
-      return entries.map((entry) => parseInt(entry, 10));
+      const indices = entries.map((entry) => parseInt(entry, 10));
+      if (indices.every((index, i) => i === 0 || index > indices[i - 1])) {
+        return indices;
+      }
     }
     console.warn(
-      `Quarto line-highlight: ignoring code-line-fragment-indices="${attr}"; expected ${expected} non-negative integers, one for each highlight step after the first.`
+      `Quarto line-highlight: ignoring code-line-fragment-indices="${attr}"; expected ${expected} strictly increasing non-negative integers, one for each highlight step after the first.`
     );
     return null;
   }

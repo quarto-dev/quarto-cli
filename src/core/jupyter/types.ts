@@ -217,7 +217,7 @@ export interface JupyterCellOptions extends JupyterOutputFigureOptions {
   [kCellColumn]?: string;
   [kCodeFold]?: string;
   [kCodeLineNumbers]?: boolean | string;
-  [kCodeLineFragmentIndices]?: string;
+  [kCodeLineFragmentIndices]?: string | number | number[];
   [kCodeSummary]?: string;
   [kCodeOverflow]?: string;
   [kCellMdIndent]?: string;

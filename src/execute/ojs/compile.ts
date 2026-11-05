@@ -521,7 +521,7 @@ export async function ojsCompile(
       if (typeof cell.options?.[kCodeLineFragmentIndices] !== "undefined") {
         srcAttrs.push(
           `${kCodeLineFragmentIndices}="${
-            cell.options?.[kCodeLineFragmentIndices]
+            [cell.options?.[kCodeLineFragmentIndices]].flat().join(",")
           }"`,
         );
       }
