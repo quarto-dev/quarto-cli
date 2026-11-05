@@ -1,0 +1,41 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 8,
+  "id": null,
+  "body": {
+    "type": "SequenceExpression",
+    "start": 0,
+    "end": 7,
+    "expressions": [
+      {
+        "type": "Literal",
+        "start": 0,
+        "end": 1,
+        "value": 1,
+        "raw": "1"
+      },
+      {
+        "type": "Literal",
+        "start": 3,
+        "end": 4,
+        "value": 2,
+        "raw": "2"
+      },
+      {
+        "type": "Literal",
+        "start": 6,
+        "end": 7,
+        "value": 3,
+        "raw": "3"
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

@@ -1,0 +1,26 @@
+---
+title: "Theme dark mode kept when the dark brand file is ignored"
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+brand:
+  light: united-brand.yml
+  dark: comment-only-dark-brand-with-theme.yml
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'comment-only-dark-brand-with-theme\.yml has no content and will be ignored'
+      ensureHtmlElements:
+        - ['link.quarto-color-alternate', 'body.quarto-light']
+        - []
+      ensureFileRegexMatches:
+        - ['quarto-color-scheme-toggle']
+        - []
+---
+
+The theme supplies the dark mode, so the toggle stays even though the dark brand file is ignored.

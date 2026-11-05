@@ -1,0 +1,47 @@
+---
+pagetitle: Off-screen slides focus
+format: revealjs
+---
+
+## Slide 1 {#slide-1}
+
+<button type="button">Button on slide-1</button>
+
+<script>
+document.querySelector('.reveal').addEventListener('slidechanged', (e) => {
+  const target = e.currentSlide.querySelector('.focus-on-enter');
+  if (target) target.focus();
+});
+</script>
+
+## Slide 2 {#slide-2}
+
+<button type="button">Button on slide-2</button>
+
+## Slide 3 {#slide-3}
+
+<button type="button">Button on slide-3</button>
+
+## Slide 4 {#slide-4}
+
+<button type="button">Button on slide-4</button>
+
+## Slide 5 {#slide-5}
+
+<button type="button">Button on slide-5</button>
+
+## Slide 6 {#slide-6}
+
+<button type="button" class="focus-on-enter">Button on slide-6</button>
+
+# Stack {#stack}
+
+<button type="button">Button on stack</button>
+
+## Stack A {#stack-a}
+
+<button type="button">Button on stack-a</button>
+
+## Stack B {#stack-b}
+
+<button type="button">Button on stack-b</button>

@@ -1,0 +1,22 @@
+---
+empty: ""
+citation:
+  title: "{{< meta empty >}}"
+author: Jane Doe
+date: 2025-04-30
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['#quarto-citation']
+        - ['meta[name="citation_title"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
+        matches: ['Doe']
+        noMatches: ['\{\{<', 'meta empty']
+---
+
+A `citation: title:` shortcode resolving to an empty value, with no document `title`, leaves no title and no unresolved shortcode text.

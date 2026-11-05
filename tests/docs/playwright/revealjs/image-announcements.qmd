@@ -1,0 +1,90 @@
+---
+title: "Image announcements"
+format:
+  revealjs:
+    transition: none
+---
+
+## Mermaid
+
+```{mermaid}
+flowchart LR
+  A[Start] --> B[Middle] --> C[End]
+```
+
+## Image
+
+![A caption]({{< placeholder 200 100 >}}){fig-alt="A grey rectangle"}
+
+## Rating
+
+```{=html}
+<div role="img" aria-label="Rated 4 out of 5 stars">★★★★☆</div>
+```
+
+## Labelled chart
+
+```{=html}
+<span id="chart-name" hidden>Sales grew</span>
+<span id="chart-period" hidden>every year</span>
+<svg role="img" aria-labelledby="chart-name missing-label chart-period" aria-label="Ignored label" width="400" height="100">
+  <title>Ignored title</title>
+  <text x="20" y="50">2021 2022 2023 2024</text>
+</svg>
+```
+
+## Titled chart
+
+```{=html}
+<svg role="img" width="400" height="100">
+  <title>Sales increased</title>
+  <text x="20" y="50">2021 2022</text>
+</svg>
+```
+
+## Styled diagram
+
+```{=html}
+<svg width="400" height="100">
+  <style style="display: inline">.announcement-node { fill: black; }</style>
+  <script type="application/json" style="display: inline">{"notAnAnnouncement": true}</script>
+  <text class="announcement-node" x="20" y="50">Start</text>
+  <text class="announcement-node" x="200" y="50">End</text>
+</svg>
+```
+
+## Decorative images
+
+```{=html}
+<img src="quarto.png" alt="">
+<div role="img"><span>Unnamed image contents</span></div>
+<div role="img" aria-hidden="true" aria-label="Hidden image">Hidden contents</div>
+<div role="img" style="display: none" aria-label="Display-hidden image">Hidden contents</div>
+```
+
+## SVG titles
+
+```{=html}
+<svg width="400" height="100">
+  <title>Graph</title>
+  <g><title>Start to End</title><text x="20" y="50">Start</text><text x="200" y="50">End</text></g>
+</svg>
+```
+
+## Label fallback
+
+```{=html}
+<div role="img" aria-labelledby="missing-name" aria-label="Fallback label">Ignored contents</div>
+<div role="img" aria-labelledby="" aria-label="Empty-reference fallback">Ignored contents</div>
+<img role="img" src="quarto.png" alt="Quarto logo">
+```
+
+## Fragment images
+
+```{=html}
+<div class="fragment" data-fragment-index="0">
+  Parent image
+  <img class="fragment" data-fragment-index="1" src="quarto.png" alt="Nested logo">
+  <div class="fragment fade-out" data-fragment-index="2" role="img" aria-label="Initially visible rating">Ignored stars</div>
+</div>
+```

@@ -1,0 +1,52 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 15,
+  "id": null,
+  "body": {
+    "type": "AssignmentExpression",
+    "start": 0,
+    "end": 14,
+    "operator": "=",
+    "left": {
+      "type": "MemberExpression",
+      "start": 0,
+      "end": 10,
+      "object": {
+        "type": "Identifier",
+        "start": 0,
+        "end": 6,
+        "name": "window"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 7,
+        "end": 10,
+        "name": "foo"
+      },
+      "computed": false,
+      "optional": false
+    },
+    "right": {
+      "type": "Literal",
+      "start": 13,
+      "end": 14,
+      "value": 2,
+      "raw": "2"
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 0,
+      "end": 6,
+      "name": "window"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

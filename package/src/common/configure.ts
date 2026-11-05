@@ -141,6 +141,7 @@ export async function configure(
 }
 
 export function copyQuartoScript(config: Configuration, targetDir: string) {
+  ensureDirSync(targetDir);
   // Move the quarto script into place
   if (config.os === "windows") {
     Deno.copyFileSync(

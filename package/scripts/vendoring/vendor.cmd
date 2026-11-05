@@ -28,10 +28,18 @@ IF EXIST "!DENO_DIR!" (
 
 PUSHD "!QUARTO_SRC_PATH!"
 
-FOR %%E IN (quarto.ts vendor_deps.ts ..\tests\test-deps.ts ..\package\scripts\deno_std\deno_std.ts) DO (
-  CALL !DENO_BIN_PATH! install --allow-all --no-config --entrypoint %%E --importmap="!QUARTO_SRC_PATH!\import_map.json" || (
-    ECHO Warning: Failed to vendor %%E, continuing...
-  )
+REM All entrypoints are vendored in a single call so that they share one lockfile
+REM (deno.lock at the repository root). The lockfile is checked in and the install
+REM is --frozen: it fails if the lockfile is out of date instead of silently
+REM re-resolving dependencies. Set QUARTO_UPDATE_DENO_LOCK=1 to update deno.lock
+REM (see dev-docs/add-typescript-dependency.md).
+SET "LOCK_FLAGS=--frozen"
+IF "%QUARTO_UPDATE_DENO_LOCK%"=="1" SET "LOCK_FLAGS=--frozen=false"
+
+CALL !DENO_BIN_PATH! install --allow-import --no-config !LOCK_FLAGS! --lock="!QUARTO_SRC_PATH!\..\deno.lock" --entrypoint quarto.ts vendor_deps.ts ..\tests\test-deps.ts ..\package\scripts\deno_std\deno_std.ts ..\package\src\bld.ts ..\tools\deno-esbuild-bundle.ts --importmap="!QUARTO_SRC_PATH!\import_map.json"
+IF ERRORLEVEL 1 (
+  ECHO Failed to vendor quarto dependencies
+  EXIT /B 1
 )
 
 REM Return to the original directory

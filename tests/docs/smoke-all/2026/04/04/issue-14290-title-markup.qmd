@@ -1,0 +1,32 @@
+---
+title: "Theorem and proof titles that hold Typst markup"
+format: typst
+language:
+  crossref-thm-title: "Thm #y [*x*]"
+  environment-proof-title: "Pf #y [*x*] \"q\""
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        -
+          - 'Thm #y \[\*x\*\] 1\. A theorem'
+          - 'Pf #y \[\*x\*\] "q"\. An unnumbered proof'
+        - []
+---
+
+Theorem and proof titles come from the language files, so an author can put
+any text in them. The titles are written into the Typst frame definitions and
+the unnumbered proof prefix, and must reach the page as written instead of
+being read as Typst markup.
+
+::: {#thm-a}
+
+A theorem.
+
+:::
+
+::: {.proof}
+
+An unnumbered proof.
+
+:::

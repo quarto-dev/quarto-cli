@@ -9,6 +9,7 @@ import { Document, Element } from "./deno-dom.ts";
 
 import { pandocAutoIdentifier } from "./pandoc/pandoc-id.ts";
 import { isFileRef } from "./http.ts";
+import { tryDecodeURI } from "./url.ts";
 import { cssFileRefs } from "./css.ts";
 import { HtmlPostProcessResult } from "../command/render/types.ts";
 import { warning } from "../deno_ral/log.ts";
@@ -20,18 +21,14 @@ export function asHtmlId(text: string) {
 export function getDecodedAttribute(element: Element, attrib: string) {
   const value = element.getAttribute(attrib);
   if (value) {
-    try {
-      return decodeURI(value);
-    } catch (e) {
-      if (e instanceof URIError) {
-        warning(
-          `Invalid URI '${value}' in attribute '${attrib}' of element '${element.tagName}'`,
-        );
-        return value;
-      } else {
-        throw e;
-      }
+    const decoded = tryDecodeURI(value);
+    if (decoded === undefined) {
+      warning(
+        `Invalid URI '${value}' in attribute '${attrib}' of element '${element.tagName}'`,
+      );
+      return value;
     }
+    return decoded;
   } else {
     return value;
   }
@@ -43,16 +40,16 @@ const kTagBrackets: Record<string, string> = {
 };
 
 const kAttrReplacements: Record<string, string> = {
+  "&": "&amp;",
   '"': "&quot;",
   "'": "&#039;",
   ...kTagBrackets,
-  "&": "&amp;",
 };
 export function encodeAttributeValue(value: unknown) {
   if (typeof (value) === "string") {
     let result: string = value as string;
     Object.keys(kAttrReplacements).forEach((key) => {
-      result = result.replace(key, kAttrReplacements[key]);
+      result = result.replaceAll(key, kAttrReplacements[key]);
     });
     return result;
   } else {

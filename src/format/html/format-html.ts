@@ -67,12 +67,13 @@ import { bootstrapExtras } from "./format-html-bootstrap.ts";
 import {
   clipboardDependency,
   createCodeCopyButton,
+  formatHasCodeCopy,
+  htmlFormatFeatureDefaults,
   kAnchorSections,
   kAxe,
   kBootstrapDependencyName,
   kCitationsHover,
   kCodeAnnotations,
-  kCodeCopy,
   kComments,
   kDocumentCss,
   kFootnotesHover,
@@ -306,11 +307,7 @@ export async function htmlFormatExtras(
   } else {
     options.tabby = format.metadata[kTabsets] || false;
   }
-  if (featureDefaults.copyCode) {
-    options.copyCode = format.metadata[kCodeCopy] !== false;
-  } else {
-    options.copyCode = format.metadata[kCodeCopy] || false;
-  }
+  options.copyCode = formatHasCodeCopy(format, featureDefaults.copyCode);
   if (featureDefaults.anchors) {
     options.anchors = format.metadata[kAnchorSections] !== false;
   } else {
@@ -682,23 +679,6 @@ function htmlFormatFilterParams(format: Format) {
   };
 }
 
-function htmlFormatFeatureDefaults(
-  format: Format,
-): HtmlFormatFeatureDefaults {
-  const bootstrap = formatHasBootstrap(format);
-  const minimal = format.metadata[kMinimal] === true;
-  return {
-    tabby: !minimal && !bootstrap,
-    copyCode: !minimal,
-    anchors: !minimal,
-    hoverCitations: !minimal,
-    hoverFootnotes: !minimal,
-    figResponsive: !minimal,
-    codeAnnotations: !minimal,
-    hoverXrefs: !minimal,
-  };
-}
-
 function htmlFormatPostprocessor(
   format: Format,
   featureDefaults?: HtmlFormatFeatureDefaults,
@@ -712,9 +692,7 @@ function htmlFormatPostprocessor(
   }
 
   // read options
-  const codeCopy = featureDefaults.copyCode
-    ? format.metadata[kCodeCopy] !== false
-    : format.metadata[kCodeCopy] || false;
+  const codeCopy = formatHasCodeCopy(format, featureDefaults.copyCode);
 
   const anchors = featureDefaults.anchors
     ? format.metadata[kAnchorSections] !== false
@@ -826,6 +804,14 @@ function htmlFormatPostprocessor(
         code.parentElement.removeAttribute(
           "data-code-preview",
         );
+        // the iframe's accessible name (#14770)
+        const codeExampleTitle = code.parentElement.getAttribute(
+          "data-code-preview-title",
+        );
+        if (codeExampleTitle) {
+          codeExample.setAttribute("title", codeExampleTitle);
+        }
+        code.parentElement.removeAttribute("data-code-preview-title");
         code.parentElement.appendChild(codeExample);
       }
     }

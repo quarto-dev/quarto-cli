@@ -1,0 +1,6 @@
+---
+title: "Post with an empty version list"
+version: []
+---
+
+Text.

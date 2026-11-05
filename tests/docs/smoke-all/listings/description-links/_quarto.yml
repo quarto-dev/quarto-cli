@@ -1,0 +1,5 @@
+project:
+  type: website
+
+website:
+  title: "Listing descriptions with links"

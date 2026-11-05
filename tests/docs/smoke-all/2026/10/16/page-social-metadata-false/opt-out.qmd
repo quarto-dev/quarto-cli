@@ -1,0 +1,16 @@
+---
+title: "Page opts out of social metadata"
+open-graph: false
+twitter-card: false
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      ensureFileRegexMatches:
+        - []
+        -
+          - '<meta property="og:'
+          - '<meta name="twitter:'
+---
+
+The site enables `open-graph` and `twitter-card`, and this page sets both to `false`.

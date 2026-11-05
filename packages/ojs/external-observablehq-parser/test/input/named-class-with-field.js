@@ -1,0 +1,3 @@
+class Foo {
+  field = "field";
+}

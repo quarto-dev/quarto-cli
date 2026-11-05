@@ -43,43 +43,36 @@ export function formatDarkMode(format: Format): boolean | undefined {
 //   a dark theme or brand
 // 2. later, after brand is loaded, we'll know whether unified brand enabled dark mode
 // in practice, we only know
+// Metadata alone cannot tell whether a brand file was ignored (e.g. it only
+// holds comments), so darkModeDefault checks `brand:` key order against the
+// loaded brand.
 export function darkModeDefaultMetadata(
   metadata: Metadata,
 ): boolean | undefined {
-  if (metadata[kTheme] && typeof metadata[kTheme] === "object") {
-    const keys = Object.keys(metadata[kTheme]);
-    if (keys.includes("dark")) {
-      if (keys[0] === "dark") {
-        return true;
-      } else {
-        return false;
-      }
-    }
+  return darkModeFromKeyOrder(metadata[kTheme]) ??
+    darkModeFromKeyOrder(metadata[kBrand]);
+}
+
+export function darkModeDefault(format: Format): boolean | undefined {
+  const fromTheme = darkModeFromKeyOrder(format.metadata?.[kTheme]);
+  if (fromTheme !== undefined) {
+    return fromTheme;
   }
-  if (metadata[kBrand] && typeof metadata[kBrand] === "object") {
-    const keys = Object.keys(metadata[kBrand]);
-    if (keys.includes("dark")) {
-      if (keys[0] === "dark") {
-        return true;
-      } else {
-        return false;
-      }
-    }
+  if (format.render.brand?.dark) {
+    // a unified brand has no author preference but it can have dark mode
+    return darkModeFromKeyOrder(format.metadata?.[kBrand]) ?? false;
   }
   return undefined;
 }
-export function darkModeDefault(format: Format): boolean | undefined {
-  const metadata = format.metadata;
-  if (metadata !== undefined) {
-    const dmdm = darkModeDefaultMetadata(metadata);
-    if (dmdm !== undefined) {
-      return dmdm;
+
+// true/false when `dark` is a key (true when it is listed first),
+// undefined when there is no `dark` key
+function darkModeFromKeyOrder(value: unknown): boolean | undefined {
+  if (value && typeof value === "object") {
+    const keys = Object.keys(value);
+    if (keys.includes("dark")) {
+      return keys[0] === "dark";
     }
-  }
-  const brand = format.render.brand;
-  if (brand && brand.dark) {
-    // unified brand has no author preference but it can have dark mode
-    return false;
   }
   return undefined;
 }

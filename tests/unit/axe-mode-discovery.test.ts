@@ -15,7 +15,6 @@
 import { unitTest } from "../test.ts";
 import { assertEquals, assertThrows } from "testing/asserts";
 import { join } from "../../src/deno_ral/path.ts";
-import { ensureDirSync } from "../../src/deno_ral/fs.ts";
 import {
   applyThemesFilter,
   AxePage,
@@ -24,7 +23,7 @@ import {
   sniffRedirectStub,
 } from "../../src/command/call/axe/discover.ts";
 import { axeScanConfig } from "../../src/command/call/axe/config.ts";
-import { withTempDir } from "../utils.ts";
+import { withTempDir, writeFixture } from "../utils.ts";
 
 // The inline before-body script, boiled down to its marker. Quarto emits it
 // iff the page has two modes.
@@ -133,8 +132,7 @@ unitTest(
 /** A site dir on disk: every entry is a page written with static one-mode HTML. */
 function writeSite(dir: string, pages: string[]) {
   for (const page of pages) {
-    ensureDirSync(join(dir, page, ".."));
-    Deno.writeTextFileSync(join(dir, page), kStaticHtml);
+    writeFixture(dir, page, kStaticHtml);
   }
 }
 

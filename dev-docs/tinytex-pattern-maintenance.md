@@ -11,6 +11,8 @@ The R package **tinytex** maintains a comprehensive database of LaTeX error patt
 - Every problem will be fixed in the R package first
 - Low update frequency (~4 changes/year) makes manual adaptation practical
 
+`regex.tar.gz` also contains `hyphen.json`, tinytex's map from language names to the package with their hyphenation patterns (only the exceptions to `hyphen-<name>`). It is generated from the `execute AddHyphen` lines of `texlive.tlpdb` (`R/hyphen.R`).
+
 **Our process:**
 
 - Daily automated check detects when TinyTeX patterns change
@@ -52,6 +54,16 @@ tinytex R package and Quarto LaTeX engine use patterns differently:
    }
    ```
 
+## Hyphenation packages
+
+`kHyphenationPackageNames` in [parse-error.ts](../src/command/render/latexmk/parse-error.ts) is a copy of `hyphen.json`, and the unit tests keep a second copy. Detection of missing hyphenation patterns follows tinytex's `hyphen_pkgs()`, `check_babel()`, `detect_hyphen()` and `check_polyglossia()` in `R/latex.R`.
+
+Quarto-only differences:
+
+- the `chinese` and `chinese-hans` skip list ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291))
+- the `Hyphen rules for '...' set to \l@nil` fallback
+- unquoted language names in the babel "You haven't defined the language" error regex
+
 ## Manual Adaptation Process
 
 When the automated workflow detects TinyTeX pattern changes, it creates/updates a GitHub issue with:
@@ -90,7 +102,7 @@ When the automated workflow detects TinyTeX pattern changes, it creates/updates 
 The automated workflow runs daily:
 
 1. Downloads `regex.tar.gz` from [TinyTeX releases](https://github.com/rstudio/tinytex-releases)
-2. Extracts and compares `regex.json` with cached version
+2. Extracts and compares `regex.json` and `hyphen.json` with the cached versions
 3. If changed: generates diff and creates/updates issue
 4. If unchanged: exits early (no notification)
 
@@ -115,4 +127,5 @@ The automated workflow runs daily:
 - [parse-error.ts](../src/command/render/latexmk/parse-error.ts) - Pattern implementation
 - [parse-error.test.ts](../tests/unit/latexmk/parse-error.test.ts) - Unit tests
 - [TinyTeX R source](https://github.com/rstudio/tinytex/blob/main/R/latex.R) - How patterns are used in R
+- [TinyTeX hyphenation map](https://github.com/rstudio/tinytex/blob/main/R/hyphen.R)
 - [TinyTeX releases](https://github.com/rstudio/tinytex-releases) - Source of regex.json

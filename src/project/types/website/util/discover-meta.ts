@@ -6,6 +6,7 @@
 
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { getDecodedAttribute } from "../../../../core/html.ts";
+import { isDataUrl } from "../../../../core/data-url.ts";
 
 // Image discovery happens by either:
 // Finding an image with the class 'preview-image'
@@ -33,7 +34,7 @@ export function findDescription(doc: Document): string | undefined {
 export function findPreviewImg(
   doc: Document,
 ): { src: string; alt?: string } | undefined {
-  const imgEl = findPreviewImgEl(doc);
+  const imgEl = findPreviewImgEl(doc, { skipDataUrls: true });
   if (!imgEl) return undefined;
 
   const src = getDecodedAttribute(imgEl, "src");
@@ -46,20 +47,30 @@ export function findPreviewImg(
   };
 }
 
+// Social metadata images are fetched by URL, so their discovery passes
+// `skipDataUrls`. Listing cards are shown by the browser and keep data URIs.
 export function findPreviewImgEl(
   doc: Document,
+  options?: { skipDataUrls?: boolean },
 ): Element | undefined {
-  // look for an image explicitly marked as the preview image (.class .preview-image)
-  const match = doc.querySelector(`img.${kPreviewImgClass}`);
-  if (match) {
-    return match;
-  }
+  const usable = (img: Element) => {
+    const src = getDecodedAttribute(img, "src");
+    return !(options?.skipDataUrls && src !== null && isDataUrl(src));
+  };
 
-  const codeMatch = doc.querySelector(
-    `div.${kPreviewImgClass} div.cell-output-display img`,
-  );
-  if (codeMatch) {
-    return codeMatch;
+  // look for an image explicitly marked as the preview image (.class .preview-image)
+  for (
+    const selector of [
+      `img.${kPreviewImgClass}`,
+      `div.${kPreviewImgClass} div.cell-output-display img`,
+    ]
+  ) {
+    const match = Array.from(doc.querySelectorAll(selector)).find((img) =>
+      usable(img as Element)
+    );
+    if (match) {
+      return match as Element;
+    }
   }
 
   // look for an image with name feature, cover, or thumbnail
@@ -67,9 +78,7 @@ export function findPreviewImgEl(
   for (let i = 0; i < imgs.length; i++) {
     const img = imgs[i] as Element;
     const src = getDecodedAttribute(img, "src");
-    if (
-      src !== null && (src.startsWith("data:") || kNamedFileRegex.test(src))
-    ) {
+    if (src !== null && !isDataUrl(src) && kNamedFileRegex.test(src)) {
       return img;
     }
   }
@@ -81,7 +90,10 @@ export function findPreviewImgEl(
   for (const autoImgN of autoImgs) {
     const autoImg = autoImgN as Element;
     const src = getDecodedAttribute(autoImg, "src");
-    if (src && !src.startsWith("http:") && !src.startsWith("https:")) {
+    if (
+      src && !src.startsWith("http:") && !src.startsWith("https:") &&
+      usable(autoImg)
+    ) {
       return autoImg;
     }
   }

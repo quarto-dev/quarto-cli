@@ -12,6 +12,7 @@
 
 import { dirname } from "../../../deno_ral/path.ts";
 import { warning } from "../../../deno_ral/log.ts";
+import { warnOnce } from "../../../core/log.ts";
 import { normalizePath } from "../../../core/path.ts";
 import { NotebookContext } from "../../../render/notebook/notebook-types.ts";
 import { makeProjectEnvironmentMemoizer } from "../../project-environment.ts";
@@ -32,7 +33,8 @@ import { createProjectCache } from "../../../core/cache/cache.ts";
 import { globalTempContext } from "../../../core/temp.ts";
 import { once } from "../../../core/once.ts";
 import {
-  mergeExtensionMetadata,
+  mergeExtensionMetadataForContext,
+  ProjectContextOptions,
   resolveEngineExtensions,
 } from "../../project-context.ts";
 import { createExtensionContext } from "../../../extension/extension.ts";
@@ -41,6 +43,7 @@ export async function singleFileProjectContext(
   source: string,
   notebookContext: NotebookContext,
   renderOptions?: RenderOptions,
+  options?: ProjectContextOptions,
 ): Promise<ProjectContext> {
   const environmentMemoizer = makeProjectEnvironmentMemoizer(notebookContext);
   const temp = globalTempContext();
@@ -105,32 +108,48 @@ export async function singleFileProjectContext(
     result.dir,
   );
 
-  if (renderOptions) {
-    // Merge extension metadata (requires renderOptions for full services)
-    await mergeExtensionMetadata(result, renderOptions);
-
-    // Check if extensions contributed output-dir metadata
-    // If so, set forceClean as if --output-dir specified on command line,
-    // to ensure proper cleanup
-    const outputDir = result.config?.project?.["output-dir"];
-    if (outputDir) {
-      const willForceClean = renderOptions.flags?.clean !== false;
-      warning(
-        `An extension contributed 'output-dir: ${outputDir}' metadata for single-file render.\n` +
-          `Output will go to that directory. The temporary .quarto directory will ${
-            willForceClean
-              ? "be cleaned up"
-              : "NOT be cleaned up (--no-clean specified)"
-          } after rendering.\n` +
-          "To suppress this warning, use --output-dir flag instead of extension metadata.",
-      );
-      renderOptions.forceClean = willForceClean;
-    }
-  }
   // because the single-file project is cleaned up with
   // the global text context, we don't need to register it
   // in the same way that we need to register the multi-file
   // projects.
+  // This is registered before the merge below, because the merge validates
+  // extension metadata and can throw once the disk cache is already open.
   temp.onCleanup(result.cleanup);
+
+  // Always merge extension metadata so contributions such as `brand` are
+  // seen even when called without renderOptions (e.g. from preview, #14783)
+  await mergeExtensionMetadataForContext(
+    result,
+    extensionContext,
+    options?.extensionMetadataPolicy ?? "warn",
+  );
+
+  // Warn whenever an extension contributed output-dir metadata, whichever
+  // command built this context. On the render path also set forceClean as if
+  // --output-dir was given on the command line, to ensure proper cleanup.
+  const outputDir = result.config?.project?.["output-dir"];
+  if (outputDir) {
+    const intro =
+      `An extension contributed 'output-dir: ${outputDir}' metadata for a single file.\n`;
+    if (renderOptions) {
+      const hint =
+        "To suppress this warning, use --output-dir flag instead of extension metadata.";
+      const willForceClean = renderOptions.flags?.clean !== false;
+      warning(
+        `${intro}Output will go to that directory. The temporary .quarto directory will ${
+          willForceClean
+            ? "be cleaned up"
+            : "NOT be cleaned up (--no-clean specified)"
+        } after rendering.\n${hint}`,
+      );
+      renderOptions.forceClean = willForceClean;
+    } else {
+      // inspect, publish and serve build a context repeatedly, and the user
+      // cannot act on this at that point, so say it once per process
+      warnOnce(
+        `${intro}Output will go to that directory when the file is rendered.`,
+      );
+    }
+  }
   return result;
 }

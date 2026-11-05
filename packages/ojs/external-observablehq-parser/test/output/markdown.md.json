@@ -1,0 +1,82 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 104,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 104,
+    "expressions": [
+      {
+        "type": "Identifier",
+        "start": 98,
+        "end": 101,
+        "name": "foo"
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 96,
+        "value": {
+          "raw": "# Header 1\n\n```\nconst codeBlock = true;\n```\n\nParagraph that references `codeBlock`. Foo value: \"",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 102,
+        "end": 104,
+        "value": {
+          "raw": "\".",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 2,
+    "body": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 2,
+      "name": "md"
+    },
+    "input": "md",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "md"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 98,
+      "end": 101,
+      "name": "foo"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

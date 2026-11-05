@@ -1,0 +1,13 @@
+---
+title: "Comment-only _brand.yml"
+format: html
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: '_brand\.yml has no content and will be ignored'
+---
+
+A `_brand.yml` holding only comments should warn and be ignored, not stop the render.

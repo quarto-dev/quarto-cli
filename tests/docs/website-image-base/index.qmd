@@ -1,0 +1,6 @@
+---
+title: "website-image-base"
+image: false
+---
+
+Home page. It sets no image, so `site.png` is only used by pages in subdirectories.

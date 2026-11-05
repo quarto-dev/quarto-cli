@@ -1,0 +1,23 @@
+---
+title: Document title
+citation:
+  title: "Citation *title*"
+author: Jane Doe
+date: 2025-04-30
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_title"][content="Citation title"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
+        matches: ['Title']
+        noMatches: ['Document title']
+      ensureFileRegexMatches:
+        - ['<em>Title</em>']
+---
+
+A non-empty `citation: title:` wins over the document `title`.

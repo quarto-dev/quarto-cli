@@ -1,0 +1,32 @@
+---
+title: "Code annotation line highlight"
+format: revealjs
+code-annotations: below
+---
+
+## Without line numbers
+
+```{.python code-line-numbers="false"}
+# Some comment
+# to avoid overlapping copy button and annotation marker
+import polars as pl # <1>
+df = pl.DataFrame({"a": [1, 2]}) # <2>
+df.head() # <2>
+```
+
+1. Import the library.
+2. Build and show a data frame.
+
+
+## With line numbers
+
+```{.python code-line-numbers="true"}
+# Some comment
+# to avoid overlapping copy button and annotation marker
+import polars as pl # <1>
+df = pl.DataFrame({"a": [1, 2]}) # <2>
+df.head() # <2>
+```
+
+1. Import the library.
+2. Build and show a data frame.

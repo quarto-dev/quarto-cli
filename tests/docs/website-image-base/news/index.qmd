@@ -1,0 +1,8 @@
+---
+title: "Listing with a page image"
+image: thumb.png
+listing:
+  feed: true
+---
+
+The feed image falls back to this page's `image`, which is relative to this document.

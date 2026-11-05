@@ -1,0 +1,71 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 54,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 54,
+    "expressions": [],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 54,
+        "value": {
+          "raw": "\\text{This is some text \\underline{with an underline}}",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 9,
+    "body": {
+      "type": "MemberExpression",
+      "start": 0,
+      "end": 9,
+      "object": {
+        "type": "Identifier",
+        "start": 0,
+        "end": 3,
+        "name": "tex"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 4,
+        "end": 9,
+        "name": "block"
+      },
+      "computed": false,
+      "optional": false
+    },
+    "input": "tex.block",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 3,
+        "name": "tex"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": true,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

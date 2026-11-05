@@ -1,0 +1,15 @@
+---
+title: Focus ring author override
+format:
+  html:
+    theme: [default, focus-ring-author-override.scss]
+---
+
+Fixture for author focus styles. The theme sets its own outline on
+`a:focus-visible` and removes the Quarto inner tone with
+`--quarto-focus-ring-shadow: none`. The author rule must win over the
+global focus ring.
+
+An [inline link](#target) in the body.
+
+## Target {#target}

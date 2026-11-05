@@ -88,6 +88,7 @@
           subfloat-numbering(n-super, subfloat-idx)
         })
         show figure.where(kind: kind): set figure.caption(position: position)
+        show figure.where(kind: kind): set figure(outlined: false)
 
         show figure: it => {
           let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)

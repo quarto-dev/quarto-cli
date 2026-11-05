@@ -1,0 +1,22 @@
+---
+title: "Issue 14882 - brand font family names are quoted in CSS"
+format: html
+brand:
+  typography:
+    fonts:
+      - family: Source Sans 3
+        source: google
+    base: Source Sans 3
+    headings: Bricolage Grotesque 96pt
+    monospace: M PLUS 1 Code
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['--bs-body-font-family:\s*"Source Sans 3"', 'font-family:\s*"Bricolage Grotesque 96pt"', '--bs-font-monospace:\s*"M PLUS 1 Code"', '--mermaid-font-family:\s*"Source Sans 3"']
+        - ['font-family:\s*Source Sans 3', 'font-family:\s*Bricolage Grotesque 96pt', 'monospace:\s*M PLUS 1 Code']
+---
+
+## A heading
+
+Body text and `inline code`.

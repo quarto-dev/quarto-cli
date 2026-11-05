@@ -1,0 +1,43 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 21,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 20,
+    "body": [
+      {
+        "type": "ExpressionStatement",
+        "start": 4,
+        "end": 18,
+        "expression": {
+          "type": "AwaitExpression",
+          "start": 4,
+          "end": 17,
+          "argument": {
+            "type": "Identifier",
+            "start": 10,
+            "end": 17,
+            "name": "promise"
+          }
+        }
+      }
+    ]
+  },
+  "async": true,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 10,
+      "end": 17,
+      "name": "promise"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

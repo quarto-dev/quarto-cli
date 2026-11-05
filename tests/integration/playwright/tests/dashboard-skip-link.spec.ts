@@ -1,19 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { tabKey } from '../src/utils';
 
 const dashboard = '/dashboard/hash-navigation.html';
 
 const heatPane = (page) => page.locator('#heat.dashboard-page');
 const coolPane = (page) => page.locator('#cool.dashboard-page');
 
-// WebKit only tabs to links when the Alt modifier is held, which matches
-// Safari's default "Press Tab to highlight each item on a webpage" setting
-const tabKeyFor = (browserName: string) =>
-  browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
-
 // https://github.com/quarto-dev/quarto-cli/issues/14684
 test('the skip link is the first tab stop and moves focus into the content', async ({ page, browserName }) => {
   await page.goto(dashboard);
-  await page.keyboard.press(tabKeyFor(browserName));
+  await page.keyboard.press(tabKey(browserName));
   await expect(page.locator('#quarto-skip-link')).toBeFocused();
 
   await page.keyboard.press('Enter');
@@ -24,7 +20,7 @@ test('the skip link does not add a history entry', async ({ page, browserName })
   await page.goto(dashboard);
   await expect(heatPane(page)).toHaveClass(/active/);
 
-  await page.keyboard.press(tabKeyFor(browserName));
+  await page.keyboard.press(tabKey(browserName));
   await page.keyboard.press('Enter');
   await expect(page.locator('#quarto-document-content')).toBeFocused();
   // a plain anchor jump would leave "#quarto-document-content" here
@@ -42,7 +38,7 @@ test('the skip link keeps a page hash in the URL', async ({ page, browserName })
   await page.goto(`${dashboard}#cool`);
   await expect(coolPane(page)).toHaveClass(/active/);
 
-  await page.keyboard.press(tabKeyFor(browserName));
+  await page.keyboard.press(tabKey(browserName));
   await expect(page.locator('#quarto-skip-link')).toBeFocused();
   await page.keyboard.press('Enter');
 

@@ -53,18 +53,18 @@ const testCases: AxeTestCase[] = [
 
   // RevealJS — axe-check.js loads as standalone module (#13781).
   // RevealJS CSS transforms prevent axe-core from computing color contrast,
-  // so we check for link-name (slide-menu-button has unlabeled <a>).
+  // so we check for image-alt (each fixture has an <img> without alt).
   { format: 'revealjs', outputMode: 'document', url: '/revealjs/axe-accessibility.html',
-    expectedViolation: 'link-name', expectedConformance: 'WCAG 2.0 A (2.4.4, 4.1.2)' },
+    expectedViolation: 'image-alt', expectedConformance: 'WCAG 2.0 A (1.1.1)' },
   { format: 'revealjs', outputMode: 'console', url: '/revealjs/axe-console.html',
-    expectedViolation: 'link-name' },
+    expectedViolation: 'image-alt' },
   { format: 'revealjs', outputMode: 'json', url: '/revealjs/axe-json.html',
-    expectedViolation: 'link-name' },
+    expectedViolation: 'image-alt' },
 
   // RevealJS dark theme — verifies CSS custom property bridge for theming.
   // Report should use --r-background-color/#191919, not the Sass fallback #fff.
   { format: 'revealjs-dark', outputMode: 'document', url: '/revealjs/axe-accessibility-dark.html',
-    expectedViolation: 'link-name', expectedConformance: 'WCAG 2.0 A (2.4.4, 4.1.2)' },
+    expectedViolation: 'image-alt', expectedConformance: 'WCAG 2.0 A (1.1.1)' },
 
   // Dashboard — axe-check.js loads as standalone module, falls back to document.body (#13781)
   { format: 'dashboard', outputMode: 'document', url: '/dashboard/axe-accessibility.html',
@@ -87,7 +87,6 @@ const testCases: AxeTestCase[] = [
 // Document reporter shows the full description; console reporter shows a shorter form.
 const violationText: Record<string, { document: string; console: string }> = {
   'color-contrast': { document: 'color contrast', console: 'contrast' },
-  'link-name': { document: 'discernible text', console: 'discernible text' },
   'image-alt': { document: 'alternative text', console: 'alternative text' },
 };
 
@@ -265,6 +264,32 @@ test.describe('RevealJS axe — cross-slide scanning and state restoration', () 
     // The img element should have the highlight class
     const highlightedImg = page.locator('img.quarto-axe-hover-highlight');
     await expect(highlightedImg).toBeAttached({ timeout: 3000 });
+  });
+
+  test('slide navigated to during the scan stays accessible afterwards', async ({ page }) => {
+    // Navigate as soon as the scan unhides the slides, i.e. while axe.run is pending.
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const observer = new MutationObserver(() => {
+          const slide2 = document.querySelectorAll('.reveal .slides > section')[1];
+          if (slide2 && !slide2.hasAttribute('aria-hidden')) {
+            observer.disconnect();
+            Reveal.slide(1);
+          }
+        });
+        observer.observe(document.body, {
+          subtree: true, attributes: true, attributeFilter: ['aria-hidden'],
+        });
+      });
+    });
+    await page.goto('/revealjs/axe-console.html', { waitUntil: 'networkidle' });
+    await waitForAxeCompletion(page);
+
+    expect(await page.evaluate(() => Reveal.getIndices().h)).toBe(1);
+    const current = page.locator('.reveal .slides > section.present');
+    await expect(current).not.toHaveAttribute('hidden');
+    await expect(current).not.toHaveAttribute('aria-hidden');
+    await expect(current).not.toHaveAttribute('inert');
   });
 
   test('detects image-alt violation on hidden vertical slide', async ({ page }) => {
@@ -685,8 +710,8 @@ test.describe('Axe — code line-number anchors have accessible names (#14655)',
     const reportSlide = page.locator('section.quarto-axe-report-slide');
     await expect(reportSlide).toBeAttached({ timeout: 10000 });
 
-    // RevealJS chrome (.slide-menu-button) and its default viewport meta trip
-    // their own pre-existing, unrelated violations — out of scope for #14655.
+    // The RevealJS default viewport meta trips its own pre-existing, unrelated
+    // violation — out of scope for #14655.
     // The regression guard here is narrower: no violation should target a
     // code line-number anchor (id `cbN-n`).
     const targets = await reportSlide.locator('.quarto-axe-violation-target').allTextContents();
@@ -814,7 +839,14 @@ test.describe('HTML axe — the report overlay scrolls by keyboard (#14680)', ()
   // overlay self-scan (scrollable-region-focusable, line ~388), so only an
   // actual key press that moves scrollTop catches them.
   for (const key of ['PageDown', 'ArrowDown']) {
-    test(`html — focused overlay scrolls on ${key}`, async ({ page }) => {
+    test(`html — focused overlay scrolls on ${key}`, async ({ page, browserName }) => {
+      // WebKit on macOS ignores about half of ArrowDown presses on a focused
+      // scroll region, even a plain HTML one with no Quarto code; PageDown
+      // scrolls reliably and still covers the overlay.
+      test.skip(
+        key === 'ArrowDown' && browserName === 'webkit' && process.platform === 'darwin',
+        'WebKit on macOS drops ArrowDown on a focused scroll region',
+      );
       await page.goto('/html/axe-overlay-scroll.html', { waitUntil: 'networkidle' });
 
       const axeReport = page.locator('.quarto-axe-report');

@@ -1,0 +1,7 @@
+---
+title: "Posts"
+listing:
+  contents: posts
+  feed:
+    image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+---

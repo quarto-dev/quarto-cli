@@ -1,0 +1,94 @@
+---
+title: "Cross-reference remark and solution in Typst (#14290)"
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#remark\('
+          - '#solution\('
+          - '<rem-example>'
+          - '<sol-exercise>'
+          - '#show: show-remark'
+          - '#show: show-solution'
+          - '#ref\(<rem-example>'
+          - '#ref\(<sol-exercise>'
+          # unnumbered blocks pin their number and keep the counter still
+          - '#remark\(number: "", get-prefix: \(\.\.args\) => "Remark"\)'
+          - '#proof\(number: "", get-prefix: \(\.\.args\) => "Proof"\)'
+          # a numbered proof keeps theorion's own number
+          - '#proof\(\)\[(\r\n?|\n)Numbered proof\.'
+          # a block holding only a title keeps its label for references
+          - '<prf-b>'
+        - []
+      ensurePdfRegexMatches:
+        -
+          - 'Remark\. An unnumbered remark'
+          - 'Remark 1 \(A Remark\)'
+          - 'Solution 1 \(A Solution\)'
+          - 'Proof\. This is an unnumbered proof'
+          - 'Proof 1\. Numbered proof'
+          - 'Proof \(With code\)\. A named proof'
+          - 'Proof 2 \(Only a title\)'
+          - 'See Remark 1, Solution 1, Proof 1 and Proof 2'
+        -
+          - 'Remark 2'
+          - 'Proof 3'
+          - 'Proof \.'
+---
+
+An unnumbered `proof`, `remark` or `solution` block uses the same theorion
+frame, and so the same counter, as the numbered block of that kind. It must
+show no number and must not move the counter, so that `rem-example` is still
+Remark 1 although an unnumbered remark comes before it.
+
+::: {.remark}
+
+An unnumbered remark.
+
+:::
+
+::: {#rem-example}
+
+## A Remark
+
+This is a remark that should be cross-referenceable.
+
+:::
+
+::: {#sol-exercise}
+
+## A Solution
+
+This is a solution that should be cross-referenceable.
+
+:::
+
+::: {.proof}
+
+This is an unnumbered proof.
+
+:::
+
+::: {#prf-a}
+
+Numbered proof.
+
+:::
+
+::: {.proof}
+
+## With `code`
+
+A named proof.
+
+:::
+
+::: {#prf-b}
+
+## Only a title
+
+:::
+
+See @rem-example, @sol-exercise, @prf-a and @prf-b.

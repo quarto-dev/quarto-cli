@@ -1,0 +1,5 @@
+---
+title: "Home"
+---
+
+Welcome to the spike site. See [about](about.qmd).

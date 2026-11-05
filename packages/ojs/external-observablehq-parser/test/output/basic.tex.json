@@ -1,0 +1,116 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 33,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 33,
+    "expressions": [
+      {
+        "type": "Identifier",
+        "start": 2,
+        "end": 11,
+        "name": "numerator"
+      },
+      {
+        "type": "Identifier",
+        "start": 21,
+        "end": 32,
+        "name": "denominator"
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 0,
+        "value": {
+          "raw": "",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 12,
+        "end": 19,
+        "value": {
+          "raw": " \\over ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 33,
+        "end": 33,
+        "value": {
+          "raw": ""
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 9,
+    "body": {
+      "type": "MemberExpression",
+      "start": 0,
+      "end": 9,
+      "object": {
+        "type": "Identifier",
+        "start": 0,
+        "end": 3,
+        "name": "tex"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 4,
+        "end": 9,
+        "name": "block"
+      },
+      "computed": false,
+      "optional": false
+    },
+    "input": "tex.block",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 3,
+        "name": "tex"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": true,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 2,
+      "end": 11,
+      "name": "numerator"
+    },
+    {
+      "type": "Identifier",
+      "start": 21,
+      "end": 32,
+      "name": "denominator"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

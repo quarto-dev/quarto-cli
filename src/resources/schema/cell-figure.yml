@@ -39,11 +39,11 @@
 
 - name: fig-alt
   tags:
-    formats: [$html-all]
+    formats: [$html-all, docx, $pdf-all, typst]
   schema:
     maybeArrayOf: string
   description: |
-    Alternative text to be used in the `alt` attribute of HTML images.
+    Alternative text for figures, distinct from their visible caption.
 
 - name: fig-env
   tags:

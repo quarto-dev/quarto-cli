@@ -1,0 +1,40 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 10,
+  "id": null,
+  "body": {
+    "type": "BinaryExpression",
+    "start": 0,
+    "end": 9,
+    "left": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 3,
+      "name": "foo"
+    },
+    "operator": "+",
+    "right": {
+      "type": "Literal",
+      "start": 6,
+      "end": 9,
+      "value": "42",
+      "raw": "42n",
+      "bigint": "42"
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 0,
+      "end": 3,
+      "name": "foo"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

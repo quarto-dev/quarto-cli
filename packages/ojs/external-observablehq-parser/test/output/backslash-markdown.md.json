@@ -1,0 +1,58 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 27,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 27,
+    "expressions": [],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 27,
+        "value": {
+          "raw": "\\Slash before, slash after\\",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 2,
+    "body": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 2,
+      "name": "md"
+    },
+    "input": "md",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "md"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

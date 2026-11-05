@@ -7,8 +7,9 @@
  */
 
 import { assert } from "testing/asserts";
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
+import { v8Branch } from "../../deno_ral/platform.ts";
 import { md5HashBytes } from "../hash.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../quarto.ts";
@@ -20,6 +21,7 @@ import {
   type ImmediateStringCacheEntry,
 } from "./cache-types.ts";
 import { Cloneable } from "../safe-clone-deep.ts";
+import { getKv, kvOp, openKv } from "../../deno_ral/kv.ts";
 export { type ProjectCache } from "./cache-types.ts";
 
 const currentCacheVersion = "1";
@@ -29,10 +31,18 @@ const requiredQuartoVersions: Record<string, string> = {
 
 class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
   projectScratchDir: string;
+  storeDir: string;
+  indexFile: string;
   index: Deno.Kv | null;
 
   constructor(_projectScratchDir: string) {
     this.projectScratchDir = _projectScratchDir;
+    this.storeDir = join(
+      _projectScratchDir,
+      "project-cache",
+      `v8-${v8Branch}`,
+    );
+    this.indexFile = join(this.storeDir, "deno-kv-file");
     this.index = null;
   }
 
@@ -49,58 +59,74 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
 
   async clear(): Promise<void> {
     assert(this.index);
-    const entries = this.index.list({ prefix: [] });
-    for await (const entry of entries) {
-      const diskValue = entry.value;
-      if (entry.key[0] !== "version") {
-        Deno.removeSync(
-          join(this.projectScratchDir, "project-cache", diskValue as string),
-        );
+    const index = this.index;
+    await kvOp(this.indexFile, async () => {
+      const entries = index.list({ prefix: [] });
+      for await (const entry of entries) {
+        const value = entry.value as CacheIndexEntry;
+        // immediate entries live in the index only; disk entries with
+        // identical content share one hash file
+        if (
+          entry.key[0] !== "version" &&
+          (value.type === "buffer" || value.type === "string")
+        ) {
+          const { hash } = value as DiskCacheEntry;
+          safeRemoveSync(join(this.storeDir, hash));
+        }
+        await index.delete(entry.key);
       }
-      await this.index.delete(entry.key);
-    }
+    });
   }
 
   async createOnDisk(): Promise<void> {
     assert(this.index);
-    this.index.set(["version"], currentCacheVersion);
+    const index = this.index;
+    await kvOp(
+      this.indexFile,
+      () => index.set(["version"], currentCacheVersion),
+    );
   }
 
   async init(): Promise<void> {
-    const indexPath = join(this.projectScratchDir, "project-cache");
-    ensureDirSync(indexPath);
-    this.index = await Deno.openKv(join(indexPath, "deno-kv-file"));
-    let version = await this.index.get(["version"]);
-    if (version.value === null) {
-      await this.createOnDisk();
-      version = await this.index.get(["version"]);
-    }
-    assert(typeof version.value === "string");
-    const requiredVersion = requiredQuartoVersions[version.value];
-    if (
-      !requiredVersion || !satisfies(quartoConfig.version(), requiredVersion)
-    ) {
-      console.warn("Unknown project cache version.");
-      console.warn(
-        "Project cache was likely created by a newer version of Quarto.",
-      );
-      console.warn("Quarto will clear the project cache.");
-      await this.clear();
-      await this.createOnDisk();
+    ensureDirSync(this.storeDir);
+    this.index = await openKv(this.indexFile);
+    try {
+      let version = await getKv<string>(this.index, this.indexFile, [
+        "version",
+      ]);
+      if (version === null) {
+        await this.createOnDisk();
+        version = await getKv<string>(this.index, this.indexFile, ["version"]);
+      }
+      assert(typeof version === "string");
+      const requiredVersion = requiredQuartoVersions[version];
+      if (
+        !requiredVersion || !satisfies(quartoConfig.version(), requiredVersion)
+      ) {
+        console.warn("Unknown project cache version.");
+        console.warn(
+          "Project cache was likely created by a newer version of Quarto.",
+        );
+        console.warn("Quarto will clear the project cache.");
+        await this.clear();
+        await this.createOnDisk();
+      }
+    } catch (e) {
+      this.close();
+      throw e;
     }
   }
 
   async addBuffer(key: string[], value: Uint8Array): Promise<void> {
     assert(this.index);
     const hash = await md5HashBytes(value);
-    Deno.writeFileSync(
-      join(this.projectScratchDir, "project-cache", hash),
-      value,
-    );
-    const result = await this.index.set(key, {
-      hash,
-      type: "buffer",
-    });
+    Deno.writeFileSync(join(this.storeDir, hash), value);
+    const index = this.index;
+    const result = await kvOp(this.indexFile, () =>
+      index.set(key, {
+        hash,
+        type: "buffer",
+      }));
     assert(result.ok);
   }
 
@@ -108,42 +134,41 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     assert(this.index);
     const buffer = new TextEncoder().encode(value);
     const hash = await md5HashBytes(buffer);
-    Deno.writeTextFileSync(
-      join(this.projectScratchDir, "project-cache", hash),
-      value,
-    );
-    const result = await this.index.set(key, {
-      hash,
-      type: "string",
-    });
+    Deno.writeTextFileSync(join(this.storeDir, hash), value);
+    const index = this.index;
+    const result = await kvOp(this.indexFile, () =>
+      index.set(key, {
+        hash,
+        type: "string",
+      }));
     assert(result.ok);
   }
 
   async addSmallBuffer(key: string[], value: Uint8Array): Promise<void> {
     assert(this.index);
-    const result = await this.index.set(key, {
-      value,
-      type: "buffer-immediate",
-    });
+    const index = this.index;
+    const result = await kvOp(this.indexFile, () =>
+      index.set(key, {
+        value,
+        type: "buffer-immediate",
+      }));
     assert(result.ok);
   }
 
   async addSmallString(key: string[], value: string): Promise<void> {
     assert(this.index);
-    const result = await this.index.set(key, {
-      value,
-      type: "string-immediate",
-    });
+    const index = this.index;
+    const result = await kvOp(this.indexFile, () =>
+      index.set(key, {
+        value,
+        type: "string-immediate",
+      }));
     assert(result.ok);
   }
 
   async get(key: string[]): Promise<CacheIndexEntry | null> {
     assert(this.index);
-    const kvResult = await this.index.get(key);
-    if (kvResult.value === null) {
-      return null;
-    }
-    return kvResult.value as CacheIndexEntry;
+    return await getKv<CacheIndexEntry>(this.index, this.indexFile, key);
   }
 
   async _getAs<T>(
@@ -164,7 +189,8 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
       console.warn(
         `Entry ${result} not found -- clearing entry in index`,
       );
-      await this.index.delete(key);
+      const index = this.index;
+      await kvOp(this.indexFile, () => index.delete(key));
       return null;
     }
   }
@@ -187,9 +213,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     return this._getAs(key, (result) => {
       assert(result.type === "buffer", "Expected buffer");
       const { hash } = result as DiskCacheEntry;
-      return Deno.readFileSync(
-        join(this.projectScratchDir, "project-cache", hash),
-      );
+      return Deno.readFileSync(join(this.storeDir, hash));
     });
   }
 
@@ -197,9 +221,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     return this._getAs(key, (result) => {
       assert(result.type === "string", "Expected string");
       const { hash } = result as DiskCacheEntry;
-      return Deno.readTextFileSync(
-        join(this.projectScratchDir, "project-cache", hash),
-      );
+      return Deno.readTextFileSync(join(this.storeDir, hash));
     });
   }
 

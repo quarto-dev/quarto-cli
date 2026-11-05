@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Ukryj cały kod"
 code-tools-view-source: "Pokaż źródło"
 code-tools-source-code: "Kod źródłowy"
 
+tools-share: "Udostępnij"
+tools-download: "Pobierz"
+
 copy-button-tooltip: "Kopiuj do schowka"
 copy-button-tooltip-success: "Skopiowano!"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Pokaż źródło"
 repo-action-links-issue: "Zgłoś problem"
 
 back-to-top: "Powrót do góry"
+
+skip-to-content: "Przejdź do głównej treści"
 
 search-no-results-text: "Brak wyników"
 search-matching-documents-text: "dopasowane dokumenty"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Okruszki chleba"  # wikidata Q846205
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Przewijany kod"        # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Przewijane wyjście"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(otwiera się w nowej karcie)"
+
+announcement-dismiss-label: "Zamknij komunikat"
+
+revealjs-menu-button-label: "Menu slajdów"
 
 crossref-fig-title: "Rysunek"
 crossref-tbl-title: "Tabela"

@@ -1,0 +1,5 @@
+---
+title: "Local Post"
+---
+
+Local content.

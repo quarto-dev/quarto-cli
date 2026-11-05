@@ -81,10 +81,6 @@ $quarto-search-collapse-icon-size: 26px !default;
     .aa-Form {
       background-color: inherit;
       border: none;
-      &:focus-within {
-        box-shadow: none;
-        outline: none;
-      }
       .aa-InputWrapper {
         display: none;
         &:focus-within {
@@ -114,6 +110,17 @@ $quarto-search-collapse-icon-size: 26px !default;
   }
 }
 
+// The search box is a form that holds an icon, the input, and buttons. Draw
+// the focus ring on the form, which is the visible field, instead of on the
+// borderless input inside it.
+.aa-Form:has(.aa-Input:focus-visible) {
+  @include focus-ring;
+}
+.aa-Form .aa-Input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .aa-Autocomplete,
 .aa-DetachedFormContainer {
   // Search box
@@ -128,10 +135,6 @@ $quarto-search-collapse-icon-size: 26px !default;
     margin: 0;
     position: relative;
     width: 100%;
-    &:focus-within {
-      box-shadow: rgba($primary, 0.6) 0 0 0 1px;
-      outline: currentColor none medium;
-    }
     .aa-InputWrapperPrefix {
       align-items: center;
       display: flex;
@@ -182,12 +185,6 @@ $quarto-search-collapse-icon-size: 26px !default;
         &::placeholder {
           color: $input-color;
           opacity: 0.8;
-        }
-        // Focus is set and styled on the parent, it isn't necessary here
-        &:focus {
-          border-color: none;
-          box-shadow: none;
-          outline: none;
         }
         // Remove native appearence
         &::-webkit-search-decoration,
@@ -581,10 +578,8 @@ $quarto-search-collapse-icon-size: 26px !default;
       cursor: pointer;
       margin: 0 0 0 0.5em;
       padding: 0 0.5em;
-      &:hover,
-      &:focus {
+      &:hover {
         box-shadow: rgba($primary, 0.6) 0 0 0 1px;
-        outline: currentColor none medium;
       }
     }
   }

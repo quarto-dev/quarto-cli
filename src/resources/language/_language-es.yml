@@ -100,6 +100,12 @@ navigation-breadcrumbs-label: "Hilo de Ariadna"    # wikidata Q846205
 scrollable-code-label: "Código desplazable"    # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Salida desplazable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(se abre en una nueva pestaña)"
+
+announcement-dismiss-label: "Cerrar el aviso"
+
+revealjs-menu-button-label: "Menú de diapositivas"
+
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabla"
 crossref-lst-title: "Listado"

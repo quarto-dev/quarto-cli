@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "Identifier 'Array' is reserved (1:26)",
+    "pos": 26,
+    "loc": {
+      "line": 1,
+      "column": 26
+    }
+  }
+}

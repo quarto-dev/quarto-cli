@@ -1,0 +1,7 @@
+---
+title: "Post 3"
+categories: [cat3]
+image: thumb.png
+---
+
+Post 3 content.

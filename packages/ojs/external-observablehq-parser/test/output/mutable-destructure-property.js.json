@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "Unexpected keyword 'mutable' (1:2)",
+    "pos": 2,
+    "loc": {
+      "line": 1,
+      "column": 2
+    }
+  }
+}

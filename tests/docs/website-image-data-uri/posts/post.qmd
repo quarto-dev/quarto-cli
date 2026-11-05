@@ -1,0 +1,7 @@
+---
+title: "Post with a data URI image"
+date: 2026-10-15
+image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+---
+
+The listing card shows the data URI, the feed ignores it with a warning.

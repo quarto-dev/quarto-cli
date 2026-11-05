@@ -1,0 +1,10 @@
+project:
+  type: website
+
+website:
+  title: "Testing target and rel in listings"
+
+format: html
+
+axe:
+  output: console

@@ -1,0 +1,177 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 100,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 100,
+    "expressions": [
+      {
+        "type": "UpdateExpression",
+        "start": 2,
+        "end": 19,
+        "operator": "++",
+        "prefix": true,
+        "argument": {
+          "type": "MutableExpression",
+          "start": 4,
+          "end": 19,
+          "id": {
+            "type": "Identifier",
+            "start": 12,
+            "end": 19,
+            "name": "counter"
+          }
+        }
+      },
+      {
+        "type": "UpdateExpression",
+        "start": 35,
+        "end": 52,
+        "operator": "++",
+        "prefix": true,
+        "argument": {
+          "type": "MutableExpression",
+          "start": 37,
+          "end": 52,
+          "id": {
+            "type": "Identifier",
+            "start": 45,
+            "end": 52,
+            "name": "counter"
+          }
+        }
+      },
+      {
+        "type": "UpdateExpression",
+        "start": 69,
+        "end": 86,
+        "operator": "++",
+        "prefix": true,
+        "argument": {
+          "type": "MutableExpression",
+          "start": 71,
+          "end": 86,
+          "id": {
+            "type": "Identifier",
+            "start": 79,
+            "end": 86,
+            "name": "counter"
+          }
+        }
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 0,
+        "value": {
+          "raw": "",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 20,
+        "end": 33,
+        "value": {
+          "raw": ". First item\n",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 53,
+        "end": 67,
+        "value": {
+          "raw": ". Second item\n",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 87,
+        "end": 100,
+        "value": {
+          "raw": ". Third item\n",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 2,
+    "body": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 2,
+      "name": "md"
+    },
+    "input": "md",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "md"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "MutableExpression",
+      "start": 4,
+      "end": 19,
+      "id": {
+        "type": "Identifier",
+        "start": 12,
+        "end": 19,
+        "name": "counter"
+      }
+    },
+    {
+      "type": "MutableExpression",
+      "start": 37,
+      "end": 52,
+      "id": {
+        "type": "Identifier",
+        "start": 45,
+        "end": 52,
+        "name": "counter"
+      }
+    },
+    {
+      "type": "MutableExpression",
+      "start": 71,
+      "end": 86,
+      "id": {
+        "type": "Identifier",
+        "start": 79,
+        "end": 86,
+        "name": "counter"
+      }
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

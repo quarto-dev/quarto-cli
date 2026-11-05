@@ -1,0 +1,5 @@
+---
+title: Chapter
+---
+
+The chapter cites another work [@included].

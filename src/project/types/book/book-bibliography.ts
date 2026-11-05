@@ -41,6 +41,11 @@ import { bookMultiFileHtmlOutputs } from "./book-extension.ts";
 import { ProjectOutputFile } from "../types.ts";
 import { projectType } from "../project-types.ts";
 import { isAbsoluteRef } from "../../../core/http.ts";
+import { renderToCSLJSON } from "../../../core/bibliography.ts";
+import {
+  googleScholarEnabled,
+  replaceGoogleScholarReferences,
+} from "../../../format/html/format-html-meta.ts";
 
 export async function bookBibliography(
   outputFiles: ProjectOutputFile[],
@@ -240,6 +245,17 @@ export async function bookBibliographyPostRender(
           }
         }
         if (changed) {
+          // The per-page metadata postprocessor ran before this bibliography
+          // was injected, so regenerate the page's Scholar reference tags.
+          if (googleScholarEnabled(refsOutputFile.format)) {
+            replaceGoogleScholarReferences(
+              doc,
+              await renderToCSLJSON(
+                context.dir,
+                bibliographyPathsRelativeToProject(context, bibliographyPaths),
+              ),
+            );
+          }
           await writeDomToHtmlFile(
             doc,
             refsOutputFile.file,
@@ -251,6 +267,19 @@ export async function bookBibliographyPostRender(
   }
 }
 
+function bibliographyPathsRelativeToProject(
+  context: ProjectContext,
+  bibliography: string[],
+) {
+  return bibliography.map((biblio) => {
+    if (isAbsolute(biblio)) {
+      return relative(context.dir, biblio);
+    } else {
+      return biblio;
+    }
+  });
+}
+
 export async function generateBibliography(
   context: ProjectContext,
   bibliography: string[],
@@ -258,13 +287,7 @@ export async function generateBibliography(
   to: string,
   csl?: string,
 ) {
-  const biblioPaths = bibliography.map((biblio) => {
-    if (isAbsolute(biblio)) {
-      return relative(context.dir, biblio);
-    } else {
-      return biblio;
-    }
-  });
+  const biblioPaths = bibliographyPathsRelativeToProject(context, bibliography);
 
   // make the aggregated bibliography
   const yaml: Metadata = {

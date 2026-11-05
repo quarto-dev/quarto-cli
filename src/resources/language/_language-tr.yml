@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Tüm Kodu Gizle"
 code-tools-view-source: "Kaynağı Görüntüle"
 code-tools-source-code: "Kaynak Kodu"
 
+tools-share: "Paylaş"
+tools-download: "İndir"
+
 copy-button-tooltip: "Panoya Kopyala"
 copy-button-tooltip-success: "Kopyalandı"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Kaynağı görüntüle"
 repo-action-links-issue: "Sorun bildir"
 
 back-to-top: "Başa dön"
+
+skip-to-content: "Ana içeriğe atla"
 
 search-no-results-text: "Sonuç yok"
 search-matching-documents-text: "eşleşen belgeler"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Yol"       # libreoffice sw 'Path' (attested term
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Kaydırılabilir kod"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Kaydırılabilir çıktı"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(yeni sekmede açılır)"
+
+announcement-dismiss-label: "Duyuruyu kapat"
+
+revealjs-menu-button-label: "Slayt menüsü"
 
 crossref-fig-title: "Şekil"
 crossref-tbl-title: "Tablo"

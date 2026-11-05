@@ -59,7 +59,7 @@ $light-bg-text-color: $body-bg !default;
 .reveal {
   strong,
   b {
-    &:not(.callout-title strong, .callout-tile b) {
+    &:not(.callout-title strong, .callout-title b) {
       color: var(--r-bold-color);
     }
   }

@@ -1,0 +1,16 @@
+---
+title: "Hover popups can be dismissed"
+format: revealjs
+references:
+  - id: knuth1984
+    type: book
+    author:
+      - family: Knuth
+        given: Donald E.
+    title: The TeXbook
+    issued: 1984
+---
+
+## Citation
+
+A citation [@knuth1984].

@@ -1,0 +1,18 @@
+---
+title: "An empty page open-graph entry with a preview image gets no size"
+open-graph:
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+        -
+          - '<meta property="og:image:height"'
+          - '<meta property="og:image:width"'
+---
+
+![A square](square.svg){.preview-image}
+
+The page declares `open-graph:` with no value, so it declares no size for its preview image, and the size the site declares for its own image is not used either.

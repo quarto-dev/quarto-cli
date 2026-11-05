@@ -1,6 +1,6 @@
 ## TinyTeX Pattern Update: {{DATE}}
 
-The daily TinyTeX regex patterns have changed and need review.
+The daily TinyTeX patterns (`regex.json`) or hyphenation map (`hyphen.json`) have changed and need review.
 
 ### Pattern Diff
 
@@ -22,6 +22,7 @@ See [dev-docs/tinytex-pattern-maintenance.md](./dev-docs/tinytex-pattern-mainten
 - [ ] Review diff for significant changes
 - [ ] Determine if patterns need adaptation
 - [ ] Update `parse-error.ts` if needed
+- [ ] If `hyphen.json` changed, update `kHyphenationPackageNames` in `parse-error.ts` and the copy in the unit test
 - [ ] Add/update filter functions
 - [ ] Run tests: `unit\latexmk\parse-error.test.ts`
 - [ ] Add test cases for new patterns if needed

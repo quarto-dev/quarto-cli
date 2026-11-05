@@ -1,0 +1,86 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 41,
+  "id": {
+    "type": "MutableExpression",
+    "start": 0,
+    "end": 11,
+    "id": {
+      "type": "Identifier",
+      "start": 8,
+      "end": 11,
+      "name": "foo"
+    }
+  },
+  "body": {
+    "type": "BlockStatement",
+    "start": 14,
+    "end": 40,
+    "body": [
+      {
+        "type": "ReturnStatement",
+        "start": 18,
+        "end": 38,
+        "argument": {
+          "type": "ObjectExpression",
+          "start": 25,
+          "end": 37,
+          "properties": [
+            {
+              "type": "Property",
+              "start": 26,
+              "end": 30,
+              "method": false,
+              "shorthand": false,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 26,
+                "end": 27,
+                "name": "x"
+              },
+              "value": {
+                "type": "Literal",
+                "start": 29,
+                "end": 30,
+                "value": 0,
+                "raw": "0"
+              },
+              "kind": "init"
+            },
+            {
+              "type": "Property",
+              "start": 32,
+              "end": 36,
+              "method": false,
+              "shorthand": false,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 32,
+                "end": 33,
+                "name": "y"
+              },
+              "value": {
+                "type": "Literal",
+                "start": 35,
+                "end": 36,
+                "value": 0,
+                "raw": "0"
+              },
+              "kind": "init"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

@@ -1,3 +1,15 @@
+---
+main_commit: d30cdbb9e
+analyzed_date: 2026-07-23
+key_files:
+  - package/src/common/update-pandoc.ts
+  - src/format/typst/format-typst.ts
+  - src/resources/formats/typst/pandoc/quarto/definitions.typ
+  - src/resources/formats/typst/pandoc/quarto/template.typ
+  - src/resources/formats/typst/pandoc/typst.template
+  - src/resources/formats/typst/pandoc/template.typst
+---
+
 # Pandoc and Quarto Typst Templates
 
 This document describes how Quarto integrates Pandoc's typst templates and transforms them into a more modular structure suitable for Quarto's extended functionality.
@@ -83,7 +95,7 @@ Combines Pandoc definitions with Quarto-specific functionality:
 - Code block styling (gray background, padding, rounded corners)
 - `block_with_new_content` helper for reconstructing blocks with modified content
 - `empty` function to check if content is empty (handles strings and content nodes)
-- Subfloat support via `quartosubfloatcounter` and `quarto_super` function for nested figures with sub-numbering
+- Subfloat support via `quartosubfloatcounter` and `quarto_super` function for nested figures with sub-numbering; subfloats are `outlined: false`, so only the parent appears in a list of figures
 - Callout figure show rule that transforms callout figures with proper titles and cross-reference numbering
 - `callout` function for rendering callout boxes with customizable colors, icons, and styling
 
@@ -106,6 +118,7 @@ Corresponds to `conf()` in Pandoc's `template.typst`. Defines the `article()` fu
 - `title-size`, `subtitle-size` for customizable title sizing
 - `heading-family`, `heading-weight`, `heading-style`, `heading-color`, `heading-line-height` for brand typography
 - `toc`, `toc_title`, `toc_depth`, `toc_indent` for integrated table of contents
+- `lof`, `lof-title`, `lot`, `lot-title` for lists of figures and tables (outlines of `quarto-float-fig` / `quarto-float-tbl` figures)
 
 **Functionality**:
 - Sets `document()` metadata (title, keywords, author string) for PDF accessibility
@@ -113,7 +126,7 @@ Corresponds to `conf()` in Pandoc's `template.typst`. Defines the `article()` fu
 - Applies conditional font settings using `set ... if` pattern (Typst 0.14+)
 - Applies link colors using `content-to-string` helper
 - Renders the title block with thanks footnote, author grid, date, and abstract
-- Optionally renders table of contents
+- Optionally renders table of contents, then lists of figures and tables
 - Handles single or multi-column layout
 
 ### page.typ - Page Configuration
@@ -143,6 +156,7 @@ Applies the `article()` function via a show rule, mapping Pandoc metadata and br
 - `linkcolor`, `citecolor`, `filecolor` → link color parameters
 - `keywords` → `keywords`
 - `toc`, `toc-title`, `toc-depth`, `toc-indent` → TOC parameters
+- `lof`, `lot` → `lof`, `lot`; titles from `crossref.lof-title` / `crossref.lot-title`, else `quarto.language.crossref-lof-title` / `crossref-lot-title` (localized)
 - `columns` → `cols`
 
 **Brand.yaml Fallbacks** (used when Pandoc metadata not set):
@@ -170,9 +184,21 @@ Handles bibliography rendering:
 - Sets bibliography style from CSL file or bibliography style option
 - Renders bibliography from specified files
 
-### typst.template - Reference Copy
+### typst.template and template.typst - Reference Copies
 
-This is the copy of Pandoc's `default.typst`, kept for reference. It is used when rendering without Quarto's template context (e.g., when a user provides a custom template).
+`typst.template` (Pandoc's `default.typst`) and `template.typst` (kept under its original name) are reference copies. `format-typst.ts` uses the `quarto/` template and partials described above for rendering.
+
+During a Pandoc update, review their diffs and port relevant changes to `quarto/definitions.typ` and the other Quarto partials. See `dev-docs/update-pandoc-checklist.md` for the regeneration and reference-copy maintenance procedure.
+
+### Writer-Level Changes vs. Template-Level Changes
+
+Pandoc's Typst writer converts the AST into body markup. Changes to its output can affect rendering regardless of the template used.
+
+For example, Pandoc 3.10.1 changed `HorizontalRule` output from `#horizontalrule` to `#divider()`, a native function added in Typst 0.15. The bundled Typst version is 0.15.1, so this call needs no local definition. Quarto's `quarto/definitions.typ` still defines `horizontalrule` for use by `notes.typ`.
+
+The same release changed definition-list output: descriptions are emitted directly rather than wrapped in `#block[...]`, relying on an external `#set terms(hanging-indent: ...)`. Quarto's `#show terms.item` rule reformats the description in either case. Neither change required a template change for Quarto.
+
+When updating Pandoc, render a document with both versions using `QUARTO_PANDOC` and compare the generated `.typ` body content. Template diffs alone do not show changes in writer output.
 
 ## 3. Parameter Summary Table
 
@@ -210,3 +236,7 @@ This is the copy of Pandoc's `default.typst`, kept for reference. It is used whe
 | `toc-title` | `toc_title` | - | |
 | `toc-depth` | `toc_depth` | - | |
 | `toc-indent` | `toc_indent` | - | Quarto extension |
+| `lof` | `lof` | - | Quarto extension (Pandoc's Typst writer ignores it) |
+| - | `lof-title` | - | `crossref.lof-title`, else `quarto.language.crossref-lof-title` |
+| `lot` | `lot` | - | Quarto extension (Pandoc's Typst writer ignores it) |
+| - | `lot-title` | - | `crossref.lot-title`, else `quarto.language.crossref-lot-title` |

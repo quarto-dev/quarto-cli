@@ -194,6 +194,7 @@ export async function renderPandoc(
     args: recipe.args,
     services: context.options.services,
     metadata: executeResult.metadata,
+    unexecutedMetadata: context.target.metadata,
     quiet,
     flags: context.options.flags,
   };

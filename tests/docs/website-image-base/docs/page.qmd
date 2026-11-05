@@ -1,0 +1,7 @@
+---
+title: "Page with its own og image"
+open-graph:
+  image: local.png
+---
+
+The image is relative to this document.

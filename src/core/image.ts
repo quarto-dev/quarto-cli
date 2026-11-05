@@ -6,23 +6,28 @@
 
 import { existsSync } from "../deno_ral/fs.ts";
 import { extname } from "../deno_ral/path.ts";
-import PngImage from "./png.ts";
+import PngImage, { isPng } from "./png.ts";
+import { isJpeg, jpegSize } from "./jpeg.ts";
 
+// Pixel size of a PNG or JPEG file, detected from its header bytes rather
+// than its extension. Other formats have no size.
 export function imageSize(path: string) {
   if (path !== undefined) {
-    if (path.endsWith(".png")) {
-      if (existsSync(path)) {
-        const imageData = Deno.readFileSync(path);
-        try {
+    if (existsSync(path, { isFile: true })) {
+      const imageData = Deno.readFileSync(path);
+      try {
+        if (isPng(imageData)) {
           const png = new PngImage(imageData);
           return {
             height: png.height,
             width: png.width,
           };
-        } catch (error) {
-          if (!(error instanceof Error)) throw error;
-          throw new Error(`Error reading file ${path}\n${error.message}`);
+        } else if (isJpeg(imageData)) {
+          return jpegSize(imageData);
         }
+      } catch (error) {
+        if (!(error instanceof Error)) throw error;
+        throw new Error(`Error reading file ${path}\n${error.message}`);
       }
     }
   }

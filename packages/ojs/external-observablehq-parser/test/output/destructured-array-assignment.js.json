@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "Assignment to constant variable md (2:4)",
+    "pos": 6,
+    "loc": {
+      "line": 2,
+      "column": 4
+    }
+  }
+}

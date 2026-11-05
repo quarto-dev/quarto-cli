@@ -1,0 +1,12 @@
+---
+title: "Home"
+---
+
+Fixture for the global focus ring. Every focusable control must show the
+same ring: a `$focus-ring-outer-color` outline, with the inner color as a
+box-shadow in the outline offset.
+
+Below 992px the secondary nav shows the sidebar toggle and sidebar search
+buttons, which are bare Bootstrap `.btn` elements (#14774).
+
+An [inline link](about.qmd) in the body.

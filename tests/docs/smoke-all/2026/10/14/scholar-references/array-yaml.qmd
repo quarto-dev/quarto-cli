@@ -1,0 +1,15 @@
+---
+title: Scholar metadata for a top-level array YAML bibliography
+format: html
+google-scholar: true
+bibliography: references-array.yaml
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_title=Formatted reference;"][content*="citation_volume=1.10;"][content*="citation_issue=7;"]']
+---
+
+The bibliography is a YAML file holding a top-level list of references, with no `references:` key, which pandoc accepts for `--bibliography`. The fields still go through pandoc's YAML reader: the markdown title is parsed and the unquoted volume keeps its text.
+
+This article cites one work [@cited].

@@ -1,0 +1,14 @@
+---
+title: Chapter from YAML
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['h1.title span.chapter-number']
+        - []
+      ensureHtmlElementContents:
+        selectors: ['h1.title']
+        matches: ['^\s*1\s+Chapter from YAML\s*$']
+---
+
+A book chapter whose title comes from the YAML `title` key keeps the chapter number Quarto computes for it. The document's own `title` value must not replace the numbered title.

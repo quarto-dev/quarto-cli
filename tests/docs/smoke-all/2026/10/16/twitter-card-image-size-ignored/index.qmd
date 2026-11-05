@@ -1,0 +1,21 @@
+---
+title: "Twitter Card image size options are ignored"
+image: page.png
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'twitter-card.*image-width.*image-height.*ignored.*open-graph'
+      ensureFileRegexMatches:
+        -
+          - '<meta name="twitter:image" content="https://example.com/page.png">'
+        -
+          - 'twitter:image-height'
+          - 'twitter:image-width'
+---
+
+The site sets `image-width` and `image-height` under `twitter-card`, which Twitter Cards have no tags for.
+
+The test renders this file alone, not the whole project first: the warning is printed once per Quarto process, so a project pre-render would consume it.

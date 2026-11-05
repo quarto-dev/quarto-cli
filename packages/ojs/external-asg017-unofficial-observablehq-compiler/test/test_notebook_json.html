@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<head>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@3/dist/inspector.css"
+  />
+</head>
+<body class="O--body">
+  <div id="main"></div>
+  <script type="module">
+    import {
+      Runtime,
+      Inspector
+    } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4.6.4/dist/runtime.js";
+    import { Compiler } from "/dist/index-esm.js";
+
+    const notebook = {
+      id: "test-notebook-json",
+      creator: { name: "test author" },
+      version: 1,
+      title: "Notebook JSON Compile Test",
+      nodes: [
+        {
+          id: 0,
+          value: "md`# Notebook JSON Compile Test`",
+          pinned: false
+        },
+        {
+          id: 1,
+          value: `{
+      let i = 1;
+      while(i) {
+        yield Promises.tick(100, ++i);
+      }
+    }`,
+          pinned: false
+        },
+        {
+          id: 2,
+          value: `viewof x = html\`<input type="range">\``,
+          pinned: false
+        },
+        {
+          id: 3,
+          value: "y = x * x",
+          pinned: false
+        },
+        {
+          id: 4,
+          value: "z = viewof x.valueAsNumber + x",
+          pinned: false
+        },
+        {
+          id: 5,
+          value: "mutable m = 0",
+          pinned: false
+        },
+        {
+          id: 6,
+          value: `{
+      const button = html\`<button>increment m, decrement x\`;
+      button.onclick = () => {
+        mutable m++;
+        viewof x.value = viewof x.valueAsNumber - 1;
+        viewof x.dispatchEvent(new CustomEvent('input'));
+      };
+      return button;
+    }`,
+          pinned: false
+        },
+        {
+          id: 7,
+          value: `3*m`,
+          pinned: false
+        },
+        {
+          id: 8,
+          value: `d3 = require('d3-array')`,
+          pinned: false
+        },
+        {
+          id: 9,
+          value: 'import {ramp} from "@mbostock/color-ramp"',
+          pinned: false
+        },
+        {
+          id: 10,
+          value: `ramp(t => \`hsl(\${t * 360}, 100%, 50%)\`)`,
+          pinned: false
+        },
+        {
+          id: 11,
+          value: 'import {map} from "@d3/interrupted-sinu-mollweide"',
+          pinned: false
+        },
+        {
+          id: 12,
+          value: "map",
+          pinned: false
+        },
+        {
+          id: 13,
+          value: `attached = (await import(await FileAttachment("/test/executable_attachment.js").url())).html`,
+          pinned: false
+        }
+      ]
+    };
+    const compile = new Compiler();
+    compile.notebook(notebook).then(define => {
+      const rt = new Runtime();
+      window.MODULE = rt.module(
+        define,
+        Inspector.into(document.querySelector("#main"))
+      );
+    });
+  </script>
+</body>

@@ -56,6 +56,7 @@ local kWhenMeta = "when-meta"
 local kUnlessMeta = "unless-meta"
 local kMermaidClz = 'mermaid'
 local kPositionedRefs = 'positioned-refs'
+local kCitationTitle = 'citation-title'
 local kTblColWidths = "tbl-colwidths"
 
 local kHeaderIncludes = "header-includes"
@@ -223,6 +224,7 @@ return {
   kUnlessProfile = kUnlessProfile,
   kMermaidClz = kMermaidClz,
   kPositionedRefs = kPositionedRefs,
+  kCitationTitle = kCitationTitle,
   kTblColWidths = kTblColWidths,
 
   kHeaderIncludes = kHeaderIncludes,

@@ -1,0 +1,26 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 4,
+  "id": null,
+  "body": {
+    "type": "Identifier",
+    "start": 0,
+    "end": 3,
+    "name": "foo"
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 0,
+      "end": 3,
+      "name": "foo"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

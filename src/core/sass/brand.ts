@@ -27,6 +27,7 @@ import { darkModeDefault } from "../../format/html/format-html-info.ts";
 import { kBrandMode } from "../../config/constants.ts";
 import { join, relative } from "../../deno_ral/path.ts";
 import { isExternalPath } from "../url.ts";
+import { asCssFont } from "../css.ts";
 
 const defaultColorNameMap: Record<string, string> = {
   "link-color": "link",
@@ -543,6 +544,11 @@ const brandTypographyLayer = (
         let value = fontInformation[source];
         if (["color", "background-color"].includes(source)) {
           value = brand.getColor(value as string);
+        } else if (source === "family") {
+          // quote names with spaces, as the mainfont/monofont path does: an
+          // unquoted name with a part starting with a digit ("Source Sans 3")
+          // is invalid CSS and the browser drops the declaration
+          value = asCssFont(value) ?? value;
         }
         typographyVariables.push(
           `$${target}: ${value} !default;`,

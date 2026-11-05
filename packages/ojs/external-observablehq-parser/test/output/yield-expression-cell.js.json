@@ -1,0 +1,32 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 12,
+  "id": null,
+  "body": {
+    "type": "YieldExpression",
+    "start": 0,
+    "end": 11,
+    "delegate": false,
+    "argument": {
+      "type": "Identifier",
+      "start": 6,
+      "end": 11,
+      "name": "value"
+    }
+  },
+  "async": false,
+  "generator": true,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 6,
+      "end": 11,
+      "name": "value"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

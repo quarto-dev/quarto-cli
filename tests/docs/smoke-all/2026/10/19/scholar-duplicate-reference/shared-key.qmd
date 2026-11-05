@@ -1,0 +1,20 @@
+---
+title: Scholar metadata for a key defined in two bibliographies
+format: html
+google-scholar: true
+bibliography: [first.bib, second.bib]
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        - selectors: ['meta[name="citation_reference"]', '.csl-entry[id^="ref-"]']
+          counts: [1, 1]
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_author=Bob Jones;"]']
+        - ['meta[name="citation_reference"][content*="citation_author=Alice Smith;"]']
+      ensureFileRegexMatches:
+        - ['id="ref-shared"[^>]*>\s*Jones, Bob']
+        - []
+---
+
+Pandoc keeps the entry from the last bibliography that defines a key [@shared].

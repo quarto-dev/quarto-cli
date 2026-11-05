@@ -1,0 +1,7 @@
+---
+title: "Feed image from the site"
+listing:
+  feed: true
+---
+
+This listing sets no image, so the feed falls back to the site `image`.

@@ -1,0 +1,77 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 35,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 34,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 4,
+        "end": 32,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 8,
+            "end": 31,
+            "id": {
+              "type": "Identifier",
+              "start": 8,
+              "end": 9,
+              "name": "a"
+            },
+            "init": {
+              "type": "CallExpression",
+              "start": 12,
+              "end": 31,
+              "callee": {
+                "type": "Identifier",
+                "start": 12,
+                "end": 26,
+                "name": "DatabaseClient"
+              },
+              "arguments": [
+                {
+                  "type": "Literal",
+                  "start": 27,
+                  "end": 30,
+                  "value": "a",
+                  "raw": "\"a\""
+                }
+              ],
+              "optional": false
+            }
+          }
+        ],
+        "kind": "let"
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 12,
+      "end": 26,
+      "name": "DatabaseClient"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [
+    [
+      "a",
+      [
+        {
+          "start": 27,
+          "end": 30
+        }
+      ]
+    ]
+  ],
+  "secrets": [],
+  "notificationClients": []
+}

@@ -1,0 +1,22 @@
+---
+title: "Two paginated listings"
+listing:
+  - id: first-listing
+    contents: posts
+    type: default
+    sort: "title asc"
+    page-size: 1
+    categories: true
+    filter-ui: true
+  - id: second-listing
+    contents: posts
+    type: default
+    sort: "title asc"
+    page-size: 1
+---
+
+::: {#first-listing}
+:::
+
+::: {#second-listing}
+:::

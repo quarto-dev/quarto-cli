@@ -1,0 +1,9 @@
+---
+title: "Feed image from the listing option"
+listing:
+  contents: posts
+  feed:
+    image: feed.png
+---
+
+The feed image comes from the listing `feed: image:` option.

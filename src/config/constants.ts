@@ -306,6 +306,9 @@ export const kToggleReaderMode = "toggle-reader-mode";
 export const kToggleNavigation = "toggle-navigation";
 export const kScrollableCodeLabel = "scrollable-code-label";
 export const kScrollableOutputLabel = "scrollable-output-label";
+export const kLinkExternalNewwindowLabel = "link-external-newwindow-label";
+export const kRevealjsMenuButtonLabel = "revealjs-menu-button-label";
+export const kAnnouncementDismissLabel = "announcement-dismiss-label";
 
 export const kNavigationSiteLabel = "navigation-site-label";
 export const kNavigationSectionLabel = "navigation-section-label";
@@ -449,6 +452,9 @@ export const kLanguageDefaultsKeys = [
   kNavigationBreadcrumbsLabel,
   kScrollableCodeLabel,
   kScrollableOutputLabel,
+  kLinkExternalNewwindowLabel,
+  kRevealjsMenuButtonLabel,
+  kAnnouncementDismissLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
@@ -678,6 +684,7 @@ export const kCapBottom = "bottom";
 
 // Pandoc Input Traits
 export const kPositionedRefs = "positioned-refs";
+export const kCitationTitle = "citation-title";
 
 // https://pandoc.org/MANUAL.html#defaults-files
 // note: we are keeping some things out of 'defaults' b/ca

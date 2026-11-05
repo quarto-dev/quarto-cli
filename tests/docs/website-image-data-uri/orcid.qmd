@@ -1,0 +1,8 @@
+---
+title: "Only image is the ORCID badge"
+author:
+  - name: Jane Doe
+    orcid: 0000-0002-0000-0000
+---
+
+The ORCID badge is a data URI, so the site `image` is used.

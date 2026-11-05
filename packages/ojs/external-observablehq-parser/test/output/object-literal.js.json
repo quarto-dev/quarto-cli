@@ -1,0 +1,42 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 12,
+  "id": null,
+  "body": {
+    "type": "ObjectExpression",
+    "start": 1,
+    "end": 10,
+    "properties": [
+      {
+        "type": "Property",
+        "start": 2,
+        "end": 9,
+        "method": false,
+        "shorthand": false,
+        "computed": false,
+        "key": {
+          "type": "Identifier",
+          "start": 2,
+          "end": 5,
+          "name": "foo"
+        },
+        "value": {
+          "type": "Literal",
+          "start": 7,
+          "end": 9,
+          "value": 42,
+          "raw": "42"
+        },
+        "kind": "init"
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

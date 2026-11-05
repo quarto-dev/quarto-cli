@@ -1,0 +1,1 @@
+viewof foo = DOM.input()

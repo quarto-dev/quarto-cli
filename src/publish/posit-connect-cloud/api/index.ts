@@ -155,7 +155,10 @@ export class PositConnectCloudClient {
     );
   }
 
-  public async uploadBundle(uploadUrl: string, bundleData: Uint8Array) {
+  public async uploadBundle(
+    uploadUrl: string,
+    bundleData: Uint8Array<ArrayBuffer>,
+  ) {
     publishDebug(
       `Uploading bundle (${bundleData.length} bytes)`,
     );
@@ -290,7 +293,7 @@ export class PositConnectCloudClient {
     method: string,
     url: string,
     headers: Record<string, string>,
-    body?: string | Uint8Array,
+    body?: string | Uint8Array<ArrayBuffer>,
   ): Promise<Response> {
     await this.ensureValidToken_();
     const buildHeaders = () => ({

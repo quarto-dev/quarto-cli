@@ -1,0 +1,38 @@
+---
+title: "Hover popups can be dismissed"
+code-annotations: hover
+code-copy: false
+references:
+  - id: knuth1984
+    type: book
+    author:
+      - family: Knuth
+        given: Donald E.
+    title: The TeXbook
+    issued: 1984
+---
+
+## Popups
+
+A footnote.[^1] A citation [@knuth1984]. A figure, @fig-square.
+
+@sec-target has a link.
+
+[Next link](https://example.com/after).
+
+[^1]: The footnote text.
+
+::: {#fig-square}
+Figure content.
+
+A figure caption.
+:::
+
+```python
+x = 1 # <1>
+```
+1. The annotation text.
+
+## Target section {#sec-target}
+
+This paragraph has [a link inside the popup](https://example.com/inside).

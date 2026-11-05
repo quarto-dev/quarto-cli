@@ -1,0 +1,23 @@
+---
+title: "No color-scheme toggle when the dark brand file is ignored"
+format: html
+brand:
+  light: united-brand.yml
+  dark: comment-only-dark-brand.yml
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'comment-only-dark-brand\.yml has no content and will be ignored'
+      ensureHtmlElements:
+        - []
+        - ["link.quarto-color-alternate"]
+      ensureFileRegexMatches:
+        - []
+        -
+          - 'quarto-color-scheme-toggle'
+---
+
+A comment-only dark brand file is ignored, so the page has a single light mode and must not emit any toggle markup or toggle script.

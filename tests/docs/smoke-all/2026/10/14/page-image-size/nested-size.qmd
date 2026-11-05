@@ -1,0 +1,21 @@
+---
+title: "Open-graph size is emitted for an SVG Quarto cannot measure"
+image: square.svg
+open-graph:
+  image-width: 10
+  image-height: 10
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+          - '<meta property="og:image:width" content="10">'
+          - '<meta property="og:image:height" content="10">'
+        -
+          - 'og:image:width" content="1200"'
+          - 'og:image:height" content="630"'
+---
+
+Quarto cannot measure an SVG, so the size declared under open-graph is emitted.

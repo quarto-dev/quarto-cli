@@ -9,6 +9,9 @@ Files under `src/resources/formats/html/*/` (e.g. `axe`, `anchor`, `popper`, `cl
 `tippy`, `glightbox`, `fuse`, `bootstrap`) are vendored third-party dependencies, managed by
 `package/src/common/update-html-dependencies.ts` — not hand-edited.
 
+Exception: `ojs/` is not managed by the updater. Its runtime bundles are built from `packages/ojs`
+and `quarto-ojs.css` is edited in place; see `.claude/rules/formats/ojs.md`.
+
 ## Verify provenance before trusting a change
 
 When reviewing a change to one of these files, fetch the same version from upstream and compare

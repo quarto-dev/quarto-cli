@@ -1,0 +1,1 @@
+cdn.jsdelivr.net/npm

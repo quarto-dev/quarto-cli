@@ -14,6 +14,18 @@ export function isExternalPath(path: string) {
   return /^\w+:/.test(path);
 }
 
+// Returns undefined when the value contains a malformed escape sequence.
+export function tryDecodeURI(value: string): string | undefined {
+  try {
+    return decodeURI(value);
+  } catch (e) {
+    if (e instanceof URIError) {
+      return undefined;
+    }
+    throw e;
+  }
+}
+
 export function joinUrl(baseUrl: string, path: string) {
   const baseHasSlash = baseUrl.endsWith("/");
 

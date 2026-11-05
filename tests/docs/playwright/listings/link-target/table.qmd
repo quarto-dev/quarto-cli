@@ -1,0 +1,23 @@
+---
+title: "Link target - table"
+listing:
+  id: table-listing
+  type: table
+  table-hover: true
+  target: _blank
+  contents:
+    - path: https://example.com/a
+      title: "Item A"
+      description: "Inherits the listing target."
+    - path: local-post.qmd
+      title: "Local Post"
+      description: "Overrides the listing target."
+      target: _self
+    - path: https://example.com/b
+      title: "Item B"
+      description: "Keeps its explicit rel."
+      rel: external
+---
+
+::: {#table-listing}
+:::

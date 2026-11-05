@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Alle code verbergen"
 code-tools-view-source: "Broncode bekijken"
 code-tools-source-code: "Broncode"
 
+tools-share: "Delen"
+tools-download: "Download"
+
 copy-button-tooltip: "Kopieer naar klembord"
 copy-button-tooltip-success: "Gekopieerd!"
 
@@ -96,6 +99,10 @@ navigation-breadcrumbs-label: "Pad"   # libreoffice sw 'Path' (attested term hol
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Scrollbare code"       # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Scrollbare uitvoer"  # firefox devtools + gnome control-center — assembled, needs review
+
+link-external-newwindow-label: "(opent in een nieuw tabblad)"
+
+announcement-dismiss-label: "Mededeling sluiten"
 
 crossref-fig-title: "Figuur"
 crossref-tbl-title: "Tabel"

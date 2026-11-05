@@ -1,0 +1,1 @@
+foo, // Oops, invalid syntax.

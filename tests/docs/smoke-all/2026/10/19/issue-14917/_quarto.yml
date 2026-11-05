@@ -1,0 +1,8 @@
+project:
+  type: website
+
+website:
+  title: "SITE TITLE"
+  site-url: https://example.com
+  open-graph: true
+  twitter-card: true

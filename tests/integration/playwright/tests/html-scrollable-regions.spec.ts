@@ -1,31 +1,11 @@
-import { expect, Locator, Page, test } from "@playwright/test";
-import { getUrl } from "../src/utils";
+import { expect, test } from "@playwright/test";
+import { getUrl, tabKey, tabUntilFocused } from "../src/utils";
 
 // Tests for #14378. The scrollable-regions runtime makes code blocks and
 // cell output keyboard-focusable (tabindex="0", role="group", localized
 // aria-label, data-quarto-scrollable marker) only while they actually
 // overflow, and removes the attributes when they stop. The fixture's wide
 // elements overflow a 390px viewport and fit a 1440px one.
-
-// Move focus with real Tab presses — programmatic locator.focus() does not
-// reliably match :focus-visible in any engine. WebKit follows Safari's
-// default of skipping most elements on Tab; Option+Tab visits every
-// focusable element.
-async function tabUntilFocused(
-  page: Page,
-  browserName: string,
-  target: Locator,
-  maxTabs = 25,
-): Promise<boolean> {
-  const tabKey = browserName === "webkit" ? "Alt+Tab" : "Tab";
-  for (let i = 0; i < maxTabs; i++) {
-    await page.keyboard.press(tabKey);
-    if (await target.evaluate((el) => el === document.activeElement)) {
-      return true;
-    }
-  }
-  return false;
-}
 
 test.describe("scrollable regions at a mobile viewport", () => {
   test.use({ viewport: { width: 390, height: 700 } });
@@ -208,7 +188,7 @@ test.describe("scrollable regions at a mobile viewport", () => {
 
     // Focus leaving is what releases it; without the focusout re-sync the
     // attributes would sit stale until some later, unrelated resize.
-    await page.keyboard.press(browserName === "webkit" ? "Alt+Tab" : "Tab");
+    await page.keyboard.press(tabKey(browserName));
     await expect(page.locator("[data-quarto-scrollable]")).toHaveCount(0);
     await expect(block).not.toHaveAttribute("tabindex");
     await expect(block).not.toHaveAttribute("role");

@@ -1,0 +1,11 @@
+---
+title: "Posts with a placeholder image"
+listing:
+  contents: posts
+  type: default
+  sort: "title"
+  image-placeholder: placeholder.png
+---
+
+The same listing with an `image-placeholder`. The post without an image
+shows the placeholder image in its thumbnail link.

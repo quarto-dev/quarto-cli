@@ -1,0 +1,36 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 28,
+  "id": null,
+  "body": {
+    "type": "MutableExpression",
+    "start": 0,
+    "end": 27,
+    "id": {
+      "type": "Identifier",
+      "start": 22,
+      "end": 27,
+      "name": "value"
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "MutableExpression",
+      "start": 0,
+      "end": 27,
+      "id": {
+        "type": "Identifier",
+        "start": 22,
+        "end": 27,
+        "name": "value"
+      }
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

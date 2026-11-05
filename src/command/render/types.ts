@@ -21,7 +21,7 @@ import { Metadata } from "../../config/types.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { TempContext } from "../../core/temp-types.ts";
 import { ExtensionContext } from "../../extension/types.ts";
-import { kPositionedRefs } from "../../config/constants.ts";
+import { kCitationTitle, kPositionedRefs } from "../../config/constants.ts";
 import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { Lifetime } from "../../core/lifetimes.ts";
 
@@ -81,6 +81,7 @@ export interface RunPandocResult {
 
 export interface PandocInputTraits {
   [kPositionedRefs]?: boolean;
+  [kCitationTitle]?: string;
 }
 
 export type HtmlPostProcessor = (
@@ -213,6 +214,9 @@ export interface PandocOptions {
 
   // extra metadata to merge
   metadata?: Metadata;
+
+  // the input's metadata as written, before execution resolved inline expressions
+  unexecutedMetadata?: Metadata;
 
   // optional execution engine
   executionEngine?: string;

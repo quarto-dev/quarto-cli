@@ -1,0 +1,7 @@
+title: Language file in an organisation
+author: Quarto Dev Team
+version: 1.0.0
+contributes:
+  formats:
+    html:
+      language: _language.yml

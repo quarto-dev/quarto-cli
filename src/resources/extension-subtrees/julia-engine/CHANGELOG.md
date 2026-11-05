@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.2.3](https://github.com/PumasAI/quarto-julia-engine/releases/tag/v0.2.3) - 2026-10-21
+
+- Updated to QuartoNotebookRunner 0.18.5 [#16](https://github.com/PumasAI/quarto-julia-engine/pull/16):
+  - `notebook_options()` now includes all document and project metadata, and any metadata change invalidates the cell output cache.
+  - Notebooks with long error stacktraces no longer hang the render.
+  - A cell that starts a process and leaves it running no longer hangs the notebook.
+  - Workers that write a lot to `stdout` no longer take 30 seconds to shut down.
+  - R plots are no longer blank under `fig-format: svg`.
+  - Frontmatter merging no longer warns on Julia 1.13.
+
 ## [0.2.2](https://github.com/PumasAI/quarto-julia-engine/releases/tag/v0.2.2) - 2026-09-08
 
 - A failed render without an execution daemon no longer leaves the notebook's worker process running [#14](https://github.com/PumasAI/quarto-julia-engine/pull/14).

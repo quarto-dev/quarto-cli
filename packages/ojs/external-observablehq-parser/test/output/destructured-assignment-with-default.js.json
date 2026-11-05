@@ -1,0 +1,103 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 45,
+  "id": null,
+  "body": {
+    "type": "BlockStatement",
+    "start": 0,
+    "end": 44,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 4,
+        "end": 14,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 8,
+            "end": 13,
+            "id": {
+              "type": "Identifier",
+              "start": 8,
+              "end": 13,
+              "name": "value"
+            },
+            "init": null
+          }
+        ],
+        "kind": "let"
+      },
+      {
+        "type": "ExpressionStatement",
+        "start": 17,
+        "end": 42,
+        "expression": {
+          "type": "AssignmentExpression",
+          "start": 18,
+          "end": 40,
+          "operator": "=",
+          "left": {
+            "type": "ObjectPattern",
+            "start": 18,
+            "end": 35,
+            "properties": [
+              {
+                "type": "Property",
+                "start": 19,
+                "end": 34,
+                "method": false,
+                "shorthand": false,
+                "computed": false,
+                "key": {
+                  "type": "Identifier",
+                  "start": 19,
+                  "end": 22,
+                  "name": "foo"
+                },
+                "value": {
+                  "type": "AssignmentPattern",
+                  "start": 24,
+                  "end": 34,
+                  "left": {
+                    "type": "Identifier",
+                    "start": 24,
+                    "end": 29,
+                    "name": "value"
+                  },
+                  "right": {
+                    "type": "Identifier",
+                    "start": 32,
+                    "end": 34,
+                    "name": "md"
+                  }
+                },
+                "kind": "init"
+              }
+            ]
+          },
+          "right": {
+            "type": "ObjectExpression",
+            "start": 38,
+            "end": 40,
+            "properties": []
+          }
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 32,
+      "end": 34,
+      "name": "md"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

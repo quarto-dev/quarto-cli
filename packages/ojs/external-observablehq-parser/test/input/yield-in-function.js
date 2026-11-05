@@ -1,0 +1,5 @@
+{
+  function* inner() {
+    yield value;
+  }
+}

@@ -1,0 +1,8 @@
+---
+title: "Post with an image in the front matter"
+date: 2026-01-01
+image: thumb.png
+image-alt: "A red square"
+---
+
+Text with an image set in the front matter.

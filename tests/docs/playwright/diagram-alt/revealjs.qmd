@@ -1,0 +1,8 @@
+---
+title: "Diagram alternative text"
+format:
+  revealjs:
+    transition: none
+---
+
+{{< include _content.md >}}

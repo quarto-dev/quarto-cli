@@ -1,0 +1,17 @@
+---
+title: "A format extension reads its own language file"
+format: langfile-html
+toc: true
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the extension</h2>']
+        - []
+---
+
+## Section
+
+The `langfile` extension sets `language: _language.yml` for its HTML format.
+Before the fix, Quarto looked for this file in `_extensions/_extensions/langfile/` and the render stopped.
+The table of contents must show the title from the language file of the extension.

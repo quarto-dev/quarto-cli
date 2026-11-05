@@ -76,6 +76,10 @@ if "%QUARTO_VENDOR_BINARIES%" == "true" (
     deno upgrade --canary --version %DENO_CANARY_COMMIT%
   )
 
+  REM Record the installed Deno version for the dev launcher's stale-Deno check
+  IF NOT EXIST "!QUARTO_DIST_PATH!\config" MKDIR "!QUARTO_DIST_PATH!\config"
+  ECHO !DENO!>"!QUARTO_DIST_PATH!\config\deno-version"
+
   SET QUARTO_DENO=!QUARTO_BIN_PATH!\tools\!DENO_ARCH_DIR!\deno.exe
   POPD
   POPD
@@ -96,6 +100,7 @@ POPD
 
 REM download typescript dependencies
 CALL package\scripts\vendoring\vendor.cmd
+IF ERRORLEVEL 1 EXIT /B 1
 
 ECHO Downloading Deno Stdlib
 CALL !QUARTO_PACKAGE_PATH!\scripts\deno_std\download.bat

@@ -1,0 +1,16 @@
+---
+title: "A page image Quarto cannot measure gets no size"
+image: square.svg
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+        -
+          - '<meta property="og:image:height"'
+          - '<meta property="og:image:width"'
+---
+
+The size the site declares for its own image does not describe this page's image.

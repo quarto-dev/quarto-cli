@@ -1,0 +1,15 @@
+---
+title: "Website"
+_quarto:
+  tests:
+    html:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'dark-brand\.yml has no content and will be ignored'
+      ensureHtmlElements:
+        - ['nav.navbar']
+        - ['.quarto-color-scheme-toggle', 'link.quarto-color-alternate']
+---
+
+The project dark brand file holds only comments and is ignored, so the navbar has no color-scheme toggle.

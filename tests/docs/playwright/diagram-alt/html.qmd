@@ -1,0 +1,6 @@
+---
+title: "Diagram alternative text"
+format: html
+---
+
+{{< include _content.md >}}

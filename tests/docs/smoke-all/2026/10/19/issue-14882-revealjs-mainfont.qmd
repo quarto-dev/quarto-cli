@@ -1,0 +1,17 @@
+---
+title: "Issue 14882 - mainfont and monofont names are quoted in revealjs CSS"
+format: revealjs
+mainfont: Source Sans 3
+monofont: M PLUS 1 Code
+_quarto:
+  tests:
+    revealjs:
+      ensureCssRegexMatches:
+        - ['--r-main-font:\s*"Source Sans 3"', '--r-heading-font:\s*"Source Sans 3"', '--r-code-font:\s*"M PLUS 1 Code"', '--r-inline-code-font:\s*"M PLUS 1 Code"', '--r-block-code-font:\s*"M PLUS 1 Code"']
+        # reveal.js' exposer.scss still writes the values unquoted first; an unquoted one after Quarto's quoted one would win
+        - ['--r-main-font:\s*"Source Sans 3"[\s\S]*--r-main-font:\s*Source Sans 3', '--r-heading-font:\s*"Source Sans 3"[\s\S]*--r-heading-font:\s*Source Sans 3', '--r-code-font:\s*"M PLUS 1 Code"[\s\S]*--r-code-font:\s*M PLUS 1 Code']
+---
+
+## A slide
+
+Without a brand, `mainfont` and `monofont` names with a word starting with a digit must keep their quotes in the reveal.js font variables. Body text and `inline code`.

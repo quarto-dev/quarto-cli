@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+
+<head>
+  <link
+    rel="stylesheet"
+    type="text/css"
+    href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@3/dist/inspector.css"
+  />
+  <style>
+    #main {
+      margin: auto;
+      max-width: 42rem;
+      padding: 2.5rem 1.25rem;
+      min-height: 100vh;
+    }
+  </style>
+</head>
+<body class="O--body">
+  <div id="main"></div>
+  <script type="module">
+    import {
+      Runtime,
+      Inspector
+    } from "https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js";
+
+    import { Compiler } from "https://cdn.jsdelivr.net/npm/@alex.garcia/unofficial-observablehq-compiler/dist/index-esm.js";
+
+    const compile = new Compiler();
+    compile.module(`
+
+    md\`# Hello, Unofficial ObservableHQ compiler!
+
+This is a landing page for demos of the [Unofficial ObservableHQ compiler](https://github.com/asg017/unofficial-observablehq-compiler). This site is mainly meant to ensure that the compiler is working in an browser environment, with these files:
+
+- [test.html](/test/test.html)
+- [test_notebook_json.html](/test/test_notebook_json.html)
+- [test_cell.html](/test/test_cell.html)
+- [test_ES_module.html](/test/test_ES_module.html)
+
+
+More information about the compiler can be found in the project repo, or in [this Observable notebook](https://observablehq.com/@asg017/an-unofficial-observablehq-compiler).
+
+
+    (P.S. - this page was made with the compiler!)
+    \`
+
+
+
+`).then(define => {
+    const rt = new Runtime();
+    window.MODULE = rt.module(
+      define,
+      Inspector.into(document.querySelector("#main"))
+    );
+  });
+  </script>
+</body>

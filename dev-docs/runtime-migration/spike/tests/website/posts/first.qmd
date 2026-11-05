@@ -1,0 +1,7 @@
+---
+title: "First post"
+date: 2026-10-01
+description: "The first post"
+---
+
+Hello from the first post.

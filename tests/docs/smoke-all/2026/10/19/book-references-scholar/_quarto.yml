@@ -1,0 +1,12 @@
+project:
+  type: book
+
+book:
+  title: "Book references Scholar metadata"
+  chapters:
+    - index.qmd
+    - chapter.qmd
+    - references.qmd
+
+bibliography: references.bib
+google-scholar: true

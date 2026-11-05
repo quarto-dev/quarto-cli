@@ -12,7 +12,11 @@ import { Metadata } from "../../../src/config/types.ts";
 import { removeIfEmptyDir, safeRemoveIfExists } from "../../../src/core/path.ts";
 import { runQuarto } from "../../quarto-cmd.ts";
 import { ExecuteOutput, Verify } from "../../test.ts";
-import { noErrors, outputCreated } from "../../verify.ts";
+import {
+  ensureHtmlElementContents,
+  noErrors,
+  outputCreated,
+} from "../../verify.ts";
 import { testRender } from "./render.ts";
 
 const regex = /output file: .*\.knit\.md/m;
@@ -183,5 +187,57 @@ testRender(
       ]);
     },
     teardown: testContext.teardown,
+  },
+);
+
+// Inline R expressions in YAML front matter stay evaluated when the render
+// reuses the frozen execution results instead of running knitr again
+const inlineYamlFileName = "freeze-inline-yaml";
+const inlineYamlDir = Deno.makeTempDirSync();
+const inlineYamlPath = join(inlineYamlDir, `${inlineYamlFileName}.qmd`);
+const inlineYamlContext = testFileContext(
+  inlineYamlPath,
+  {
+    title: "Title `r 1 + 1`",
+    "custom-key": "Custom `r 2 + 3`",
+    format: "html",
+    freeze: true,
+  },
+  [
+    "::: {#custom-key}",
+    "{{< meta custom-key >}}",
+    ":::",
+    "",
+    "```{r}",
+    "1 + 1",
+    "```",
+    "",
+  ],
+);
+testRender(
+  inlineYamlDir + "/",
+  "html",
+  false,
+  [
+    noErrors,
+    useFrozen,
+    ensureHtmlElementContents(
+      join(inlineYamlDir, `${inlineYamlFileName}.html`),
+      { selectors: ["h1.title"], matches: [/^\s*Title 2\s*$/] },
+    ),
+    ensureHtmlElementContents(
+      join(inlineYamlDir, `${inlineYamlFileName}.html`),
+      { selectors: ["#custom-key"], matches: [/^\s*Custom 5\s*$/] },
+    ),
+  ],
+  {
+    name: "frozen inline R in YAML",
+    setup: inlineYamlContext.setup,
+    teardown: async () => {
+      await inlineYamlContext.teardown();
+      const freezerDir = join(inlineYamlDir, "_freeze");
+      safeRemoveIfExists(join(freezerDir, inlineYamlFileName));
+      removeIfEmptyDir(freezerDir);
+    },
   },
 );

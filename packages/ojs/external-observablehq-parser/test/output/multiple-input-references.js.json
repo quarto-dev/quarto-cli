@@ -1,0 +1,248 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 122,
+  "id": {
+    "type": "Identifier",
+    "start": 0,
+    "end": 4,
+    "name": "cell"
+  },
+  "body": {
+    "type": "BlockStatement",
+    "start": 7,
+    "end": 121,
+    "body": [
+      {
+        "type": "VariableDeclaration",
+        "start": 11,
+        "end": 29,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 17,
+            "end": 28,
+            "id": {
+              "type": "Identifier",
+              "start": 17,
+              "end": 20,
+              "name": "sum"
+            },
+            "init": {
+              "type": "BinaryExpression",
+              "start": 23,
+              "end": 28,
+              "left": {
+                "type": "Identifier",
+                "start": 23,
+                "end": 24,
+                "name": "a"
+              },
+              "operator": "+",
+              "right": {
+                "type": "Identifier",
+                "start": 27,
+                "end": 28,
+                "name": "b"
+              }
+            }
+          }
+        ],
+        "kind": "const"
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 32,
+        "end": 54,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 38,
+            "end": 53,
+            "id": {
+              "type": "Identifier",
+              "start": 38,
+              "end": 45,
+              "name": "product"
+            },
+            "init": {
+              "type": "BinaryExpression",
+              "start": 48,
+              "end": 53,
+              "left": {
+                "type": "Identifier",
+                "start": 48,
+                "end": 49,
+                "name": "a"
+              },
+              "operator": "*",
+              "right": {
+                "type": "Identifier",
+                "start": 52,
+                "end": 53,
+                "name": "b"
+              }
+            }
+          }
+        ],
+        "kind": "const"
+      },
+      {
+        "type": "VariableDeclaration",
+        "start": 57,
+        "end": 82,
+        "declarations": [
+          {
+            "type": "VariableDeclarator",
+            "start": 63,
+            "end": 81,
+            "id": {
+              "type": "Identifier",
+              "start": 63,
+              "end": 73,
+              "name": "difference"
+            },
+            "init": {
+              "type": "BinaryExpression",
+              "start": 76,
+              "end": 81,
+              "left": {
+                "type": "Identifier",
+                "start": 76,
+                "end": 77,
+                "name": "a"
+              },
+              "operator": "-",
+              "right": {
+                "type": "Identifier",
+                "start": 80,
+                "end": 81,
+                "name": "b"
+              }
+            }
+          }
+        ],
+        "kind": "const"
+      },
+      {
+        "type": "ReturnStatement",
+        "start": 85,
+        "end": 119,
+        "argument": {
+          "type": "ObjectExpression",
+          "start": 92,
+          "end": 118,
+          "properties": [
+            {
+              "type": "Property",
+              "start": 93,
+              "end": 96,
+              "method": false,
+              "shorthand": true,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 93,
+                "end": 96,
+                "name": "sum"
+              },
+              "kind": "init",
+              "value": {
+                "type": "Identifier",
+                "start": 93,
+                "end": 96,
+                "name": "sum"
+              }
+            },
+            {
+              "type": "Property",
+              "start": 98,
+              "end": 105,
+              "method": false,
+              "shorthand": true,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 98,
+                "end": 105,
+                "name": "product"
+              },
+              "kind": "init",
+              "value": {
+                "type": "Identifier",
+                "start": 98,
+                "end": 105,
+                "name": "product"
+              }
+            },
+            {
+              "type": "Property",
+              "start": 107,
+              "end": 117,
+              "method": false,
+              "shorthand": true,
+              "computed": false,
+              "key": {
+                "type": "Identifier",
+                "start": 107,
+                "end": 117,
+                "name": "difference"
+              },
+              "kind": "init",
+              "value": {
+                "type": "Identifier",
+                "start": 107,
+                "end": 117,
+                "name": "difference"
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 23,
+      "end": 24,
+      "name": "a"
+    },
+    {
+      "type": "Identifier",
+      "start": 27,
+      "end": 28,
+      "name": "b"
+    },
+    {
+      "type": "Identifier",
+      "start": 48,
+      "end": 49,
+      "name": "a"
+    },
+    {
+      "type": "Identifier",
+      "start": 52,
+      "end": 53,
+      "name": "b"
+    },
+    {
+      "type": "Identifier",
+      "start": 76,
+      "end": 77,
+      "name": "a"
+    },
+    {
+      "type": "Identifier",
+      "start": 80,
+      "end": 81,
+      "name": "b"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

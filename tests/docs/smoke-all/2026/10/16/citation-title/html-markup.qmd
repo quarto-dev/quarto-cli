@@ -1,0 +1,22 @@
+---
+title: 'A <i class="x">formatted</i> <B>bold</B> <i title="a>b">gt</i> <abbr>abbr</abbr> <i-custom>cu</i-custom> title with $x^2$'
+author: Jane Doe
+date: 2025-04-30
+citation: true
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_title"][content="A formatted bold gt abbr cu title with $x^2$"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
+        matches: ['Formatted']
+        noMatches: ['abbr>', '</i', 'i-custom', 'textless']
+      ensureFileRegexMatches:
+        - ['<em>Formatted</em>', '\\emph\{Formatted\}', '\\textbf\{Bold\}', '\\emph\{Gt\}']
+---
+
+Raw HTML inline tags that CSL supports keep their formatting; other tags keep only their text.

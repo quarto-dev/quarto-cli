@@ -1,0 +1,10 @@
+project:
+  type: website
+
+website:
+  title: "issue-12016-preview-image"
+  site-url: https://example.com/
+  image: mark.jpg
+  open-graph:
+    image-width: 1200
+    image-height: 892

@@ -21,6 +21,38 @@
     Setting this to false prevents the `repo-actions` from appearing on this page.
     Other possible values are `none` or one or more of `edit`, `source`, and `issue`, *e.g.* `[edit, source, issue]`.
 
+- name: bread-crumbs
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Setting this to false hides the navigation breadcrumbs on this page.
+
+- name: back-to-top-navigation
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Setting this to false hides the 'back to top' navigation button on this page.
+
+- name: page-navigation
+  schema: boolean
+  tags:
+    formats: [$html-doc]
+  description: Show (`true`) or hide (`false`) the next and previous page links in the footer of this page.
+
+- name: margin-header
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-doc]
+  description: Markdown to place above margin content on this page (text or file path), after the `website` margin header.
+
+- name: margin-footer
+  schema:
+    maybeArrayOf: string
+  tags:
+    formats: [$html-doc]
+  description: Markdown to place below margin content on this page (text or file path), after the `website` margin footer.
+
 - name: aliases
   schema:
     arrayOf: string
@@ -39,25 +71,12 @@
     short: The path to a preview image for this document.
     long: |
       The path to a preview image for this content. By default, 
-      Quarto will use the image value from the site: metadata. 
-      If you provide an image, you may also optionally provide 
-      an image-width and image-height to improve 
-      the appearance of your Twitter Card.
+      Quarto will use the image value from the `website` metadata.
+      To declare the size of the preview image for Open Graph,
+      set `image-width` and `image-height` under `open-graph`.
 
-      If image is not provided, Quarto will automatically attempt 
+      If image is not provided, Quarto will automatically attempt
       to locate a preview image.
-
-- name: image-height
-  schema: string
-  tags:
-    formats: [$html-doc]
-  description: The height of the preview image for this document.
-
-- name: image-width
-  schema: string
-  tags:
-    formats: [$html-doc]
-  description: The width of the preview image for this document.
 
 - name: image-alt
   schema: string
@@ -65,15 +84,53 @@
     formats: [$html-doc]
   description: The alt text for preview image on this page.
 
+- name: image-title
+  schema: string
+  tags:
+    formats: [$html-doc]
+  description:
+    short: The title for the main image on the about page.
+    long: |
+      The title for the main image on the about page. Used when
+      `about` does not set its own `image-title`.
+
+- name: open-graph
+  schema:
+    anyOf:
+      - boolean
+      - null
+      - ref: open-graph-config
+  tags:
+    formats: [$html-doc]
+  description: |
+    Publish open graph metadata for this page. Options set here are merged
+    with the `open-graph` options of the `website` metadata. Set to `false`
+    to omit open graph metadata from this page.
+
+- name: twitter-card
+  schema:
+    anyOf:
+      - boolean
+      - null
+      - ref: twitter-card-config
+  tags:
+    formats: [$html-doc]
+  description: |
+    Publish twitter card metadata for this page. Options set here are merged
+    with the `twitter-card` options of the `website` metadata. Set to `false`
+    to omit twitter card metadata from this page.
+
 - name: image-lazy-loading
   schema: boolean
   tags:
     formats: [$html-doc]
   description:
-    short: If true, the preview image will only load when it comes into view.
+    short: If true, this page's image in a listing will only load when it comes into view.
     long: |
-      Enables lazy loading for the preview image. If true, the preview image element 
-      will have `loading="lazy"`, and will only load when it comes into view.
+      Enables lazy loading for this page's image when the page appears as an item
+      in a listing. If true, the listing image element will have `loading="lazy"`,
+      and will only load when it comes into view.
 
-      If false, the preview image will load immediately.
+      If false, the image will load immediately. This overrides the listing's
+      `image-lazy-loading` option for this item.
   default: true

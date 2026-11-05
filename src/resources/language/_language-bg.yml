@@ -64,6 +64,8 @@ repo-action-links-issue: "Докладвай проблем"
 
 back-to-top: "Обратно в началото"
 
+skip-to-content: "Към основното съдържание"
+
 search-no-results-text: "Няма резултати"
 search-matching-documents-text: "съвпадащи документи"
 search-copy-link-title: "Копирай връзката към търсенето"
@@ -97,6 +99,10 @@ navigation-breadcrumbs-label: "Път"              # libreoffice sw 'Path' (no 
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Код с прелистване"         # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Резултат с прелистване"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+announcement-dismiss-label: "Затвори съобщението"
+
+revealjs-menu-button-label: "Меню на слайдовете"
 
 crossref-fig-title: "Фигура"
 crossref-tbl-title: "Таблица"

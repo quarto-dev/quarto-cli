@@ -1,0 +1,18 @@
+---
+title: "Project-relative logo with a query string in subdirectory (deprecated)"
+format: revealjs
+logo: img/top.png?v=1
+_quarto:
+  tests:
+    revealjs:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'img/top\.png\?v=1.*project'
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png\?v=1" class="slide-logo"'
+        - []
+---
+
+## Section

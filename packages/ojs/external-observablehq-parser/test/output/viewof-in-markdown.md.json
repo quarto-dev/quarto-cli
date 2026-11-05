@@ -1,0 +1,111 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 37,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 37,
+    "expressions": [
+      {
+        "type": "MemberExpression",
+        "start": 16,
+        "end": 34,
+        "object": {
+          "type": "Identifier",
+          "start": 16,
+          "end": 22,
+          "name": "object"
+        },
+        "property": {
+          "type": "ViewExpression",
+          "start": 23,
+          "end": 33,
+          "id": {
+            "type": "Identifier",
+            "start": 30,
+            "end": 33,
+            "name": "foo"
+          }
+        },
+        "computed": true,
+        "optional": false
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 14,
+        "value": {
+          "raw": "# `Code Title ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 35,
+        "end": 37,
+        "value": {
+          "raw": "`\n",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 2,
+    "body": {
+      "type": "Identifier",
+      "start": 0,
+      "end": 2,
+      "name": "md"
+    },
+    "input": "md",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "md"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 16,
+      "end": 22,
+      "name": "object"
+    },
+    {
+      "type": "ViewExpression",
+      "start": 23,
+      "end": 33,
+      "id": {
+        "type": "Identifier",
+        "start": 30,
+        "end": 33,
+        "name": "foo"
+      }
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

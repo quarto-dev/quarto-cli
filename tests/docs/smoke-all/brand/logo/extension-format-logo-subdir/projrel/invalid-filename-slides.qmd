@@ -1,0 +1,17 @@
+---
+title: "Logo path that is not a valid Windows filename"
+format: revealjs
+logo: img/top*.png
+_quarto:
+  tests:
+    revealjs:
+      noErrors: true
+      ensureFileRegexMatches:
+        -
+          - '<img src="img/top\*\.png" class="slide-logo"'
+        - []
+---
+
+Checking whether `img/top*.png` exists only relative to the project must not fail the render where `*` is invalid in a filename (Windows). The path is left as written.
+
+## Section

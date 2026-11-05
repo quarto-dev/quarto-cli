@@ -1,0 +1,10 @@
+---
+title: "Posts with a custom field"
+listing:
+  contents: posts
+  type: default
+  sort: "title"
+  fields: [title, version]
+---
+
+A default listing with a custom metadata field.

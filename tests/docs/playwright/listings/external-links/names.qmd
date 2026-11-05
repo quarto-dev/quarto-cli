@@ -1,0 +1,12 @@
+---
+title: "External Links Test - Accessible Names"
+---
+
+```{=html}
+<p><a id="text" href="https://example.com/text">Example A</a></p>
+<p><a id="img-alt" href="https://example.com/img-alt"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="Example B logo"></a></p>
+<p><a id="img-title" href="https://example.com/img-title" title="Example C"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt=""></a></p>
+<p><a id="empty-label" href="https://example.com/empty-label" aria-label="">Example D</a></p>
+<p><span id="labelledby-name">Example E</span> <a id="labelledby" href="https://example.com/labelledby" aria-labelledby="labelledby-name" aria-describedby="labelledby-more">more</a> <span id="labelledby-more">About E</span></p>
+<p><a id="img-no-alt" href="https://example.com/img-no-alt"><img src="data:image/gif;base64,R0lGODlhAQABAAAAACw="></a></p>
+```

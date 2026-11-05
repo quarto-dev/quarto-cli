@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Skjul heile koden"
 code-tools-view-source: "Sjå kjelde"
 code-tools-source-code: "Kjeldekode"
 
+tools-share: "Del"
+tools-download: "Last ned"
+
 code-line: "Linje"
 code-lines: "Linjer"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Vis kjelde"
 repo-action-links-issue: "Meld inn problem"
 
 back-to-top: "Til toppen"
+
+skip-to-content: "Hopp til hovudinnhaldet"
 
 search-no-results-text: "Ingen treff"
 search-matching-documents-text: "passande dokument"
@@ -95,6 +100,12 @@ navigation-breadcrumbs-label: "Sti"       # libreoffice sw 'Path' (no attested t
 # No attested "scrollable" here; taken from Swedish "rullbar".
 scrollable-code-label: "Rullbar kode"       # derived + code-summary — assembled, needs review
 scrollable-output-label: "Rullbare utdata"  # derived + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(opnast i ny fane)"
+
+announcement-dismiss-label: "Lukk kunngjeringa"
+
+revealjs-menu-button-label: "Lysbiletmeny"
 
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabell"

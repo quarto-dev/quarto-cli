@@ -48,7 +48,7 @@ function unanswerable(browser: ScanBrowser): Promise<unknown> {
  * rather than passing it.
  */
 async function settled(p: Promise<unknown>): Promise<string> {
-  let timer: number | undefined;
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     await Promise.race([
       p,

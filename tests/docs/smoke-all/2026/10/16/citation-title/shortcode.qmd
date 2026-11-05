@@ -1,0 +1,21 @@
+---
+short: Resolved value
+title: "Title {{< meta short >}}"
+author: Jane Doe
+date: 2025-04-30
+citation: true
+google-scholar: true
+appendix-cite-as: [display, bibtex]
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_title"][content="Title Resolved value"]']
+      ensureHtmlElementContents:
+        selectors: ['.quarto-appendix-citeas', '.quarto-appendix-bibtex']
+        matches: ['Resolved']
+        noMatches: ['\{\{<']
+---
+
+A shortcode in the title is resolved before the citation title is converted.

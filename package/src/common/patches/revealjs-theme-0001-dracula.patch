@@ -151,7 +151,7 @@ index 5330fbc1b..fe068d9a8 100644
 -	}
 +  strong,
 +  b {
-+    &:not(.callout-title strong, .callout-tile b) {
++    &:not(.callout-title strong, .callout-title b) {
 +      color: var(--r-bold-color);
 +    }
 +  }

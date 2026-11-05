@@ -54,6 +54,14 @@ So you must either
 - run the command when ready to merge to main, or
 - remove the commits when rebasing, and run the `dev-call` command again
 
+### Merging the subtree-pull PR
+
+Merge with **Create a merge commit** and keep GitHub's default message (`Merge pull request #N from ...` plus the PR title). Never squash-merge, and never paste the commit list into the merge message.
+
+`git subtree pull --squash` finds the previous squash by searching history for the most recent `git-subtree-dir:` trailer. Any other commit on `main` carrying a copied `git-subtree-dir:` / `git-subtree-split:` trailer gets picked up as "the previous squash". The next pull then uses that full-repo commit as its base, and upstream's files silently replace any quarto-cli changes under the prefix. This happened with #14864 (0.2.2): its merge commit message embedded the squash commit's trailers, and the 0.2.3 pull (#15156) reverted an in-tree test fix without a conflict.
+
+Check before the next pull: `git log --format='%h %s' --grep='git-subtree-dir: src/resources/extension-subtrees/<name>' main | head -1` must show a `Squashed '...' changes from ...` commit, not a PR merge.
+
 ## Recovery: edits made in-tree by mistake
 
 If a fix has already been committed directly inside the subtree prefix (wrong workflow), it needs to be re-authored upstream before resuming the normal flow. Two paths:

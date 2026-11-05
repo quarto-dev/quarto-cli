@@ -1,0 +1,8 @@
+project:
+  type: website
+
+website:
+  title: "page-social-metadata-false"
+  site-url: https://example.com/
+  open-graph: true
+  twitter-card: true

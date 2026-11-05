@@ -639,12 +639,6 @@
           },
           "image-alt": {
             "type": "string"
-          },
-          "image-width": {
-            "type": "number"
-          },
-          "image-height": {
-            "type": "number"
           }
         }
       }
@@ -794,6 +788,12 @@
           },
           "site": {
             "type": "string"
+          },
+          "image-width": {
+            "type": "number"
+          },
+          "image-height": {
+            "type": "number"
           }
         }
       }
@@ -806,6 +806,12 @@
           },
           "site-name": {
             "type": "string"
+          },
+          "image-width": {
+            "type": "number"
+          },
+          "image-height": {
+            "type": "number"
           }
         }
       }
@@ -1925,6 +1931,15 @@
           "scrollable-output-label": {
             "type": "string"
           },
+          "link-external-newwindow-label": {
+            "type": "string"
+          },
+          "revealjs-menu-button-label": {
+            "type": "string"
+          },
+          "announcement-dismiss-label": {
+            "type": "string"
+          },
           "repo-action-links-edit": {
             "type": "string"
           },
@@ -2466,6 +2481,12 @@
                 "type": "object"
               }
             ]
+          },
+          "rel": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
           }
         }
       }
@@ -2493,6 +2514,12 @@
             "type": "string"
           },
           "subtitle": {
+            "type": "string"
+          },
+          "rel": {
+            "type": "string"
+          },
+          "target": {
             "type": "string"
           }
         }

@@ -80,6 +80,14 @@ test('Callout title color in dracula theme is correctly tweaked to use same as b
   await checkColorIdentical(calloutTitleLoc, calloutContentLoc, 'color');
 });
 
+test('Bold elements inside callout title in dracula theme use same color as body', async ({ page }) => {
+  await page.goto('./revealjs/callouts/dracula-theme-tweaks.html#/bold-in-title');
+  const calloutTitleLoc = page.locator('#bold-in-title .callout-title');
+  const calloutContentLoc = page.getByText('Content with bold', { exact: true });
+  await checkColorIdentical(calloutTitleLoc.locator('b'), calloutContentLoc, 'color');
+  await checkColorIdentical(calloutTitleLoc.locator('strong strong'), calloutContentLoc, 'color');
+});
+
 test('Headings color in simple and serif theme are correctly defaulting to $body-bg', async ({ page }) => {
   await page.goto('./revealjs/heading-color/simple.html#/slide-1');
   await checkColorIdentical(

@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "FileAttachment requires a single literal string argument (1:4)",
+    "pos": 4,
+    "loc": {
+      "line": 1,
+      "column": 4
+    }
+  }
+}

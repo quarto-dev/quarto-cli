@@ -1,0 +1,14 @@
+---
+title: "Directory metadata logo in subdirectory"
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      noErrorsOrWarnings: true
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png" class="slide-logo"'
+        - []
+---
+
+## Section

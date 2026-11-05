@@ -14,3 +14,5 @@ This text violates contrast rules: [insufficient contrast.]{style="color: #eee; 
 ## Slide 2
 
 More content to check.
+
+<img src="placeholder.png" class="axe-test-img">

@@ -5,8 +5,14 @@ related-formats-title: "Other Formats"
 related-notebooks-title: "Notebooks"
 source-notebooks-prefix: "Source"
 other-links-title: "Other Links"
+# Heading above the list of hyperlinks to the document's code (repository, Binder, Dev Container);
+# plural noun phrase, parallel to other-links-title.
 code-links-title: "Code Links"
+# Link text that opens the repository in a GitHub Codespace; "Launch" = start/open, not publish.
+# "Dev Container" is a product name, usually left untranslated; use the same verb as launch-binder-title.
 launch-dev-container-title: "Launch Dev Container"
+# "Binder" is the mybinder.org service (interactive Jupyter environment); keep the name untranslated.
+# Use the same verb as launch-dev-container-title.
 launch-binder-title: "Launch Binder"
 
 article-notebook-label: "Article Notebook"
@@ -32,6 +38,8 @@ title-block-author-plural: "Authors"
 title-block-affiliation-single: "Affiliation"
 title-block-affiliation-plural: "Affiliations"
 title-block-published: "Published"
+# Label shown above the document's last-modified date (date-modified) in the title block.
+# Use the same form as title-block-published (e.g. "Date of modification" if that one is "Date of publication").
 title-block-modified: "Modified"
 title-block-keywords: "Keywords"
 
@@ -39,6 +47,7 @@ callout-tip-title: "Tip"
 callout-note-title: "Note"
 callout-warning-title: "Warning"
 callout-important-title: "Important"
+# Callout box title meaning "take care"; keep distinct from callout-warning-title.
 callout-caution-title: "Caution"
 
 code-summary: "Code"
@@ -49,7 +58,11 @@ code-tools-hide-all-code: "Hide All Code"
 code-tools-view-source: "View Source"
 code-tools-source-code: "Source Code"
 
+# Sidebar menu in books grouping social-media links for the current page;
+# "Share" = post a link to the page, not a portion. Pairs with tools-download.
 tools-share: "Share"
+# Book toolbar: label for the downloads menu and prefix before each format name
+# (e.g. "Download PDF"). Choose wording that reads naturally before a format name.
 tools-download: "Download"
 
 code-line: "Line"
@@ -64,6 +77,9 @@ repo-action-links-issue: "Report an issue"
 
 back-to-top: "Back to top"
 
+# Accessibility skip link: first link on the page, shown only on keyboard focus;
+# it jumps past the header and navigation to the main content. Use the usual web
+# skip-link phrasing ("go to main content"), not "omit".
 skip-to-content: "Skip to main content"
 
 search-no-results-text: "No results"
@@ -76,6 +92,8 @@ search-clear-button-title: "Clear"
 search-text-placeholder: ""
 search-detached-cancel-button-title: "Cancel"
 search-submit-button-title: "Submit"
+# Accessible name and tooltip for the navbar button that opens site search.
+# Use the conventional one-word label for a website search box.
 search-label: "Search"
 
 toggle-section: "Toggle section"
@@ -100,6 +118,20 @@ navigation-breadcrumbs-label: "Breadcrumbs"
 # It is the only thing that sets one of these apart from every other block.
 scrollable-code-label: "Scrollable code"
 scrollable-output-label: "Scrollable output"
+
+# Announced by screen readers after a link that opens in a new tab (never shown as visible text).
+# Describes the link (third person, "opens"), not a command; keep the parentheses.
+# "Tab" is a browser tab, not a window or a tab control.
+link-external-newwindow-label: "(opens in a new tab)"
+
+# Accessible name for the button that dismisses a website announcement (never shown as visible text).
+# "Dismiss" = close/hide the banner (the button shows only an X icon), not reject or delete.
+# Imperative, like other button labels; use the language's usual "close" verb.
+announcement-dismiss-label: "Dismiss announcement"
+
+# Accessible name for the Reveal.js slide menu button (never shown as visible text).
+# "Slide" is a presentation slide (PowerPoint sense); use a noun phrase, not a command.
+revealjs-menu-button-label: "Slide menu"
 
 crossref-fig-title: "Figure"
 crossref-tbl-title: "Table"
@@ -138,11 +170,15 @@ listing-page-field-filename: "File Name"
 listing-page-field-filemodified: "Modified"
 listing-page-field-subtitle: "Subtitle"
 listing-page-field-readingtime: "Reading Time"
+# Label for the number of words in each listed document (a quantity, not a counter tool).
+# Shown with other listing fields such as "Reading Time"; keep it short.
 listing-page-field-wordcount: "Word Count"
 listing-page-field-categories: "Categories"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
 listing-page-no-matches: "No matching items"
+# Word count shown per item in a listing, e.g. "1,234 words"; {0} is the formatted number.
+# A single string serves every count; pick the plural form that reads best for large numbers.
 listing-page-words: "{0} words"
 listing-page-filter: "Filter"
 

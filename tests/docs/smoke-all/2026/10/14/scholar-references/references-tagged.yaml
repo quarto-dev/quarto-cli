@@ -1,0 +1,14 @@
+---
+references:
+- id: cited
+  type: article-journal
+  title: Cited reference
+  volume: !!int 2
+  issue: !custom 7
+  author:
+  - family: Smith
+    given: Alice
+  issued:
+    date-parts:
+    - [!!int 2024]
+---

@@ -1,0 +1,20 @@
+---
+title: "Website"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          # search comes after the collapse (nav links) and the tools
+          - '#navbarCollapse ~ #quarto-search'
+          - '.quarto-navbar-tools ~ #quarto-search'
+        -
+          # search must not precede the nav links or the toggler
+          - '#quarto-search ~ #navbarCollapse'
+          - '#quarto-search ~ .navbar-toggler'
+---
+
+Regression test for issue 7058: in the navbar, the search div must come last
+in the DOM — after the toggler, the collapsible nav links, and the tools — so
+that keyboard/screen-reader order matches the visual order (the CSS `order`
+properties place search rightmost at every breakpoint; WCAG technique C27).

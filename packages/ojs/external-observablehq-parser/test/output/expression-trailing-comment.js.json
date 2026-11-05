@@ -1,0 +1,25 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 28,
+  "id": {
+    "type": "Identifier",
+    "start": 0,
+    "end": 3,
+    "name": "foo"
+  },
+  "body": {
+    "type": "Literal",
+    "start": 6,
+    "end": 8,
+    "value": 42,
+    "raw": "42"
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

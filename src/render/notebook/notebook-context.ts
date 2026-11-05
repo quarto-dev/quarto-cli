@@ -77,7 +77,7 @@ export function notebookContext(): NotebookContext {
     notebooks[nbAbsPath] = nb;
     needRewrite = true;
 
-    if (context) {
+    if (context && !cached) {
       const contrib = contributor(renderType);
       if (contrib.cache) {
         contrib.cache(output, context);
@@ -289,19 +289,32 @@ export function notebookContext(): NotebookContext {
       // If there is a source representation of the qmd file
       // we should use that, which will prevent rexecution of the
       // QMD
-      const notebook = notebooks[nbAbsPath];
-      const toRenderPath = notebook
-        ? notebook[kQmdIPynb] ? notebook[kQmdIPynb].path : nbAbsPath
+      const qmdIpynb = notebooks[nbAbsPath]?.[kQmdIPynb];
+      // A notebook revived from the scratch cache is rendered from beside the
+      // source, so the preview and its files land where a fresh render puts them
+      const staged = qmdIpynb?.cached === true;
+      const toRenderPath = qmdIpynb
+        ? staged ? qmdIpynb.hrefPath : qmdIpynb.path
         : nbAbsPath;
+      if (staged) {
+        Deno.copyFileSync(qmdIpynb.path, qmdIpynb.hrefPath);
+      }
 
-      const renderedFile = await contributor(renderType).render(
-        toRenderPath,
-        format,
-        token(),
-        services,
-        notebookMetadata,
-        project,
-      );
+      let renderedFile: NotebookRenderResult;
+      try {
+        renderedFile = await contributor(renderType).render(
+          toRenderPath,
+          format,
+          token(),
+          services,
+          notebookMetadata,
+          project,
+        );
+      } finally {
+        if (staged) {
+          safeRemoveIfExists(toRenderPath);
+        }
+      }
 
       addRendering(nbAbsPath, renderType, renderedFile, project);
       if (!notebooks[nbAbsPath][renderType]) {

@@ -1,0 +1,5 @@
+---
+title: "Post without a date or an author"
+---
+
+Text.

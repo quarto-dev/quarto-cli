@@ -1,0 +1,109 @@
+---
+title: DOCX figure captions and alt text (markdown)
+format: docx
+_quarto:
+  tests:
+    docx:
+      ensureDocxXpath:
+        -
+          # plain figure
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C03 plain caption']"
+          # cross-referenced figure
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a01: C04 xref caption']"
+          # subfigure panel: both subcaptions and the panel caption
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='(a) C05a sub caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='(b) C05b sub caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a02: C05 panel caption']"
+          # div float with fig-alt on the div
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='Figure\u00a03: C06 div caption']"
+          # non-crossref layout-ncol
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C07a layout caption']"
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C07b layout caption']"
+          # empty fig-alt
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C08 empty alt caption']"
+          # linked image
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C09 linked caption']"
+          # fig-alt with markdown and XML special characters
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C11 special caption']"
+          # cross-referenced figure with a rich caption keeps its emphasis
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][starts-with(string-join(.//w:t, ''), 'Figure\u00a04: C12 rich caption')][.//w:r[w:rPr/w:i]/w:t='rich']"
+          # image in a callout
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C13 callout caption']"
+          # both fig-alt and alt
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C14 both caption']"
+          # descr of images without fig-alt: plain figure uses its caption, cross-ref figure is empty
+          - "//wp:docPr[@descr='C03 plain caption']"
+          - "//w:tbl[.//w:t[contains(., 'C04 xref caption')]]//wp:docPr[@descr='']"
+          # descr of the callout icon is empty
+          - "//w:tbl[.//w:t[.='Note']]//wp:docPr[@descr='']"
+          # descr of images with fig-alt or alt is that value
+          - "//wp:docPr[@descr='C01 ALT-ONLY']"
+          - "//wp:docPr[@descr='C02 ALT-ONLY']"
+          - "//wp:docPr[@descr='C05a ALT-ONLY']"
+          - "//wp:docPr[@descr='C06 ALT-ONLY']"
+          - "//wp:docPr[@descr='C07a ALT-ONLY']"
+          - "//wp:docPr[@descr='C09 ALT-ONLY']"
+          - "//wp:docPr[@descr='C10 ALT-ONLY']"
+          - "//wp:docPr[@descr='C11 ALT-ONLY a *b* <c> & d']"
+          - "//wp:docPr[@descr='C12 ALT-ONLY']"
+          - "//wp:docPr[@descr='C13 ALT-ONLY']"
+          # descr of an image with empty fig-alt stays empty instead of using the caption
+          - "//w:p[w:pPr/w:pStyle/@w:val='ImageCaption'][string-join(.//w:t, '')='C08 empty alt caption']/preceding-sibling::w:p[1]//wp:docPr[@descr='']"
+        -
+          # alt text never becomes visible text
+          - "//w:t[contains(., 'ALT-ONLY')]"
+          - "//w:tbl[.//w:t[contains(., 'C04 xref caption')]]//wp:docPr[@descr!='']"
+          - "//wp:docPr[@descr='C08 empty alt caption']"
+---
+
+Pins how figure captions and alt text render in DOCX for every way an image can reach the document.
+Visible captions must stay unchanged whatever the filter pipeline does with alt text, and every alt value carries a marker that must never appear in the document text.
+The image description (`descr`) is the `fig-alt` or `alt` value when one is set, and the caption for a plain figure or empty for a cross-referenced one otherwise.
+An explicit empty `fig-alt` keeps the description empty: it is not replaced by the caption, although Word does not treat the image as decorative.
+
+C01 inline image: text ![C01 inline caption](image.png){fig-alt="C01 ALT-ONLY"} text.
+
+C02 inline image with alt attribute: text ![C02 inline caption](image.png){alt="C02 ALT-ONLY"} text.
+
+![C03 plain caption](image.png)
+
+![C04 xref caption](image.png){#fig-c04}
+
+::: {#fig-c05 layout-ncol=2}
+
+![C05a sub caption](image.png){#fig-c05a fig-alt="C05a ALT-ONLY"}
+
+![C05b sub caption](image.png){#fig-c05b}
+
+C05 panel caption
+:::
+
+::: {#fig-c06 fig-alt="C06 ALT-ONLY"}
+![](image.png)
+
+C06 div caption
+:::
+
+::: {layout-ncol=2}
+![C07a layout caption](image.png){fig-alt="C07a ALT-ONLY"}
+
+![C07b layout caption](image.png)
+:::
+
+![C08 empty alt caption](image.png){fig-alt=""}
+
+[![C09 linked caption](image.png){fig-alt="C09 ALT-ONLY"}](https://quarto.org)
+
+| col |
+|-----|
+| ![C10 table caption](image.png){fig-alt="C10 ALT-ONLY"} |
+
+![C11 special caption](image.png){fig-alt="C11 ALT-ONLY a *b* <c> & d"}
+
+![C12 *rich* caption $x^2$](image.png){#fig-c12 fig-alt="C12 ALT-ONLY"}
+
+::: callout-note
+![C13 callout caption](image.png){fig-alt="C13 ALT-ONLY"}
+:::
+
+![C14 both caption](image.png){fig-alt="C14 ALT-ONLY fig-alt" alt="C14 ALT-ONLY alt"}

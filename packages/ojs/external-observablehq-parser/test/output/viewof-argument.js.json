@@ -1,0 +1,11 @@
+{
+  "error": {
+    "type": "SyntaxError",
+    "message": "Unexpected keyword 'viewof' (1:13)",
+    "pos": 13,
+    "loc": {
+      "line": 1,
+      "column": 13
+    }
+  }
+}

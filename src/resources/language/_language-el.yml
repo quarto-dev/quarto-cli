@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Απόκρυψη όλου του κώδικα"
 code-tools-view-source: "Προβολή πηγαίου κώδικα"
 code-tools-source-code: "Πηγαίος κώδικας"
 
+tools-share: "Κοινοποίηση"
+tools-download: "Λήψη"
+
 code-line: "Γραμμή"
 code-lines: "Γραμμές"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Προβολή πηγής"
 repo-action-links-issue: "Αναφορά προβλήματος"
 
 back-to-top: "Επιστροφή στην κορυφή"
+
+skip-to-content: "Μετάβαση στο κύριο περιεχόμενο"
 
 search-no-results-text: "Δεν βρέθηκαν αποτελέσματα"
 search-matching-documents-text: "ταιριάζοντα έγγραφα"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Διαδρομή"      # libreoffice sw 'Path' (n
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Κώδικας με δυνατότητα κύλισης"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Έξοδος με δυνατότητα κύλισης"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+# Announced by screen readers after a link that opens in a new tab (never shown as visible text).
+link-external-newwindow-label: "(ανοίγει σε νέα καρτέλα)"
+
+# Accessible name for the Reveal.js slide menu button (never shown as visible text).
+revealjs-menu-button-label: "Μενού διαφανειών"
 
 crossref-fig-title: "Σχήμα"
 crossref-tbl-title: "Πίνακας"

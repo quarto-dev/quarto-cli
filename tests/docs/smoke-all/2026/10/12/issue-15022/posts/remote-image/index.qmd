@@ -1,0 +1,7 @@
+---
+title: "Post with a remote image"
+date: "2026-10-12"
+image: https://example.com/remote-thumbnail.png
+---
+
+This post uses a web-hosted image as its listing thumbnail.

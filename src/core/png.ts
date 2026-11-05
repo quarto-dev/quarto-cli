@@ -9,6 +9,13 @@
 *
 */
 
+// https://www.w3.org/TR/png-3/#5PNG-file-signature
+const kPngSignature = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+export function isPng(bytes: Uint8Array) {
+  return kPngSignature.every((byte, i) => bytes[i] === byte);
+}
+
 export default class PngImage {
   public content: Array<Uint8Array> = [];
 
@@ -23,9 +30,7 @@ export default class PngImage {
   private interlaceMethod = -1;
 
   constructor(bytes: Uint8Array, sizeOnly = true) {
-    const magicNumberBytes = bytes.slice(0, 8);
-    const magicNumber = bytesToString(magicNumberBytes);
-    if (magicNumber !== "13780787113102610") {
+    if (!isPng(bytes)) {
       throw new Error("Not a png file");
     }
 
@@ -156,25 +161,4 @@ function bytesToUint32(byteArray: Uint8Array, start = 0, count?: number) {
   }
 
   return value;
-}
-
-function bytesToString(byteArray: Uint8Array, start = 0, count?: number) {
-  if (count === undefined) {
-    count = byteArray.length;
-  }
-
-  let result = "";
-  for (let i = start; i < start + count; i++) {
-    const byte = byteArray[i];
-
-    if (byte === 0) {
-      result += "00";
-    } else if (byte < 10) {
-      result += `0${byte.toString()}`;
-    } else {
-      result += byte.toString();
-    }
-  }
-
-  return result;
 }

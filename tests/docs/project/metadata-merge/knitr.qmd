@@ -1,0 +1,26 @@
+---
+title: Knitr document
+keywords:
+  - document-keyword
+  - shared-keyword
+params:
+  from-document: document-value
+custom:
+  from-document: document-value
+  shared: document-value
+  list:
+    - document-item
+tags:
+  - '`{r} "project-tag"`'
+  - document-tag
+evaluated: '`{r} paste0("evaluated", "-value")`'
+---
+
+```{r}
+#| echo: false
+invisible(1)
+```
+
+::: {#lua-params}
+{{< meta params.from-project >}}
+:::

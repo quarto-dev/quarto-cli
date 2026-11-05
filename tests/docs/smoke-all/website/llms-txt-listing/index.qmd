@@ -13,8 +13,8 @@ _quarto:
       ensureLlmsMdRegexMatches:
         # First array: patterns that MUST match
         - ["\\[Welcome Post\\]"]
-        # Second array: patterns that must NOT match (no empty links)
-        - ["\\[\\]\\("]
+        # Second array: patterns that must NOT match (no empty links, no leaked listing classes)
+        - ["\\[\\]\\(", "no-external"]
       ensureLlmsTxtRegexMatches:
         # First array: patterns that MUST match
         - ["\\[Listing Test Site\\]", "\\[Welcome Post\\]", "posts/welcome/index\\.llms\\.md"]

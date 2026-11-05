@@ -6,7 +6,7 @@
 
 import { existsSync, walkSync } from "../src/deno_ral/fs.ts";
 import { DOMParser, Element, NodeList } from "../src/core/deno-dom.ts";
-import { assert } from "testing/asserts";
+import { assert, assertEquals } from "testing/asserts";
 import { basename, dirname, join, relative, resolve } from "../src/deno_ral/path.ts";
 import { parseXmlDocument } from "slimdom";
 import xpath from "fontoxpath";
@@ -183,14 +183,27 @@ export const printsMessage = (options: {
   level: "DEBUG" | "INFO" | "WARN" | "ERROR";
   regex: string | RegExp;
   negate?: boolean;
+  count?: number;
 }): Verify => {
-  const { level, regex: regexPattern, negate = false } = options;  // Set default here
+  const { level, regex: regexPattern, negate = false, count } = options;  // Set default here
   return {
     name: `${level} matches ${String(regexPattern)}`,
     verify: (outputs: ExecuteOutput[]) => {
       const regex = typeof regexPattern === "string" 
       ? new RegExp(regexPattern) 
       : regexPattern;
+
+      if (count !== undefined) {
+        const found = outputs.filter((output) =>
+          output.levelName === level && output.msg.match(regex)
+        ).length;
+        assertEquals(
+          found,
+          count,
+          `Expected ${count} ${level} ${String(regex)}, found ${found}`,
+        );
+        return Promise.resolve();
+      }
 
       const printedMessage = outputs.some((output) => {
         return output.levelName === level && output.msg.match(regex);

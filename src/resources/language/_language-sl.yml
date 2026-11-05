@@ -64,6 +64,8 @@ repo-action-links-issue: "Poročaj o težavi"
 
 back-to-top: "Nazaj na vrh"
 
+skip-to-content: "Preskoči na glavno vsebino"
+
 search-no-results-text: "Ni rezultatov"
 search-matching-documents-text: "ujemajoči se dokumenti"
 search-copy-link-title: "Kopiraj povezavo do iskanja"
@@ -98,6 +100,12 @@ navigation-breadcrumbs-label: "Pot"         # libreoffice sw 'Path' (attested te
 scrollable-code-label: "Drseča koda"     # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Drseči izhod"  # firefox devtools + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(odpre se v novem zavihku)"
+
+announcement-dismiss-label: "Zapri obvestilo"
+
+
+revealjs-menu-button-label: "Meni diapozitivov"
 
 crossref-fig-title: "Slika"
 crossref-tbl-title: "Tabela"

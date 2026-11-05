@@ -1,0 +1,18 @@
+---
+title: "Project-relative logo in subdirectory (deprecated)"
+format: dashboard
+logo: img/top.png
+_quarto:
+  tests:
+    dashboard:
+      noErrors: true
+      printsMessage:
+        level: WARN
+        regex: 'img/top\.png.*project'
+      ensureFileRegexMatches:
+        -
+          - '<img src="\.\.(/|\\)img(/|\\)top\.png" alt="" class="navbar-logo'
+        - []
+---
+
+## Section

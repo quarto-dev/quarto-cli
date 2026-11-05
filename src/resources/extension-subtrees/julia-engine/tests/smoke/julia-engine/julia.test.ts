@@ -24,14 +24,15 @@ function quartoRuntimeDir(): string {
       break;
     default: {
       // Note: quarto's xdgUserRuntimeDir does not append the app name
-      // when XDG_RUNTIME_DIR is set (unlike the other XDG dir functions).
+      // when XDG_RUNTIME_DIR is set (unlike the other XDG dir functions),
+      // and falls back to the XDG data dir, not the cache dir.
       const xdgRuntime = Deno.env.get("XDG_RUNTIME_DIR");
       if (xdgRuntime) {
         base = xdgRuntime;
       } else {
-        const cacheHome = Deno.env.get("XDG_CACHE_HOME") ??
-          join(Deno.env.get("HOME")!, ".cache");
-        base = join(cacheHome, "quarto");
+        const dataHome = Deno.env.get("XDG_DATA_HOME") ||
+          join(Deno.env.get("HOME")!, ".local", "share");
+        base = join(dataHome, "quarto");
       }
       break;
     }
@@ -188,10 +189,7 @@ Deno.test("julia engine", async (t) => {
       },
     ).outputSync();
     assertSuccess(force_close_output);
-    assertStderrIncludes(
-      force_close_output,
-      "Worker force-closed successfully",
-    );
+    assertStderrIncludes(force_close_output, "Worker force-closed successfully");
 
     const status_output_2 = new Deno.Command(
       quartoCmd(),

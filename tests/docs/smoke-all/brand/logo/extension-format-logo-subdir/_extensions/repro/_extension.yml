@@ -1,0 +1,9 @@
+title: Repro
+author: Quarto Dev Team
+version: 1.0.0
+contributes:
+  formats:
+    revealjs:
+      logo: logo.png
+    dashboard:
+      logo: logo.png

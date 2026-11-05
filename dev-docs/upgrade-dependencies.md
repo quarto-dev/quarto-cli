@@ -1,6 +1,8 @@
 Change version numbers in `./configuration` to correspond to new versions.
 
-Update hardcoded version strings in `src/command/check/check.ts` (`versionConstraints` array, ~line 249) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment.
+Update hardcoded version strings in `src/command/check/check.ts` (the `versionConstraints` array in `checkVersions`) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment, and `tests/smoke/check/check-versions-no-mismatch.test.ts` fails until they match. The constraint tracks the bundled version exactly, not a minimum floor.
+
+For Pandoc, follow [update-pandoc-checklist.md](update-pandoc-checklist.md) for template updates and filename conventions, schema and Lua type checks, and CI smoke tests using `QUARTO_PANDOC` before S3 archival.
 
 ## Verify installer signing & notarization before merging (bundled binaries)
 
@@ -55,3 +57,7 @@ For version 11.2.0, for example, these are:
 - https://unpkg.com/mermaid@11.2.0/dist/mermaid.min.js
 
 Copy these files to `src/resources/formats/html/mermaid`.
+
+## Upgrade the OJS runtime
+
+The OJS runtime and its bundled npm dependencies are built from `packages/ojs`, not downloaded. See [update-ojs-runtime.md](update-ojs-runtime.md).

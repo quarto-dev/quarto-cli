@@ -1,0 +1,87 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 49,
+  "id": {
+    "type": "Identifier",
+    "start": 6,
+    "end": 9,
+    "name": "Foo"
+  },
+  "body": {
+    "type": "ClassExpression",
+    "start": 0,
+    "end": 48,
+    "id": {
+      "type": "Identifier",
+      "start": 6,
+      "end": 9,
+      "name": "Foo"
+    },
+    "superClass": null,
+    "body": {
+      "type": "ClassBody",
+      "start": 10,
+      "end": 48,
+      "body": [
+        {
+          "type": "PropertyDefinition",
+          "start": 14,
+          "end": 31,
+          "static": false,
+          "computed": false,
+          "key": {
+            "type": "PrivateIdentifier",
+            "start": 14,
+            "end": 20,
+            "name": "field"
+          },
+          "value": {
+            "type": "Literal",
+            "start": 23,
+            "end": 30,
+            "value": "field",
+            "raw": "\"field\""
+          }
+        },
+        {
+          "type": "MethodDefinition",
+          "start": 34,
+          "end": 46,
+          "static": false,
+          "computed": false,
+          "key": {
+            "type": "PrivateIdentifier",
+            "start": 34,
+            "end": 41,
+            "name": "method"
+          },
+          "kind": "method",
+          "value": {
+            "type": "FunctionExpression",
+            "start": 41,
+            "end": 46,
+            "id": null,
+            "expression": false,
+            "generator": false,
+            "async": false,
+            "params": [],
+            "body": {
+              "type": "BlockStatement",
+              "start": 44,
+              "end": 46,
+              "body": []
+            }
+          }
+        }
+      ]
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

@@ -1,0 +1,125 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 48,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 48,
+    "expressions": [
+      {
+        "type": "Identifier",
+        "start": 43,
+        "end": 46,
+        "name": "val"
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 41,
+        "value": {
+          "raw": "SELECT * FROM my_table WHERE my_column = ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 47,
+        "end": 48,
+        "value": {
+          "raw": "\n",
+          "cooked": null
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 38,
+    "body": {
+      "type": "MemberExpression",
+      "start": 0,
+      "end": 38,
+      "object": {
+        "type": "AwaitExpression",
+        "start": 1,
+        "end": 33,
+        "argument": {
+          "type": "CallExpression",
+          "start": 7,
+          "end": 33,
+          "callee": {
+            "type": "Identifier",
+            "start": 7,
+            "end": 21,
+            "name": "DatabaseClient"
+          },
+          "arguments": [
+            {
+              "type": "Literal",
+              "start": 22,
+              "end": 32,
+              "value": "database",
+              "raw": "\"database\""
+            }
+          ],
+          "optional": false
+        }
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 35,
+        "end": 38,
+        "name": "sql"
+      },
+      "computed": false,
+      "optional": false
+    },
+    "input": "(await DatabaseClient(\"database\")).sql",
+    "async": true,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 7,
+        "end": 21,
+        "name": "DatabaseClient"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [
+      [
+        "database",
+        [
+          {
+            "start": 22,
+            "end": 32
+          }
+        ]
+      ]
+    ],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 43,
+      "end": 46,
+      "name": "val"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

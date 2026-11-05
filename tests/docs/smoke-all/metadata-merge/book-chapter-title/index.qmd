@@ -1,0 +1,3 @@
+# Preface {.unnumbered}
+
+Home page of the fixture. The assertions live in `chapter.qmd`.

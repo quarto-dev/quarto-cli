@@ -156,16 +156,80 @@ export function findPdfAccessibilityWarnings(
   return result;
 }
 
-// Finds missing hyphenation files (these appear as warnings in the log file)
-export function findMissingHyphenationFiles(logText: string) {
-  //ngerman gets special cased
-  const filterLang = (lang: string) => {
+// Hyphenation pattern names (in language.dat) whose package is not
+// hyphen-<name>, with the package name. Generated in tinytex from
+// `execute AddHyphen` in texlive.tlpdb (R/hyphen.R), and exported as
+// hyphen.json in the daily regex.tar.gz.
+const kHyphenationPackageNames: Record<string, string> = {
+  ngerman: "hyphen-german",
+  swissgerman: "hyphen-german",
+  pinyin: "hyphen-chinese",
+  ukenglish: "hyphen-english",
+  british: "hyphen-english",
+  usenglishmax: "hyphen-english",
+  bokmal: "hyphen-norwegian",
+  norsk: "hyphen-norwegian",
+  nynorsk: "hyphen-norwegian",
+  schoolfinnish: "hyphen-finnish",
+  monogreek: "hyphen-greek",
+  ibycus: "hyphen-ancientgreek",
+  classiclatin: "hyphen-latin",
+  liturgicallatin: "hyphen-latin",
+  mongolianlmc: "hyphen-mongolian",
+  serbianc: "hyphen-serbian",
+  // older names (synonyms in texlive.tlpdb)
+  amharic: "hyphen-ethiopic",
+  geez: "hyphen-ethiopic",
+  persian: "hyphen-farsi",
+  patois: "hyphen-french",
+  francais: "hyphen-french",
+  polygreek: "hyphen-greek",
+  portuges: "hyphen-portuguese",
+  slovene: "hyphen-slovenian",
+  espanol: "hyphen-spanish",
+  // all of these are in the hyphen-indic package
+  assamese: "hyphen-indic",
+  bengali: "hyphen-indic",
+  gujarati: "hyphen-indic",
+  hindi: "hyphen-indic",
+  kannada: "hyphen-indic",
+  malayalam: "hyphen-indic",
+  marathi: "hyphen-indic",
+  oriya: "hyphen-indic",
+  pali: "hyphen-indic",
+  panjabi: "hyphen-indic",
+  tamil: "hyphen-indic",
+  telugu: "hyphen-indic",
+  // pinned versions of the German patterns
+  "german-x-latest": "dehyph-exptl",
+  "ngerman-x-latest": "dehyph-exptl",
+  "german-x-2024-02-28": "dehyph-exptl",
+  "ngerman-x-2024-02-28": "dehyph-exptl",
+};
+
+// Maps language names found in a log to the TeX Live packages providing their
+// hyphenation patterns. Follows hyphen_pkgs() in tinytex (R/latex.R).
+function hyphenationPackagesForLanguages(names: string[]): string[] {
+  const packages: string[] = [];
+  for (const raw of names) {
+    // Names in language.dat may be in mixed case (e.g. UKenglish)
+    const lang = raw.replace(/[`']/g, "").toLowerCase()
+      // Some warnings give a description rather than a name
+      // (e.g. `German (current orthography)`): the first word is the language
+      .replace(/\s.*$/s, "");
+
+    // The name comes from the log and is passed to tlmgr (through a .bat file
+    // on Windows), so only keep what looks like a package name (all
+    // hyphenation names in texlive.tlpdb are lowercase letters, digits and hyphens)
+    if (!/^[a-z0-9-]+$/.test(lang)) {
+      continue;
+    }
+
     // It seems some languages have no hyphenation files, so we just filter them out
     // e.g. `lang: zh` has no hyphenation files
     // https://github.com/quarto-dev/quarto-cli/issues/10291
-    const noHyphen = ["chinese-hans", "chinese"];
-    if (noHyphen.includes(lang)) {
-      return;
+    if (lang === "chinese" || lang === "chinese-hans") {
+      continue;
     }
 
     // NOTE Although the names of the corresponding lfd files match those in this list,
@@ -173,32 +237,75 @@ export function findMissingHyphenationFiles(logText: string) {
     // called here german, which is the name in the CLDR and, actually, the most logical.
     //
     // See https://ctan.math.utah.edu/ctan/tex-archive/macros/latex/required/babel/base/babel.pdf
-    if (lang === "ngerman") {
-      return "hyphen-german";
-    }
-    return `hyphen-${lang.toLowerCase()}`;
-  };
+    packages.push(
+      Object.hasOwn(kHyphenationPackageNames, lang)
+        ? kHyphenationPackageNames[lang]
+        : `hyphen-${lang}`,
+    );
+  }
+  return ld.uniq(packages);
+}
 
-  const babelWarningRegex = /^Package babel Warning:/m;
-  const hasWarning = logText.match(babelWarningRegex);
-  if (hasWarning) {
-    const languageRegex = /^\(babel\).* language [`'](\S+)[`'].*$/m;
-    const languageMatch = logText.match(languageRegex);
-    if (languageMatch) {
-      return filterLang(languageMatch[1]);
+// Port of latex_warning() in tinytex (R/latex.R): the lines of every
+// `LaTeX Warning:` / `Package <name> Warning:` block, up to the next blank line
+function latexWarningBlocks(logText: string): string {
+  const logLines = logText.split(/\r?\n/);
+  const kept = new Set<number>();
+  const startRegex = /^(LaTeX|Package [A-Za-z0-9]+) Warning:/;
+  logLines.forEach((line, i) => {
+    if (!startRegex.test(line)) {
+      return;
     }
+    for (let j = i; j < logLines.length && !/^\s*$/.test(logLines[j]); j++) {
+      kept.add(j);
+    }
+  });
+  return [...kept].sort((a, b) => a - b).map((i) => logLines[i]).join("\n");
+}
+
+// babel raises a fatal error (rather than the warning handled by
+// findMissingHyphenationFiles) when a language is referenced but has neither
+// hyphenation patterns in the format nor a dialect fallback. For instance,
+// babel-german checks `\iflanguage{ngerman}` at begin document, which fails for
+// `lang: de-CH` or `lang: de-AT` when hyphen-german is not installed:
+//   ! Package babel Error: You haven't defined the language 'ngerman' yet.
+// https://github.com/rstudio/tinytex/issues/515
+// Older babel versions use `ngerman' or no quotes at all.
+const kBabelUndefinedLanguageRegex =
+  /Package babel Error: You haven't defined the language [`']?([^`'\s]+)[`']? yet/g;
+
+// Finds hyphenation packages whose absence makes the compilation fail
+// (to be installed directly by name, as opposed to the file search terms
+// returned by findMissingFontsAndPackages)
+export function findMissingHyphenationPackages(logText: string): string[] {
+  return hyphenationPackagesForLanguages(
+    [...logText.matchAll(kBabelUndefinedLanguageRegex)].map((m) => m[1]),
+  );
+}
+
+// Finds missing hyphenation files (these appear as warnings in the log file)
+export function findMissingHyphenationFiles(logText: string): string[] {
+  // Same regexes as check_babel() and check_polyglossia() in tinytex, on
+  // warning blocks only
+  const babelRegex =
+    /^(?:\(babel\).* |Package babel Warning: No hyphenation patterns were preloaded for the )language [`']([^']+)'.*$/gm;
+  const polyglossiaRegex =
+    /^Package polyglossia Warning: No hyphenation patterns were loaded for ([`'][^']+'|British English).*$/gm;
+  const warnings = latexWarningBlocks(logText);
+  const packages = hyphenationPackagesForLanguages([
+    ...warnings.matchAll(babelRegex),
+    ...warnings.matchAll(polyglossiaRegex),
+  ].map((m) => m[1]));
+  if (packages.length > 0) {
+    return packages;
   }
 
   // Try an alternative way of parsing
   const hyphenRulesRegex =
-    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/m;
-  const match = logText.match(hyphenRulesRegex);
-  if (match) {
-    const language = match[1];
-    if (language) {
-      return filterLang(language);
-    }
-  }
+    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
+  return hyphenationPackagesForLanguages(
+    [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
+  );
 }
 
 // Parse a log file to find latex errors

@@ -1,0 +1,15 @@
+---
+title: "Project-relative logo in subdirectory of a default project is not rebased"
+format: revealjs
+logo: img/top.png
+_quarto:
+  tests:
+    revealjs:
+      noErrorsOrWarnings: true
+      ensureFileRegexMatches:
+        -
+          - '<img src="img(/|\\)top\.png" class="slide-logo"'
+        - []
+---
+
+## Section

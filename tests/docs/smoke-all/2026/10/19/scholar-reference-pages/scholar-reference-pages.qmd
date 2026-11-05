@@ -1,0 +1,14 @@
+---
+title: Scholar reference metadata splits a page range
+format: html
+google-scholar: true
+bibliography: references.bib
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[name="citation_reference"][content*="citation_firstpage=97;"]', 'meta[name="citation_reference"][content*="citation_lastpage=111;"]']
+        - []
+---
+
+This article cites a work with a page range [@ranged].

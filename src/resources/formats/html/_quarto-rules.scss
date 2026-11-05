@@ -734,7 +734,7 @@ $mermaid-node-fg-color: $primary !default;
   --mermaid-fg-color: #{$mermaid-fg-color};
   --mermaid-fg-color--lighter: #{$mermaid-fg-color--lighter};
   --mermaid-fg-color--lightest: #{$mermaid-fg-color--lightest};
-  --mermaid-font-family: #{$mermaid-font-family};
+  --mermaid-font-family: #{inspect($mermaid-font-family)};
   --mermaid-label-bg-color: #{$mermaid-label-bg-color};
   --mermaid-label-fg-color: #{$mermaid-label-fg-color};
   --mermaid-node-bg-color: #{$mermaid-node-bg-color};

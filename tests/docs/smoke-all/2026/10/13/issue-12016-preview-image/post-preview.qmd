@@ -1,0 +1,17 @@
+---
+title: "A discovered preview image does not inherit the site's size"
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<meta property="og:image" content="https://example.com/square.svg">'
+        -
+          - '<meta property="og:image:height"'
+          - '<meta property="og:image:width"'
+---
+
+![A square](square.svg){.preview-image}
+
+The size the site declares describes the site image, not this page's preview image.

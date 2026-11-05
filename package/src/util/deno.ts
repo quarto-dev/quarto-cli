@@ -21,6 +21,9 @@ export async function bundle(
     throw Error("QUARTO_DENO is not defined");
   }
   denoBundleCmd.push("run");
+  // deno.jsonc disables the lockfile, so pass it explicitly (frozen).
+  denoBundleCmd.push("--lock=../deno.lock");
+  denoBundleCmd.push("--frozen");
   denoBundleCmd.push("--allow-all");
   denoBundleCmd.push("../tools/deno-esbuild-bundle.ts");
   /*

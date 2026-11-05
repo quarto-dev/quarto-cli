@@ -1,0 +1,94 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 47,
+  "id": null,
+  "body": {
+    "type": "TemplateLiteral",
+    "start": 0,
+    "end": 47,
+    "expressions": [
+      {
+        "type": "Identifier",
+        "start": 43,
+        "end": 46,
+        "name": "val"
+      }
+    ],
+    "quasis": [
+      {
+        "type": "TemplateElement",
+        "start": 0,
+        "end": 41,
+        "value": {
+          "raw": "SELECT * FROM my_table WHERE my_column = ",
+          "cooked": null
+        },
+        "tail": false
+      },
+      {
+        "type": "TemplateElement",
+        "start": 47,
+        "end": 47,
+        "value": {
+          "raw": ""
+        },
+        "tail": true
+      }
+    ]
+  },
+  "async": false,
+  "generator": false,
+  "tag": {
+    "type": "CellTag",
+    "start": 0,
+    "end": 6,
+    "body": {
+      "type": "MemberExpression",
+      "start": 0,
+      "end": 6,
+      "object": {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "db"
+      },
+      "property": {
+        "type": "Identifier",
+        "start": 3,
+        "end": 6,
+        "name": "sql"
+      },
+      "computed": false,
+      "optional": false
+    },
+    "input": "db.sql",
+    "async": false,
+    "generator": false,
+    "references": [
+      {
+        "type": "Identifier",
+        "start": 0,
+        "end": 2,
+        "name": "db"
+      }
+    ],
+    "fileAttachments": [],
+    "databaseClients": [],
+    "secrets": [],
+    "notificationClients": []
+  },
+  "raw": false,
+  "references": [
+    {
+      "type": "Identifier",
+      "start": 43,
+      "end": 46,
+      "name": "val"
+    }
+  ],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

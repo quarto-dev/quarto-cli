@@ -1,0 +1,1 @@
+({[field]: value}) => value

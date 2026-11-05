@@ -8,15 +8,13 @@ const imageHeight = listing['image-height'];
 
 // Fields that don't have a known place to be displayed in this template
 const otherFields = fields.filter(field => {
-return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "reading-time", "categories"].includes(field);
+return !["title", "image", "image-alt", "date", "author", "subtitle", "description", "reading-time", "categories", "target", "rel"].includes(field);
 });
 
 // Capture the item number for utility functions that need it
 const itemNumber = listing.utilities.itemNumber();
 
-// Writes a metadata value
-const outputMetadata = (item, field) => {
-
+// Reads a (possibly dotted) metadata field from an item
 const readField = (item, field) => {
 let value = item[field];
 if (field.includes(".") && !field.endsWith(".") && !field.startsWith(".")) {
@@ -28,6 +26,21 @@ value = value[deref];
 }
 return value;
 }
+
+// Whether a value renders as visible text (falsy values render as &nbsp;,
+// empty lists and blank strings as whitespace)
+const hasText = (value) => !!value && String(value).trim() !== "";
+
+// Whether the metadata block shows any text for the item
+const hasMetadata = (item) => {
+return (fields.includes('date') && hasText(item.date)) ||
+(fields.includes('author') && hasText(item.author)) ||
+(fields.includes('reading-time') && hasText(item['reading-time'])) ||
+otherFields.some(field => hasText(readField(item, field)));
+}
+
+// Writes a metadata value
+const outputMetadata = (item, field) => {
 
 let value = readField(item, field);
 if (value !== undefined) {
@@ -41,7 +54,7 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% if (fields.includes('image')) { %>
 
 ```{=html}
-<div class="thumbnail"><a href="<%- item.path %>" class="no-external">
+<div class="thumbnail"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon"<%= !item.image && !item.outputHref ? ' aria-hidden="true" tabindex="-1"' : '' %>>
 <% if (item.image) { %>
 <%= listing.utilities.img(itemNumber, item.image, "thumbnail-image", item['image-alt'], item['image-lazy-loading'] ?? listing['image-lazy-loading']) %>
 <% } else { %>
@@ -55,9 +68,9 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 ::: {.body}
 
 <% if (fields.includes('title')) { %>
-<h3 class="no-anchor listing-title"><a href="<%- item.path %>" class="no-external"><%= item.title %></a></h3>
-<% if (fields.includes('subtitle')) { %>
-<div class="listing-subtitle"><a href="<%- item.path %>" class="no-external"><%= item.subtitle %></a></div>
+<h3 class="no-anchor listing-title"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon"><%= item.title %></a></h3>
+<% if (fields.includes('subtitle') && hasText(item.subtitle)) { %>
+<div class="listing-subtitle"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon"><%= item.subtitle %></a></div>
 <% } %>
 <% } %>
 
@@ -75,15 +88,19 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 
 <% if (fields.includes('description')) { %>
 
+::: {.delink .listing-description}
+
 ```{=html}
-<div class="delink listing-description"><a href="<%- item.path %>" class="no-external">
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon">
 ```
 
 <%= item.description %>
 
 ```{=html}
-</a></div>
+</a>
 ```
+
+:::
 
 <% } %>
 
@@ -91,9 +108,13 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 
 ::: {.metadata}
 
+<% if (hasMetadata(item)) { %>
+
 ```{=html}
-<a href="<%- item.path %>" class="no-external">
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="no-external-icon">
 ```
+
+<% } %>
 
 <% if (fields.includes('date') && item.date) { %>
 <div class="listing-date"><%= item.date %></div>
@@ -115,9 +136,13 @@ print(`<div class="metadata-value listing-${field}">${listing.utilities.outputLi
 <% outputMetadata(item, field) %>
 <% } %>
 
+<% if (hasMetadata(item)) { %>
+
 ```{=html}
 </a>
 ```
+
+<% } %>
 
 :::
 

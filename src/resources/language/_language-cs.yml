@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Skrýt celý kód"
 code-tools-view-source: "Zobrazit zdrojový kód"
 code-tools-source-code: "Zdrojový kód"
 
+tools-share: "Sdílet"
+tools-download: "Stáhnout"
+
 copy-button-tooltip: "Zkopírovat do schránky"
 copy-button-tooltip-success: "Zkopírováno!"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Zobrazit zdrojový kód"
 repo-action-links-issue: "Nahlásit problém"
 
 back-to-top: "Zpět na začátek"
+
+skip-to-content: "Přeskočit na hlavní obsah"
 
 search-no-results-text: "Žádný výsledek"
 search-matching-documents-text: "Nalezené výsledky"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Cesta"       # libreoffice sw 'Path' (attested te
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Rolovatelný kód"       # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Rolovatelný výstup"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(otevře se v nové záložce)"
+
+announcement-dismiss-label: "Zavřít oznámení"
+
+revealjs-menu-button-label: "Menu snímků"
 
 crossref-fig-title: "Obrázek"
 crossref-tbl-title: "Tabulka"

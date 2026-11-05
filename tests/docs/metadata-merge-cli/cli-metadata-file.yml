@@ -1,0 +1,6 @@
+shared: metadata-file-value
+custom:
+  shared: metadata-file-value
+  from-metadata-file: metadata-file-value
+keywords:
+  - metadata-file-keyword

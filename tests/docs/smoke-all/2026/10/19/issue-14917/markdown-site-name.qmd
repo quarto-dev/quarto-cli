@@ -1,0 +1,12 @@
+---
+title: "Summary"
+open-graph:
+  site-name: "**Bold** {{< meta title >}} name"
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['meta[property="og:site_name"][content="Bold Summary name"]']
+---
+
+An explicit `open-graph.site-name` containing Markdown and a shortcode must reach `og:site_name` as rendered plain text.

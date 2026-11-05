@@ -1,0 +1,44 @@
+---
+title: "HTML output mistaken for bslib output (issue #15023)"
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        -
+          - ".card.cell .test-subslide"
+          - ".card.cell .test-name"
+          - ".test-lifted"
+        -
+          - ".card.cell .test-lifted"
+---
+
+Regression test for #15023. The dashboard filter lifts a cell's raw HTML
+output out of its card when it takes the output for bslib components,
+which it detected with the Lua pattern `'bslib-'`. In a Lua pattern `-` is
+a quantifier, so that pattern matched any text containing `bsli`: the word
+"subslide", or the name `bslib` without a hyphen. Such output left its
+card, and a card with nothing else in it was dropped, title and all.
+
+The first two cells hold text like that and must keep their output in
+their card. The third holds a `bslib-` class, as real bslib components do,
+and must still be lifted out of the card. The selectors name `.card.cell`,
+the card built from a cell: when every output is lifted, the dashboard
+wraps what is left of the page, these outputs included, in a card of its
+own, which carries no `.cell` class.
+
+```{python}
+#| title: A word
+from IPython.display import HTML
+HTML('<p class="test-subslide">A subslide of the deck</p>')
+```
+
+```{python}
+#| title: A name without a hyphen
+HTML('<p class="test-name">Cards are built by bslib</p>')
+```
+
+```{python}
+#| title: A bslib component
+HTML('<div class="bslib-mock test-lifted">Component</div>')
+```

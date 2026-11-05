@@ -97,5 +97,13 @@ $if(toc-indent)$
   toc_indent: $toc-indent$,
 $endif$
   toc_depth: $toc-depth$,
+$if(lof)$
+  lof: true,
+  lof-title: [$if(crossref.lof-title)$$crossref.lof-title$$else$$quarto.language.crossref-lof-title$$endif$],
+$endif$
+$if(lot)$
+  lot: true,
+  lot-title: [$if(crossref.lot-title)$$crossref.lot-title$$else$$quarto.language.crossref-lot-title$$endif$],
+$endif$
   doc,
 )

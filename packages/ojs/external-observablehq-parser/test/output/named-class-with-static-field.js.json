@@ -1,0 +1,57 @@
+{
+  "type": "Cell",
+  "start": 0,
+  "end": 40,
+  "id": {
+    "type": "Identifier",
+    "start": 6,
+    "end": 9,
+    "name": "Foo"
+  },
+  "body": {
+    "type": "ClassExpression",
+    "start": 0,
+    "end": 39,
+    "id": {
+      "type": "Identifier",
+      "start": 6,
+      "end": 9,
+      "name": "Foo"
+    },
+    "superClass": null,
+    "body": {
+      "type": "ClassBody",
+      "start": 10,
+      "end": 39,
+      "body": [
+        {
+          "type": "PropertyDefinition",
+          "start": 14,
+          "end": 37,
+          "static": true,
+          "computed": false,
+          "key": {
+            "type": "Identifier",
+            "start": 21,
+            "end": 26,
+            "name": "field"
+          },
+          "value": {
+            "type": "Literal",
+            "start": 29,
+            "end": 36,
+            "value": "field",
+            "raw": "\"field\""
+          }
+        }
+      ]
+    }
+  },
+  "async": false,
+  "generator": false,
+  "references": [],
+  "fileAttachments": [],
+  "databaseClients": [],
+  "secrets": [],
+  "notificationClients": []
+}

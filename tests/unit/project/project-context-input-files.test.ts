@@ -10,13 +10,13 @@
 
 import { unitTest } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
-import { dirname, join, relative } from "../../../src/deno_ral/path.ts";
+import { join, relative } from "../../../src/deno_ral/path.ts";
 import { normalizePath } from "../../../src/core/path.ts";
 import { projectContext } from "../../../src/project/project-context.ts";
 import { ProjectContext } from "../../../src/project/types.ts";
 import { notebookContext } from "../../../src/render/notebook/notebook-context.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../src/core/schema/utils.ts";
-import { docs, withTempDir } from "../../utils.ts";
+import { docs, withTempDir, writeFixture } from "../../utils.ts";
 
 const kDoc = "---\ntitle: test\n---\n\nHello\n";
 
@@ -30,13 +30,11 @@ const kIgnored = [
 ];
 
 function writeProject(dir: string, quartoYml: string) {
-  Deno.writeTextFileSync(join(dir, "_quarto.yml"), quartoYml);
+  writeFixture(dir, "_quarto.yml", quartoYml);
   for (const file of [...kInputs, ...kIgnored]) {
-    const path = join(dir, file);
-    Deno.mkdirSync(dirname(path), { recursive: true });
-    Deno.writeTextFileSync(path, kDoc);
+    writeFixture(dir, file, kDoc);
   }
-  Deno.writeTextFileSync(join(dir, "notes.txt"), "not an input");
+  writeFixture(dir, "notes.txt", "not an input");
 }
 
 function relativeInputs(context: ProjectContext) {
@@ -95,6 +93,37 @@ for (
     },
   );
 }
+
+unitTest(
+  "projectContext below a hidden parent dir resolves root and input files",
+  async () => {
+    await withTempDir(async (tmp) => {
+      const root = join(normalizePath(tmp), ".parent", "project");
+      Deno.mkdirSync(root, { recursive: true });
+      writeProject(root, "project:\n  type: default\n");
+      await withContext(join(root, "sub", "page.qmd"), (context) => {
+        assert(context, "expected a project context");
+        assertEquals(context.dir, root);
+        assertEquals(relativeInputs(context), kInputs);
+      });
+    });
+  },
+);
+
+unitTest(
+  "projectContext below a hidden parent dir walks render list directories",
+  async () => {
+    await withTempDir(async (tmp) => {
+      const root = join(normalizePath(tmp), ".parent", "project");
+      Deno.mkdirSync(root, { recursive: true });
+      writeProject(root, "project:\n  type: default\n  render:\n    - sub\n");
+      await withContext(root, (context) => {
+        assert(context, "expected a project context");
+        assertEquals(relativeInputs(context), ["sub/page.qmd"]);
+      });
+    });
+  },
+);
 
 // Tracked fixture rather than a temp dir: this path leaves the project's
 // disk cache open, so the directory cannot be removed on Windows.

@@ -1,0 +1,22 @@
+project:
+  type: default
+
+format:
+  html:
+    template: template.html
+
+keywords:
+  - project-keyword
+  - shared-keyword
+
+tags:
+  - project-tag
+
+params:
+  from-project: project-value
+
+custom:
+  from-project: project-value
+  shared: project-value
+  list:
+    - project-item

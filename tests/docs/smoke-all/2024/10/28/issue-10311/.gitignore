@@ -3,3 +3,4 @@ _site/
 /.quarto/
 *jupyter_cache/
 *.jupyter_cache*
+**/*.quarto_ipynb

@@ -1,0 +1,28 @@
+---
+title: "Swiss German hyphenation auto-install (#15027)"
+format: pdf
+lang: de-CH
+_quarto:
+  tests:
+    pdf: null
+---
+
+**Only remove packages on CI**
+
+```{r}
+#| eval: !expr isTRUE(as.logical(Sys.getenv("CI", "false")))
+#| include: false
+#| messages: "NA"
+
+# Remove the German babel and hyphenation packages to test auto-installation.
+# Without hyphen-german, babel fails with a fatal error for `lang: de-CH`:
+# "You haven't defined the language 'ngerman' yet."
+for (pkg in c("hyphen-german", "babel-german")) {
+  if (tinytex::check_installed(pkg)) {
+    message("Removing '", pkg, "' package for the render")
+    tinytex::tlmgr_remove(pkg)
+  }
+}
+```
+
+Dieses Dokument prüft, dass Quarto `babel-german` und `hyphen-german` automatisch installiert, wenn `lang: de-CH` verwendet wird (siehe auch rstudio/tinytex#515).

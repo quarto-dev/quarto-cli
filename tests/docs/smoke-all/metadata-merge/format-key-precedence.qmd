@@ -1,0 +1,18 @@
+---
+title: Top-level title
+subtitle: Top-level subtitle
+format:
+  html:
+    title: Format title
+    subtitle: Format subtitle
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - '<h1 class="title">Format title</h1>'
+          - '<p class="subtitle lead">Format subtitle</p>'
+        - []
+---
+
+A key set both at the top level and under `format: html:` in the same document takes the format-level value in the output. The document is not executed (markdown engine), so this checks the merge order of document metadata on its own: the executed-front-matter substitution done before calling pandoc must not bring the top-level value back.

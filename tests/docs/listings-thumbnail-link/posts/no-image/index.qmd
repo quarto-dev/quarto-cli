@@ -1,0 +1,6 @@
+---
+title: "Post without an image"
+date: 2026-01-03
+---
+
+Text without an image.

@@ -21,6 +21,7 @@ import {
   findLatexError,
   findMissingFontsAndPackages,
   findMissingHyphenationFiles,
+  findMissingHyphenationPackages,
   findPdfAccessibilityWarnings,
   kMissingFontLog,
   needsRecompilation,
@@ -28,6 +29,7 @@ import {
 import { error, info, warning } from "../../../deno_ral/log.ts";
 import { logProgress } from "../../../core/log.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
+import * as ld from "../../../core/lodash.ts";
 
 export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
   if (!mkOptions.quiet) {
@@ -180,12 +182,12 @@ async function initialCompileLatex(
       // See whether there are warnings about hyphenation
       // See (https://github.com/rstudio/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
       const logText = Deno.readTextFileSync(response.log);
-      const missingHyphenationFile = findMissingHyphenationFiles(logText);
-      if (missingHyphenationFile) {
-        // try to install it, unless auto install is opted out
+      const missingHyphenationPackages = findMissingHyphenationFiles(logText);
+      if (missingHyphenationPackages.length > 0) {
+        // try to install them, unless auto install is opted out
         if (pkgMgr.autoInstall) {
           logProgress("Installing missing hyphenation file...");
-          if (await pkgMgr.installPackages([missingHyphenationFile])) {
+          if (await pkgMgr.installPackages(missingHyphenationPackages)) {
             // We installed hyphenation files, retry
             continue;
           } else {
@@ -195,7 +197,7 @@ async function initialCompileLatex(
         // Let's just through a warning, but it may not be fatal for the compilation
         // and we can end normally
         warning(
-          `Possibly missing hyphenation file: '${missingHyphenationFile}'. See more in logfile (by setting 'latex-clean: false').\n`,
+          `Possibly missing hyphenation file: '${missingHyphenationPackages.join("', '")}'. See more in logfile (by setting 'latex-clean: false').\n`,
         );
       }
 
@@ -470,8 +472,15 @@ async function findAndInstallPackages(
     const logText = Deno.readTextFileSync(logFile);
 
     const searchTerms = findMissingFontsAndPackages(logText, dirname(logFile));
-    if (searchTerms.length > 0) {
-      const packages = await pkgMgr.searchPackages(searchTerms);
+    // Packages known by name (no tlmgr file search needed)
+    const namedPackages = findMissingHyphenationPackages(logText);
+    if (searchTerms.length > 0 || namedPackages.length > 0) {
+      const packages = ld.uniq([
+        ...namedPackages,
+        ...(searchTerms.length > 0
+          ? await pkgMgr.searchPackages(searchTerms)
+          : []),
+      ]);
       if (packages.length > 0) {
         const packagesInstalled = await pkgMgr.installPackages(
           packages,

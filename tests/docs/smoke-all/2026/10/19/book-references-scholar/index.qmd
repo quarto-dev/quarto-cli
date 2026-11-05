@@ -1,0 +1,5 @@
+---
+title: Preface
+---
+
+The preface cites one work [@cited].

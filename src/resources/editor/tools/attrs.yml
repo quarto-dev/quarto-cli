@@ -138,7 +138,7 @@
       doc: "Make content visible except for a given profile."
     - value: '.content-hidden when-profile="$0"'
       doc: "Make content hidden for a given profile."
-    - value: '.content-hidden unless-profile"$0"'
+    - value: '.content-hidden unless-profile="$0"'
       doc: "Make content hidden except for a given profile."
 
 - group: "contentAttribs"
@@ -279,7 +279,7 @@
       doc: LaTeX environment for figure
     - value: 'fig-pos="$0"'
       doc: |
-        LaTeX figure position arrangement to be used in `\\begin{figure}[]`
+        LaTeX figure position arrangement to be used in `\begin{figure}[]`
     - value: 'fig-scap="$0"'
       doc: LaTeX short caption
     - value: 'style="$0"'
@@ -335,7 +335,7 @@
     - value: .incremental
       doc: Display bullet list incrementally
     - value: .nonincremental
-      doc: Display bullets list all at once
+      doc: Display bullet list all at once
     - value: .columns
       doc: Split content into multiple columns
     - value: .column
@@ -413,7 +413,7 @@
   formats: [revealjs]
   completions:
     - value: .smaller
-      doc: Use a smaller text side for slide
+      doc: Use a smaller text size for slide
     - value: .scrollable
       doc: Make slide contents scrollable
     - value: .nostretch

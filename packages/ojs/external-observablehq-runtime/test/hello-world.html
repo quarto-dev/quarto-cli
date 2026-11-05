@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<body class="O--body">
+<p>What is your name?
+<div id="name"></div>
+<div id="hello"></div>
+<script type=module>
+import {Runtime, Inspector, Library} from "/dist/runtime.js";
+
+var runtime = new Runtime(new Library),
+    module = runtime.module();
+
+module.variable(new Inspector(document.querySelector("#name"))).define("viewof name", ["DOM"], DOM => DOM.input());
+module.variable().define("name", ["Generators", "viewof name"], (Generators, view) => Generators.input(view));
+module.variable(new Inspector(document.querySelector("#hello"))).define(["name"], name => `Hello, ${name || "anonymous"}!`);
+
+</script>

@@ -248,8 +248,6 @@ export const ZodSocialMetadata = z.object({
   description: z.string(),
   image: z.string(),
   "image-alt": z.string(),
-  "image-width": z.number(),
-  "image-height": z.number(),
 }).strict().partial();
 
 export const ZodPageFooterRegion = z.union([
@@ -288,11 +286,11 @@ export const ZodTwitterCardConfig = z.object({
   description: z.string(),
   image: z.string(),
   "image-alt": z.string(),
-  "image-width": z.number(),
-  "image-height": z.number(),
   "card-style": z.enum(["summary", "summary_large_image"] as const),
   creator: z.string(),
   site: z.string(),
+  "image-width": z.number(),
+  "image-height": z.number(),
 }).strict().partial();
 
 export const ZodOpenGraphConfig = z.object({
@@ -300,10 +298,10 @@ export const ZodOpenGraphConfig = z.object({
   description: z.string(),
   image: z.string(),
   "image-alt": z.string(),
-  "image-width": z.number(),
-  "image-height": z.number(),
   locale: z.string(),
   "site-name": z.string(),
+  "image-width": z.number(),
+  "image-height": z.number(),
 }).strict().partial();
 
 export const ZodPageFooter = z.object({
@@ -785,6 +783,9 @@ export const ZodFormatLanguage = z.object({
   "skip-to-content": z.string(),
   "scrollable-code-label": z.string(),
   "scrollable-output-label": z.string(),
+  "link-external-newwindow-label": z.string(),
+  "revealjs-menu-button-label": z.string(),
+  "announcement-dismiss-label": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),
@@ -935,6 +936,8 @@ export const ZodWebsiteListing = z.object({
     z.object({}).passthrough(),
     z.array(z.object({}).passthrough()),
   ]),
+  rel: z.string(),
+  target: z.string(),
 }).strict().partial();
 
 export const ZodWebsiteListingContentsObject = z.object({
@@ -942,6 +945,8 @@ export const ZodWebsiteListingContentsObject = z.object({
   date: z.string(),
   title: z.string(),
   subtitle: z.string(),
+  rel: z.string(),
+  target: z.string(),
 }).passthrough().partial();
 
 export const ZodCslDate = z.union([

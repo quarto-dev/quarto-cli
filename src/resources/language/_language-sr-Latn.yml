@@ -5,6 +5,9 @@ related-formats-title: "Drugi Formati"
 related-notebooks-title: "Sveske"
 source-notebooks-prefix: "Izvor"
 other-links-title: "Drugi Linkovi"
+code-links-title: "Linkovi ka Kodu"
+launch-dev-container-title: "Pokreni Dev Container"
+launch-binder-title: "Pokreni Binder"
 
 article-notebook-label: "Sveska Članka"
 notebook-preview-download: "Skini Svesku"
@@ -46,6 +49,8 @@ code-tools-hide-all-code: "Sakrij Sav Kod"
 code-tools-view-source: "Prikaži Izvor"
 code-tools-source-code: "Izvorni Kod"
 
+tools-share: "Podeli"
+
 code-line: "Red"
 code-lines: "Redovi"
 
@@ -57,6 +62,8 @@ repo-action-links-source: "Prikaži izvor"
 repo-action-links-issue: "Prijavi grešku"
 
 back-to-top: "Nazad na vrh"
+
+skip-to-content: "Preskoči na glavni sadržaj"
 
 search-no-results-text: "Nema rezultata"
 search-matching-documents-text: "slična dokumenta"
@@ -92,6 +99,12 @@ navigation-breadcrumbs-label: "Putanja"  # libreoffice sw 'Path' (no attested te
 # No attested "scrollable" here; uses "sa pomeranjem" (with scrolling).
 scrollable-code-label: "Kod sa pomeranjem"      # derived + code-summary — assembled, needs review
 scrollable-output-label: "Izlaz sa pomeranjem"  # derived + gnome control-center — assembled, needs review
+
+link-external-newwindow-label: "(otvara se u novom jezičku)"
+
+announcement-dismiss-label: "Zatvori obaveštenje"
+
+revealjs-menu-button-label: "Meni slajdova"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabela"
@@ -130,10 +143,12 @@ listing-page-field-filename: "Ime Datoteke"
 listing-page-field-filemodified: "Izmenjeno"
 listing-page-field-subtitle: "Podnaslov"
 listing-page-field-readingtime: "Potrebno za čitanje"
+listing-page-field-wordcount: "Broj reči"
 listing-page-field-categories: "Kategorije"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "Sve"
 listing-page-no-matches: "Slična dokumenta nisu pronađena"
+listing-page-words: "{0} reči"
 listing-page-filter: "Filter"
 
 draft: "Nacrt"
