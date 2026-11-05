@@ -90,7 +90,7 @@ Running `rig proj sync` again restores the locked versions, so run `configure-te
 
 `run-tests` sets `QUARTO_R` to `tests/.rvenv/bin`.
 The `Rscript` wrapper there sets the R version and the project library itself, so every R process a test starts uses them, whatever its working directory.
-To run R by hand with the test environment, use `tests/.rvenv/bin/Rscript`, or set `QUARTO_R` the same way when running `quarto` yourself.
+To run R by hand with the test environment, use `tests/.rvenv/bin/Rscript`, or set `QUARTO_R` to the absolute path of `tests/.rvenv/bin` when running `quarto` yourself.
 A plain `Rscript` started in `tests/` with another R version warns that the project needs R 4.6 and does not load the project packages.
 
 To add an R package dependency:

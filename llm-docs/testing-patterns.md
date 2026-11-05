@@ -428,7 +428,7 @@ All test dependencies must be in the main `tests/` environment.
 `run-tests.ps1|.sh` set `QUARTO_R` to `tests/.rvenv/bin`, the wrapper scripts `rig proj sync` writes.
 Quarto resolves `Rscript` from `QUARTO_R` first (`rBinaryPath()` in `src/core/resources.ts`), and the wrapper sets the R version and the project library itself.
 An R subprocess therefore finds rmarkdown and knitr whatever its cwd, and a test whose knitr cwd is outside `tests/` (through `TestContext.cwd()`) needs no R setup.
-Running tests without `run-tests` (e.g. `deno test` directly) does not set `QUARTO_R`; set it to `tests/.rvenv/bin` yourself.
+Running tests without `run-tests` (e.g. `deno test` directly) does not set `QUARTO_R`; set it to the absolute path of `tests/.rvenv/bin` yourself (a relative value stops resolving once a test changes cwd).
 
 ## Best Practices
 
