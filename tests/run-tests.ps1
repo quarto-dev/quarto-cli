@@ -243,6 +243,21 @@ If ($AGENT_MODE) {
 }
 $DENO_ARGS += $TESTS_TO_RUN
 
+# Point Quarto at the R of the rig project in tests/ (rproj.toml): the
+# .rvenv wrapper sets the locked R version and package library itself, so
+# every R process a test starts gets them, whatever its working directory.
+$QUARTO_RVENV_BIN = Join-Path $QUARTO_ROOT "tests" ".rvenv" "bin"
+If (Test-Path $QUARTO_RVENV_BIN) {
+  $OLD_QUARTO_R = $Env:QUARTO_R
+  $Env:QUARTO_R = $QUARTO_RVENV_BIN
+  $quarto_r_set = $true
+  if ($VERBOSE_MODE) {
+    Write-Host "> Using R from " -NoNewline; Write-Host "$($Env:QUARTO_R)" -ForegroundColor Blue;
+  }
+} elseif ($VERBOSE_MODE) {
+  Write-Host "> No rig project environment at $QUARTO_RVENV_BIN, using R from QUARTO_R, R_HOME or PATH"
+}
+
 # Activate python virtualenv
 # set QUARTO_TESTS_FORCE_NO_VENV env var to not activate the virtualenv located in the project
 # QUARTO_TESTS_FORCE_NO_PIPENV is there for backward compatibility
@@ -277,6 +292,11 @@ $SUCCESS = $?
 $DENO_EXIT_CODE = $LASTEXITCODE
 
 # Add Coverage handling
+
+If ($quarto_r_set) {
+  $Env:QUARTO_R = $OLD_QUARTO_R
+  Remove-Variable quarto_r_set, OLD_QUARTO_R
+}
 
 If($quarto_venv_activated) {
   if ($VERBOSE_MODE) {

@@ -7,7 +7,7 @@
 import { join, resolve } from "../../../src/deno_ral/path.ts";
 import { existsSync, safeRemoveSync } from "../../../src/deno_ral/fs.ts";
 import { Element } from "../../../src/core/deno-dom.ts";
-import { docs, writeTestsRenvProfile } from "../../utils.ts";
+import { docs } from "../../utils.ts";
 import {
   ensureHtmlSelectorSatisfies,
   fileExists,
@@ -33,7 +33,6 @@ const removeGenerated = () => {
       "source_files",
       "source.embed.ipynb",
       "source.embed-preview.html",
-      ".Rprofile",
     ]
   ) {
     safeRemoveSync(join(projectDir, name), { recursive: true });
@@ -48,8 +47,6 @@ test({
     cwd: () => projectDir,
     setup: () => {
       removeGenerated();
-      // knitr runs from the project dir, outside tests/
-      writeTestsRenvProfile(projectDir);
       return Promise.resolve();
     },
     teardown: () => {
