@@ -86,7 +86,7 @@ Combines Pandoc definitions with Quarto-specific functionality:
 
 **From Pandoc**:
 - `content-to-string` helper to extract text from content nodes (used for PDF metadata and link colors)
-- `horizontalrule` definition for horizontal rules, plus a `divider()` alias to it (Pandoc 3.13's typst writer emits `#divider()`; the alias keeps Quarto's centered 25-75% line instead of typst's full-width std divider)
+- `horizontalrule` definition (a centered 25-75% line, kept for `notes.typ` and external templates that call `#horizontalrule`). Pandoc 3.13's typst writer emits `#divider()` for HorizontalRule; Quarto deliberately does not define `divider`, so it resolves to Typst 0.15's native `std.divider` (full-width, restyleable via `#show divider:` rules), matching pandoc's default template behavior with typst >= 0.15
 - Term list hanging indent (`#set terms(hanging-indent: 1.5em)`; Pandoc 3.13 dropped its custom `terms.item` show rule)
 - CSL citeproc formatting (`#show <refs>: set par(...)` with `csl-hanging-indent` / `csl-entry-spacing` under `$if(csl-settings)$`, from Pandoc 3.12.1's `default.typst`; applies CSL hanging indent and entry spacing to Pandoc-citeproc bibliographies)
 - Code highlighting definitions (conditionally included)
