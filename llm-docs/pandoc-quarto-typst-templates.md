@@ -1,3 +1,15 @@
+---
+main_commit: d30cdbb9e
+analyzed_date: 2026-07-23
+key_files:
+  - package/src/common/update-pandoc.ts
+  - src/format/typst/format-typst.ts
+  - src/resources/formats/typst/pandoc/quarto/definitions.typ
+  - src/resources/formats/typst/pandoc/quarto/template.typ
+  - src/resources/formats/typst/pandoc/typst.template
+  - src/resources/formats/typst/pandoc/template.typst
+---
+
 # Pandoc and Quarto Typst Templates
 
 This document describes how Quarto integrates Pandoc's typst templates and transforms them into a more modular structure suitable for Quarto's extended functionality.
@@ -172,9 +184,21 @@ Handles bibliography rendering:
 - Sets bibliography style from CSL file or bibliography style option
 - Renders bibliography from specified files
 
-### typst.template - Reference Copy
+### typst.template and template.typst - Reference Copies
 
-This is the copy of Pandoc's `default.typst`, kept for reference. It is used when rendering without Quarto's template context (e.g., when a user provides a custom template).
+`typst.template` (Pandoc's `default.typst`) and `template.typst` (kept under its original name) are reference copies. `format-typst.ts` uses the `quarto/` template and partials described above for rendering.
+
+During a Pandoc update, review their diffs and port relevant changes to `quarto/definitions.typ` and the other Quarto partials. See `dev-docs/update-pandoc-checklist.md` for the regeneration and reference-copy maintenance procedure.
+
+### Writer-Level Changes vs. Template-Level Changes
+
+Pandoc's Typst writer converts the AST into body markup. Changes to its output can affect rendering regardless of the template used.
+
+For example, Pandoc 3.10.1 changed `HorizontalRule` output from `#horizontalrule` to `#divider()`, a native function added in Typst 0.15. The bundled Typst version is 0.15.1, so this call needs no local definition. Quarto's `quarto/definitions.typ` still defines `horizontalrule` for use by `notes.typ`.
+
+The same release changed definition-list output: descriptions are emitted directly rather than wrapped in `#block[...]`, relying on an external `#set terms(hanging-indent: ...)`. Quarto's `#show terms.item` rule reformats the description in either case. Neither change required a template change for Quarto.
+
+When updating Pandoc, render a document with both versions using `QUARTO_PANDOC` and compare the generated `.typ` body content. Template diffs alone do not show changes in writer output.
 
 ## 3. Parameter Summary Table
 

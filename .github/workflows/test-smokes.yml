@@ -71,6 +71,11 @@ on:
         required: false
         type: string
         default: ""
+      pandoc-override-version:
+        description: "Pandoc release tag to download from GitHub for smoke tests before S3 archival (e.g. 3.10.1). Quarto selects it through QUARTO_PANDOC. Leave empty to use the configured binary."
+        required: false
+        type: string
+        default: ""
 
 # this is required to cleanup julia cache
 permissions:
@@ -503,6 +508,12 @@ jobs:
             && [ "$QUARTO_VERSION_INPUT" != "release" ]; then
             echo "QUARTO_TEST_EXPECTED_VERSION=$QUARTO_VERSION_INPUT" >> "$GITHUB_ENV"
           fi
+
+      # Guarded at the step so runs on older refs, which lack this action, never load it.
+      - if: inputs.pandoc-override-version != ''
+        uses: ./.github/workflows/actions/pandoc-override
+        with:
+          pandoc-version: ${{ inputs.pandoc-override-version }}
 
       - name: Install Tinytex
         env:
