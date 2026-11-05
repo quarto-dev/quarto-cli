@@ -84,7 +84,7 @@ Dependencies are managed using the following tools:
 #### R
 
 We use a [**rig** project](https://rig.r-lib.org/proj-guide.html) (`rig proj`, experimental in rig).
-`rproj.toml` declares the R packages and the R version, and `rproj.lock` pins the resolved versions for Windows, macOS and Linux.
+`rproj.toml` declares the R packages and the R version, and `rproj.lock` pins the resolved versions for Windows x86_64, macOS arm64 and Linux x86_64 (other platforms fall back to source packages).
 `configure-test-env` runs `rig proj sync`, which installs the locked R version if it is missing and the packages into `tests/.rvenv/lib`, then installs the development versions of rmarkdown and knitr from r-universe on top.
 Running `rig proj sync` again restores the locked versions, so run `configure-test-env` rather than a bare sync to keep the development versions.
 

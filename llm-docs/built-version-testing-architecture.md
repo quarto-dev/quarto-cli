@@ -164,7 +164,7 @@ In practice:
 - For signed Windows artifacts from a branch, dispatch `create-release` with `publish-release=false` and `smoke-artifacts-only=true`. The resulting workflow run starts the available test legs automatically (D7).
 - Dispatch `nightly` with a `run-id` to retest an earlier `create-release` run.
 - Dispatch `release` for post-publish verification, such as the optional prerelease checklist step.
-  It works only for releases cut after the harness support merged (D10).
+  It works only for releases cut after the harness support and the rig test environment merged (D10).
 
 ## Built-mode test legs (scheduler layout)
 
@@ -298,6 +298,7 @@ All built legs currently run after every completed `create-release` run, unless 
 ### D10. Release mode only works for post-harness tags
 
 Release mode checks out the tag, so the harness at that tag must already contain `tests/quarto-cmd.ts` — a preflight fails clearly for older releases.
+The smoke legs also need the rig test environment (`tests/rproj.lock`): on a tag from before it, each leg fails at its "Check the ref supports the rig test environment" step.
 Testing an older binary with the current harness would require decoupling the harness from the target ref.
 
 Nightly and release legs use the harness from the target ref. Refs that contain `tests/quarto-cmd.ts` but predate the `quartoSpawnEnvOptions()` fix in `playwright-tests.test.ts` (#14706) run Playwright with dev-tree resources.
