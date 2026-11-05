@@ -19,6 +19,18 @@
 
 #set terms(hanging-indent: 1.5em)
 
+$if(csl-settings)$
+// formatting called for by CSL style
+#show <refs>: set par(
+$if(csl-hanging-indent)$
+  hanging-indent: $csl-hanging-indent$,
+$endif$
+$if(csl-entry-spacing)$
+  spacing: $csl-entry-spacing$,
+$endif$
+)
+
+$endif$
 // Some quarto-specific definitions.
 
 #show raw.where(block: true): set block(

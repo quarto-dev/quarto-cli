@@ -9,7 +9,7 @@ _quarto:
   tests:
     typst:
       ensureTypstFileRegexMatches:
-      - ['<refs>', '<ref-Cronbach_1951>']
+      - ['<refs>', '<ref-Cronbach_1951>', '\#show <refs>: set par\(', 'hanging-indent: 1.5em']
       - ['\#bibliography\([^)]*\)']
       ensurePdfRegexMatches:
       # Locators appear inline after author-date (citeproc drops "p." prefix)

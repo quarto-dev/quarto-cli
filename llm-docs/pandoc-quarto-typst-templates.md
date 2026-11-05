@@ -88,6 +88,7 @@ Combines Pandoc definitions with Quarto-specific functionality:
 - `content-to-string` helper to extract text from content nodes (used for PDF metadata and link colors)
 - `horizontalrule` definition for horizontal rules
 - Term list hanging indent (`#set terms(hanging-indent: 1.5em)`; Pandoc 3.13 dropped its custom `terms.item` show rule)
+- CSL citeproc formatting (`#show <refs>: set par(...)` with `csl-hanging-indent` / `csl-entry-spacing` under `$if(csl-settings)$`, from Pandoc 3.12.1's `default.typst`; applies CSL hanging indent and entry spacing to Pandoc-citeproc bibliographies)
 - Code highlighting definitions (conditionally included)
 
 **Quarto additions**:
