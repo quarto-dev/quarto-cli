@@ -17,10 +17,7 @@
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
-#show terms.item: it => block(breakable: false)[
-  #text(weight: "bold")[#it.term]
-  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
-]
+#set terms(hanging-indent: 1.5em)
 
 // Some quarto-specific definitions.
 

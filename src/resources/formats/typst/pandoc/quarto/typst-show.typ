@@ -85,7 +85,7 @@ $if(filecolor)$
   filecolor: [$filecolor$],
 $endif$
 $if(keywords)$
-  keywords: ($for(keywords)$"$keywords$",$endfor$),
+  keywords: ($for(keywords)$"$keywords/nowrap$",$endfor$),
 $endif$
 $if(toc)$
   toc: $toc$,

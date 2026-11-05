@@ -1,0 +1,41 @@
+---
+title: "Definition List Layout Test"
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # Tight item: description sits on the same line as the term
+          - subject: "TIGHTTERM"
+            relation: leftOf
+            object: "TIGHTDESC"
+          - subject: "TIGHTTERM"
+            relation: topAligned
+            object: "TIGHTDESC"
+          # Loose item: description stays in a block below the term
+          - subject: "LOOSETERM"
+            relation: above
+            object: "LOOSEDESC"
+        - # Description of a loose item is indented, never left-aligned with its term
+          - subject: "LOOSEDESC"
+            relation: leftAligned
+            object: "LOOSETERM"
+      noErrors: default
+---
+
+Pandoc 3.13 renders definition lists with Typst's native `terms` element and a
+hanging indent (upstream replaced its custom `terms.item` show rule with
+`#set terms(hanging-indent: 1.5em)`). Tight items keep the description on the
+term's line; loose items keep the block layout. Quarto's template ports that
+rule, and this document checks both layouts in the PDF.
+
+A tight item:
+
+TIGHTTERM
+: TIGHTDESC wraps onto the term line when the item is tight.
+
+A loose item:
+
+LOOSETERM
+
+: LOOSEDESC stays below the term because the item is loose.
