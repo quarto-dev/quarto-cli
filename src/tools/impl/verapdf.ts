@@ -24,7 +24,7 @@ import { isWindows } from "../../deno_ral/platform.ts";
 
 // Download base URL (quarto.org redirects to S3 bucket)
 const kDownloadBaseUrl = "https://quarto.org/download";
-const kDefaultVersion = "1.30.3";
+export const kDefaultVersion = "1.30.3";
 
 // Minimum Java version required
 const kMinJavaVersion = 8;
