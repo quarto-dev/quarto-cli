@@ -12,6 +12,10 @@
 }
 
 #let horizontalrule = line(start: (25%,0%), end: (75%,0%))
+// Pandoc 3.13's typst writer emits #divider() for HorizontalRule; alias it to
+// Quarto's rule so documents keep the centered 25-75% line instead of typst's
+// full-width std divider.
+#let divider() = horizontalrule
 
 #let endnote(num, contents) = [
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)

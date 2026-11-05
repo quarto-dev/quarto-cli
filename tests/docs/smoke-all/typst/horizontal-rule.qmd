@@ -1,0 +1,21 @@
+---
+title: "Horizontal rule keeps Quarto's look"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      # Pandoc 3.13 writer emits #divider() for HorizontalRule; Quarto's
+      # template aliases divider to its centered 25-75% horizontalrule.
+      ensureTypstFileRegexMatches:
+        - ['\#divider\(\)', '\#let divider\(\) = horizontalrule']
+        - ['std\.divider']
+      noErrors: default
+---
+
+a
+
+---
+
+b
