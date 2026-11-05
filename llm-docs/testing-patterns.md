@@ -220,7 +220,7 @@ unitTest("runs from workingDir", async () => {
 
 **Key points:**
 
-- A test that runs R/knitr from the new cwd also needs the renv activation described in "R Tests That Change Working Directory" below.
+- A test that runs R/knitr from the new cwd needs no extra setup: see "R Tests That Change Working Directory" below.
 - The harness calls `cwd()` **before** `setup()`, so the directory must already exist when `cwd()` runs — create it at module scope, not in `setup`.
 - `teardown` runs **before** the harness restores the cwd, so on Windows the temp dir may still be the cwd and resist removal.
   Wrap the removal in try/catch (best-effort) — see `tests/smoke/use/template.test.ts` and `tests/unit/dotenv-config.test.ts`.
@@ -378,7 +378,7 @@ See `tests/smoke/use/template.test.ts` for extension template patterns.
 
 - **Julia**: `tests/Project.toml` + `tests/Manifest.toml`
 - **Python**: `tests/.venv/` (managed by uv/pyproject.toml)
-- **R**: `tests/renv/` + `tests/renv.lock`
+- **R**: `tests/rproj.toml` + `tests/rproj.lock` (rig project; library in `tests/.rvenv/`)
 
 The `configure-test-env` scripts ONLY manage these main environments.
 CI builds depend on this structure.
@@ -415,9 +415,9 @@ julia --project=. -e 'using Pkg; Pkg.add("PackageName")'
 cd tests
 uv add packagename
 
-# R: Edit tests/DESCRIPTION, then
+# R: from tests/ (updates rproj.toml and rproj.lock, installs into tests/.rvenv/lib)
 cd tests
-Rscript -e "renv::install(); renv::snapshot()"
+rig proj add packagename
 ```
 
 **Note:** While Quarto supports local Project.toml files in document directories for production use, the quarto-cli test infrastructure specifically does NOT support this pattern.
@@ -425,21 +425,10 @@ All test dependencies must be in the main `tests/` environment.
 
 ### R Tests That Change Working Directory
 
-R resolves `.Rprofile` from the **exact** process cwd (no parent-directory search).
-On CI, rmarkdown/knitr live only in `tests/renv`'s project library, activated when cwd is `tests/` (via `tests/.Rprofile` sourcing `renv/activate.R`).
-Most knitr tests never leave `tests/` — they pass paths relative to the current cwd instead of changing directories — so activation happens automatically.
-
-A test that changes cwd through `TestContext.cwd()` loses that activation. The R subprocess starts outside `tests/`, and package loads may fail with `there is no package called 'rmarkdown'`.
-A developer machine with rmarkdown on the default `.libPaths()` may mask this CI failure.
-
-**Fix:** call `writeTestsRenvProfile(dir)` (`tests/utils.ts`) in `setup()` to write a `.Rprofile` in the fixture cwd that points renv to the test project. It writes:
-
-```r
-Sys.setenv(RENV_PROJECT = "<absolute path to tests/>")
-source("<absolute path to tests/>/renv/activate.R")
-```
-
-`renv/activate.R` uses `RENV_PROJECT` as the project root instead of the current directory.
+`run-tests.ps1|.sh` set `QUARTO_R` to `tests/.rvenv/bin`, the wrapper scripts `rig proj sync` writes.
+Quarto resolves `Rscript` from `QUARTO_R` first (`rBinaryPath()` in `src/core/resources.ts`), and the wrapper sets the R version and the project library itself.
+An R subprocess therefore finds rmarkdown and knitr whatever its cwd, and a test whose knitr cwd is outside `tests/` (through `TestContext.cwd()`) needs no R setup.
+Running tests without `run-tests` (e.g. `deno test` directly) does not set `QUARTO_R`; set it to `tests/.rvenv/bin` yourself.
 
 ## Best Practices
 
