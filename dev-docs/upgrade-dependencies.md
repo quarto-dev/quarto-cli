@@ -25,6 +25,8 @@ Why this bites (real incident, #14664): Dart Sass 1.101.0 changed its macOS AOT 
 
 - `src/import_map.json` has migrated to JSR (`jsr:/@std/<package>@<version>` entries). If `configure` errors with `Module not found: jsr:/@std/...`, bump only the specific `@std` package(s) named in the error to a compatible version on <https://jsr.io/@std>. Otherwise, leave `src/import_map.json` alone — historical pattern is reactive (no pre-emptive bumps).
 
+- regenerate `deno.lock` and commit it with the change. Vendoring runs `deno install --frozen`, so after an import-map change `configure` fails with `The lockfile is out of date` until the lock is updated: run `QUARTO_UPDATE_DENO_LOCK=1 ./configure.sh` (Windows: `set QUARTO_UPDATE_DENO_LOCK=1`, then `configure.cmd`). A Deno bump can also rewrite the lockfile format version, so regenerate the lock on every Deno upgrade even without an import-map change. See [add-typescript-dependency.md](add-typescript-dependency.md#the-deno-lockfile).
+
 - run `./configure.sh` / `./configure.cmd` again.
 
 Bumping a version in `src/import_map.json` (or any of the other keyed files) automatically invalidates the CI Deno cache on next run. See [ci-deno-caching.md](ci-deno-caching.md) for the key composition and how to force invalidation manually.

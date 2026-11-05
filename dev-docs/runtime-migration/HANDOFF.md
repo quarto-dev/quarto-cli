@@ -24,7 +24,7 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 - The plans merged to `main` as #15133 on 2026-10-20.
 - Updated 2026-11-03: Quarto 1.11.9 shipped stable on 2026-10-30 with Deno 2.9.8; `main` now targets 1.12. PR 00a (#15186) and the runtime behavior verification are complete. The boundary codemods and script deprecation notice did not ship in 1.11; apply the README release and backport corrections before executing a plan.
 - PR 09 is active in draft #15223, rebased onto current `main`; its changelog targets 1.12. Local verification on Deno 2.9.8 is recorded in the private tracker; check the current PR CI before reviewing or merging. Continue that PR rather than opening a duplicate implementation.
-- PR 00b overlaps the open #15259 lockfile contribution. Reconcile its final merged diff and the remaining bundle gate before starting a separate 00b implementation. No part of #15259 is treated as merged yet.
+- Updated 2026-11-05: #15259 merged on 2026-11-03 and landed the lockfile half of PR 00b (committed frozen `deno.lock` in configure, the dev launchers, `quarto-bld` and the bundle). The PR 00b remainder is the `deno_std` download/lock scripts, the external-specifier and test-import checks, the `deno-cache` CI input and the three-OS bundle gate; the README overlap row carries the verified inventory.
 - Corrected release targets: boundary work and the script notice in 1.12 on Deno, Node in 1.13, bundled-Deno removal in 1.14. The README release correction row governs old version promises, compatibility windows, rollback and changelog paths at plan step 0.
 - Everything durable is in this directory (`dev-docs/runtime-migration/`):
   - `README.md`: entry point, the ordered table of 45 PRs, two spikes and one milestone, dependency graph, conventions the plans decided, progress metric.
@@ -50,7 +50,7 @@ These were throwaway and are recreated by the plans when needed:
 `REVIEW-2026-10-15.md` is the principal review of the first draft (13 structural findings, per-plan defects, the landing strategy, the decisions taken in its section 6).
 Every plan was then reworked against it: six new PRs (00a, 00b, 00c, 02b, 14b, 20b, 27b), PR 21 folded into 25, PR 07 and PR 39 rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated, `00-assessment.md` given an errata section.
 `README.md` carries the new table, dependency graph, conventions and baseline.
-PR 02 (#15135), 02c (#15153), 02d (#15218) and 00a (#15186) are merged. PR 09 (#15223) and the contribution overlapping 00b (#15259) are in progress; the README corrections govern the remaining plans.
+PR 02 (#15135), 02c (#15153), 02d (#15218) and 00a (#15186) are merged, and #15259 landed the lockfile half of 00b. PR 09 (#15223) is in progress; the README corrections govern the remaining plans.
 
 ## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): done on 2026-10-16
 
@@ -82,7 +82,7 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. PR 02, 02c, 02d and 00a are merged. Continue PR 09 in #15223. On the Phase 0 path, wait for #15259 and its documentation reconciliation, then execute the 00b remainder; 03–06 still wait for the full 00b gate, followed by 07.
+5. PR 02, 02c, 02d and 00a are merged. Continue PR 09 in #15223. On the Phase 0 path, #15259 landed the lockfile half of 00b; execute the 00b remainder per the README overlap row. 03–06 still wait for the full 00b gate, followed by 07.
    Each plan names its branch, executor and verification commands.
    For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check
    `local/multi-worktree-workflow.md` if it exists — it is a maintainer-local, untracked note.
