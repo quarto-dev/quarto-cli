@@ -1,0 +1,3 @@
+# Managed by rig. Everything in .rvenvlib must be committed, so this
+# overrides ignore rules from elsewhere, e.g. *.rds.
+!*
