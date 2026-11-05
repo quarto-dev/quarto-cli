@@ -322,14 +322,22 @@ jobs:
           brew install --cask xquartz
           brew install poppler librsvg
 
+      - name: Install R from rproj.lock
+        working-directory: tests
+        shell: bash
+        run: |
+          # A separate step because on Linux rig proj sync re-runs itself under sudo
+          # to install R, which leaves the project library owned by root.
+          r_version=$(sed -n 's/^r_version = "\(.*\)"/\1/p' rproj.lock | head -n 1 | tr -d '\r')
+          rig add "$r_version"
+
       - name: Sync R packages from rproj.lock
         working-directory: tests
         shell: bash
         run: |
           # Refs that predate the rig project are rejected by the preflight step after checkout.
-          # rig installs the R version the lock needs if the runner does not have it.
           echo "::group::rig proj sync"
-          rig proj sync --locked
+          rig proj sync --locked --no-install-r
           echo "::endgroup::"
 
       - name: Install dev and extra R packages
