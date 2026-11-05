@@ -30,9 +30,9 @@
 import { unitTest } from "../test.ts";
 import { assert } from "testing/asserts";
 import { dirname, isAbsolute, join } from "../../src/deno_ral/path.ts";
-import { writeTestsRenvProfile } from "../utils.ts";
 import { existsSync } from "../../src/deno_ral/fs.ts";
 import { which } from "../../src/core/path.ts";
+import { getenv } from "../../src/core/env.ts";
 import { projectContext } from "../../src/project/project-context.ts";
 import { singleFileProjectContext } from "../../src/project/types/single-file/single-file.ts";
 import { notebookContext } from "../../src/render/notebook/notebook-context.ts";
@@ -141,7 +141,11 @@ unitTest(
     // the fixture tree as a side effect only when Rscript is present, so a
     // skipped run leaves nothing on disk (teardown never runs otherwise).
     prereq: async () => {
-      if ((await which("Rscript")) === undefined) return false;
+      // R is available through QUARTO_R (rvenv wrapper) or PATH; a guard only, never an early success
+      const quartoR = getenv("QUARTO_R", "");
+      const rAvailable = (quartoR && existsSync(quartoR)) ||
+        (await which("Rscript")) !== undefined;
+      if (!rAvailable) return false;
       e2eBase = Deno.makeTempDirSync({ prefix: "quarto_test_14683_" });
       e2eProjDir = join(e2eBase, "testsite");
       e2eLabsDir = join(e2eProjDir, "labs");
@@ -153,11 +157,6 @@ unitTest(
     // the original cwd afterward.
     cwd: () => e2eLabsDir,
     setup: () => {
-      // Re-activate renv against the real tests/ project, regardless of
-      // this fixture's cwd — see llm-docs/testing-patterns.md → "R Tests
-      // That Change Working Directory" for why this is needed.
-      writeTestsRenvProfile(e2eProjDir);
-
       Deno.writeTextFileSync(
         join(e2eProjDir, "_quarto.yml"),
         'project:\n  type: website\n\nwebsite:\n  title: "testsite"\n',
