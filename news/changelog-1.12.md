@@ -47,6 +47,7 @@ All changes included in 1.12:
 
 ## Other fixes and improvements
 
+- ([#14389](https://github.com/quarto-dev/quarto-cli/pull/14389)): Add `ar` (Arabic) language translation. The `skip-to-content`, `navigation-*-label`, `scrollable-*-label`, `link-external-newwindow-label`, `announcement-dismiss-label` and `revealjs-menu-button-label` keys use reviewed machine translation. (author: @ezAldinWaez)
 - ([#14822](https://github.com/quarto-dev/quarto-cli/issues/14822)): Translate the `tools-share`, `tools-download`, and `skip-to-content` language keys in Greek. (author: @sogav21)
 - ([#14822](https://github.com/quarto-dev/quarto-cli/issues/14822)): The Lithuanian search label and the Swedish caution callout title no longer fall back to English.
 - ([#14822](https://github.com/quarto-dev/quarto-cli/issues/14822)): Translate the `title-block-modified` language key in Korean, and the `code-links-title`, `launch-binder-title`, `launch-dev-container-title`, `listing-page-field-wordcount` and `listing-page-words` language keys in Serbian (Latin), using reviewed machine translation.
