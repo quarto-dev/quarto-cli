@@ -10,7 +10,7 @@ on:
         default: 10
         type: number
       extra-r-packages:
-        description: "extra R package to install for the tests runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        description: "extra R packages installed on top of tests/rproj.lock (like a dev version of one of the deps) - comma separated, passed to rig pkg install: pkg, owner/repo[@ref], gitlab::group/project, url::https://...; pkg@1.2.3 means exactly 1.2.3"
         required: false
         type: string
         default: ""
