@@ -18,6 +18,7 @@ export DARTSASS=1.107.1
 export ESBUILD=0.28.2
 export TYPST=0.15.1
 export TYPST_GATHER=0.2.4
+# Keep in sync with kDefaultVersion in src/tools/impl/verapdf.ts
 export VERAPDF=1.30.3
 
 
