@@ -138,7 +138,7 @@ jobs:
         shell: bash
 
       # Drops a slow azure.archive.ubuntu.com from the apt mirror list so the job uses
-      # archive.ubuntu.com (actions/runner-images#14823): sampled here before setup-r,
+      # archive.ubuntu.com (actions/runner-images#14823): sampled here before rig installs R,
       # and after a failed attempt in later apt steps run via $APT_WITH_FALLBACK.
       # Inline, not a local action, because release mode checks out older tags.
       - name: Configure apt mirror fallback
@@ -200,14 +200,6 @@ jobs:
             sudo sed -i '/azure\.archive\.ubuntu\.com/d' "$mirrors"
           fi
           exit 0
-
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.6.1"
-          use-public-rspm: true
-          # required to avoid rtools bin in path
-          windows-path-include-rtools: false
 
       - name: Set up rig
         uses: ./.github/actions/setup-rig
@@ -335,8 +327,9 @@ jobs:
         shell: bash
         run: |
           # Refs that predate the rig project are rejected by the preflight step after checkout.
+          # rig installs the R version the lock needs if the runner does not have it.
           echo "::group::rig proj sync"
-          rig proj sync --locked --no-install-r
+          rig proj sync --locked
           echo "::endgroup::"
 
       - name: Install dev and extra R packages
