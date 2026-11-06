@@ -6,9 +6,8 @@
 
 -- resolve references
 function resolveRefs()
-  
-  return {
-    Cite = function(citeEl)
+
+  local resolveCite = function(citeEl)
 
       local function add_ref_prefix(ref, ref_type, prefix)
         local category = crossref.categories.by_ref_type[ref_type]
@@ -140,6 +139,42 @@ function resolveRefs()
       end
 
 
+    end
+
+  return {
+    Cite = resolveCite,
+
+    -- links with no text to a section or equation, e.g. [](#sec-intro),
+    -- use the section title or equation name as their text (#1196)
+    Link = function(link)
+      if #link.content > 0 then
+        return nil
+      end
+      local label = string.match(link.target, "^#(.+)$")
+      local type = label and refType(label)
+      if type ~= "sec" and type ~= "eq" then
+        return nil
+      end
+
+      local entry = crossref.index.entries[label]
+      link.attr.classes:insert("quarto-xref")
+      if entry ~= nil and #entry.caption > 0 then
+        link.content = quarto.utils.as_inlines(entry.caption):clone()
+        return link
+      elseif entry ~= nil then
+        -- nothing to use as text (e.g. an equation without a name),
+        -- so resolve as a regular reference instead
+        return resolveCite(pandoc.Cite({}, { pandoc.Citation(label, pandoc.NormalCitation) }))
+      elseif not param("crossref-resolve-refs", true) then
+        -- resolved later against the project index (e.g. multi-file books)
+        link.content = pandoc.Inlines({ pandoc.Span(
+          stringToInlines(label),
+          pandoc.Attr("", { "quarto-unresolved-ref", "ref-title" })
+        ) })
+        return link
+      else
+        warn("Unable to resolve crossref [](#" .. label .. ")")
+      end
     end
   }
 end

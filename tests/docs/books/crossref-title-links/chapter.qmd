@@ -1,0 +1,4 @@
+# Chapter
+
+Links to the other chapter: [](#sec-intro), [](#sec-details), [](#eq-named)
+and [](#eq-plain).
