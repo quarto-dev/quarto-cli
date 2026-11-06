@@ -48,7 +48,23 @@ function resolveRefs()
             local ref = pandoc.List()
 
             local category = crossref.categories.by_ref_type[type]
-            if category ~= nil and category.custom_ref_command ~= nil and _quarto.format.isLatexOutput() then
+            local isUnnumberedRef = entry ~= nil and entry.unnumbered and resolve
+            if isUnnumberedRef then
+              -- unnumbered entries such as book parts are referred to by title (#2571)
+              if #cite.prefix > 0 then
+                add_ref_prefix(ref, type, cite.prefix)
+              end
+              local title = quarto.utils.as_inlines(entry.caption)
+              if not refHyperlink() or _quarto.format.isTypstOutput() then
+                ref:extend(title)
+              elseif _quarto.format.isLatexOutput() then
+                ref:insert(pandoc.RawInline('latex', '\\hyperref[' .. label .. ']{'))
+                ref:extend(title)
+                ref:insert(pandoc.RawInline('latex', '}'))
+              else
+                ref:insert(pandoc.Link(title, "#" .. label, "", pandoc.Attr("", {'quarto-xref'})))
+              end
+            elseif category ~= nil and category.custom_ref_command ~= nil and _quarto.format.isLatexOutput() then
               -- do nothing else, this was all handled by the custom command
               ref:extend({pandoc.RawInline('latex', '\\' .. category.custom_ref_command .. '{' .. label .. '}')})
             elseif #cite.prefix > 0 then
@@ -77,7 +93,9 @@ function resolveRefs()
             end
   
             -- for latex inject a \ref, otherwise format manually
-            if _quarto.format.isLatexOutput() then
+            if isUnnumberedRef then
+              -- already fully formatted above
+            elseif _quarto.format.isLatexOutput() then
               -- check for custom ref command here, but don't combine the conditional above
               -- so we don't get the fallthrough else clause in latex when custom ref commands
               -- are in play
