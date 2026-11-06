@@ -1,0 +1,11 @@
+# Math chapter {#sec-math}
+
+Inline math $\mathcal{A} = \int_0^1 x\,dx$ and a display equation:
+
+$$
+a^2 + b^2 = c^2
+$$ {#eq-pythagoras}
+
+## Math section {#sec-math-section}
+
+Section math $\alpha + \beta$.

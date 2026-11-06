@@ -1,0 +1,9 @@
+project:
+  type: book
+
+book:
+  title: "Crossref Hover Math"
+  chapters:
+    - index.qmd
+    - with-math.qmd
+    - no-math.qmd
