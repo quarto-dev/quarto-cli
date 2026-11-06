@@ -120,7 +120,7 @@ Pandoc's `common.latex` is copied as `latex.common`; Quarto maintains its own `c
 
 | File             | Purpose                                                                     |
 | ---------------- | --------------------------------------------------------------------------- |
-| `tables.tex`     | Table packages (longtable, booktabs, array, multirow) and footnote handling |
+| `tables.tex`     | Table packages (longtable, booktabs, array, multirow) and caption setup     |
 | `graphics.tex`   | graphicx package and `\pandocbounded` command for auto-scaling images       |
 | `citations.tex`  | CSL citation definitions (`\citeproc`, `CSLReferences` environment)         |
 | `babel-lang.tex` | Babel language configuration and font setup                                 |
