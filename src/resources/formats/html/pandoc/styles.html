@@ -36,27 +36,6 @@ body {
     font-size: 1.8em;
   }
 }
-@media print {
-  html {
-    color-scheme: light only;
-  }
-  html, body, pre, code {
-    background-color: transparent;
-  }
-  body, a, a:visited, blockquote {
-    color: black;
-  }
-  pre, code {
-    padding: 0;
-  }
-  p, h2, h3 {
-    orphans: 3;
-    widows: 3;
-  }
-  h2, h3, h4 {
-    page-break-after: avoid;
-  }
-}
 p {
   margin: 1em 0;
 }
@@ -190,6 +169,29 @@ header {
 }
 #TOC a:not(:hover) {
   text-decoration: none;
+}
+/* quarto-specific: print block placed after the base rules so its resets
+   win over linkcolor, blockquote and monobackgroundcolor styles */
+@media print {
+  html {
+    color-scheme: light only;
+  }
+  html, body, pre, code {
+    background-color: transparent;
+  }
+  body, a, a:visited, blockquote {
+    color: black;
+  }
+  pre, code {
+    padding: 0;
+  }
+  p, h2, h3 {
+    orphans: 3;
+    widows: 3;
+  }
+  h2, h3, h4 {
+    page-break-after: avoid;
+  }
 }
 $endif$
 span.smallcaps{font-variant: small-caps;}
