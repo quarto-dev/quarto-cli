@@ -1,0 +1,52 @@
+---
+title: code-line-fragment-indices
+format: revealjs
+---
+
+## Absent {#absent}
+
+```{.r code-line-numbers="|1|2"}
+x <- 1
+y <- 2
+z <- 3
+```
+
+## Valid {#valid}
+
+::: {.fragment fragment-index=1}
+First note
+:::
+
+```{.r code-line-numbers="|2|3" code-line-fragment-indices="2, 4"}
+x <- 1
+y <- 2
+z <- 3
+```
+
+::: {.fragment fragment-index=3}
+Second note
+:::
+
+## Mismatch {#mismatch}
+
+```{=html}
+<div class="sourceCode" data-code-line-numbers="|2|3" data-code-line-fragment-indices="1,2,4"><pre class="sourceCode r"><code class="sourceCode r"><span>x &lt;- 1</span>
+<span>y &lt;- 2</span>
+<span>z &lt;- 3</span></code></pre></div>
+```
+
+## Invalid {#invalid}
+
+```{=html}
+<div class="sourceCode" data-code-line-numbers="|2|3" data-code-line-fragment-indices="1,abc"><pre class="sourceCode r"><code class="sourceCode r"><span>x &lt;- 1</span>
+<span>y &lt;- 2</span>
+<span>z &lt;- 3</span></code></pre></div>
+```
+
+## Raw {#raw}
+
+```{=html}
+<div class="sourceCode" data-code-line-numbers="|1|2" data-code-line-fragment-indices="5,7"><pre class="sourceCode r"><code class="sourceCode r" data-fragment-index="1"><span>x &lt;- 1</span>
+<span>y &lt;- 2</span></code></pre></div>
+<p class="fragment" data-fragment-index="6">Between</p>
+```

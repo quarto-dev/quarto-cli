@@ -1,0 +1,49 @@
+---
+title: code-line-fragment-indices ojs
+format:
+  revealjs: default
+  html: default
+execute:
+  echo: true
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1,2"]'
+          - 'div[data-code-line-numbers="|1"][data-code-line-fragment-indices="5"]'
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="4,6"]'
+        - []
+    html:
+      ensureHtmlElements:
+        - []
+        -
+          - '[data-code-line-fragment-indices]'
+---
+
+## Stepped cell
+
+```{ojs}
+//| code-line-numbers: "|1|2"
+//| code-line-fragment-indices: "1,2"
+x = 1
+y = 2
+```
+
+## Number value
+
+```{ojs}
+//| code-line-numbers: "|1"
+//| code-line-fragment-indices: 5
+x = 1
+y = 2
+```
+
+## List value
+
+```{ojs}
+//| code-line-numbers: "|1|2"
+//| code-line-fragment-indices: [4, 6]
+x = 1
+y = 2
+```

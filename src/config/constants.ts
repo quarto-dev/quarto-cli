@@ -108,6 +108,7 @@ export const kFigEnv = "fig-env";
 export const kFigPos = "fig-pos";
 export const kCodeFold = "code-fold";
 export const kCodeLineNumbers = "code-line-numbers";
+export const kCodeLineFragmentIndices = "code-line-fragment-indices";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";

@@ -1,0 +1,67 @@
+---
+title: code-line-fragment-indices knitr
+format:
+  revealjs: default
+  html: default
+execute:
+  echo: true
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="1,2"]'
+          - 'div[data-code-line-numbers="|1"][data-code-line-fragment-indices="3"]'
+          - 'div[data-code-line-numbers="|1"][data-code-line-fragment-indices="5"]'
+          - 'div[data-code-line-numbers="|1|2"][data-code-line-fragment-indices="4,6"]'
+        -
+          - 'div[data-code-line-numbers="1,2"][data-code-line-fragment-indices]'
+    html:
+      ensureHtmlElements:
+        - []
+        -
+          - '[data-code-line-fragment-indices]'
+---
+
+## Stepped cell
+
+```{r}
+#| code-line-numbers: "|1|2"
+#| code-line-fragment-indices: "1,2"
+x <- 1
+y <- 2
+```
+
+## Not stepped cell
+
+```{r}
+#| code-line-numbers: "1,2"
+#| code-line-fragment-indices: "1,2"
+x <- 1
+y <- 2
+```
+
+## Number value
+
+```{r}
+#| code-line-numbers: "|1"
+#| code-line-fragment-indices: 5
+x <- 1
+y <- 2
+```
+
+## List value
+
+```{r}
+#| code-line-numbers: "|1|2"
+#| code-line-fragment-indices: [4, 6]
+x <- 1
+y <- 2
+```
+
+## Fenced block
+
+```{.r code-line-numbers="|1" code-line-fragment-indices="3"}
+x <- 1
+y <- 2
+```

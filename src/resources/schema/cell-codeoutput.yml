@@ -106,6 +106,40 @@
         * `|5|5-10,12` first shows no numbering, then 5, then lines 5-10
           and 12
 
+- name: code-line-fragment-indices
+  tags:
+    formats: [revealjs]
+  schema:
+    anyOf:
+      - string:
+          pattern: "^\\s*\\d+\\s*(,\\s*\\d+\\s*)*$"
+      - maybeArrayOf: number
+    errorDescription: "be a non-negative integer, a list of them, or a comma-separated string of them, such as `1,2`"
+  description:
+    short: "Fragment index of each step of stepped code-line-numbers highlighting (Reveal.js only)."
+    long: |
+      Fragment index of each step of stepped `code-line-numbers` highlighting
+      (Reveal.js only).
+
+      Give one index for each step after the first, as a comma-separated list
+      of non-negative integers, a YAML list, or a single number.
+      The indices must be strictly increasing.
+      Each value places its highlight step among the other fragments of the
+      slide, in the same way as `fragment-index` on any other fragment.
+      A lower value shows earlier.
+      For example, `code-line-numbers: "|1|2"` with
+      `code-line-fragment-indices: "1,2"` shows line 1 at fragment index 1 and
+      line 2 at fragment index 2.
+
+      The first step is the code block itself and is not a fragment.
+      Start `code-line-numbers` with `|` to give the first highlight its own
+      index.
+
+      The number of indices must equal the number of steps minus one.
+      If it does not, or if the indices are not strictly increasing,
+      the list is ignored, a warning is printed, and the steps use
+      the default order.
+
 - name: lst-label
   schema: string
   description: "Unique label for code listing (used in cross references)"

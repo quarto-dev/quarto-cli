@@ -45,6 +45,7 @@ import {
   kCellLstCap,
   kCellLstLabel,
   kCodeFold,
+  kCodeLineFragmentIndices,
   kCodeLineNumbers,
   kCodeOverflow,
   kEcho,
@@ -514,6 +515,14 @@ export async function ojsCompile(
       if (cell.options?.[kCodeLineNumbers]) {
         srcAttrs.push(
           `${kCodeLineNumbers}="${cell.options?.[kCodeLineNumbers]}"`,
+        );
+      }
+
+      if (typeof cell.options?.[kCodeLineFragmentIndices] !== "undefined") {
+        srcAttrs.push(
+          `${kCodeLineFragmentIndices}="${
+            [cell.options?.[kCodeLineFragmentIndices]].flat().join(",")
+          }"`,
         );
       }
 
