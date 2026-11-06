@@ -1,0 +1,26 @@
+---
+title: "format-links renaming only some formats"
+format:
+  html:
+    format-links:
+      - format: typst
+        text: PDF
+        icon: file-pdf
+  typst: default
+  docx: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        selectors:
+          - '.quarto-alternate-formats a'
+          - '.quarto-alternate-formats a[href="9606-partial.pdf"]'
+          - '.quarto-alternate-formats a[href="9606-partial.docx"]'
+        counts: [2, 1, 1]
+      ensureHtmlElementContents:
+        selectors: ['.quarto-alternate-formats a[href="9606-partial.pdf"]']
+        matches: ['^PDF$']
+---
+
+`format-links` renames the Typst link with a `{format, text, icon}` object and does not mention docx.
+The Typst link is renamed, with no second default link for it, and docx keeps its default link (#9606).

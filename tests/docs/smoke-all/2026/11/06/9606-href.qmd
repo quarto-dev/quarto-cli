@@ -1,0 +1,24 @@
+---
+title: "format-links with only an explicit href link"
+format:
+  html:
+    format-links:
+      - text: Quarto
+        href: https://quarto.org/
+        icon: globe
+  typst: default
+  docx: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        selectors:
+          - '.quarto-alternate-formats a'
+          - '.quarto-alternate-formats a[href="https://quarto.org/"]'
+          - '.quarto-alternate-formats a[href="9606-href.pdf"]'
+          - '.quarto-alternate-formats a[href="9606-href.docx"]'
+        counts: [3, 1, 1, 1]
+---
+
+`format-links` has a single `{text, href}` link, which names no format.
+It is added on top of the default links, so Typst and docx keep theirs (#9606).
