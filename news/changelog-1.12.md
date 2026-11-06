@@ -8,7 +8,7 @@ All changes included in 1.12:
   - Update `typst-gather` to 0.2.4.
   - Update `verapdf` to 1.30.3 (used by `quarto install verapdf` for PDF/A validation).
 - Update `pandoc` to 3.13
-  - ([jgm/pandoc#11540](https://github.com/jgm/pandoc/issues/11540)): Horizontal rules (`---`) in Typst output are now full-width, following Pandoc 3.13's use of Typst 0.15's native `divider` element, instead of the previous centered half-width line. Restyle them with `#show divider: set line(stroke: 2pt)` in a raw Typst block or a custom template.
+  - ([jgm/pandoc#11540](https://github.com/jgm/pandoc/issues/11540)): Horizontal rules (`---`) in Typst output are now full-width, following Pandoc 3.13's use of Typst 0.15's native `divider` element, instead of the previous centered half-width line. Restyle them with `#show divider: set line(stroke: 2pt)` in a raw Typst block or a custom template. A Typst binary set through `QUARTO_TYPST` must now be version 0.15 or later.
   - ([jgm/pandoc#11831](https://github.com/jgm/pandoc/pull/11831)): HTML documents using `theme: pandoc` pick up Pandoc 3.13's style updates. Links now inherit the surrounding text color unless `linkcolor` is set, horizontal rules and table borders follow the text color, and printed output drops backgrounds and the fixed 12pt font size, rendering at the 11pt print size used by other Quarto HTML themes. Pandoc 3.13's automatic dark mode is not enabled for `theme: pandoc`.
 
 ## Accessibility
