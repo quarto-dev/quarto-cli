@@ -129,7 +129,7 @@ export function templateMarkdownHandler(
         }
       }
 
-      if (item.description !== undefined && !isPlaceHolder(item.description)) {
+      if (typeof item.description === "string" && !isPlaceHolder(item.description)) {
         const maxDescLength = listing[kMaxDescLength] as number ||
           -1;
         if (maxDescLength > 0) {
