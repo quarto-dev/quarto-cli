@@ -1,0 +1,67 @@
+---
+title: Labels on Rows of Multi-Row Equations
+format:
+  html: default
+  typst:
+    keep-typ: true
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - "a &amp;= 0\\+1 \\\\tag\\{2\\}"
+          # row without a label, including the \\ inside the matrix
+          - "\\\\end\\{pmatrix\\} &amp;= v \\\\notag"
+          - "c &amp;= 4\\+5 \\\\tag\\{3\\}"
+          # every label's target wraps the equation (for hover previews)
+          - "<span id=\"eq-a\"><span id=\"eq-c\"><span class=\"math display\">"
+          - "<a href=\"#eq-a\" class=\"quarto-xref\">Equation&nbsp;2</a>"
+          - "<a href=\"#eq-c\" class=\"quarto-xref\">Equation&nbsp;3</a>"
+          # numbering continues after the multi-row equation
+          - "<a href=\"#eq-after\" class=\"quarto-xref\">Equation&nbsp;4</a>"
+        - []
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          - "a &= 0\\+1 \\\\label\\{eq-a\\}"
+          - "\\\\end\\{pmatrix\\} &= v \\\\nonumber"
+          - "Equation~\\\\ref\\{eq-a\\}"
+          - "Equation~\\\\ref\\{eq-c\\}"
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#link\\(<eq-a>\\)\\[Equation~2\\]"
+          - "#link\\(<eq-c>\\)\\[Equation~3\\]"
+          - "#counter\\(math\\.equation\\)\\.update\\(n => n \\+ 2\\)"
+          # rows are laid out in a grid with the numbers in their own column,
+          # set in math to match the font of other equations' numbers
+          - "\\[\\], \\$display\\(a\\)\\$, \\$display\\(= 0 \\+ 1\\)\\$, \\[\\], \\[#\\[\\$\"\\(2\\)\"\\$\\]<eq-a>\\]"
+        - []
+---
+
+Rows of `align`-like environments can be labeled individually with
+`\label{eq-...}` and referenced with `@eq-...`
+(<https://github.com/quarto-dev/quarto-cli/issues/2275>).
+Labeled rows are numbered in sequence with other equations and unlabeled rows
+are left unnumbered, in all formats.
+
+$$
+x = 1
+$$ {#eq-before}
+
+$$
+\begin{align}
+a &= 0+1 \label{eq-a} \\
+\begin{pmatrix} 1 \\ 2 \end{pmatrix} &= v \\
+c &= 4+5 \label{eq-c}
+\end{align}
+$$
+
+$$
+y = 2
+$$ {#eq-after}
+
+See @eq-before, @eq-a, @eq-c and @eq-after.
