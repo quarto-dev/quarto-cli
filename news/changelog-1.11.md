@@ -151,6 +151,7 @@ All changes included in 1.11:
 - ([#15114](https://github.com/quarto-dev/quarto-cli/pull/15114)): Fix a website category containing backticks showing broken text in the page title block, and a category containing a backslash, such as a Windows path, failing the render or losing its backslashes.
 - ([#15206](https://github.com/quarto-dev/quarto-cli/issues/15206)): Fix website listings attaching another update handler on every URL hash change, and an extra one per additional listing on the same page.
 - ([#15217](https://github.com/quarto-dev/quarto-cli/pull/15217)): Fix website listings updating twice for each click on a pagination link.
+- ([#15313](https://github.com/quarto-dev/quarto-cli/pull/15313)): Fix the back-to-top button not appearing when scrolling to the bottom of a page in Firefox, where sub-pixel scroll positions could leave the bottom-of-page check a fraction of a pixel short.
 
 ## Lua API
 
