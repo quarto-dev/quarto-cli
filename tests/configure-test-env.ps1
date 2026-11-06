@@ -1,15 +1,27 @@
 # Check R environment ---
 Write-Host -ForegroundColor green ">>>> Configuring R environment"
-try { $null = gcm Rscript -ea stop; $r=$true} catch { 
-  Write-Host -ForegroundColor red "No Rscript found in PATH - Check your PATH or install R and add to PATH"
+try { $null = gcm rig -ea stop; $rig=$true } catch {
+  Write-Host -ForegroundColor red "No rig found in PATH - the R test environment is a rig project (rproj.toml). Install rig 0.11.1 or later: https://github.com/r-lib/rig"
 }
 
-If ($r) {
-  Write-Host -ForegroundColor green "   > Restoring renv project"
-  Rscript -e 'renv::restore()'
-  Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
+If ($rig) {
+  Write-Host -ForegroundColor green "   > Syncing R packages from rproj.lock"
+  rig proj sync
+  If ($LASTEXITCODE -ne 0) {
+    Write-Host -ForegroundColor red "rig proj sync failed - R tests will run without the locked packages"
+  } Else {
+    # Installs on top of the lock must target the project library and the
+    # exact R the sync used; rig's default is the default R's user library.
+    $rVersion = (Select-String -Path .rvenv/rvenv.cfg -Pattern '^r-version = (.+)$').Matches[0].Groups[1].Value.Trim()
+    $rLib = (Resolve-Path .rvenv/lib).Path
+    Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
+    foreach ($dev in @(@('rmarkdown', 'https://rstudio.r-universe.dev'), @('knitr', 'https://yihui.r-universe.dev'))) {
+      rig pkg install --r-version $rVersion --library $rLib --with-repos $dev[1] $dev[0]
+      If ($LASTEXITCODE -ne 0) {
+        Write-Host -ForegroundColor yellow "Dev $($dev[0]) not installed - tests use the locked version"
+      }
+    }
+  }
 }
 
 # Check python test environment ---

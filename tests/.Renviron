@@ -1,0 +1,26 @@
+# rig rvenv start
+# Managed by rig (rig proj init). rig rewrites the lines between the
+# `rig rvenv` markers, put your own settings outside of them. Settings after
+# this block that set R_LIBS_USER or R_DEFAULT_PACKAGES break the project
+# setup.
+#
+# R_LIBS_USER names rig's own library, not the project library: it only has to
+# get R far enough to load the `rvenv` package below. That package points
+# R_LIBS_USER at the project library, as an absolute path, so that child R
+# processes started from a subdirectory still see it. The path here is
+# deliberately relative, because this file is committed to version control.
+#
+# RVENV_R_LIBS_USER keeps the R_LIBS_USER this R installation had set by the
+# time this file is read, so that the `rvenv` package can put it back if the
+# project has no library yet. It is still unexpanded at this point, e.g. `%U`;
+# R expands the %-specs later, and so does the package. The value is quoted
+# because R drops unquoted backslashes, which would break Windows paths.
+#
+# R_DEFAULT_PACKAGES replaces R's default package list rather than adding to
+# it, so the whole list has to be spelled out.
+#
+# Note that `R --vanilla` ignores this file entirely.
+RVENV_R_LIBS_USER="${R_LIBS_USER}"
+R_LIBS_USER=.rvenvlib
+R_DEFAULT_PACKAGES=rvenv,datasets,utils,grDevices,graphics,stats,methods
+# rig rvenv end

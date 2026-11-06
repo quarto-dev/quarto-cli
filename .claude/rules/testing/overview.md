@@ -53,7 +53,7 @@ Run configuration script to set up:
 ```
 
 Managed via:
-- **R**: renv (`renv.lock`)
+- **R**: rig project (`rproj.toml`, `rproj.lock`); `run-tests` sets `QUARTO_R` to `tests/.rvenv/bin`
 - **Python**: uv (`pyproject.toml`, `uv.lock`)
 - **Julia**: Pkg.jl (`Project.toml`, `Manifest.toml`)
 
