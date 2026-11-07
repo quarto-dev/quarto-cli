@@ -22,6 +22,8 @@
   #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
 ]
 
+#show figure.where(kind: "quarto-float-tbl"): set block(breakable: true)
+
 // Some quarto-specific definitions.
 
 #show raw.where(block: true): set block(
