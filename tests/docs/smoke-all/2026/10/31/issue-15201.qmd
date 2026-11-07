@@ -1,0 +1,16 @@
+---
+title: Test
+format:
+  epub:
+    epub-title-page: false
+_quarto:
+  tests:
+    epub:
+      ensureEpubFileRegexMatches:
+        - path: EPUB/content.opf
+          regexes:
+            - []
+            - ["title_page"]
+---
+
+`epub-title-page: false` set in YAML reaches Pandoc, so no title page is generated.
