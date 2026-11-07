@@ -1,0 +1,6 @@
+---
+title: "Home"
+theme: [default, theme-light-heading.scss]
+---
+
+{{< embed notebook.ipynb#answer >}}
