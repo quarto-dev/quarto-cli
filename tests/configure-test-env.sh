@@ -7,8 +7,13 @@ if [ -z "$rig_exists" ]
 then
   echo "No rig found in PATH - the R test environment is a rig project (rproj.toml). Install rig 0.11.1 or later: https://github.com/r-lib/rig"
 else
+  # In admin mode rig proj sync installs a missing R by re-running itself under
+  # sudo, which leaves the project library owned by root. Install R separately
+  # (rig add does nothing when it is already installed), then sync as this user.
+  r_lock_version=$(sed -n 's/^r_version = "\(.*\)"/\1/p' rproj.lock | head -n 1 | tr -d '\r')
+  echo "   > Installing R $r_lock_version if missing"
   echo "   > Syncing R packages from rproj.lock"
-  if rig proj sync
+  if rig add "$r_lock_version" && rig proj sync --no-install-r
   then
     # Installs on top of the lock must target the project library and the
     # exact R the sync used; rig's default is the default R's user library.
@@ -20,7 +25,7 @@ else
     rig pkg install --r-version "$r_version" --library "$r_lib" --with-repos https://yihui.r-universe.dev knitr \
       || echo "Dev knitr not installed - tests use the locked version"
   else
-    echo "rig proj sync failed - R tests will run without the locked packages"
+    echo "Installing R or rig proj sync failed - R tests will run without the locked packages"
   fi
 fi
 
