@@ -609,6 +609,7 @@ export const kKatex = "katex";
 export const kMathml = "mathml";
 export const kGladtex = "gladtex";
 export const kWebtex = "webtex";
+export const kMathMethod = "math-method";
 
 // metadata fields
 export const kQuartoInternal = "quarto-internal";

@@ -14,6 +14,7 @@ import {
   kDate,
   kEmbedResources,
   kListings,
+  kMathMethod,
   kNumberOffset,
   kNumberSections,
   kReferenceLocation,
@@ -203,6 +204,18 @@ export async function parseRenderFlags(args: string[]) {
         flags.webtex = true;
         arg = argsStack.shift();
         break;
+
+      case `--${kMathMethod}`: {
+        // METHOD[:URL]; the URL itself contains ':', so split on the first one
+        arg = argsStack.shift();
+        if (arg) {
+          const colon = arg.indexOf(":");
+          flags[kMathMethod] = colon === -1
+            ? { method: arg }
+            : { method: arg.slice(0, colon), url: arg.slice(colon + 1) };
+        }
+        break;
+      }
 
       case "--execute":
         flags.execute = true;

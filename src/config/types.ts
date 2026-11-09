@@ -154,6 +154,7 @@ import {
   kManuscriptMecaBundle,
   kMarkdownHeadings,
   kMathjax,
+  kMathMethod,
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
@@ -645,6 +646,7 @@ export interface PandocFlags {
   [kMathml]?: boolean;
   [kGladtex]?: boolean;
   [kWebtex]?: boolean;
+  [kMathMethod]?: { method: string; url?: string };
 }
 
 // the requested pdf engine, it's options, and the bib engine
