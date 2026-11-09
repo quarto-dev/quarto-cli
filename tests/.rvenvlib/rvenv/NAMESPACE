@@ -1,0 +1,2 @@
+# This package intentionally exports nothing. All of its behavior happens in
+# .onLoad(), see R/rvenv.R.
