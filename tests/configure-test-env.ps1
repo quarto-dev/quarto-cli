@@ -5,10 +5,19 @@ try { $null = gcm rig -ea stop; $rig=$true } catch {
 }
 
 If ($rig) {
-  Write-Host -ForegroundColor green "   > Syncing R packages from rproj.lock"
-  rig proj sync
+  # In admin mode rig proj sync installs a missing R by re-running itself
+  # elevated, which leaves the project library owned by the admin account.
+  # Install R separately (rig add does nothing when it is already installed),
+  # then sync as this user.
+  $rLockVersion = (Select-String -Path rproj.lock -Pattern '^r_version = "(.+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+  Write-Host -ForegroundColor green "   > Installing R $rLockVersion if missing"
+  rig add $rLockVersion
+  If ($LASTEXITCODE -eq 0) {
+    Write-Host -ForegroundColor green "   > Syncing R packages from rproj.lock"
+    rig proj sync --no-install-r
+  }
   If ($LASTEXITCODE -ne 0) {
-    Write-Host -ForegroundColor red "rig proj sync failed - R tests will run without the locked packages"
+    Write-Host -ForegroundColor red "Installing R or rig proj sync failed - R tests will run without the locked packages"
   } Else {
     # Installs on top of the lock must target the project library and the
     # exact R the sync used; rig's default is the default R's user library.
