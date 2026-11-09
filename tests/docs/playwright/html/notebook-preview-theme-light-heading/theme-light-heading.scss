@@ -1,0 +1,6 @@
+/*-- scss:defaults --*/
+
+// A user theme setting a custom light heading color. The heading color
+// previously leaked onto the notebook preview title, which sits on the
+// theme's primary background.
+$headings-color: #dee2e6 !default;

@@ -11,6 +11,7 @@ All changes included in 1.12:
 ## Accessibility
 
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Announce every link that opens a new tab to screen readers, not only links opened by `link-external-newwindow`. (author: @mcanouil)
+- ([#15306](https://github.com/quarto-dev/quarto-cli/issues/15306)): Fix the notebook preview title taking the theme's heading color on the primary-colored header bar, which left it low-contrast or unreadable with themes such as `lux` or a custom `$headings-color`. The title now uses the same color as the header buttons. (author: @SabyaXSachi)
 
 ## Formats
 
