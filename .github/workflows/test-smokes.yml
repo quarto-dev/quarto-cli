@@ -237,6 +237,16 @@ jobs:
         run: |
           VERSION=$(node -p "require('@playwright/test/package.json').version")
           echo "PLAYWRIGHT_VERSION=$VERSION" >> "$GITHUB_ENV"
+          # Browser builds are per OS release (e.g. WebKit links the distro's ICU),
+          # but the install directory name is not, so the cache must not cross
+          # OS releases (ubuntu 24.04 -> 26.04).
+          if [ -r /etc/os-release ]; then
+            . /etc/os-release
+            HOST="$ID-$VERSION_ID"
+          else
+            HOST="macos-$(sw_vers -productVersion | cut -d. -f1)"
+          fi
+          echo "PLAYWRIGHT_HOST=$HOST" >> "$GITHUB_ENV"
         working-directory: ./tests/integration/playwright
         shell: bash
 
@@ -249,9 +259,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-${{ env.PLAYWRIGHT_HOST }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-playwright-
+            ${{ runner.os }}-${{ env.PLAYWRIGHT_HOST }}-playwright-
 
       - name: Install Playwright system dependencies
         if: >-
