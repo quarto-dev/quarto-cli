@@ -10,7 +10,7 @@ title: This is a heading
 print("Hello")
 ```
 
-``` text
+```text
 Hello
 ```
 
