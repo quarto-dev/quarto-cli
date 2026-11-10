@@ -62,18 +62,25 @@ while IFS=$'\t' read -r id name; do
         for (i = start; i <= nout; i++) if (!(outl[i] in seen)) { seen[outl[i]] = 1; out = out "\037  " outl[i] }
       }
       print "T\t" norm(title) "\t" os "\t" id "\t" out
-      title = ""; verify = ""; msg = ""; nmsg = 0; inmsg = 0; notfound = 0; nout = 0; inout = 0; hdr = 0
+      title = ""; verify = ""; msg = ""; m1 = ""; nmsg = 0; inmsg = 0; notfound = 0; nout = 0; inout = 0; hdr = 0
     }
     / \.\.\. FAILED \(/ { t = $0; sub(/ \.\.\. FAILED.*/, "", t); print "T\t" norm(t) "\t" os "\t" id "\t"; next }
     /━━━ TEST FAILURE: / { flush(); title = substr($0, index($0, "TEST FAILURE: ") + 14); next }
     title != "" {
       if ($0 ~ /^\[verify\] > /) { verify = substr($0, 1, 200); inmsg = 1; next }
-      # The assertion message runs from the first non-blank line after [verify] to the
-      # stack trace; noErrors-style messages carry the real diagnostics on later lines.
+      # The assertion message runs from [verify] to the stack trace, whose first line is
+      # "<ErrorName>: <first message line>". noErrors-style messages carry the real
+      # diagnostics on later lines, possibly after blank lines.
       if (inmsg) {
-        if ($0 ~ /^[ \t]*$/) { if (nmsg) inmsg = 0; next }
-        if ($0 ~ /^(AssertionError|NotFound|Error|TypeError|Path): |^[ \t]+at /) { inmsg = 0; next }
+        if ($0 ~ /^[ \t]*$/) next
+        if ($0 ~ /^OUTPUT:/) inmsg = 0
+        else if ($0 ~ /^[ \t]+at / || (m1 != "" && $0 ~ /^[A-Za-z]+: / && substr($0, index($0, ": ") + 2) == m1)) { inmsg = 0; next }
+      }
+      if (inmsg) {
+        if (m1 == "") m1 = $0
         if (nmsg < 6) { msg = msg "\037" substr($0, 1, 240); nmsg++ }
+        # XPath and layout verifiers end with "... follows:" and then dump the whole document.
+        if ($0 ~ /follows:[ \t]*$/) inmsg = 0
         # Render failed, so no output file: the render error is in OUTPUT.
         if ($0 ~ /NotFound|os error 2|cannot find the file|No output created message|^Path .* doesn.t exist/) notfound = 1
         next
