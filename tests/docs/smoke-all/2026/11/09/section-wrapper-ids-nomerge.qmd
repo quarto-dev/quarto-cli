@@ -1,0 +1,40 @@
+---
+title: Section wrapper ids, no merge
+format: html
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - 'div#outer > section#sec-outer'
+          - 'section#sec-inner > h2#inner'
+          - 'blockquote div#bq > h2#sec-q'
+        - - 'section#outer'
+          - 'div#sec-q'
+---
+
+Pandoc only merges a wrapper Div into its section when the heading is the
+Div's first block and no later heading in the Div closes that section, and
+only for Divs reached through Div nesting. This document pins three shapes
+where Quarto's id swap must follow that rule: a nested same-level heading
+splits `#outer` (no merge, no swap) while `#inner` merges (swapped), and a
+Div inside a BlockQuote is never merged (no swap).
+
+## First {#sec-first}
+
+::: {#outer}
+## Outer {#sec-outer}
+
+Outer text.
+
+::: {#inner}
+## Inner {#sec-inner}
+
+Inner text.
+:::
+:::
+
+> ::: {#bq}
+> ## InQuote {#sec-q}
+>
+> Quoted.
+> :::

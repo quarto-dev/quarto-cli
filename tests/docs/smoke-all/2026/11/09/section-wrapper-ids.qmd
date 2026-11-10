@@ -1,0 +1,99 @@
+---
+title: Section wrapper ids
+number-sections: true
+toc: true
+format:
+  html: default
+  epub: default
+  typst:
+    keep-typ: true
+  asciidoc: default
+  docbook:
+    output-ext: xml
+  pdf:
+    keep-tex: true
+  beamer:
+    output-ext: tex
+  context:
+    output-ext: tex
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - - 'section#sec-second.level2 > h2#sec-other'
+          - 'section#sec-third.level2.myclass'
+          - 'nav#TOC a[href="#sec-second"]'
+          - 'h2[data-anchor-id="sec-second"]'
+          - 'section#explicit > h2#sec-sixth'
+          - 'div#nomerge > section#sec-seventh'
+        - - 'section#sec-other'
+          - 'section#sec-sixth'
+    epub:
+      ensureEpubFileRegexMatches:
+        - path: EPUB/nav.xhtml
+          regexes:
+            - ['ch001\.xhtml#sec-second', 'ch001\.xhtml#sec-third']
+            - ['ch001\.xhtml#sec-other']
+    beamer:
+      ensureFileRegexMatches:
+        - ['\\label\{sec-second\}', '\\label\{sec-third\}', '\\label\{sec-sixth\}']
+        - []
+    docbook:
+      ensureFileRegexMatches:
+        - ['xml:id="sec-second"', 'xml:id="sec-third"', 'xml:id="sec-sixth"']
+        - []
+    context:
+      ensureFileRegexMatches:
+        - ['reference=\{sec-second\}', 'reference=\{sec-third\}', 'reference=\{sec-sixth\}']
+        - []
+    asciidoc:
+      ensureFileRegexMatches:
+        - ['\[\[sec-second\]\]', '\[\[sec-third\]\]', '\[\[sec-sixth\]\]']
+        - []
+    pdf:
+      ensureLatexFileRegexMatches:
+        - ['\\section\{Second\}\\label\{sec-second\}', '\\phantomsection\\label\{sec-other\}']
+        - ['\\phantomsection\\label\{sec-second\}']
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['= Second(\r\n?|\n)<sec-second>']
+        - ['\] <sec-second>']
+---
+
+Pandoc 3.13 merges a Div with an id that starts with a heading into the
+heading's section, giving the section the Div's id. This document checks
+that Quarto keeps the heading id on the section (the crossref target) for
+the formats where the merge would otherwise change ids, and leaves pdf and
+typst alone because they write both ids.
+
+## First {#sec-first}
+
+See @sec-second, @sec-third and @sec-sixth.
+
+::: {#sec-other}
+## Second {#sec-second}
+
+Body of second.
+:::
+
+::: {#wrap3 .myclass}
+## Third {#sec-third}
+
+Body of third.
+:::
+
+::: {#explicit .section}
+## Sixth {#sec-sixth}
+
+Explicit section div.
+:::
+
+::: {#nomerge}
+## Seventh {#sec-seventh}
+
+Seven.
+
+## Eighth {#sec-eighth}
+
+Eight.
+:::
