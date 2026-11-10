@@ -38,8 +38,10 @@ echo "Failed jobs: $(wc -l < "$JOBS" | tr -d ' ')   Logs: $D"
 # gh run view --log silently truncates large logs; the jobs/ID/logs endpoint does not.
 while IFS=$'\t' read -r id name; do
   f="$D/$id.log"
-  [ -s "$f" ] || gh api --allow-escape-sequences "repos/$REPO/actions/jobs/$id/logs" \
-    | sed -e 's/\x1b\[[0-9;]*m//g' -e 's/^[0-9T:.-]*Z //' > "$f"
+  [ -s "$f" ] && continue
+  # Publish only a complete download, so a failed fetch is retried next run.
+  gh api --allow-escape-sequences "repos/$REPO/actions/jobs/$id/logs" \
+    | sed -e 's/\x1b\[[0-9;]*m//g' -e 's/^[0-9T:.-]*Z //' > "$f.part" && mv "$f.part" "$f"
 done < "$JOBS"
 
 # Pass 1: one record per (failure, job): kind \t key \t os \t job-id \t excerpt (lines joined by \037)
@@ -50,7 +52,7 @@ while IFS=$'\t' read -r id name; do
     function norm(s) { sub(/^\[smoke\] > /, "", s); gsub(/\\/, "/", s); return s }
     function flush(   i, n, out, seen, start) {
       if (title == "") return
-      out = verify (msg != "" ? "\037" msg : "")
+      out = verify msg
       if (notfound && nout > 0) {
         # Render failed before verify ran: show the render error from OUTPUT instead.
         out = out "\037render error (OUTPUT tail):"
@@ -60,14 +62,21 @@ while IFS=$'\t' read -r id name; do
         for (i = start; i <= nout; i++) if (!(outl[i] in seen)) { seen[outl[i]] = 1; out = out "\037  " outl[i] }
       }
       print "T\t" norm(title) "\t" os "\t" id "\t" out
-      title = ""; verify = ""; msg = ""; notfound = 0; nout = 0; inout = 0; hdr = 0
+      title = ""; verify = ""; msg = ""; nmsg = 0; inmsg = 0; notfound = 0; nout = 0; inout = 0; hdr = 0
     }
     / \.\.\. FAILED \(/ { t = $0; sub(/ \.\.\. FAILED.*/, "", t); print "T\t" norm(t) "\t" os "\t" id "\t"; next }
     /━━━ TEST FAILURE: / { flush(); title = substr($0, index($0, "TEST FAILURE: ") + 14); next }
     title != "" {
-      if ($0 ~ /^\[verify\] > /) { verify = substr($0, 1, 200); next }
-      if (verify != "" && msg == "" && $0 !~ /^[ \t]*$/) {
-        msg = substr($0, 1, 240); if ($0 ~ /NotFound|os error 2|cannot find the file/) notfound = 1; next
+      if ($0 ~ /^\[verify\] > /) { verify = substr($0, 1, 200); inmsg = 1; next }
+      # The assertion message runs from the first non-blank line after [verify] to the
+      # stack trace; noErrors-style messages carry the real diagnostics on later lines.
+      if (inmsg) {
+        if ($0 ~ /^[ \t]*$/) { if (nmsg) inmsg = 0; next }
+        if ($0 ~ /^(AssertionError|NotFound|Error|TypeError|Path): |^[ \t]+at /) { inmsg = 0; next }
+        if (nmsg < 6) { msg = msg "\037" substr($0, 1, 240); nmsg++ }
+        # Render failed, so no output file: the render error is in OUTPUT.
+        if ($0 ~ /NotFound|os error 2|cannot find the file|No output created message|^Path .* doesn.t exist/) notfound = 1
+        next
       }
       if ($0 ~ /^OUTPUT:/) { inout = 1; next }
       if ($0 ~ /Stack trace:|throw new AssertionError/) { inout = 0; next }
@@ -96,6 +105,7 @@ awk -F'\t' -v jobs="$JOBS" -v dir="$D" '
     if (!($2 in tos)) order[++nt] = $2
     tos[$2] = addos(tos[$2], $3)
     if (ex[$2] == "" && $5 != "") ex[$2] = $5
+    if (!($2 in tjob)) tjob[$2] = $4
   }
   $1 == "E" { ejob[++nr] = $4; ekey[nr] = $5 "\t" $2; eosr[nr] = $3 }
   END {
@@ -103,6 +113,8 @@ awk -F'\t' -v jobs="$JOBS" -v dir="$D" '
     for (i = 1; i <= nt; i++) {
       t = order[i]; printf "\n[%s] %s\n", tos[t], t
       n = split(ex[t], lines, "\037"); for (j = 1; j <= n; j++) if (lines[j] != "") print "    " lines[j]
+      # prereq and teardown-only failures print no TEST FAILURE block.
+      if (ex[t] == "") printf "    no TEST FAILURE block (prereq or teardown failure?); grep %s/%s.log\n", dir, tjob[t]
     }
     # A step error in a job that has failing tests only restates those tests.
     for (r = 1; r <= nr; r++) if (!(ejob[r] in testjob)) {

@@ -18,7 +18,7 @@ The PR form takes every failing run on the PR's head commit. Logs are cached per
 
 The output has up to three sections:
 
-- **unique failing tests**: `[OSes] <test>`, then the `[verify]` check and its message. When verify hit a missing output file, the render itself failed, and the row shows the render error from the test's `OUTPUT:` tail instead.
+- **unique failing tests**: `[OSes] <test>`, then the `[verify]` check and its message (up to 6 lines, so `noErrors` diagnostics come through). When verify found no output (`No output created message`, a missing path), the render itself failed, and the row adds the render error from the test's `OUTPUT:` tail. A row with no excerpt failed outside the verify phase (prereq, teardown) and names the log to grep.
 - **step errors**: `##[error]` lines from failed jobs that had no failing test (runtime-boundary, lint, setup).
 - **failed jobs with no recognised failure**: a log shape the script does not parse (Playwright and feature-format-matrix jobs are unverified). Grep the printed log path for the cause (`grep -n -E 'Error|FAIL' <log> | head`) rather than reading the log whole.
 
