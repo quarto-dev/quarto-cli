@@ -5,7 +5,7 @@
 *
 */
 
-import { assert } from "testing/asserts";
+import { assert } from "../../asserts.ts";
 import { ensureDocxRegexMatches, verifyDocXDocument } from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
