@@ -46,8 +46,9 @@ done < "$JOBS"
 
 # Pass 1: one record per (failure, job): kind \t key \t os \t job-id \t excerpt (lines joined by \037)
 while IFS=$'\t' read -r id name; do
-  os="$(printf '%s' "$name" | sed -nE 's/.*\(([^)]*)\)$/\1/p')"; os="${os:-$name}"
-  group="$(printf '%s' "$name" | sed -E 's/ *\([^)]*\)$//')"
+  # "Run smoke (<os>)" may carry a suffix such as " with timed file" (test-smokes.yml).
+  os="$(printf '%s' "$name" | sed -nE 's/.*\(([^)]*)\).*/\1/p')"; os="${os:-$name}"
+  group="$(printf '%s' "$name" | sed -E 's/ *\([^)]*\)//')"
   awk -v os="$os" -v id="$id" -v group="$group" '
     function norm(s) { sub(/^\[smoke\] > /, "", s); gsub(/\\/, "/", s); return s }
     function flush(   i, n, out, seen, start) {
