@@ -1,0 +1,26 @@
+---
+title: tabset-fragments absent
+format: revealjs
+---
+
+## Absent {#absent}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="absent-a"}
+A fragment
+:::
+
+## Tab B
+
+::: {.fragment probe="absent-b"}
+B fragment
+:::
+
+:::
+
+## End {#end}
+
+End.

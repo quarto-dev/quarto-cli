@@ -1,0 +1,54 @@
+---
+title: tabset-fragments print
+format:
+  revealjs:
+    tabset-fragments: true
+    slide-number: true
+    pdf-separate-fragments: true
+---
+
+## Print tabset {#print-on}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="print-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="print-b"}
+B text
+:::
+
+## Tab C
+
+::: {.fragment probe="print-c"}
+C text
+:::
+
+:::
+
+## Print opt-out {#print-off}
+
+::: {.panel-tabset .no-tabset-fragments}
+
+## Tab A
+
+::: {.fragment probe="off-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="off-b"}
+B text
+:::
+
+:::
+
+## End {#end}
+
+End.

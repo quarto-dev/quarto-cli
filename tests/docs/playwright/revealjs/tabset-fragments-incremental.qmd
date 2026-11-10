@@ -1,0 +1,91 @@
+---
+title: tabset-fragments incremental
+format:
+  revealjs:
+    tabset-fragments: true
+---
+
+## I2 incremental list in tab 2 only {#i2}
+
+::: {.panel-tabset}
+
+## Tab A
+
+- a1
+- a2
+
+## Tab B
+
+::: {.incremental}
+- b1
+- b2
+:::
+
+:::
+
+## I4 nested incremental list {#i4}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.incremental}
+- p1
+  - q1
+  - q2
+- p2
+:::
+
+## Tab B
+
+::: {.fragment probe="i4-b"}
+B text
+:::
+
+:::
+
+## I5 pause in a pane {#i5}
+
+::: {.panel-tabset}
+
+## Tab A
+
+Before pause
+
+. . .
+
+After pause
+
+## Tab B
+
+::: {.fragment probe="i5-b"}
+B text
+:::
+
+:::
+
+## I6 pause before the tabset {#i6}
+
+Intro
+
+. . .
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="i6-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="i6-b"}
+B text
+:::
+
+:::
+
+## End {#end}
+
+End.

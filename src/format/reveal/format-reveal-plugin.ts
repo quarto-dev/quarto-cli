@@ -28,6 +28,7 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { TempContext } from "../../core/temp.ts";
 import { optionsToKebab, revealMetadataFilter } from "./metadata.ts";
 import { revealMultiplexPlugin } from "./format-reveal-multiplex.ts";
+import { kTabsetFragments } from "./constants.ts";
 import { isSelfContained } from "../../command/render/render-info.ts";
 
 import { readAndValidateYamlFromFile } from "../../core/schema/validated-yaml.ts";
@@ -98,8 +99,32 @@ export function isPluginBundle(
   return (plugin as RevealPluginBundle).plugin !== undefined;
 }
 
+const kTabsetFragmentsClass = /(^|[\s{])\.tabset-fragments(?=[\s}])/m;
+
+export function hasTabsetFragmentsClass(markdown: string): boolean {
+  return kTabsetFragmentsClass.test(markdown);
+}
+
+export function revealTabsetFragmentsPlugin(
+  format: Format,
+  markdown: string,
+): RevealPluginBundle | undefined {
+  const deckOn = format.metadata[kTabsetFragments] === true;
+  if (deckOn || hasTabsetFragmentsClass(markdown)) {
+    return {
+      plugin: formatResourcePath(
+        "revealjs",
+        join("plugins", "tabset-fragments"),
+      ),
+      config: { tabsetFragments: deckOn },
+    };
+  }
+  return undefined;
+}
+
 export async function revealPluginExtras(
   input: string,
+  markdown: string,
   format: Format,
   flags: PandocFlags,
   temp: TempContext,
@@ -151,6 +176,12 @@ export async function revealPluginExtras(
   const multiplexPlugin = revealMultiplexPlugin(format);
   if (multiplexPlugin) {
     pluginBundles.push(multiplexPlugin);
+  }
+
+  // tabset fragments plugin (optional)
+  const tabsetFragmentsPlugin = revealTabsetFragmentsPlugin(format, markdown);
+  if (tabsetFragmentsPlugin) {
+    pluginBundles.push(tabsetFragmentsPlugin);
   }
 
   const resolvePluginPath = async (plugin: string) => {

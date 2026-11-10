@@ -1,0 +1,48 @@
+---
+title: tabset-fragments incremental deck
+format:
+  revealjs:
+    incremental: true
+    tabset-fragments: true
+---
+
+## I1 deck incremental {#i1}
+
+::: {.panel-tabset}
+
+## Tab A
+
+- a1
+- a2
+
+## Tab B
+
+- b1
+- b2
+
+:::
+
+- z1
+- z2
+
+## I3 nonincremental in tab 1 {#i3}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.nonincremental}
+- a1
+- a2
+:::
+
+## Tab B
+
+- b1
+- b2
+
+:::
+
+## End {#end}
+
+End.

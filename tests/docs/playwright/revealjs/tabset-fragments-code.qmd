@@ -1,0 +1,145 @@
+---
+title: tabset-fragments code
+format:
+  revealjs:
+    tabset-fragments: true
+---
+
+## C1 stepped highlight in tab 1 {#c1}
+
+::: {.panel-tabset}
+
+## Tab A
+
+```{.r code-line-numbers="|1|2"}
+x <- 1
+y <- 2
+```
+
+## Tab B
+
+::: {.fragment probe="c1-b"}
+B text
+:::
+
+:::
+
+## C2 stepped highlights in both tabs {#c2}
+
+::: {.panel-tabset}
+
+## Tab A
+
+```{.r code-line-numbers="|1|2"}
+x <- 1
+y <- 2
+```
+
+## Tab B
+
+```{.r code-line-numbers="|1|2"}
+u <- 1
+v <- 2
+```
+
+:::
+
+## C3 fragment indices in a pane {#c3}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment fragment-index=1 probe="c3-note1"}
+First note
+:::
+
+```{.r code-line-numbers="|1|2" code-line-fragment-indices="2, 4"}
+x <- 1
+y <- 2
+```
+
+::: {.fragment fragment-index=3 probe="c3-note2"}
+Second note
+:::
+
+## Tab B
+
+::: {.fragment probe="c3-b"}
+B text
+:::
+
+:::
+
+## C4 highlight before and after {#c4}
+
+```{.r code-line-numbers="|1|2"}
+before1 <- 1
+before2 <- 2
+```
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="c4-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="c4-b"}
+B text
+:::
+
+:::
+
+```{.r code-line-numbers="|1|2"}
+after1 <- 1
+after2 <- 2
+```
+
+## C5 static highlight {#c5}
+
+::: {.panel-tabset}
+
+## Tab A
+
+```{.r code-line-numbers="1,2"}
+x <- 1
+y <- 2
+```
+
+## Tab B
+
+::: {.fragment probe="c5-b"}
+B text
+:::
+
+:::
+
+## C6 executed cell {#c6}
+
+::: {.panel-tabset}
+
+## Tab A
+
+```{r}
+#| echo: true
+#| eval: false
+#| code-line-numbers: "|1|2"
+x <- 1
+y <- 2
+```
+
+## Tab B
+
+::: {.fragment probe="c6-b"}
+B text
+:::
+
+:::
+
+## End {#end}
+
+End.

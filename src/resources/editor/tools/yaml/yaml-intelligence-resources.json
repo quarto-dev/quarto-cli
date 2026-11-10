@@ -12076,6 +12076,17 @@
       }
     },
     {
+      "name": "tabset-fragments",
+      "tags": {
+        "formats": [
+          "revealjs"
+        ]
+      },
+      "schema": "boolean",
+      "default": false,
+      "description": "Step through the tabs of each tabset as fragments.\nUse the `.tabset-fragments` or `.no-tabset-fragments` class on a tabset to turn it on or off for that tabset.\nA tabset inside a tabset that does not step does not step either.\n"
+    },
+    {
       "name": "scrollable",
       "tags": {
         "formats": [
@@ -17693,6 +17704,7 @@
       "short": "Footer to include on all slides",
       "long": "Footer to include on all slides. Can also be set per-slide by\nincluding a div with class <code>.footer</code> on the slide."
     },
+    "Step through the tabs of each tabset as fragments. Use the\n<code>.tabset-fragments</code> or <code>.no-tabset-fragments</code>\nclass on a tabset to turn it on or off for that tabset. A tabset inside\na tabset that does not step does not step either.",
     {
       "short": "Allow content that overflows slides vertically to scroll",
       "long": "<code>true</code> to allow content that overflows slides vertically\nto scroll. This can also be set per-slide by including the\n<code>.scrollable</code> class on the slide title."
@@ -18882,12 +18894,12 @@
     "mermaid": "%%"
   },
   "handlers/mermaid/schema.yml": {
-    "_internalId": 222313,
+    "_internalId": 222475,
     "type": "object",
     "description": "be an object",
     "properties": {
       "mermaid-format": {
-        "_internalId": 222305,
+        "_internalId": 222467,
         "type": "enum",
         "enum": [
           "png",
@@ -18903,7 +18915,7 @@
         "exhaustiveCompletions": true
       },
       "theme": {
-        "_internalId": 222312,
+        "_internalId": 222474,
         "type": "anyOf",
         "anyOf": [
           {

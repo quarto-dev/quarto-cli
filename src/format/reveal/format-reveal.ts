@@ -159,7 +159,7 @@ export function revealjsFormat() {
       formatPreviewFile: revealMuliplexPreviewFile,
       formatExtras: async (
         input: string,
-        _markdown: string,
+        markdown: string,
         flags: PandocFlags,
         format: Format,
         libDir: string,
@@ -224,6 +224,7 @@ export function revealjsFormat() {
 
         const revealPluginData = await revealPluginExtras(
           input,
+          markdown,
           format,
           flags,
           services.temp,

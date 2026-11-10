@@ -1,0 +1,100 @@
+---
+title: tabset-fragments nav
+format:
+  revealjs:
+    tabset-fragments: true
+---
+
+## Before {#before}
+
+Before.
+
+## N1 backward entry and deep link {#n1}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="n1-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="n1-b"}
+B text
+:::
+
+:::
+
+## N8 click then next {#n8}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="n8-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="n8-b"}
+B text
+:::
+
+## Tab C
+
+::: {.fragment probe="n8-c"}
+C text
+:::
+
+:::
+
+## N6 speaker view {#n6}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="n6-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="n6-b"}
+B text
+:::
+
+:::
+
+::: {.notes}
+Speaker notes.
+:::
+
+## A11y keyboard {#a11y}
+
+::: {.panel-tabset}
+
+## Tab A
+
+<button>Button in A</button>
+
+::: {.fragment probe="a11y-a"}
+A text
+:::
+
+## Tab B
+
+<button>Button in B</button>
+
+::: {.fragment probe="a11y-b"}
+B text
+:::
+
+:::
+
+## End {#end}
+
+End.

@@ -1,0 +1,44 @@
+---
+title: tabset-fragments class
+format: revealjs
+---
+
+## Class on {#class-on}
+
+::: {.panel-tabset .tabset-fragments}
+
+## Tab A
+
+::: {.fragment probe="class-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="class-b"}
+B text
+:::
+
+:::
+
+## Class off {#class-off}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="off-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="off-b"}
+B text
+:::
+
+:::
+
+## End {#end}
+
+End.

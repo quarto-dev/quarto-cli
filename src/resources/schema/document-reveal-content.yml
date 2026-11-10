@@ -15,6 +15,16 @@
       Footer to include on all slides. Can also be set per-slide by including a
       div with class `.footer` on the slide.
 
+- name: tabset-fragments
+  tags:
+    formats: [revealjs]
+  schema: boolean
+  default: false
+  description: |
+    Step through the tabs of each tabset as fragments.
+    Use the `.tabset-fragments` or `.no-tabset-fragments` class on a tabset to turn it on or off for that tabset.
+    A tabset inside a tabset that does not step does not step either.
+
 - name: scrollable
   tags:
     formats: [revealjs]
