@@ -76,7 +76,9 @@ window.document.addEventListener("DOMContentLoaded", function () {
           hideBackToTop();
         } else if (
           window.innerHeight + currentScrollTop >=
-          document.body.offsetHeight
+          // 1px tolerance: sub-pixel scroll positions (e.g. Firefox) can
+          // stop a fraction short of the document height at the bottom
+          document.documentElement.scrollHeight - 1
         ) {
           showBackToTop();
         }
