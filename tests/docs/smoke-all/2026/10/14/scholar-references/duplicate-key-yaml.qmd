@@ -1,0 +1,17 @@
+---
+title: Scholar metadata for a YAML bibliography with a duplicate key
+format: html
+google-scholar: true
+bibliography: references-duplicate.yaml
+_quarto:
+  tests:
+    html:
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: 'references-duplicate\.yaml:5:3: references\[0\]: duplicate key "title"'
+---
+
+The bibliography repeats the `title` key in one reference. Pandoc rejects it, so the render fails with an error pointing at the duplicate.
+
+This article cites one work [@cited].
