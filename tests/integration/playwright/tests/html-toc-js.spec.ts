@@ -14,12 +14,7 @@ test("toc navigation doesn't crash", async ({ page }) => {
   expect(messages).toStrictEqual([]); 
 });
 
-// Regression tests for #15297. quarto.js resolves each TOC link's
-// data-scroll-target to its section. An id with a "%" that does not start a
-// valid escape made decodeURI throw, which stopped the scroll tracking for
-// the whole page. An id that decodes to a different one, or that contains a
-// colon (escaped as "\:" in data-scroll-target), was never found, so its TOC
-// entry was never highlighted.
+// Regression coverage for literal percent signs, percent escapes, and colons (#15297).
 test.describe("TOC highlighting with special characters in heading ids", () => {
   const sections = [
     { id: "bad%zz", name: "Invalid percent escape" },
