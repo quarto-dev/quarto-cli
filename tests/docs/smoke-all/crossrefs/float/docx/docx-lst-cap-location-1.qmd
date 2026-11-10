@@ -5,8 +5,8 @@ _quarto:
     docx:
       ensureDocxXpath:
         -
-          - "//w:hyperlink[@w:anchor=\"lst-customers\"]"
-          - "//w:hyperlink[@w:anchor=\"lst-customers-2\"]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:lst-customers}}\"]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:lst-customers-2}}\"]"
           - "//w:p//w:r//w:t[contains(text(), \"Listing\u00a01\")]"
           - "//w:p//w:r//w:t[contains(text(), \"Listing\u00a02\")]"
 ---

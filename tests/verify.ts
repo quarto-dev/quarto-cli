@@ -1035,13 +1035,46 @@ export const ensureOdtXpath = (
   )(file);
 };
 
+// Mirrors Pandoc's toBookmarkName (jgm/pandoc#11845): an id under 40 chars of
+// alphanumerics/underscores becomes "_" + id, anything else "_" + the SHA-1 hex
+// of the id without its first character.
+export async function docxBookmarkName(id: string) {
+  if (id.length < 40 && /^[A-Za-z0-9_]+$/.test(id)) {
+    return `_${id}`;
+  }
+  const digest = await crypto.subtle.digest(
+    "SHA-1",
+    new TextEncoder().encode(id),
+  );
+  const hex = [...new Uint8Array(digest)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `_${hex.slice(1)}`;
+}
+
+// Replaces each {{bookmark:<id>}} with the bookmark name Pandoc writes for
+// that id, so docx checks can name crossref ids instead of their hashes.
+async function expandDocxBookmarks(text: string) {
+  let result = text;
+  for (const [placeholder, id] of text.matchAll(/\{\{bookmark:([^}]+)\}\}/g)) {
+    result = result.replace(placeholder, await docxBookmarkName(id));
+  }
+  return result;
+}
+
 export const ensureDocxXpath = (
   file: string,
   selectors: string[],
   noMatchSelectors?: string[],
 ): Verify => {
   return verifyDocXDocument(
-    xmlChecker(selectors, noMatchSelectors),
+    async (xml) => {
+      const expand = (s: string[]) => Promise.all(s.map(expandDocxBookmarks));
+      await xmlChecker(
+        await expand(selectors),
+        await expand(noMatchSelectors ?? []),
+      )(xml);
+    },
     "Inspecting Docx for XPath selectors",
   )(file);
 };
@@ -1086,17 +1119,16 @@ export const ensureDocxRegexMatches = (
   file: string,
   regexes: (string | RegExp)[],
 ): Verify => {
-  return verifyDocXDocument((xml) => {
-    regexes.forEach((regex) => {
-      if (typeof regex === "string") {
-        regex = new RegExp(regex);
-      }
+  return verifyDocXDocument(async (xml) => {
+    for (const regex of regexes) {
+      const re = typeof regex === "string"
+        ? new RegExp(await expandDocxBookmarks(regex))
+        : new RegExp(await expandDocxBookmarks(regex.source), regex.flags);
       assert(
-        regex.test(xml),
-        `Required DocX Element ${String(regex)} is missing.`,
+        re.test(xml),
+        `Required DocX Element ${String(re)} is missing.`,
       );
-    });
-    return Promise.resolve();
+    }
   }, "Inspecting Docx for Regex matches")(file);
 };
 

@@ -6,28 +6,15 @@
 */
 
 import { assert } from "../../asserts.ts";
-import { ensureDocxRegexMatches, verifyDocXDocument } from "../../verify.ts";
+import {
+  docxBookmarkName,
+  ensureDocxRegexMatches,
+  verifyDocXDocument,
+} from "../../verify.ts";
 import { testRender } from "../render/render.ts";
 import { crossref } from "./utils.ts";
 
 const allQmd = crossref("all-docx.qmd", "docx");
-
-// Mirrors Pandoc's toBookmarkName (jgm/pandoc#11845): an id under 40 chars of
-// alphanumerics/underscores becomes "_" + id, anything else "_" + the SHA-1 hex
-// of the id without its first character.
-async function bookmarkName(id: string) {
-  if (id.length < 40 && /^[A-Za-z0-9_]+$/.test(id)) {
-    return `_${id}`;
-  }
-  const digest = await crypto.subtle.digest(
-    "SHA-1",
-    new TextEncoder().encode(id),
-  );
-  const hex = [...new Uint8Array(digest)]
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  return `_${hex.slice(1)}`;
-}
 
 function ensureLinksResolveToBookmarks(
   file: string,
@@ -38,7 +25,7 @@ function ensureLinksResolveToBookmarks(
       ...xml.matchAll(/<w:bookmarkStart[^>]*w:name="([^"]+)"/g),
     ].map((m) => m[1]);
     for (const { id, linkText } of refs) {
-      const name = await bookmarkName(id);
+      const name = await docxBookmarkName(id);
       assert(
         bookmarks.includes(name),
         `No bookmark named '${name}' for crossref id '${id}'.`,
