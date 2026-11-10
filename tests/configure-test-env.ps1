@@ -5,6 +5,13 @@ try { $null = gcm rig -ea stop; $rig=$true } catch {
 }
 
 If ($rig) {
+  # rig defaults to admin mode, where installing R raises a UAC prompt. User
+  # mode installs R in the user profile instead; an explicit RIG_MODE wins.
+  # The variable is removed again at the end so it does not leak into a
+  # dot-sourcing shell. rig.exe does not need the mode later: rvenv.cfg
+  # records the absolute path of the R it selected.
+  $rigModeWasSet = [bool]$env:RIG_MODE
+  If (-not $rigModeWasSet) { $env:RIG_MODE = 'user' }
   # In admin mode rig proj sync installs a missing R by re-running itself
   # elevated, which leaves the project library owned by the admin account.
   # Install R separately (rig add does nothing when it is already installed),
@@ -31,6 +38,7 @@ If ($rig) {
       }
     }
   }
+  If (-not $rigModeWasSet) { Remove-Item Env:RIG_MODE }
 }
 
 # Check python test environment ---
