@@ -2,7 +2,6 @@
 references:
 - id: cited
   type: article-journal
-  title: Superseded title
   title: Cited reference
   author:
   - family: Smith
