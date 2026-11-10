@@ -124,6 +124,20 @@ then
   source configure-test-env.sh
 fi
 
+# Point Quarto at the R of the rig project in tests/ (rproj.toml): the
+# .rvenv wrapper sets the locked R version and package library itself, so
+# every R process a test starts gets them, whatever its working directory.
+QUARTO_RVENV_BIN="${QUARTO_ROOT}/tests/.rvenv/bin"
+if [[ -d "$QUARTO_RVENV_BIN" ]]
+then
+  export QUARTO_R="$QUARTO_RVENV_BIN"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using R from ${QUARTO_R}"
+  fi
+elif [[ "$VERBOSE_MODE" == "true" ]]; then
+  echo "> No rig project environment at ${QUARTO_RVENV_BIN}, using R from QUARTO_R, R_HOME or PATH"
+fi
+
 # Activating python virtualenv
 # set QUARTO_TESTS_FORCE_NO_VENV env var to not activate the virtualenv located in the project
 # QUARTO_TESTS_FORCE_NO_PIPENV is there for backward compatibility

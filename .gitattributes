@@ -46,3 +46,6 @@ src/** text eol=lf
 *.otf binary
 
 
+# rig proj sync rewrites this file with LF line endings; a CRLF checkout
+# would then show it as modified after every sync.
+tests/.Renviron text eol=lf

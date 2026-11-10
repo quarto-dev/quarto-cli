@@ -24,8 +24,8 @@ The test infrastructure is in `test.ts`, `test-deps.ts`, `quarto-cmd.ts`, `verif
 
 Here are what is expected in the environment for the tests :
 
-- R should be installed and on `PATH`. [**rig**](https://github.com/r-lib/rig) can manage R versions.
-  For example, run `rig install 4.4.2` and `rig default 4.4.2`.
+- [**rig**](https://github.com/r-lib/rig) 0.11.1 or later should be installed and on `PATH`.
+  It installs the R version the test environment is locked to, and its packages (see [R](#r) below).
   - On Windows, Rtools should be too (for source package installation)
 - Python should be installed and in PATH - [**pyenv**](https://github.com/pyenv/pyenv) is a good option to manage Python versions.
   - On Windows, use [`pyenv-win`](https://pyenv-win.github.io/pyenv-win/), install Python from <https://www.python.org/>, or use `winget`.
@@ -36,6 +36,7 @@ Running tests require to have a local environment setup with Quarto development,
 
 The `tests/` folder contains `configure-test-env.sh` and `configure-test-env.ps1`.
 These scripts check the required tools and synchronize test dependencies.
+For R, this is `rig proj sync` plus the development versions of rmarkdown and knitr, so rig must be on `PATH` (the scripts print an install hint if it is not).
 Run the appropriate script at least once. It also runs before tests by default.
 Set `QUARTO_TESTS_NO_CONFIG` to skip this step when running tests.
 
@@ -82,26 +83,21 @@ Dependencies are managed using the following tools:
 
 #### R
 
-We use [**renv**](https://rstudio.github.io/renv/).
-The `renv.lock` file and `renv/` folder define the R environment.
+We use a [**rig** project](https://rig.r-lib.org/proj-guide.html) (`rig proj`, experimental in rig).
+`rproj.toml` declares the R packages and the R version, and `rproj.lock` pins the resolved versions for Windows x86_64, macOS arm64 and Linux x86_64 (other platforms fall back to source packages).
+`configure-test-env` runs `rig proj sync`, which installs the locked R version if it is missing and the packages into `tests/.rvenv/lib`, then installs the development versions of rmarkdown and knitr from r-universe on top.
+Running `rig proj sync` again restores the locked versions, so run `configure-test-env` rather than a bare sync to keep the development versions.
 
-Updating `renv.lock` is done using `renv::snapshot()`.
-Do not modify the file manually.
+`run-tests` sets `QUARTO_R` to `tests/.rvenv/bin`.
+The `Rscript` wrapper there sets the R version and the project library itself, so every R process a test starts uses them, whatever its working directory.
+To run R by hand with the test environment, use `tests/.rvenv/bin/Rscript`, or set `QUARTO_R` to the absolute path of `tests/.rvenv/bin` when running `quarto` yourself.
+A plain `Rscript` started in `tests/` with another R version warns that the project needs R 4.6 and does not load the project packages.
 
-The test project uses [explicit dependency discovery](https://rstudio.github.io/renv/reference/dependencies.html?q=dependen#explicit-dependencies) through a `DESCRIPTION` file.
-This avoids scanning every file under `tests/` for R dependencies.
 To add an R package dependency:
 
-- Add package(s) to `DESCRIPTION` in `tests/`
-- `renv::install()` the package into the project library
+- Run `rig proj add <package>` from `tests/`, which updates `rproj.toml` and `rproj.lock` and installs the package
 - Finish to work on your test
-- `renv::snapshot()` to record the new dependency in the `renv.lock`
-- Commit the new `DESCRIPTION` and `renv.lock`
-
-See [documentation](https://rstudio.github.io/renv/) if you need to tweak the R environment.
-
-After a dependency update, you can run `configure-test-env.sh` or `configure-test-env.ps1` to update the environment, or manually run `renv::restore()` to recreate the environment with new versions.
-Be sure to update your R version if needed.
+- Commit `rproj.toml` and `rproj.lock`
 
 #### Python
 
@@ -151,7 +147,7 @@ Julia will use that environment instead of the main `tests/` environment.
 The `configure-test-env` scripts only manage the main environment, so tests with local environments will fail in CI even if they work locally.
 
 **Note:** This applies to ALL engines (Julia, Python, R).
-Python and R will also use local `.venv/` or `renv.lock` if present.
+Python and R will also use local `.venv/` or `rproj.toml`/`.rvenv` if present.
 The quarto-cli test infrastructure uses a single managed environment per language at `tests/`, and CI only configures these main environments.
 
 See [documentation](https://pkgdocs.julialang.org/v1/managing-packages/) on how to add, remove, update if you need to tweak the Julia environment.
@@ -301,7 +297,11 @@ When `run-tests.sh` receives a supported document path, it invokes that script a
 $ ./run-tests.sh smoke/smoke-all.test.ts -- docs/smoke-all/2023/01/04/issue-3847.qmd
 > Checking and configuring environment for tests
 >>>> Configuring R environment
-* The library is already synchronized with the lockfile.
+   > Syncing R packages from rproj.lock
+Deployment complete, installed 9 packages
+   > Installing dev knitr and rmarkdown
+Installed 7 packages (/home/cderv/project/quarto-cli/tests/.rvenv/lib)
+Installed 3 packages (/home/cderv/project/quarto-cli/tests/.rvenv/lib)
 >>>> Configuring Python environment
 Setting up python environnement with pipenv
 Installing dependencies from Pipfile.lock (0ded54)...
@@ -352,7 +352,11 @@ ok | 1 passed | 0 failed (1s)
 > Setting all the paths required...
 > Checking and configuring environment for tests
 >>>> Configuring R environment
-* The library is already synchronized with the lockfile.
+   > Syncing R packages from rproj.lock
+Deployment complete, installed 9 packages
+   > Installing dev knitr and rmarkdown
+Installed 7 packages (C:/Users/cderv/project/quarto-cli/tests/.rvenv/lib)
+Installed 3 packages (C:/Users/cderv/project/quarto-cli/tests/.rvenv/lib)
 >>>> Configuring python environment
 Setting up python environnement with pipenv
 Installing dependencies from Pipfile.lock (0ded54)...

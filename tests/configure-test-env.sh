@@ -1,17 +1,32 @@
 # Check R environment ---
 
 echo ">>>> Configuring R environment"
-r_exists=$(command -v Rscript)
+rig_exists=$(command -v rig)
 
-if [ -z $r_exists ] 
-then 
-  echo "No Rscript found in PATH - Check your PATH or install R and add to PATH."
+if [ -z "$rig_exists" ]
+then
+  echo "No rig found in PATH - the R test environment is a rig project (rproj.toml). Install rig 0.11.1 or later: https://github.com/r-lib/rig"
 else
-  echo "   > Restoring renv project"
-  Rscript -e 'renv::restore()'
-  echo "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
+  # In admin mode rig proj sync installs a missing R by re-running itself under
+  # sudo, which leaves the project library owned by root. Install R separately
+  # (rig add does nothing when it is already installed), then sync as this user.
+  r_lock_version=$(sed -n 's/^r_version = "\(.*\)"/\1/p' rproj.lock | head -n 1 | tr -d '\r')
+  echo "   > Installing R $r_lock_version if missing"
+  echo "   > Syncing R packages from rproj.lock"
+  if rig add "$r_lock_version" && rig proj sync --no-install-r
+  then
+    # Installs on top of the lock must target the project library and the
+    # exact R the sync used; rig's default is the default R's user library.
+    r_version=$(sed -n 's/^r-version = //p' .rvenv/rvenv.cfg | tr -d '\r')
+    r_lib="$(cd .rvenv/lib && pwd)"
+    echo "   > Installing dev knitr and rmarkdown"
+    rig pkg install --r-version "$r_version" --library "$r_lib" --with-repos https://rstudio.r-universe.dev rmarkdown \
+      || echo "Dev rmarkdown not installed - tests use the locked version"
+    rig pkg install --r-version "$r_version" --library "$r_lib" --with-repos https://yihui.r-universe.dev knitr \
+      || echo "Dev knitr not installed - tests use the locked version"
+  else
+    echo "Installing R or rig proj sync failed - R tests will run without the locked packages"
+  fi
 fi
 
 

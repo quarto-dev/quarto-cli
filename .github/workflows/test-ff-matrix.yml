@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       extra-r-packages:
-        description: "Comma-separated R packages to pass to renv::install"
+        description: "Comma-separated R packages to pass to rig pkg install (see test-smokes.yml)"
         required: false
         type: string
         default: ""
@@ -46,7 +46,7 @@ on:
   workflow_dispatch:
     inputs:
       extra-r-packages:
-        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        description: "extra R packages installed on top of tests/rproj.lock (like a dev version of one of the deps) - comma separated, passed to rig pkg install: pkg, owner/repo[@ref], gitlab::group/project, url::https://...; pkg@1.2.3 means exactly 1.2.3"
         required: false
         type: string
         default: ""
