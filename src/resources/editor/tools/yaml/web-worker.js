@@ -8001,6 +8001,16 @@ try {
         "schema/cell-pagelayout.yml": [
           {
             name: "column",
+            tags: {
+              contexts: [
+                "document-layout"
+              ],
+              formats: [
+                "$html-files",
+                "$pdf-all",
+                "typst"
+              ]
+            },
             schema: {
               ref: "page-column"
             },
@@ -8011,6 +8021,17 @@ try {
           },
           {
             name: "fig-column",
+            tags: {
+              contexts: [
+                "document-layout",
+                "document-figures"
+              ],
+              formats: [
+                "$html-files",
+                "$pdf-all",
+                "typst"
+              ]
+            },
             schema: {
               ref: "page-column"
             },
@@ -8021,6 +8042,17 @@ try {
           },
           {
             name: "tbl-column",
+            tags: {
+              contexts: [
+                "document-layout",
+                "document-tables"
+              ],
+              formats: [
+                "$html-files",
+                "$pdf-all",
+                "typst"
+              ]
+            },
             schema: {
               ref: "page-column"
             },
@@ -25878,12 +25910,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 222271,
+          _internalId: 222313,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 222263,
+              _internalId: 222305,
               type: "enum",
               enum: [
                 "png",
@@ -25899,7 +25931,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 222270,
+              _internalId: 222312,
               type: "anyOf",
               anyOf: [
                 {
