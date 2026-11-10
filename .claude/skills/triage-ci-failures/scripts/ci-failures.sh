@@ -6,7 +6,7 @@
 #        ci-failures.sh --run <run-id> [repo]
 #
 # Logs are cached per job id under $CI_FAILURES_DIR
-# (default: ${TMPDIR:-/tmp}/quarto-ci-failures), so re-runs are cheap.
+# (default: ${TMPDIR:-/tmp}/quarto-ci-failures).
 set -euo pipefail
 
 if [ "${1:-}" = "--run" ]; then
@@ -35,7 +35,7 @@ awk -F'\t' '{print ($2 ~ /ubuntu|linux/ ? 0 : 1) "\t" $0}' "$JOBS" \
   | sort -s -k1,1 | cut -f2- > "$JOBS.sorted" && mv "$JOBS.sorted" "$JOBS"
 echo "Failed jobs: $(wc -l < "$JOBS" | tr -d ' ')   Logs: $D"
 
-# gh run view --log silently truncates large logs; the jobs/ID/logs endpoint does not.
+# Download job logs directly to avoid truncation.
 while IFS=$'\t' read -r id name; do
   f="$D/$id.log"
   [ -s "$f" ] && continue
@@ -55,8 +55,8 @@ while IFS=$'\t' read -r id name; do
       if (title == "") return
       out = verify msg
       if (notfound && nout > 0) {
-        # Render failed before verify ran: show the render error from OUTPUT instead.
-        out = out "\037render error (OUTPUT tail):"
+        # Missing output: include the captured render output.
+        out = out "\037render output (OUTPUT tail):"
         n = 0; start = nout
         for (i = nout; i >= 1 && n < 6; i--) if (!(outl[i] in seen)) { seen[outl[i]] = 1; n++; start = i }
         delete seen
@@ -82,7 +82,7 @@ while IFS=$'\t' read -r id name; do
         if (nmsg < 6) { msg = msg "\037" substr($0, 1, 240); nmsg++ }
         # XPath and layout verifiers end with "... follows:" and then dump the whole document.
         if ($0 ~ /follows:[ \t]*$/) inmsg = 0
-        # Render failed, so no output file: the render error is in OUTPUT.
+        # Missing output: include the captured render output.
         if ($0 ~ /NotFound|os error 2|cannot find the file|No output created message|^Path .* doesn.t exist/) notfound = 1
         next
       }
@@ -112,19 +112,25 @@ awk -F'\t' -v jobs="$JOBS" -v dir="$D" '
     testjob[$4] = 1
     if (!($2 in tos)) order[++nt] = $2
     tos[$2] = addos(tos[$2], $3)
-    if (ex[$2] == "" && $5 != "") ex[$2] = $5
+    if (ex[$2] == "" && $5 != "") { ex[$2] = $5; exos[$2] = $3; exjob[$2] = $4 }
     if (!($2 in tjob)) tjob[$2] = $4
+    if (!logseen[$2, $4]) {
+      logseen[$2, $4] = 1
+      tlogs[$2] = tlogs[$2] (tlogs[$2] == "" ? "" : "; ") "[" $3 "] " $4 ".log"
+    }
   }
   $1 == "E" { ejob[++nr] = $4; ekey[nr] = $5 "\t" $2; eosr[nr] = $3 }
   END {
     printf "\n== %d unique failing tests\n", nt
     for (i = 1; i <= nt; i++) {
       t = order[i]; printf "\n[%s] %s\n", tos[t], t
+      if (ex[t] != "") printf "    representative excerpt (%s, job %s):\n", exos[t], exjob[t]
       n = split(ex[t], lines, "\037"); for (j = 1; j <= n; j++) if (lines[j] != "") print "    " lines[j]
+      printf "    logs: %s\n", tlogs[t]
       # prereq and teardown-only failures print no TEST FAILURE block.
       if (ex[t] == "") printf "    no TEST FAILURE block (prereq or teardown failure?); grep %s/%s.log\n", dir, tjob[t]
     }
-    # A step error in a job that has failing tests only restates those tests.
+    # Hide step annotations when this job already has test rows.
     for (r = 1; r <= nr; r++) if (!(ejob[r] in testjob)) {
       k = ekey[r]; if (!(k in eos)) eorder[++ne] = k
       eos[k] = addos(eos[k], eosr[r])
