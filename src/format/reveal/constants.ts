@@ -10,6 +10,7 @@ export const kRevealJsConfig = "revealjs-config";
 export const kSlideLogo = "logo";
 export const kSlideFooter = "footer";
 export const kHashType = "hash-type";
+export const kTabsetFragments = "tabset-fragments";
 export const kScrollable = "scrollable";
 export const kSmaller = "smaller";
 export const kCenter = "center";

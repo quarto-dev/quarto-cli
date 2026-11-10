@@ -1,0 +1,334 @@
+---
+title: tabset-fragments layout
+format:
+  revealjs:
+    tabset-fragments: true
+---
+
+## L1 two tabsets {#l1}
+
+::: {.panel-tabset}
+
+## Tab 1a
+
+::: {.fragment probe="l1-1a"}
+1a
+:::
+
+## Tab 2a
+
+::: {.fragment probe="l1-2a"}
+2a
+:::
+
+:::
+
+::: {.fragment probe="l1-between"}
+Between
+:::
+
+::: {.panel-tabset}
+
+## Tab 1b
+
+::: {.fragment probe="l1-1b"}
+1b
+:::
+
+## Tab 2b
+
+::: {.fragment probe="l1-2b"}
+2b
+:::
+
+:::
+
+## L2 nested tabsets {#l2}
+
+::: {.panel-tabset}
+
+## Outer 1
+
+::: {.fragment probe="l2-o1"}
+outer 1
+:::
+
+::: {.panel-tabset}
+
+## Inner 1
+
+::: {.fragment probe="l2-i1"}
+inner 1
+:::
+
+## Inner 2
+
+::: {.fragment probe="l2-i2"}
+inner 2
+:::
+
+:::
+
+## Outer 2
+
+::: {.fragment probe="l2-o2"}
+outer 2
+:::
+
+:::
+
+## L3 inner class in a non-fragmented tabset {#l3}
+
+::: {.panel-tabset .no-tabset-fragments}
+
+## Outer 1
+
+::: {.panel-tabset .tabset-fragments}
+
+## Inner 1
+
+::: {.fragment probe="l3-i1"}
+inner 1
+:::
+
+## Inner 2
+
+::: {.fragment probe="l3-i2"}
+inner 2
+:::
+
+:::
+
+## Outer 2
+
+::: {.fragment probe="l3-o2"}
+outer 2
+:::
+
+:::
+
+## L3b two ignored inner classes {#l3b}
+
+::: {.panel-tabset .no-tabset-fragments}
+
+## Outer 1
+
+::: {.panel-tabset .tabset-fragments}
+
+## Alpha 1
+
+alpha 1
+
+## Alpha 2
+
+alpha 2
+
+:::
+
+::: {.panel-tabset .tabset-fragments}
+
+## Beta 1
+
+beta 1
+
+## Beta 2
+
+beta 2
+
+:::
+
+::: {.panel-tabset .tabset-fragments}
+
+## Single
+
+single
+
+:::
+
+## Outer 2
+
+outer 2
+
+:::
+
+## L4 columns and callout {#l4}
+
+:::: {.columns}
+
+::: {.column width="50%"}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l4-col-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l4-col-b"}
+B text
+:::
+
+:::
+
+:::
+
+::: {.column width="50%"}
+
+::: {.callout-note}
+
+## Note
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l4-call-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l4-call-b"}
+B text
+:::
+
+:::
+
+:::
+
+:::
+
+::::
+
+## L5 empty pane {#l5}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l5-a"}
+A text
+:::
+
+## Tab B
+
+Plain text.
+
+## Tab C
+
+::: {.fragment probe="l5-c"}
+C text
+:::
+
+:::
+
+## L6 single tab {#l6}
+
+::: {.panel-tabset}
+
+## Only tab
+
+::: {.fragment probe="l6-only"}
+Only text
+:::
+
+:::
+
+## L7 auto-animate {#l7 auto-animate="true"}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l7-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l7-b"}
+B text
+:::
+
+:::
+
+## L7 auto-animate next {#l7b auto-animate="true"}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l7b-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l7b-b"}
+B text
+:::
+
+:::
+
+# L8 vertical
+
+## L8 first vertical {#l8}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l8-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l8-b"}
+B text
+:::
+
+:::
+
+## L8 hidden {#l8hidden visibility="hidden"}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l8h-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l8h-b"}
+B text
+:::
+
+:::
+
+## L8 after hidden {#l8after}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="l8after-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="l8after-b"}
+B text
+:::
+
+:::
+
+# End {#end}
+
+End.

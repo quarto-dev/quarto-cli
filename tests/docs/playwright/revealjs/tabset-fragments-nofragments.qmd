@@ -1,0 +1,28 @@
+---
+title: tabset-fragments nofragments
+format:
+  revealjs:
+    tabset-fragments: true
+---
+
+## N3 fragments disabled {#n3}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="n3-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="n3-b"}
+B text
+:::
+
+:::
+
+## End {#end}
+
+End.

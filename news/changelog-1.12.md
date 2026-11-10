@@ -28,6 +28,7 @@ All changes included in 1.12:
 ### `revealjs`
 
 - ([#7378](https://github.com/quarto-dev/quarto-cli/issues/7378)): Add `code-line-fragment-indices` to set the fragment index of each step of stepped `code-line-numbers` highlighting. (author: @mcanouil)
+- ([#15332](https://github.com/quarto-dev/quarto-cli/pull/15332)): Add `tabset-fragments` option for `revealjs` presentations to step through the tabs of a tabset as fragments, so that a PDF print shows every tab. Use the `.tabset-fragments` and `.no-tabset-fragments` classes to turn it on or off for one tabset. (author: @mcanouil)
 
 ### `typst`
 

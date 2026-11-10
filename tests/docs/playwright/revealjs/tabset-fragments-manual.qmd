@@ -1,0 +1,280 @@
+---
+title: tabset-fragments manual
+format:
+  revealjs:
+    tabset-fragments: true
+---
+
+## M1 fragment in a pane {#m1}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="m1-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="m1-b"}
+B text
+:::
+
+:::
+
+## M2 fragment indices in a pane {#m2}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment fragment-index=3 probe="m2-a3"}
+three
+:::
+
+::: {.fragment fragment-index=1 probe="m2-a1"}
+one
+:::
+
+::: {.fragment fragment-index=2 probe="m2-a2"}
+two
+:::
+
+## Tab B
+
+::: {.fragment probe="m2-b"}
+B text
+:::
+
+:::
+
+## M3 equal indices in both tabs {#m3}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment fragment-index=1 probe="m3-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment fragment-index=1 probe="m3-b"}
+B text
+:::
+
+:::
+
+## M4 index 0 after the tabset {#m4}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="m4-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="m4-b"}
+B text
+:::
+
+:::
+
+::: {.fragment fragment-index=0 probe="m4-zero"}
+Zero
+:::
+
+## M5 effects {#m5}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment .fade-out probe="m5-fadeout"}
+fade-out
+:::
+
+::: {.fragment .semi-fade-out probe="m5-semifadeout"}
+semi-fade-out
+:::
+
+::: {.fragment .current-visible probe="m5-currentvisible"}
+current-visible
+:::
+
+::: {.fragment .highlight-red probe="m5-highlightred"}
+highlight-red
+:::
+
+::: {.fragment .grow probe="m5-grow"}
+grow
+:::
+
+## Tab B
+
+::: {.fragment probe="m5-b"}
+B text
+:::
+
+:::
+
+## M6 nested fragments {#m6}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="m6-outer"}
+outer
+
+::: {.fragment probe="m6-inner"}
+inner
+:::
+:::
+
+## Tab B
+
+::: {.fragment probe="m6-b"}
+B text
+:::
+
+:::
+
+## M7 fragment wraps the tabset {#m7}
+
+::: {.fragment probe="m7-wrap"}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="m7-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="m7-b"}
+B text
+:::
+
+:::
+
+:::
+
+## M8 fragment on a tab heading {#m8}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment probe="m8-a"}
+A text
+:::
+
+## Tab B {.fragment probe="m8-heading"}
+
+::: {.fragment probe="m8-b"}
+B text
+:::
+
+:::
+
+## M9 output-location {#m9}
+
+::: {.panel-tabset}
+
+## Tab A
+
+```{r}
+#| echo: true
+#| output-location: fragment
+1 + 1
+```
+
+## Tab B
+
+```{r}
+#| echo: true
+#| output-location: column-fragment
+2 + 2
+```
+
+:::
+
+## M10 r-stack {#m10}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.r-stack}
+::: {.fragment .fade-in-then-out probe="m10-s1"}
+stack 1
+:::
+
+::: {.fragment .fade-in-then-out probe="m10-s2"}
+stack 2
+:::
+:::
+
+## Tab B
+
+::: {.fragment probe="m10-b"}
+B text
+:::
+
+:::
+
+## M11 autoslide on a fragment {#m11}
+
+::: {.panel-tabset}
+
+## Tab A
+
+::: {.fragment data-autoslide="400" probe="m11-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="m11-b"}
+B text
+:::
+
+:::
+
+## M12 fragment class on the tabset {#m12}
+
+::: {.fragment probe="m12-before"}
+Before
+:::
+
+::: {.panel-tabset .fragment probe="m12-set"}
+
+## Tab A
+
+::: {.fragment probe="m12-a"}
+A text
+:::
+
+## Tab B
+
+::: {.fragment probe="m12-b"}
+B text
+:::
+
+:::
+
+::: {.fragment probe="m12-after"}
+After
+:::
+
+## End {#end}
+
+End.
