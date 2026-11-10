@@ -1,4 +1,7 @@
 - name: column
+  tags:
+    contexts: [document-layout]
+    formats: [$html-files, $pdf-all, typst]
   schema:
     ref: page-column
   description:
@@ -6,6 +9,9 @@
     long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for output"
 
 - name: fig-column
+  tags:
+    contexts: [document-layout, document-figures]
+    formats: [$html-files, $pdf-all, typst]
   schema:
     ref: page-column
   description:
@@ -13,6 +19,9 @@
     long: "[Page column](https://quarto.org/docs/authoring/article-layout.html) for figure output"
 
 - name: tbl-column
+  tags:
+    contexts: [document-layout, document-tables]
+    formats: [$html-files, $pdf-all, typst]
   schema:
     ref: page-column
   description:
