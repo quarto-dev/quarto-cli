@@ -1,0 +1,30 @@
+---
+title: "TOC highlighting follows headings with special characters in their id (#15297)"
+format:
+  html:
+    toc: true
+---
+
+## Plain {#plain}
+
+{{< lipsum 3 >}}
+
+## Invalid percent escape {id="bad%zz"}
+
+`decodeURI` throws on this id.
+
+{{< lipsum 3 >}}
+
+## Valid percent escape {id="bad%20ok"}
+
+Decoding this id gives a different one, `bad ok`.
+
+{{< lipsum 3 >}}
+
+## Colon {#with:colon}
+
+{{< lipsum 3 >}}
+
+## Last {#last}
+
+{{< lipsum 20 >}}
