@@ -14,7 +14,8 @@ _quarto:
           - "//w:p//w:r//w:t[contains(text(), \"See F.\u00a01\")]"
           - "//w:t[contains(text(), \"Table\u00a01\")]"
         -
-          - "//w:hyperlink[@w:anchor=\"{{bookmark:tbl-foo}}\"]//w:t[contains(text(), \"Table\u00a01\")]" # ref-hyperlink: false
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:tbl-letters}}\"]" # ref-hyperlink: false
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:fig-elephant}}\"]" # ref-hyperlink: false
 ---
 
 # Introduction
