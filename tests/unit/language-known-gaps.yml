@@ -1,6 +1,7 @@
 # <key>: [<lang>, ...]   languages whose translation of <key> is still missing (languages sorted)
 announcement-dismiss-label: [da, el, nb]
 link-external-newwindow-label: [az, bg, de]
+listing-page-category-clear: [ar, az, bg, ca, cs, da, de, el, es, eu, fi, fr, he, id, is, it, ja, ko, lt, nb, nl, nn, pl, pt, ru, sk, sl, sr-Latn, sv, tr, ua, zh]
 listing-page-category-reset: [ar, az, bg, ca, cs, da, de, el, es, eu, fi, fr, he, id, is, it, ja, ko, lt, nb, nl, nn, pl, pt, ru, sk, sl, sr-Latn, sv, tr, ua, zh]
 listing-page-category-results: [ar, az, bg, ca, cs, da, de, el, es, eu, fi, fr, he, id, is, it, ja, ko, lt, nb, nl, nn, pl, pt, ru, sk, sl, sr-Latn, sv, tr, ua, zh]
 listing-page-category-results-one: [ar, az, bg, ca, cs, da, de, el, es, eu, fi, fr, he, id, is, it, ja, ko, lt, nb, nl, nn, pl, pt, ru, sk, sl, sr-Latn, sv, tr, ua, zh]
