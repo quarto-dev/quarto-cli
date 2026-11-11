@@ -40,7 +40,6 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.g-col-1 <%= listing.utilities.metadataAttrs(item) %> }
 
 ```{=html}
-<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link no-external-icon">
 <div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 
@@ -68,7 +67,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.card-body .post-contents}
 
 <% if (showField('title')) { %>
-<h5 class="no-anchor card-title listing-title"><%= item.title %></h5>
+<h5 class="no-anchor card-title listing-title"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link stretched-link no-external-icon"><%= item.title %></a></h5>
 <% } %>
 
 <% if (showField('subtitle')) { %>
@@ -177,7 +176,10 @@ let value = readField(item, field);
 <% } %>
 
 ```{=html}
-</div></a>
+<% if (!showField('title')) { %>
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link stretched-link no-external-icon"><span class="visually-hidden"><%= item.title || item.path %></span></a>
+<% } %>
+</div>
 ```
 
 :::

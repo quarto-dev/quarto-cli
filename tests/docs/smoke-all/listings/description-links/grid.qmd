@@ -13,10 +13,11 @@ _quarto:
     html:
       ensureHtmlElements:
         -
-          # the description stays inside the card's link to the item
-          - ".quarto-listing-container-grid a.quarto-grid-link[href='https://example.com/article'] .listing-description span"
+          # the card's link to the item stretches over the card from the title
+          - ".quarto-listing-container-grid .listing-title a.quarto-grid-link.stretched-link[href='https://example.com/article']"
+          - ".quarto-listing-container-grid .quarto-grid-item .listing-description span"
         -
-          # the link must be removed, not nested in the item's wrapping <a>
+          # the link must be removed, it would sit under the stretched link
           - ".quarto-listing-container-grid .listing-description a[href='https://example.org/docs']"
       ensureFileRegexMatches:
         -
@@ -27,7 +28,7 @@ _quarto:
 ::: {#description-links}
 :::
 
-The grid listing wraps the whole item card in a link to the item. A link
-inside the description would nest one `<a>` in another, which the HTML parser
-splits into empty, unnamed links. The description link must be turned into
-plain text instead.
+The grid listing links each item card from its title, and the link stretches
+over the whole card. A link inside the description would sit under that
+stretched link, so it could not be clicked. The description link must be
+turned into plain text instead.

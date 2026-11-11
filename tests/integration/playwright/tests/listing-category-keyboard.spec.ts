@@ -177,17 +177,79 @@ test.describe("Item category tags", () => {
     await page.goto(`${base}/default.html`);
     await expect(page.locator("#listing-posts .list > *").first())
       .toMatchAriaSnapshot(`
-        - link "Post 1"
+        - heading "Post 1" [level=3]:
+          - link "Post 1"
         - link "alpha"
         - link "data science"
+        - link "First post."
+        - link "Jan 1, 2026 Ada"
       `);
 
     await page.goto(`${base}/grid.html`);
     await expect(page.locator("#listing-posts .list > *").first())
       .toMatchAriaSnapshot(`
-        - link "Post 1"
+        - heading "Post 1" [level=5]:
+          - link "Post 1"
         - link "alpha"
         - link "data science"
+        - paragraph: First post.
+        - text: Ada Jan 1, 2026
+        - table:
+          - rowgroup:
+            - row "venue Lab A":
+              - cell "venue"
+              - cell "Lab A":
+                - link "Lab A"
       `);
+  });
+});
+
+test.describe("Grid card", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto(`${base}/grid.html`);
+    await expect(items(page)).toHaveCount(3);
+  });
+
+  test("no empty or nested links", async ({ page }) => {
+    // Nested anchors are split by the HTML parser into empty links
+    const bad = await page.locator("#listing-posts").evaluate((root) =>
+      [...root.querySelectorAll("a")].filter((a) =>
+        a.textContent!.trim() === "" && !a.querySelector("img") ||
+        a.querySelector("a, button") !== null
+      ).length
+    );
+    expect(bad).toBe(0);
+  });
+
+  test("one named item link per card", async ({ page }) => {
+    for (const title of ["Post 1", "Post 2", "Post 3"]) {
+      const card = page.locator(".quarto-grid-item", { hasText: title });
+      await expect(card.locator("a.stretched-link")).toHaveCount(1);
+      await expect(card.locator("a.stretched-link")).toHaveAccessibleName(title);
+    }
+  });
+
+  test("a click on the card body opens the item", async ({ page }) => {
+    // The stretched link covers the description, so click by position
+    const box = await page.locator(".quarto-grid-item", { hasText: "Post 2" })
+      .locator(".listing-description").boundingBox();
+    await page.mouse.click(box!.x + 5, box!.y + 5);
+    await expect(page).toHaveURL(/\/posts\/post-2\.html$/);
+  });
+
+  test("a tag and a field link take their own clicks", async ({ page }) => {
+    const card = page.locator(".quarto-grid-item", { hasText: "Post 2" });
+    await card.locator(".listing-category", { hasText: "café" }).click();
+    await expect(page).toHaveURL(/\/grid\.html#category=caf%C3%A9$/);
+    await expect(items(page)).toHaveCount(1);
+
+    const venue = card.locator("a.venue");
+    await expect(venue).toHaveAttribute("href", /posts\/post-2\.html$/);
+    const onTop = await venue.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+      return hit === el || el.contains(hit);
+    });
+    expect(onTop).toBe(true);
   });
 });
