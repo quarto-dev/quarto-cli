@@ -278,3 +278,127 @@ test.describe("Readiness", () => {
     expect(errors).toEqual([]);
   });
 });
+
+test.describe("Accessibility", () => {
+  test("ARIA snapshot with none, one and two selected", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    const sidebar = page.locator("#quarto-margin-sidebar");
+    await expect(sidebar).toMatchAriaSnapshot(`
+      - heading "Categories" [level=5]:
+        - button "Show all categories"
+      - group "Categories":
+        - button "Clear selection"
+        - button "All (3)" [pressed]
+        - button "alpha (2)"
+        - button "café (1)"
+        - button "data science (1)"
+    `);
+
+    await entry(page, "alpha").click();
+    await expect(sidebar).toMatchAriaSnapshot(`
+      - heading "Categories" [level=5]:
+        - button "Show all categories"
+      - group "Categories":
+        - button "Clear selection"
+        - button "All (3)"
+        - button "alpha (2)" [pressed]
+        - button "café (1)"
+        - button "data science (1)"
+    `);
+
+    await entry(page, "café").click();
+    await expect(sidebar).toMatchAriaSnapshot(`
+      - heading "Categories" [level=5]:
+        - button "Show all categories"
+      - group "Categories":
+        - button "Clear selection"
+        - button "All (3)"
+        - button "alpha (2)" [pressed]
+        - button "café (1)" [pressed]
+        - button "data science (1)"
+    `);
+  });
+
+  test("ARIA snapshot of the cloud style with two selected", async ({ page }) => {
+    await page.goto(`${base}/cloud.html#category=alpha,caf%C3%A9`);
+    await expect(page.locator("#quarto-margin-sidebar")).toMatchAriaSnapshot(`
+      - heading "Categories" [level=5]:
+        - button "Show all categories"
+      - group "Categories":
+        - button "Clear selection"
+        - button "alpha" [pressed]
+        - button "café" [pressed]
+        - button "data science"
+    `);
+  });
+
+  test("the clear button shows a visible focus ring", async ({ page, browserName }) => {
+    await page.goto(`${base}/default.html`);
+    const target = clearButton(page);
+    expect(await tabUntilFocused(page, browserName, target, 40)).toBe(true);
+    await expect(target).not.toHaveCSS("outline-style", "none");
+  });
+
+  test("the clear button is a text control in the link colour", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    // A plain link in the main column carries the theme's link colour
+    const linkColor = await page.evaluate(() => {
+      const link = document.createElement("a");
+      link.href = "#";
+      document.querySelector("main")!.appendChild(link);
+      const color = getComputedStyle(link).color;
+      link.remove();
+      return color;
+    });
+    const clear = clearButton(page);
+    await expect(clear).toHaveCSS("border-top-width", "0px");
+    await expect(clear).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(clear).toHaveCSS("color", linkColor);
+  });
+
+  test("the clear button sits on its own line in the cloud style", async ({ page }) => {
+    await page.goto(`${base}/cloud.html`);
+    const clearBox = await clearButton(page).boundingBox();
+    const firstBox = await entry(page, "alpha").boundingBox();
+    expect(clearBox).not.toBeNull();
+    expect(firstBox).not.toBeNull();
+    expect(clearBox!.y + clearBox!.height).toBeLessThanOrEqual(firstBox!.y);
+  });
+
+  for (const pageName of ["default.html", "cloud.html", "unnumbered.html"]) {
+    test(`no axe violations on ${pageName}, before and after a multi-select`, async ({ page }) => {
+      await page.goto(`${base}/${pageName}`);
+      await expect(items(page)).toHaveCount(3);
+      expect(await axeViolations(page)).toEqual([]);
+
+      await entry(page, "alpha").click();
+      await entry(page, "café").click();
+      await expect(items(page)).toHaveCount(3);
+      await expect(entry(page, "café")).toHaveAttribute("aria-pressed", "true");
+      expect(await axeViolations(page)).toEqual([]);
+    });
+  }
+});
+
+async function axeViolations(page: Page) {
+  await page.waitForFunction(() => (window as any).axe);
+  return await page.evaluate(async () => {
+    const axe = (window as any).axe;
+    const result = await axe.run(
+      {
+        include: [
+          ["#listing-posts"],
+          ["#quarto-margin-sidebar"],
+        ].filter(([selector]) => document.querySelector(selector)),
+      },
+      // #14384 (heading level of the filter title) is out of scope here
+      { rules: { "heading-order": { enabled: false } } },
+    );
+    return result.violations.map(
+      (v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }),
+    );
+  });
+}

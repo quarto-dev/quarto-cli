@@ -277,7 +277,8 @@ ul.pagination {
 
 // The reset and the category entries are buttons that look like text
 .quarto-listing-category-reset,
-.quarto-listing-category .category {
+.quarto-listing-category .category,
+.quarto-listing-category-clear {
   display: block;
   padding: 0;
   border: 0;
@@ -286,6 +287,21 @@ ul.pagination {
   font: inherit;
   text-align: start;
   cursor: pointer;
+}
+
+// The clear button of a multiple selection reads as an action
+.quarto-listing-category-clear {
+  margin-bottom: 0.25em;
+  color: $link-color;
+  font-size: 0.875em;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  .category-cloud > & {
+    flex-basis: 100%;
+  }
 }
 
 .quarto-listing-category {
