@@ -27,8 +27,9 @@ function applyListingHash(announce = false) {
   // key=value pair (a skip link, a heading anchor) leaves the selection alone.
   if (isMultipleSelection()) {
     if (Object.keys(hash).length > 0) {
+      const previous = currentSelection().join(",");
       applySelection(readSelection());
-      if (announce) {
+      if (announce && currentSelection().join(",") !== previous) {
         announceCategoryResults();
       }
     }
@@ -82,7 +83,7 @@ window["quarto-listing-loaded"] = () => {
 
 window.addEventListener("hashchange", () => {
   if (isMultipleSelection() && !getHash()) {
-    if (window["quarto-listings"]) {
+    if (window["quarto-listings"] && currentSelection().length > 0) {
       applySelection([]);
       announceCategoryResults();
     }
@@ -368,6 +369,17 @@ function markCurrentCategory(category) {
   }
 }
 
+function itemHasAnyCategory(item, names) {
+  const itemValues = item.values();
+  if (itemValues.categories === null) {
+    return false;
+  }
+  const categories = decodeURIComponent(atob(itemValues.categories)).split(
+    ","
+  );
+  return categories.some((category) => names.includes(category));
+}
+
 function filterListingCategory(category) {
   const listingIds = Object.keys(window["quarto-listings"]);
   for (const listingId of listingIds) {
@@ -378,17 +390,7 @@ function filterListingCategory(category) {
         list.filter();
       } else {
         // filter to this category
-        list.filter(function (item) {
-          const itemValues = item.values();
-          if (itemValues.categories !== null) {
-            const categories = decodeURIComponent(
-              atob(itemValues.categories)
-            ).split(",");
-            return categories.includes(category);
-          } else {
-            return false;
-          }
-        });
+        list.filter((item) => itemHasAnyCategory(item, [category]));
       }
     }
   }
@@ -510,16 +512,7 @@ function applySelection(names) {
     if (names.length === 0) {
       list.filter();
     } else {
-      list.filter(function (item) {
-        const itemValues = item.values();
-        if (itemValues.categories === null) {
-          return false;
-        }
-        const categories = decodeURIComponent(
-          atob(itemValues.categories)
-        ).split(",");
-        return categories.some((category) => names.includes(category));
-      });
+      list.filter((item) => itemHasAnyCategory(item, names));
     }
   }
 }

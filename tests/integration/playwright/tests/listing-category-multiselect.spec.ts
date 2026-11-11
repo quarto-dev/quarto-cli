@@ -348,6 +348,19 @@ test.describe("Announcement", () => {
     await expect(status(page)).toHaveText("2 matching items");
   });
 
+  test("Back between pages with no selection announces nothing", async ({ page }) => {
+    await page.goto(`${base}/paged.html`);
+    await page.locator("#listing-posts .pagination .page-link", {
+      hasText: /^2$/,
+    }).click();
+    await expect(page).toHaveURL(/#listing-posts-page=2$/);
+    await page.goBack();
+    await page.goForward();
+    await expect(items(page).first()).toContainText("Post 2");
+    await page.waitForTimeout(300);
+    await expect(status(page)).toHaveText("");
+  });
+
   test("Back announces the restored selection", async ({ page }) => {
     await page.goto(`${base}/default.html`);
     await entry(page, "alpha").click();
