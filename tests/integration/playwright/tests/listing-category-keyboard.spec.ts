@@ -364,3 +364,34 @@ test.describe("Focus and axe", () => {
     });
   }
 });
+
+test.describe("Announcement edge cases", () => {
+  test("the same count is announced again for a new filter", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    await entry(page, "data science").click();
+    await expect(status(page)).toHaveText("1 matching item");
+
+    // Screen readers skip a live region whose text does not change, so the
+    // region must be emptied and filled again
+    await status(page).evaluate((el) => {
+      (window as any).__statusTexts = [];
+      new MutationObserver(() =>
+        (window as any).__statusTexts.push(el.textContent)
+      ).observe(el, { childList: true, characterData: true, subtree: true });
+    });
+    await entry(page, "café").click();
+    await expect(status(page)).toHaveText("1 matching item");
+    await expect.poll(() => page.evaluate(() => (window as any).__statusTexts))
+      .toEqual(["", "1 matching item"]);
+  });
+
+  test("focus stays on a matching tag when its item moves to another page", async ({ page, browserName }) => {
+    await page.goto(`${base}/paged.html`);
+    await page.locator("#posts-pagination .page-link", { hasText: "3" }).click();
+    await expect(items(page)).toHaveText([/Post 3/]);
+
+    await press(page, browserName, tag(page, "alpha"), "Enter");
+    await expect(items(page)).toHaveText([/Post 1/]);
+    await expect(tag(page, "alpha")).toBeFocused();
+  });
+});

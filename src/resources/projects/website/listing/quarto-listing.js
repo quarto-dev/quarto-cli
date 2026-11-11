@@ -112,7 +112,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
       return;
     }
-    const category = parseHash(new URL(tagEl.href).hash.slice(1))?.category;
+    const category = tagCategory(tagEl);
     if (!category) {
       return;
     }
@@ -120,9 +120,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     activateCategory(category);
     setCategoryHash(category);
     announceCategoryResults();
-    if (tagEl.isConnected) {
-      tagEl.focus();
-    }
+    // With pagination, the clicked item can move off the shown page
+    const focusEl = tagEl.isConnected
+      ? tagEl
+      : [...window.document.querySelectorAll(
+        ".listing-categories a.listing-category"
+      )].find((el) => tagCategory(el) === category);
+    focusEl?.focus();
   });
 
   // Without a category in the hash, the unfiltered entry is the current one
@@ -132,6 +136,12 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   categoriesLoaded = true;
 });
+
+function tagCategory(tagEl) {
+  return parseHash(new URL(tagEl.href).hash.slice(1))?.category;
+}
+
+let announceTimer;
 
 function announceCategoryResults() {
   const statusEl = window.document.querySelector(
@@ -144,10 +154,17 @@ function announceCategoryResults() {
   for (const list of Object.values(window["quarto-listings"])) {
     count += list.matchingItems.length;
   }
-  statusEl.textContent =
+  const message =
     count === 1
       ? statusEl.dataset.resultsOne
       : statusEl.dataset.results.replace("{0}", count);
+  // Screen readers skip a live region whose text does not change, so empty
+  // it first and write the message once the empty state has been seen
+  statusEl.textContent = "";
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => {
+    statusEl.textContent = message;
+  }, 100);
 }
 
 function toggleNoMatchingMessage(list) {
