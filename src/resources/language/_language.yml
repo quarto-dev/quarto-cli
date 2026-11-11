@@ -183,6 +183,8 @@ listing-page-category-reset: "Show all categories"
 listing-page-category-results-one: "1 matching item"
 # Announced to screen readers after a category filter changes; {0} is the number of matching items.
 listing-page-category-results: "{0} matching items"
+# Visible label of the button that clears every selected category when a listing allows several (category-selection: multiple).
+listing-page-category-clear: "Clear selection"
 listing-page-no-matches: "No matching items"
 # Word count shown per item in a listing, e.g. "1,234 words"; {0} is the formatted number.
 # A single string serves every count; pick the plural form that reads best for large numbers.

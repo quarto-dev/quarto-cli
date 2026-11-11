@@ -34,6 +34,7 @@ import { ProjectContext } from "../../../types.ts";
 import { estimateReadingTimeMinutes } from "../util/discover-meta.ts";
 import {
   ColumnType,
+  kCategorySelection,
   kCategoryStyle,
   kDefaultMaxDescLength,
   kExclude,
@@ -233,6 +234,10 @@ export async function readListings(
   const sharedOptions: ListingSharedOptions = {
     [kFieldCategories]: !!categories,
     [kCategoryStyle]: categoryStyle,
+    [kCategorySelection]:
+      firstListingValue(kCategorySelection, "single") === "multiple"
+        ? "multiple"
+        : "single",
   };
 
   const feed = firstListingValue(kFeed, undefined);

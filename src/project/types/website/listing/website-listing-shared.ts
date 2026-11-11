@@ -117,6 +117,7 @@ export const kFieldOrder = "order";
 
 // Shared options
 export const kCategoryStyle = "category-style";
+export const kCategorySelection = "category-selection";
 
 // Sort keys
 export const kSortAsc = "asc";
@@ -146,6 +147,8 @@ export type CategoryStyle =
   | "category-unnumbered"
   | "category-cloud";
 
+export type CategorySelection = "single" | "multiple";
+
 export interface ListingFeedOptions {
   [kTitle]?: string;
   [kItems]?: number;
@@ -160,6 +163,7 @@ export interface ListingFeedOptions {
 export interface ListingSharedOptions {
   [kFieldCategories]: boolean;
   [kCategoryStyle]: CategoryStyle;
+  [kCategorySelection]: CategorySelection;
   [kFeed]?: ListingFeedOptions;
 }
 
