@@ -253,3 +253,57 @@ test.describe("Grid card", () => {
     expect(onTop).toBe(true);
   });
 });
+
+const status = (page: Page) => page.getByRole("status");
+
+test.describe("Result announcement", () => {
+  for (const pageName of ["default.html", "grid.html", "cloud.html", "index.html"]) {
+    test(`region exists and is empty after load on ${pageName}`, async ({ page }) => {
+      await page.goto(`${base}/${pageName}`);
+      await expect(items(page)).toHaveCount(3);
+      await expect(status(page)).toHaveCount(1);
+      await expect(status(page)).toHaveText("");
+    });
+  }
+
+  test("a category hash on load filters but does not announce", async ({ page }) => {
+    await page.goto(`${base}/default.html#category=alpha`);
+    await expect(items(page)).toHaveCount(2);
+    await expectOnlyCurrent(page, "alpha");
+    await expect(status(page)).toHaveText("");
+  });
+
+  test("sidebar, reset and tag announce the count", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    await entry(page, "alpha").click();
+    await expect(status(page)).toHaveText("2 matching items");
+    await entry(page, "café").click();
+    await expect(status(page)).toHaveText("1 matching item");
+    await reset(page).click();
+    await expect(status(page)).toHaveText("3 matching items");
+
+    await page.goto(`${base}/index.html`);
+    await tag(page, "alpha").first().click();
+    await expect(status(page)).toHaveText("2 matching items");
+  });
+
+  test("Back announces the restored filter", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    await entry(page, "alpha").click();
+    await entry(page, "café").click();
+    await expect(status(page)).toHaveText("1 matching item");
+
+    await page.goBack();
+    await expect(items(page)).toHaveCount(2);
+    await expectOnlyCurrent(page, "alpha");
+    await expect(status(page)).toHaveText("2 matching items");
+  });
+
+  test("the count sums every listing on the page", async ({ page }) => {
+    // Two listings with one item per page; cat1 matches one post in each
+    await page.goto("/listings/interactions/_site/index.html");
+    await page.locator(".quarto-listing-category .category", { hasText: "cat1" })
+      .click();
+    await expect(status(page)).toHaveText("2 matching items");
+  });
+});

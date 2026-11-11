@@ -50,7 +50,10 @@ import {
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
 import { completeListingItems, readListings } from "./website-listing-read.ts";
-import { categorySidebar } from "./website-listing-categories.ts";
+import {
+  categorySidebar,
+  categoryStatusRegion,
+} from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { completeStagedFeeds, createFeed } from "./website-listing-feed.ts";
 import {
@@ -377,6 +380,10 @@ function listingPostProcess(
   format: Format,
 ) {
   debug(`[listing] Post processing ${listingDescriptors.length} listings`);
+  // Category filters announce their result here; item category tags can
+  // filter a listing even without the category sidebar
+  const statusEl = categoryStatusRegion(doc, format);
+
   // Render categories, if necessary
   const categories = options[kFieldCategories];
   if (categories) {
@@ -392,17 +399,24 @@ function listingPostProcess(
     // just after the header or before the footer
     const marginHeader = rightSidebar?.querySelector(".quarto-margin-header");
     if (marginHeader) {
-      marginHeader.after(...[headingEl, categoriesEl]);
+      marginHeader.after(...[headingEl, categoriesEl, statusEl]);
     } else {
       const marginFooter = rightSidebar?.querySelector(".quarto-margin-footer");
       if (marginFooter) {
         rightSidebar?.insertBefore(headingEl, marginFooter);
         rightSidebar?.insertBefore(categoriesEl, marginFooter);
+        rightSidebar?.insertBefore(statusEl, marginFooter);
       } else {
         rightSidebar?.appendChild(headingEl);
         rightSidebar?.appendChild(categoriesEl);
+        rightSidebar?.appendChild(statusEl);
       }
     }
+  }
+  if (!statusEl.parentElement && listingDescriptors.length > 0) {
+    doc.getElementById(`listing-${listingDescriptors[0].listing.id}`)?.after(
+      statusEl,
+    );
   }
 
   // Purge any images that made it into the description

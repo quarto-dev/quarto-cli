@@ -12,8 +12,9 @@ window.quartoListingCategory = (category) => {
 
 const wiredListings = new Set();
 
-// Apply the category and per-listing page stored in the URL hash
-function applyListingHash() {
+// Apply the category and per-listing page stored in the URL hash.
+// `announce` is true when the hash changed after a user action.
+function applyListingHash(announce = false) {
   const hash = getHash();
   if (!hash || !window["quarto-listings"]) {
     return;
@@ -24,6 +25,9 @@ function applyListingHash() {
     // category hash are URI encoded so we need to decode it before processing
     // so that we can match it with the category element processed in JS
     activateCategory(decodeURIComponent(hash.category));
+    if (announce) {
+      announceCategoryResults();
+    }
   }
   // Paginate a specific listing
   for (const listingId of Object.keys(window["quarto-listings"])) {
@@ -65,7 +69,7 @@ window["quarto-listing-loaded"] = () => {
   }
 };
 
-window.addEventListener("hashchange", applyListingHash);
+window.addEventListener("hashchange", () => applyListingHash(true));
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Attach click handlers to categories
@@ -81,6 +85,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     categoryEl.onclick = () => {
       activateCategory(category);
       setCategoryHash(category);
+      announceCategoryResults();
     };
   }
 
@@ -93,6 +98,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     categoryResetEl.onclick = () => {
       activateCategory("");
       setCategoryHash("");
+      announceCategoryResults();
     };
   }
 
@@ -113,6 +119,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     event.preventDefault();
     activateCategory(category);
     setCategoryHash(category);
+    announceCategoryResults();
     if (tagEl.isConnected) {
       tagEl.focus();
     }
@@ -125,6 +132,23 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
 
   categoriesLoaded = true;
 });
+
+function announceCategoryResults() {
+  const statusEl = window.document.querySelector(
+    ".quarto-listing-category-status"
+  );
+  if (!statusEl || !window["quarto-listings"]) {
+    return;
+  }
+  let count = 0;
+  for (const list of Object.values(window["quarto-listings"])) {
+    count += list.matchingItems.length;
+  }
+  statusEl.textContent =
+    count === 1
+      ? statusEl.dataset.resultsOne
+      : statusEl.dataset.results.replace("{0}", count);
+}
 
 function toggleNoMatchingMessage(list) {
   const selector = `#${list.listContainer.id} .listing-no-matching`;

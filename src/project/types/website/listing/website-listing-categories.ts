@@ -7,6 +7,8 @@ import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kListingPageCategoryAll,
   kListingPageCategoryReset,
+  kListingPageCategoryResults,
+  kListingPageCategoryResultsOne,
   kListingPageFieldCategories,
 } from "../../../../config/constants.ts";
 import { localizedString } from "../../../../config/localization.ts";
@@ -102,6 +104,23 @@ export function categorySidebar(
   }
 
   return { headingEl, categoriesEl };
+}
+
+// A polite live region that quarto-listing.js fills with the number of
+// matching items after the user changes the category filter
+export function categoryStatusRegion(doc: Document, format: Format) {
+  const statusEl = doc.createElement("div");
+  statusEl.classList.add("visually-hidden", "quarto-listing-category-status");
+  statusEl.setAttribute("role", "status");
+  statusEl.setAttribute(
+    "data-results-one",
+    localizedString(format, kListingPageCategoryResultsOne),
+  );
+  statusEl.setAttribute(
+    "data-results",
+    localizedString(format, kListingPageCategoryResults),
+  );
+  return statusEl;
 }
 
 const kCategoryTitleTextId = "quarto-listing-category-title-text";
