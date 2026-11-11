@@ -230,6 +230,15 @@ function setCategoryHash(category) {
 
 function setPageHash(listingId, page) {
   const currentHash = getHash() || {};
+  if (isMultipleSelection()) {
+    // Write the shown selection, which outlives an in-page anchor, with each
+    // name encoded again so that `&`, `=` or `%` in a name survive
+    delete currentHash.category;
+    const selection = currentSelection();
+    if (selection.length > 0) {
+      currentHash.category = encodeSelection(selection);
+    }
+  }
   currentHash[getListingPageKey(listingId)] = page;
   setHash(currentHash);
 }
@@ -390,7 +399,9 @@ function filterListingCategory(category) {
 
 // Multiple selection (category-selection: multiple). The URL hash holds the
 // selection as `category=<a>,<b>`: each name is URI encoded on its own, so a
-// literal comma separates names.
+// literal comma separates names. Navigation reads the selection from the
+// hash; a change starts from the pressed entries, which keep the selection
+// when an in-page anchor replaces the hash.
 
 function isMultipleSelection() {
   return !!window.document.querySelector(
@@ -446,20 +457,36 @@ function writeSelection(names) {
   const selected = new Set(names);
   const ordered = categoryNames().filter((name) => selected.has(name));
   const url = window.location.pathname + window.location.search;
-  const value = ordered.map((name) => encodeURIComponent(name)).join(",");
   const target = ordered.length === 0
     ? url
-    : `${url}#category${kEquals}${value}`;
+    : `${url}#category${kEquals}${encodeSelection(ordered)}`;
   if (target !== url + window.location.hash) {
     window.history.pushState(null, null, target);
   }
+}
+
+function encodeSelection(names) {
+  return names.map((name) => encodeURIComponent(name)).join(",");
+}
+
+function currentSelection() {
+  const names = [];
+  for (const categoryEl of window.document.querySelectorAll(
+    ".quarto-listing-category .category[aria-pressed='true']"
+  )) {
+    const name = categoryEntryName(categoryEl);
+    if (name !== "") {
+      names.push(name);
+    }
+  }
+  return names;
 }
 
 function toggledSelection(category) {
   if (category === "") {
     return [];
   }
-  const selection = readSelection();
+  const selection = currentSelection();
   return selection.includes(category)
     ? selection.filter((name) => name !== category)
     : [...selection, category];

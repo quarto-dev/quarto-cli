@@ -184,6 +184,48 @@ test.describe("Selection", () => {
     await expect(items(page)).toHaveCount(3);
     await page.waitForTimeout(300);
     await expect(status(page)).toHaveText("");
+
+    await entry(page, "data science").click();
+    await expectPressed(page, ["alpha", "café", "data science"]);
+    await expect(page).toHaveURL(/#category=alpha,caf%C3%A9,data%20science$/);
+  });
+
+  for (
+    const { names, hash } of [
+      { names: ["alpha"], hash: "category=alpha" },
+      {
+        names: ["alpha", "R & Python"],
+        hash: "category=alpha,R%20%26%20Python",
+      },
+    ]
+  ) {
+    test(`a page click keeps ${names.join(" and ")} in the hash`, async ({ page }) => {
+      await page.goto(`${base}/paged.html`);
+      for (const name of names) {
+        await entry(page, name).click();
+      }
+      await page.locator("#listing-posts .pagination .page-link", {
+        hasText: /^2$/,
+      }).click();
+      await expect(page).toHaveURL(
+        new RegExp(`#${hash}&listing-posts-page=2$`),
+      );
+      await page.reload();
+      await expectPressed(page, names);
+    });
+  }
+
+  test("a page click after an anchor keeps the selection", async ({ page }) => {
+    await page.goto(`${base}/paged.html`);
+    await entry(page, "alpha").click();
+    await page.evaluate(() => {
+      location.hash = "quarto-document-content";
+    });
+    await page.locator("#listing-posts .pagination .page-link", {
+      hasText: /^2$/,
+    }).click();
+    await expect(page).toHaveURL(/#category=alpha&listing-posts-page=2$/);
+    await expectPressed(page, ["alpha"]);
   });
 
   test("Back to a page-only hash clears the selection", async ({ page }) => {
@@ -348,6 +390,7 @@ test.describe("Accessibility", () => {
         - button "alpha (2)"
         - button "café (1)"
         - button "data science (1)"
+        - button "R & Python (1)"
     `);
 
     await entry(page, "alpha").click();
@@ -360,6 +403,7 @@ test.describe("Accessibility", () => {
         - button "alpha (2)" [pressed]
         - button "café (1)"
         - button "data science (1)"
+        - button "R & Python (1)"
     `);
 
     await entry(page, "café").click();
@@ -372,6 +416,7 @@ test.describe("Accessibility", () => {
         - button "alpha (2)" [pressed]
         - button "café (1)" [pressed]
         - button "data science (1)"
+        - button "R & Python (1)"
     `);
   });
 
@@ -385,6 +430,7 @@ test.describe("Accessibility", () => {
         - button "alpha" [pressed]
         - button "café" [pressed]
         - button "data science"
+        - button "R & Python"
     `);
   });
 
