@@ -30,10 +30,12 @@ const listingTypes = [
   },
 ];
 
-const afterContent = (selector: string) =>
+// The external icon is the background image of `::after`. Grid item links are
+// stretched links, whose `::after` is the overlay, so check the image only.
+const afterIcon = (selector: string) =>
   `(() => {
     const el = document.querySelector(${JSON.stringify(selector)});
-    return el ? getComputedStyle(el, "::after").content : "missing";
+    return el ? getComputedStyle(el, "::after").backgroundImage : "missing";
   })()`;
 
 listingTypes.forEach(
@@ -119,7 +121,7 @@ listingTypes.forEach(
           await expect(browserPage.locator(itemAnchorSelector).first())
             .toHaveAttribute("target", "_blank");
           expect(
-            await browserPage.evaluate(afterContent(itemAnchorSelector)),
+            await browserPage.evaluate(afterIcon(itemAnchorSelector)),
           ).toBe("none");
         });
       }
