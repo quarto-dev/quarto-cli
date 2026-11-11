@@ -50,10 +50,7 @@ function applyListingHash(announce = false) {
 }
 
 window["quarto-listing-loaded"] = () => {
-  // Process any existing hash. In multiple mode an empty hash is a state too.
-  if (isMultipleSelection() && !getHash()) {
-    applySelection([]);
-  }
+  // Process any existing hash
   applyListingHash();
 
   // Each listing calls this once its List is created, so wire each one once
