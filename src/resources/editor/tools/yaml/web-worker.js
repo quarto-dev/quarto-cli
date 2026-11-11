@@ -10858,7 +10858,7 @@ try {
                   default: "single",
                   description: {
                     short: "How readers select categories in the margin of the page.",
-                    long: "How readers select categories in the margin of the page.\nThis option has no effect unless `categories` is set.\n\n  - `single`: Readers select one category at a time\n  - `multiple`: Readers select several categories at once, and the listing shows the items in any of them\n"
+                    long: "How readers select categories in the margin of the page.\nThis option has no effect unless `categories` is set.\n\n  - `single`: Readers select one category at a time\n  - `multiple`: Readers select several categories at once, and the listing shows the items in any of them.\n    A category selected from a listing item replaces the selection.\n\nA page has one category list for all its listings, so the first listing on the page that sets this option decides it.\n"
                   }
                 },
                 feed: {
@@ -25601,7 +25601,7 @@ try {
           },
           "Date the event related to an item took place.",
           "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
-          "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
+          "Geographic location of the event related to the item\n(e.g.&nbsp;\uFFFD\uFFFDAmsterdam, The Netherlands\u201D).",
           "Executive producer of the item (e.g.&nbsp;of a television series).",
           {
             short: "Number of a preceding note containing the first reference to the\nitem.",

@@ -927,7 +927,10 @@ when filtering. */;
 This option has no effect unless `categories` is set.
 
   - `single`: Readers select one category at a time
-  - `multiple`: Readers select several categories at once, and the listing shows the items in any of them */;
+  - `multiple`: Readers select several categories at once, and the listing shows the items in any of them.
+    A category selected from a listing item replaces the selection.
+
+A page has one category list for all its listings, so the first listing on the page that sets this option decides it. */;
   "date-format"?:
     string /* The date format to use when displaying dates (e.g. d-M-yyy).
 Learn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html). */;
