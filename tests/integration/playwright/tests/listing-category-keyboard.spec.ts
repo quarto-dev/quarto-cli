@@ -124,3 +124,70 @@ test.describe("Category sidebar", () => {
     await expectOnlyCurrent(page, "alpha");
   });
 });
+
+const tag = (page: Page, name: string) =>
+  page.locator("#listing-posts").getByRole("link", { name, exact: true });
+
+test.describe("Item category tags", () => {
+  for (const pageName of ["default.html", "grid.html", "index.html"]) {
+    const hasSidebar = pageName !== "index.html";
+
+    test.describe(pageName, () => {
+      test.beforeEach(async ({ page }) => {
+        await page.goto(`${base}/${pageName}`);
+        await expect(items(page)).toHaveCount(3);
+      });
+
+      test("tags are links to the category hash", async ({ page }) => {
+        await expect(tag(page, "data science")).toHaveAttribute(
+          "href",
+          /#category=data%20science$/,
+        );
+        await expect(tag(page, "café")).toHaveAttribute(
+          "href",
+          /#category=caf%C3%A9$/,
+        );
+        await expect(tag(page, "alpha")).toHaveCount(2);
+      });
+
+      for (const { name, count } of [
+        { name: "alpha", count: 2 },
+        { name: "data science", count: 1 },
+        { name: "café", count: 1 },
+      ]) {
+        test(`Tab reaches the "${name}" tag and Enter filters`, async ({ page, browserName }) => {
+          // A reload would reset this marker and move focus to the top
+          await page.evaluate(() => ((window as any).__noReload = true));
+          await press(page, browserName, tag(page, name).first(), "Enter");
+          await expect(page).toHaveURL(
+            new RegExp(`#category=${encodeURIComponent(name)}$`),
+          );
+          await expect(items(page)).toHaveCount(count);
+          expect(await page.evaluate(() => (window as any).__noReload)).toBe(true);
+          await expect(tag(page, name).first()).toBeFocused();
+          if (hasSidebar) {
+            await expectOnlyCurrent(page, name);
+          }
+        });
+      }
+    });
+  }
+
+  test("ARIA snapshot of a default item and a grid item", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    await expect(page.locator("#listing-posts .list > *").first())
+      .toMatchAriaSnapshot(`
+        - link "Post 1"
+        - link "alpha"
+        - link "data science"
+      `);
+
+    await page.goto(`${base}/grid.html`);
+    await expect(page.locator("#listing-posts .list > *").first())
+      .toMatchAriaSnapshot(`
+        - link "Post 1"
+        - link "alpha"
+        - link "data science"
+      `);
+  });
+});

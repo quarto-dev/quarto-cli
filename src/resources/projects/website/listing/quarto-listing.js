@@ -96,6 +96,28 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   }
 
+  // Item category tags are links to the category hash, so they work before
+  // this script runs. Handle the click here as well: quarto-nav.js rewrites
+  // `index.html` links to the directory URL, which would reload the page, and
+  // filtering re-renders the items, which would drop the focus.
+  window.document.addEventListener("click", (event) => {
+    const tagEl = event.target.closest?.(".listing-categories a.listing-category");
+    if (!tagEl || event.defaultPrevented || event.button !== 0 ||
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    const category = parseHash(new URL(tagEl.href).hash.slice(1))?.category;
+    if (!category) {
+      return;
+    }
+    event.preventDefault();
+    activateCategory(category);
+    setCategoryHash(category);
+    if (tagEl.isConnected) {
+      tagEl.focus();
+    }
+  });
+
   // Without a category in the hash, the unfiltered entry is the current one
   if (!getHash()?.category) {
     markCurrentCategory("");

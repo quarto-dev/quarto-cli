@@ -104,7 +104,9 @@ $theme-name: null !default;
   padding-bottom: 5px;
 
   .listing-category {
+    display: inline-block;
     color: listing-override-value($theme-name, "category-color", $text-muted);
+    text-decoration: none;
 
     $val: listing-override-value($theme-name, "category-border", null);
     @if $val != null {
