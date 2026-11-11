@@ -25601,7 +25601,7 @@ try {
           },
           "Date the event related to an item took place.",
           "Name of the event related to the item (e.g.&nbsp;the conference name when\nciting a conference paper; the meeting where presentation was made).",
-          "Geographic location of the event related to the item\n(e.g.&nbsp;\uFFFD\uFFFDAmsterdam, The Netherlands\u201D).",
+          "Geographic location of the event related to the item\n(e.g.&nbsp;\u201CAmsterdam, The Netherlands\u201D).",
           "Executive producer of the item (e.g.&nbsp;of a television series).",
           {
             short: "Number of a preceding note containing the first reference to the\nitem.",
