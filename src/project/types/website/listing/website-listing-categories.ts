@@ -98,8 +98,10 @@ export function categorySidebar(
       "",
     );
     if (multiple) {
-      // Nothing is selected until the script reads the URL hash
-      allEl.setAttribute("aria-pressed", "true");
+      // "All" clears the selection; nothing is selected until the script
+      // reads the URL hash, so it starts as the current entry
+      allEl.setAttribute("aria-current", "true");
+      allEl.classList.add("active");
     }
     categoriesEl.appendChild(allEl);
   }

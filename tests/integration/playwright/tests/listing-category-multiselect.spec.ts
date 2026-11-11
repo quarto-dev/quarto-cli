@@ -30,17 +30,27 @@ const tag = (page: Page, name: string) =>
   page.locator(".listing-categories a.listing-category", { hasText: name })
     .first();
 
+// `names` lists the pressed toggles; "All" is never a toggle and is the
+// current entry only when nothing is pressed
 async function expectPressed(page: Page, names: string[]) {
   const pressed = group(page).locator(".category[aria-pressed='true']");
   await expect(pressed).toHaveCount(names.length);
   for (const name of names) {
     await expect(entry(page, name)).toHaveAttribute("aria-pressed", "true");
   }
-  await expect(group(page).locator(".category[aria-current]")).toHaveCount(0);
+  const all = group(page).locator(".category[data-category='']");
+  await expect(all.and(page.locator("[aria-pressed]"))).toHaveCount(0);
+  const current = group(page).locator(".category[aria-current]");
+  if (names.length === 0 && await all.count() > 0) {
+    await expect(current).toHaveCount(1);
+    await expect(all).toHaveAttribute("aria-current", "true");
+  } else {
+    await expect(current).toHaveCount(0);
+  }
 }
 
 async function expectEmptyState(page: Page) {
-  await expectPressed(page, ["All"]);
+  await expectPressed(page, []);
   await expect(items(page)).toHaveCount(3);
   expect(new URL(page.url()).hash).not.toContain("category");
 }
@@ -70,11 +80,16 @@ test.describe("Markup", () => {
         "data-category-selection",
         "multiple",
       );
-      const entries = container.locator("button.category");
-      expect(await entries.count()).toBeGreaterThan(0);
-      for (const entry of await entries.all()) {
-        await expect(entry).toHaveAttribute("aria-pressed", /^(true|false)$/);
+      const toggles = container.locator(
+        "button.category:not([data-category=''])",
+      );
+      expect(await toggles.count()).toBeGreaterThan(0);
+      for (const toggle of await toggles.all()) {
+        await expect(toggle).toHaveAttribute("aria-pressed", /^(true|false)$/);
       }
+      await expect(
+        container.locator(".category[data-category=''][aria-pressed]"),
+      ).toHaveCount(0);
       await expect(clearButton(page)).toBeVisible();
       const clearFirst = await container.evaluate((el) => {
         const clear = el.querySelector(".quarto-listing-category-clear");
@@ -90,15 +105,14 @@ test.describe("Markup", () => {
   test.describe("before scripts run", () => {
     test.use({ javaScriptEnabled: false });
 
-    test("the served markup presses All and no other entry", async ({ page }) => {
+    test("the served markup makes All current and presses nothing", async ({ page }) => {
       await page.goto(`${base}/default.html`);
       const container = page.locator(".quarto-listing-category");
       await expect(container.locator(".category[aria-pressed='true']"))
-        .toHaveCount(1);
-      await expect(container.locator(".category").first()).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      );
+        .toHaveCount(0);
+      const all = container.locator(".category[data-category='']");
+      await expect(all).toHaveAttribute("aria-current", "true");
+      await expect(all).not.toHaveAttribute("aria-pressed", /.*/);
     });
   });
 
@@ -132,7 +146,6 @@ test.describe("Selection", () => {
     await entry(page, "alpha").click();
     await entry(page, "café").click();
     await expectPressed(page, ["alpha", "café"]);
-    await expect(entry(page, "All")).toHaveAttribute("aria-pressed", "false");
     await expect(items(page)).toHaveCount(3);
     await expect(page).toHaveURL(/#category=alpha,caf%C3%A9$/);
   });
@@ -235,7 +248,7 @@ test.describe("Selection", () => {
     await expectPressed(page, ["café"]);
     await page.goBack();
     await expect(page).toHaveURL(/#listing-posts-page=2$/);
-    await expectPressed(page, ["All"]);
+    await expectPressed(page, []);
     await expect(items(page).first()).toContainText("Post 2");
   });
 
@@ -277,7 +290,7 @@ test.describe("Hash", () => {
     test(`#${hash} gives the empty state`, async ({ page }) => {
       const errors = collectErrors(page);
       await page.goto(`${base}/default.html#${hash}`);
-      await expectPressed(page, ["All"]);
+      await expectPressed(page, []);
       await expect(items(page)).toHaveCount(3);
       expect(errors).toEqual([]);
     });
@@ -430,7 +443,7 @@ test.describe("Accessibility", () => {
         - button "Show all categories"
       - group "Categories":
         - button "Clear selection"
-        - button "All (3)" [pressed]
+        - button "All (3)"
         - button "alpha (2)"
         - button "café (1)"
         - button "data science (1)"

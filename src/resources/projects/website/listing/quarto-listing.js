@@ -496,10 +496,20 @@ function markPressedCategories(names) {
     ".quarto-listing-category .category"
   )) {
     const name = categoryEntryName(categoryEl);
-    const pressed = name === "" ? names.length === 0 : names.includes(name);
+    if (name === "") {
+      // "All" is not a toggle: it is the current entry when nothing is pressed
+      const current = names.length === 0;
+      categoryEl.classList.toggle("active", current);
+      if (current) {
+        categoryEl.setAttribute("aria-current", "true");
+      } else {
+        categoryEl.removeAttribute("aria-current");
+      }
+      continue;
+    }
+    const pressed = names.includes(name);
     categoryEl.setAttribute("aria-pressed", pressed ? "true" : "false");
     categoryEl.classList.toggle("active", pressed);
-    categoryEl.removeAttribute("aria-current");
   }
 }
 
