@@ -4,7 +4,9 @@ let categoriesLoaded = false;
 window.quartoListingCategory = (category) => {
   // category is URI encoded in EJS template for UTF-8 support
   category = decodeURIComponent(atob(category));
-  if (categoriesLoaded) {
+  if (categoriesLoaded && isMultipleSelection()) {
+    selectCategories([category]);
+  } else if (categoriesLoaded) {
     activateCategory(category);
     setCategoryHash(category);
     announceCategoryResults();
@@ -22,7 +24,12 @@ function applyListingHash(announce = false) {
   }
 
   // If there is a category, switch to that
-  if (hash.category) {
+  if (isMultipleSelection()) {
+    applySelection(readSelection());
+    if (announce) {
+      announceCategoryResults();
+    }
+  } else if (hash.category) {
     // category hash are URI encoded so we need to decode it before processing
     // so that we can match it with the category element processed in JS
     activateCategory(decodeURIComponent(hash.category));
@@ -40,7 +47,10 @@ function applyListingHash(announce = false) {
 }
 
 window["quarto-listing-loaded"] = () => {
-  // Process any existing hash
+  // Process any existing hash. In multiple mode an empty hash is a state too.
+  if (isMultipleSelection() && !getHash()) {
+    applySelection([]);
+  }
   applyListingHash();
 
   // Each listing calls this once its List is created, so wire each one once
@@ -70,7 +80,16 @@ window["quarto-listing-loaded"] = () => {
   }
 };
 
-window.addEventListener("hashchange", () => applyListingHash(true));
+window.addEventListener("hashchange", () => {
+  if (isMultipleSelection() && !getHash()) {
+    if (window["quarto-listings"]) {
+      applySelection([]);
+      announceCategoryResults();
+    }
+    return;
+  }
+  applyListingHash(true);
+});
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Attach click handlers to categories
@@ -84,10 +103,20 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       atob(categoryEl.getAttribute("data-category"))
     );
     categoryEl.onclick = () => {
+      if (isMultipleSelection()) {
+        selectCategories(toggledSelection(category));
+        return;
+      }
       activateCategory(category);
       setCategoryHash(category);
       announceCategoryResults();
     };
+  }
+
+  for (const clearEl of window.document.querySelectorAll(
+    ".quarto-listing-category-clear"
+  )) {
+    clearEl.onclick = () => selectCategories([]);
   }
 
   // Attach a click handler to the button in the category title
@@ -97,6 +126,10 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   );
   for (const categoryResetEl of categoryResetEls) {
     categoryResetEl.onclick = () => {
+      if (isMultipleSelection()) {
+        selectCategories([]);
+        return;
+      }
       activateCategory("");
       setCategoryHash("");
       announceCategoryResults();
@@ -118,9 +151,13 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
       return;
     }
     event.preventDefault();
-    activateCategory(category);
-    setCategoryHash(category);
-    announceCategoryResults();
+    if (isMultipleSelection()) {
+      selectCategories([category]);
+    } else {
+      activateCategory(category);
+      setCategoryHash(category);
+      announceCategoryResults();
+    }
     // With pagination, the clicked item can move off the shown page
     const focusEl = tagEl.isConnected
       ? tagEl
@@ -131,7 +168,9 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   });
 
   // Without a category in the hash, the unfiltered entry is the current one
-  if (!getHash()?.category) {
+  if (isMultipleSelection()) {
+    markPressedCategories(readSelection());
+  } else if (!getHash()?.category) {
     markCurrentCategory("");
   }
 
@@ -344,4 +383,124 @@ function filterListingCategory(category) {
       }
     }
   }
+}
+
+// Multiple selection (category-selection: multiple). The URL hash holds the
+// selection as `category=<a>,<b>`: each name is URI encoded on its own, so a
+// literal comma separates names.
+
+function isMultipleSelection() {
+  return !!window.document.querySelector(
+    ".quarto-listing-category[data-category-selection='multiple']"
+  );
+}
+
+function categoryEntryName(categoryEl) {
+  return decodeURIComponent(atob(categoryEl.getAttribute("data-category")));
+}
+
+function categoryNames() {
+  const names = [];
+  for (const categoryEl of window.document.querySelectorAll(
+    ".quarto-listing-category .category"
+  )) {
+    const name = categoryEntryName(categoryEl);
+    if (name !== "") {
+      names.push(name);
+    }
+  }
+  return names;
+}
+
+function rawHashValue(key) {
+  const hash = window.location.hash.slice(1);
+  for (const part of hash.split(kAnd)) {
+    const vals = part.split(kEquals);
+    if (vals.length === 2 && vals[0] === key) {
+      return vals[1];
+    }
+  }
+  return undefined;
+}
+
+function readSelection() {
+  const raw = rawHashValue("category");
+  if (!raw) {
+    return [];
+  }
+  const wanted = new Set();
+  for (const part of raw.split(",")) {
+    try {
+      wanted.add(decodeURIComponent(part));
+    } catch (_error) {
+      // A malformed part names no category
+    }
+  }
+  return categoryNames().filter((name) => wanted.has(name));
+}
+
+function writeSelection(names) {
+  const selected = new Set(names);
+  const ordered = categoryNames().filter((name) => selected.has(name));
+  const url = window.location.pathname + window.location.search;
+  if (ordered.length === 0) {
+    window.history.pushState(null, null, url);
+  } else {
+    const value = ordered.map((name) => encodeURIComponent(name)).join(",");
+    window.history.pushState(null, null, `${url}#category${kEquals}${value}`);
+  }
+}
+
+function toggledSelection(category) {
+  if (category === "") {
+    return [];
+  }
+  const selection = readSelection();
+  return selection.includes(category)
+    ? selection.filter((name) => name !== category)
+    : [...selection, category];
+}
+
+function markPressedCategories(names) {
+  for (const categoryEl of window.document.querySelectorAll(
+    ".quarto-listing-category .category"
+  )) {
+    const name = categoryEntryName(categoryEl);
+    const pressed = name === "" ? names.length === 0 : names.includes(name);
+    categoryEl.setAttribute("aria-pressed", pressed ? "true" : "false");
+    categoryEl.classList.toggle("active", pressed);
+    categoryEl.removeAttribute("aria-current");
+  }
+}
+
+function applySelection(names) {
+  markPressedCategories(names);
+  if (!window["quarto-listings"]) {
+    return;
+  }
+  for (const list of Object.values(window["quarto-listings"])) {
+    if (names.length === 0) {
+      list.filter();
+    } else {
+      list.filter(function (item) {
+        const itemValues = item.values();
+        if (itemValues.categories === null) {
+          return false;
+        }
+        const categories = decodeURIComponent(
+          atob(itemValues.categories)
+        ).split(",");
+        return categories.some((category) => names.includes(category));
+      });
+    }
+  }
+}
+
+function selectCategories(names) {
+  if (!categoriesLoaded || !window["quarto-listings"]) {
+    return;
+  }
+  writeSelection(names);
+  applySelection(readSelection());
+  announceCategoryResults();
 }

@@ -5,7 +5,7 @@ listing:
   contents: posts
   type: default
   sort: "title asc"
-  categories: false
+  fields: [title, description, categories]
   category-selection: multiple
 ---
 
