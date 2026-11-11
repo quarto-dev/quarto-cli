@@ -87,6 +87,21 @@ test.describe("Markup", () => {
     });
   }
 
+  test.describe("before scripts run", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("the served markup presses All and no other entry", async ({ page }) => {
+      await page.goto(`${base}/default.html`);
+      const container = page.locator(".quarto-listing-category");
+      await expect(container.locator(".category[aria-pressed='true']"))
+        .toHaveCount(1);
+      await expect(container.locator(".category").first()).toHaveAttribute(
+        "aria-pressed",
+        "true",
+      );
+    });
+  });
+
   test("single mode has no toggles", async ({ page }) => {
     await page.goto(`${base}/single.html`);
     await expect(page.locator(".quarto-listing-category")).toHaveCount(1);
@@ -135,11 +150,52 @@ test.describe("Selection", () => {
         : reset(page);
       await target.click();
       await expectEmptyState(page);
-      if (control === "clear") {
-        await expect(clearButton(page)).toBeFocused();
-      }
     });
   }
+
+  test("clear keeps the focus for keyboard users", async ({ page, browserName }) => {
+    await page.goto(`${base}/default.html#category=alpha,caf%C3%A9`);
+    await expectPressed(page, ["alpha", "café"]);
+    await press(page, browserName, clearButton(page), "Enter");
+    await expectEmptyState(page);
+    await expect(clearButton(page)).toBeFocused();
+  });
+
+  test("clear with nothing selected adds no history entry", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    const before = await page.evaluate(() => history.length);
+    await clearButton(page).click();
+    await clearButton(page).click();
+    expect(await page.evaluate(() => history.length)).toBe(before);
+  });
+
+  test("an in-page anchor keeps the selection", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    await entry(page, "alpha").click();
+    await entry(page, "café").click();
+    await expect(status(page)).toHaveText("3 matching items");
+    await page.evaluate(() => {
+      document.querySelector(".quarto-listing-category-status")!.textContent =
+        "";
+      location.hash = "quarto-document-content";
+    });
+    await expect(page).toHaveURL(/#quarto-document-content$/);
+    await expectPressed(page, ["alpha", "café"]);
+    await expect(items(page)).toHaveCount(3);
+    await page.waitForTimeout(300);
+    await expect(status(page)).toHaveText("");
+  });
+
+  test("Back to a page-only hash clears the selection", async ({ page }) => {
+    await page.goto(`${base}/paged.html#listing-posts-page=2`);
+    await expect(items(page).first()).toContainText("Post 2");
+    await entry(page, "café").click();
+    await expectPressed(page, ["café"]);
+    await page.goBack();
+    await expect(page).toHaveURL(/#listing-posts-page=2$/);
+    await expectPressed(page, ["All"]);
+    await expect(items(page).first()).toContainText("Post 2");
+  });
 
   test("the last toggle off equals clear", async ({ page }) => {
     await page.goto(`${base}/default.html`);

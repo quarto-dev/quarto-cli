@@ -23,11 +23,14 @@ function applyListingHash(announce = false) {
     return;
   }
 
-  // If there is a category, switch to that
+  // If there is a category, switch to that. In multiple mode, a hash with no
+  // key=value pair (a skip link, a heading anchor) leaves the selection alone.
   if (isMultipleSelection()) {
-    applySelection(readSelection());
-    if (announce) {
-      announceCategoryResults();
+    if (Object.keys(hash).length > 0) {
+      applySelection(readSelection());
+      if (announce) {
+        announceCategoryResults();
+      }
     }
   } else if (hash.category) {
     // category hash are URI encoded so we need to decode it before processing
@@ -443,11 +446,12 @@ function writeSelection(names) {
   const selected = new Set(names);
   const ordered = categoryNames().filter((name) => selected.has(name));
   const url = window.location.pathname + window.location.search;
-  if (ordered.length === 0) {
-    window.history.pushState(null, null, url);
-  } else {
-    const value = ordered.map((name) => encodeURIComponent(name)).join(",");
-    window.history.pushState(null, null, `${url}#category${kEquals}${value}`);
+  const value = ordered.map((name) => encodeURIComponent(name)).join(",");
+  const target = ordered.length === 0
+    ? url
+    : `${url}#category${kEquals}${value}`;
+  if (target !== url + window.location.hash) {
+    window.history.pushState(null, null, target);
   }
 }
 

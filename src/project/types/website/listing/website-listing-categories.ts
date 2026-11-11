@@ -98,7 +98,8 @@ export function categorySidebar(
       "",
     );
     if (multiple) {
-      allEl.setAttribute("aria-pressed", "false");
+      // Nothing is selected until the script reads the URL hash
+      allEl.setAttribute("aria-pressed", "true");
     }
     categoriesEl.appendChild(allEl);
   }
