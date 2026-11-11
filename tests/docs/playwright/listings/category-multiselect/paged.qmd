@@ -1,0 +1,14 @@
+---
+title: "Multiple, paged"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+  categories: true
+  category-selection: multiple
+  page-size: 1
+---
+
+::: {#posts}
+:::

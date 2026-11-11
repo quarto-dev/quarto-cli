@@ -1,0 +1,13 @@
+---
+title: "Multiple, no sidebar"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+  categories: false
+  category-selection: multiple
+---
+
+::: {#posts}
+:::

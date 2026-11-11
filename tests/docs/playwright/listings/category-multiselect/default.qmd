@@ -1,0 +1,13 @@
+---
+title: "Multiple, numbered"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+  categories: true
+  category-selection: multiple
+---
+
+::: {#posts}
+:::
