@@ -39,6 +39,7 @@ All changes included in 1.12:
 
 ### `website`
 
+- ([#12667](https://github.com/quarto-dev/quarto-cli/issues/12667)): Add the `category-selection: multiple` listing option, so that readers can select several categories and see the items in any of them. (author: @mcanouil)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Fix listing `image-alt` values containing quotes or `&` rendering broken or double-escaped alt text. (author: @mcanouil)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Add `target` and `rel` options to listings and listing items, with the listing value as the default for its items. (author: @mcanouil)
 
