@@ -307,3 +307,57 @@ test.describe("Result announcement", () => {
     await expect(status(page)).toHaveText("2 matching items");
   });
 });
+
+async function axeViolations(page: Page) {
+  await page.waitForFunction(() => (window as any).axe);
+  return await page.evaluate(async () => {
+    const axe = (window as any).axe;
+    const result = await axe.run(
+      {
+        include: [
+          ["#listing-posts"],
+          ["#quarto-margin-sidebar"],
+        ].filter(([selector]) => document.querySelector(selector)),
+      },
+      // #14384 (heading level of the filter title) is out of scope here
+      { rules: { "heading-order": { enabled: false } } },
+    );
+    return result.violations.map(
+      (v: { id: string; nodes: { target: string[] }[] }) => ({
+        id: v.id,
+        targets: v.nodes.map((n) => n.target),
+      }),
+    );
+  });
+}
+
+test.describe("Focus and axe", () => {
+  test("focus is visible on every category control", async ({ page, browserName }) => {
+    await page.goto(`${base}/default.html`);
+    for (const target of [reset(page), entry(page, "alpha"), tag(page, "café")]) {
+      expect(await tabUntilFocused(page, browserName, target, 40)).toBe(true);
+      await expect(target).not.toHaveCSS("outline-style", "none");
+    }
+  });
+
+  test("focus on a grid item link rings the whole card", async ({ page, browserName }) => {
+    await page.goto(`${base}/grid.html`);
+    const card = page.locator(".quarto-grid-item", { hasText: "Post 2" });
+    const link = card.locator("a.stretched-link");
+    expect(await tabUntilFocused(page, browserName, link, 40)).toBe(true);
+    await expect(card).not.toHaveCSS("outline-style", "none");
+    await expect(link).toHaveCSS("outline-style", "none");
+  });
+
+  for (const pageName of ["default.html", "grid.html", "cloud.html", "index.html"]) {
+    test(`no axe violations on ${pageName}, before and after a selection`, async ({ page }) => {
+      await page.goto(`${base}/${pageName}`);
+      await expect(items(page)).toHaveCount(3);
+      expect(await axeViolations(page)).toEqual([]);
+
+      await tag(page, "alpha").first().click();
+      await expect(items(page)).toHaveCount(2);
+      expect(await axeViolations(page)).toEqual([]);
+    });
+  }
+});

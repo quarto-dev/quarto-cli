@@ -367,6 +367,16 @@ ul.pagination {
   z-index: 2;
 }
 
+// The focus ring follows the click area: the whole card, not the title
+.quarto-grid-item:has(.stretched-link:focus-visible) {
+  @include focus-ring;
+}
+
+.quarto-grid-item .stretched-link:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .quarto-grid-item {
   h5.title {
     margin-top: 0;
