@@ -83,11 +83,14 @@ test.describe("Category sidebar", () => {
         await expectOnlyCurrent(page, "café");
       });
 
-      test("reset is named and shows all items", async ({ page, browserName }) => {
+      test("reset is named and shows all items", async ({ page }) => {
         await entry(page, "alpha").click();
         await expect(items(page)).toHaveCount(2);
 
-        await press(page, browserName, reset(page), "Enter");
+        // Tab reach is tested above; the reset sits before the entry that the
+        // click focused, and Firefox does not wrap Tab back into the page
+        await reset(page).focus();
+        await page.keyboard.press("Enter");
         await expect(items(page)).toHaveCount(3);
         await expectOnlyCurrent(page, style === "numbered" ? "All" : undefined);
       });
