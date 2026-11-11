@@ -862,6 +862,9 @@ export type FormatLanguage = {
   "listing-page-field-categories"?: string;
   "listing-page-minutes-compact"?: string;
   "listing-page-category-all"?: string;
+  "listing-page-category-reset"?: string;
+  "listing-page-category-results-one"?: string;
+  "listing-page-category-results"?: string;
   "listing-page-no-matches"?: string;
   "listing-page-words"?: string;
   "listing-page-filter"?: string;
