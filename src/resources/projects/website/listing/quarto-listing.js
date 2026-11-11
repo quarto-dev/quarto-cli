@@ -84,16 +84,21 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     };
   }
 
-  // Attach a click handler to the category title
+  // Attach a click handler to the button in the category title
   // (there should be only one, but since it is a class name, handle N)
-  const categoryTitleEls = window.document.querySelectorAll(
-    ".quarto-listing-category-title"
+  const categoryResetEls = window.document.querySelectorAll(
+    ".quarto-listing-category-reset"
   );
-  for (const categoryTitleEl of categoryTitleEls) {
-    categoryTitleEl.onclick = () => {
+  for (const categoryResetEl of categoryResetEls) {
+    categoryResetEl.onclick = () => {
       activateCategory("");
       setCategoryHash("");
     };
+  }
+
+  // Without a category in the hash, the unfiltered entry is the current one
+  if (!getHash()?.category) {
+    markCurrentCategory("");
   }
 
   categoriesLoaded = true;
@@ -225,15 +230,21 @@ function showPage(listingId, page) {
 }
 
 function activateCategory(category) {
-  // Deactivate existing categories
+  markCurrentCategory(category);
+
+  // Filter the listings to this category
+  filterListingCategory(category);
+}
+
+function markCurrentCategory(category) {
   const activeEls = window.document.querySelectorAll(
-    ".quarto-listing-category .category.active"
+    ".quarto-listing-category .category.active, .quarto-listing-category .category[aria-current]"
   );
   for (const activeEl of activeEls) {
     activeEl.classList.remove("active");
+    activeEl.removeAttribute("aria-current");
   }
 
-  // Activate this category
   const categoryEl = window.document.querySelector(
     `.quarto-listing-category .category[data-category='${btoa(
       encodeURIComponent(category)
@@ -241,10 +252,8 @@ function activateCategory(category) {
   );
   if (categoryEl) {
     categoryEl.classList.add("active");
+    categoryEl.setAttribute("aria-current", "true");
   }
-
-  // Filter the listings to this category
-  filterListingCategory(category);
 }
 
 function filterListingCategory(category) {

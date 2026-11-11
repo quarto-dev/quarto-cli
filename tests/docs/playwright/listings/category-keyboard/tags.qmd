@@ -1,0 +1,11 @@
+---
+title: "Categories, tags"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+---
+
+::: {#posts}
+:::

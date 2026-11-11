@@ -1,0 +1,14 @@
+---
+title: "Categories, grid"
+listing:
+  id: posts
+  contents: posts
+  type: grid
+  sort: "title asc"
+  categories: unnumbered
+  fields: [title, description, categories, author, date, venue]
+  field-links: [venue]
+---
+
+::: {#posts}
+:::

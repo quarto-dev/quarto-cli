@@ -268,16 +268,25 @@ ul.pagination {
     font-size: 1rem;
   }
   .quarto-listing-category-title {
-    cursor: pointer;
     font-weight: 600;
     font-size: 1rem;
   }
 }
 
+// The reset and the category entries are buttons that look like text
+.quarto-listing-category-reset,
+.quarto-listing-category .category {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
 .quarto-listing-category {
-  .category {
-    cursor: pointer;
-  }
   .category.active {
     font-weight: 600;
   }
@@ -288,6 +297,7 @@ ul.pagination {
   flex-wrap: wrap;
   align-items: baseline;
   .category {
+    display: inline;
     padding-right: 5px;
   }
 

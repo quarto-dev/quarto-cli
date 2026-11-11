@@ -26,7 +26,7 @@ test.describe("Listing categories", () => {
     await categoryEl(page, "cat3").click();
     await expect(titles(page, "first-listing")).toHaveText(["Post 3"]);
 
-    await page.locator(".quarto-listing-category-title").click();
+    await page.locator(".quarto-listing-category-reset").click();
 
     await expect(titles(page, "first-listing")).toHaveText(["Post 1"]);
     await expect(page.locator("#first-listing-pagination .page.page-link")).toHaveCount(3);

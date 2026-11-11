@@ -11,7 +11,7 @@ _quarto:
   tests:
     html:
       ensureHtmlElements:
-        - ['div.quarto-listing-category div.category:nth-child(2)[data-category="YWFyZHZhcms="]']
+        - ['div.quarto-listing-category button.category:nth-child(2)[data-category="YWFyZHZhcms="]']
         - []
 ---
 

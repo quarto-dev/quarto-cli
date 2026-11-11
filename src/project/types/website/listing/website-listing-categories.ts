@@ -6,6 +6,7 @@
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kListingPageCategoryAll,
+  kListingPageCategoryReset,
   kListingPageFieldCategories,
 } from "../../../../config/constants.ts";
 import { localizedString } from "../../../../config/localization.ts";
@@ -27,10 +28,26 @@ export function categorySidebar(
 ) {
   const categoryStyle: CategoryStyle = options[kCategoryStyle];
 
-  // The heading
+  // The heading holds the button that clears the filter. The heading and the
+  // group take their name from the visible text only, not from the button's
+  // aria-label, which says what the button does.
+  const titleTextEl = doc.createElement("span");
+  titleTextEl.id = kCategoryTitleTextId;
+  titleTextEl.innerText = localizedString(format, kListingPageFieldCategories);
+
+  const resetEl = doc.createElement("button");
+  resetEl.setAttribute("type", "button");
+  resetEl.classList.add("quarto-listing-category-reset");
+  resetEl.setAttribute(
+    "aria-label",
+    localizedString(format, kListingPageCategoryReset),
+  );
+  resetEl.appendChild(titleTextEl);
+
   const headingEl = doc.createElement("h5");
-  headingEl.innerText = localizedString(format, kListingPageFieldCategories);
   headingEl.classList.add("quarto-listing-category-title");
+  headingEl.setAttribute("aria-labelledby", kCategoryTitleTextId);
+  headingEl.appendChild(resetEl);
 
   // The categories
   const cats = accumCategories(listingDescriptors);
@@ -39,6 +56,8 @@ export function categorySidebar(
 
   // Mark the form
   categoriesEl.classList.add(categoryStyle);
+  categoriesEl.setAttribute("role", "group");
+  categoriesEl.setAttribute("aria-labelledby", kCategoryTitleTextId);
 
   const defaultFormat = (category: string, count: number) => {
     return category +
@@ -85,6 +104,8 @@ export function categorySidebar(
   return { headingEl, categoriesEl };
 }
 
+const kCategoryTitleTextId = "quarto-listing-category-title-text";
+
 function itemCount(listingDescriptors: ListingDescriptor[]) {
   return listingDescriptors.reduce((previous, listingDescriptor) => {
     return previous + listingDescriptor.items.length;
@@ -118,7 +139,8 @@ function categoryElement(
   contents: string,
   value?: string,
 ) {
-  const categoryEl = doc.createElement("div");
+  const categoryEl = doc.createElement("button");
+  categoryEl.setAttribute("type", "button");
   categoryEl.classList.add("category");
   categoryEl.setAttribute(
     "data-category",
