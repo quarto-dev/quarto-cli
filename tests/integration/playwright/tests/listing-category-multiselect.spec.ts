@@ -358,6 +358,37 @@ test.describe("Announcement", () => {
   });
 });
 
+test.describe("Two listings", () => {
+  const listItems = (page: Page, id: string) =>
+    page.locator(`#listing-${id} .list > *`);
+  const noMatching = (page: Page, id: string) =>
+    page.locator(`#listing-${id} .listing-no-matching`);
+
+  test("the second listing turns on multiple mode for the shared sidebar", async ({ page }) => {
+    await page.goto(`${base}/two.html`);
+    await expect(page.locator(".quarto-listing-category")).toHaveAttribute(
+      "data-category-selection",
+      "multiple",
+    );
+    await expect(listItems(page, "alpha-posts")).toHaveCount(2);
+    await expect(listItems(page, "cafe-posts")).toHaveCount(1);
+  });
+
+  test("a selection filters both listings by union", async ({ page }) => {
+    await page.goto(`${base}/two.html`);
+    await entry(page, "alpha").click();
+    await expect(listItems(page, "alpha-posts")).toHaveCount(2);
+    await expect(listItems(page, "cafe-posts")).toHaveCount(0);
+    await expect(noMatching(page, "cafe-posts")).toBeVisible();
+    await expect(status(page)).toHaveText("2 matching items");
+
+    await entry(page, "café").click();
+    await expect(listItems(page, "cafe-posts")).toHaveCount(1);
+    await expect(noMatching(page, "cafe-posts")).toBeHidden();
+    await expect(status(page)).toHaveText("3 matching items");
+  });
+});
+
 test.describe("Readiness", () => {
   test("a call before the listing is ready does not throw", async ({ page }) => {
     const errors = collectErrors(page);
