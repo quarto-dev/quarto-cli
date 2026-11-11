@@ -395,3 +395,32 @@ test.describe("Announcement edge cases", () => {
     await expect(tag(page, "alpha")).toBeFocused();
   });
 });
+
+test.describe("Review follow-ups", () => {
+  test("the announcement survives a hidden margin sidebar", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    // Below the md breakpoint the theme hides the margin sidebar this way
+    await page.addStyleTag({
+      content: "#quarto-margin-sidebar { display: none !important; }",
+    });
+    await tag(page, "alpha").first().click();
+    await expect(items(page)).toHaveCount(2);
+    await expect(status(page)).toHaveText("2 matching items");
+  });
+
+  test("a grid item with an empty title still has a named link", async ({ page }) => {
+    await page.goto(`${base}/untitled.html`);
+    const link = page.locator(".quarto-grid-item a.stretched-link");
+    await expect(link).toHaveCount(1);
+    await expect(link).not.toHaveAccessibleName("");
+  });
+
+  test("window.quartoListingCategory announces the result", async ({ page }) => {
+    await page.goto(`${base}/default.html`);
+    await page.evaluate(() =>
+      (window as any).quartoListingCategory(btoa(encodeURIComponent("alpha")))
+    );
+    await expect(items(page)).toHaveCount(2);
+    await expect(status(page)).toHaveText("2 matching items");
+  });
+});

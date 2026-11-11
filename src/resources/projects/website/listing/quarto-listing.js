@@ -7,6 +7,7 @@ window.quartoListingCategory = (category) => {
   if (categoriesLoaded) {
     activateCategory(category);
     setCategoryHash(category);
+    announceCategoryResults();
   }
 };
 

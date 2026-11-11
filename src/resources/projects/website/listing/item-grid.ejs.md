@@ -66,7 +66,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 
 ::: {.card-body .post-contents}
 
-<% if (showField('title')) { %>
+<% if (showField('title') && item.title) { %>
 <h5 class="no-anchor card-title listing-title"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link stretched-link no-external-icon"><%= item.title %></a></h5>
 <% } %>
 
@@ -176,7 +176,7 @@ let value = readField(item, field);
 <% } %>
 
 ```{=html}
-<% if (!showField('title')) { %>
+<% if (!(showField('title') && item.title)) { %>
 <a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link stretched-link no-external-icon"><span class="visually-hidden"><%= item.title || item.path %></span></a>
 <% } %>
 </div>

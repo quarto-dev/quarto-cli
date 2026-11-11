@@ -399,21 +399,21 @@ function listingPostProcess(
     // just after the header or before the footer
     const marginHeader = rightSidebar?.querySelector(".quarto-margin-header");
     if (marginHeader) {
-      marginHeader.after(...[headingEl, categoriesEl, statusEl]);
+      marginHeader.after(...[headingEl, categoriesEl]);
     } else {
       const marginFooter = rightSidebar?.querySelector(".quarto-margin-footer");
       if (marginFooter) {
         rightSidebar?.insertBefore(headingEl, marginFooter);
         rightSidebar?.insertBefore(categoriesEl, marginFooter);
-        rightSidebar?.insertBefore(statusEl, marginFooter);
       } else {
         rightSidebar?.appendChild(headingEl);
         rightSidebar?.appendChild(categoriesEl);
-        rightSidebar?.appendChild(statusEl);
       }
     }
   }
-  if (!statusEl.parentElement && listingDescriptors.length > 0) {
+  // The region stays next to the listing, in the main column: the margin
+  // sidebar is hidden on narrow screens, which would silence it
+  if (listingDescriptors.length > 0) {
     doc.getElementById(`listing-${listingDescriptors[0].listing.id}`)?.after(
       statusEl,
     );
