@@ -1,0 +1,15 @@
+---
+title: "Mobile TOC percent id"
+format:
+  html:
+    toc: true
+    toc-location: right
+---
+
+## First section {#first}
+
+{{< lipsum 3 >}}
+
+## Half off {id="sale-50%zz"}
+
+{{< lipsum 3 >}}

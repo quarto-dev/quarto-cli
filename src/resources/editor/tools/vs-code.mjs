@@ -10587,6 +10587,7 @@ var init_yaml_intelligence_resources = __esm({
               "link-external-newwindow-label": "string",
               "revealjs-menu-button-label": "string",
               "announcement-dismiss-label": "string",
+              "toc-sheet-close-label": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
               "repo-action-links-issue": "string",
@@ -22125,6 +22126,7 @@ var init_yaml_intelligence_resources = __esm({
         "epub2",
         "epub3",
         "fb2",
+        "fodt",
         "gfm",
         "haddock",
         "html",
@@ -22163,6 +22165,7 @@ var init_yaml_intelligence_resources = __esm({
         "s5",
         "slideous",
         "slidy",
+        "t2t",
         "tei",
         "texinfo",
         "textile",
@@ -25909,12 +25912,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222313,
+        _internalId: 227739,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222305,
+            _internalId: 227731,
             type: "enum",
             enum: [
               "png",
@@ -25930,7 +25933,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222312,
+            _internalId: 227738,
             type: "anyOf",
             anyOf: [
               {

@@ -34,6 +34,347 @@ const layoutMarginEls = () => {
   }
 };
 
+// Below the md breakpoint the sidebar table of contents is hidden. Offer a
+// pill that opens a copy of it in a modal bottom sheet instead.
+const setupMobileToc = (tocEl) => {
+  const list = tocEl?.querySelector(":scope > ul");
+  if (
+    !list ||
+    tocEl.closest("main") ||
+    window.document.getElementById("TOC-body") ||
+    typeof HTMLDialogElement === "undefined" ||
+    typeof HTMLDialogElement.prototype.showModal !== "function" ||
+    list.querySelectorAll("a").length < 2
+  ) {
+    return;
+  }
+
+  const root = window.document.documentElement;
+  const label =
+    tocEl.querySelector("#toc-title")?.textContent.trim() ||
+    "Table of contents";
+  const closeLabel =
+    tocEl.getAttribute("data-toc-sheet-close-label") ||
+    "Close table of contents";
+  const breakpoint =
+    parseFloat(
+      window
+        .getComputedStyle(root)
+        .getPropertyValue("--bs-breakpoint-md")
+    ) || 768;
+  const narrow = window.matchMedia(`(max-width: ${breakpoint - 0.02}px)`);
+  const kHeading = ":is(h1, h2, h3, h4, h5, h6)";
+
+  const build = () => {
+    const sheet = window.document.createElement("dialog");
+    sheet.id = "quarto-toc-sheet";
+    sheet.className = "quarto-toc-sheet";
+    sheet.setAttribute("aria-labelledby", "quarto-toc-sheet-title");
+
+    const header = window.document.createElement("div");
+    header.className = "quarto-toc-sheet-header";
+    const title = window.document.createElement("span");
+    title.id = "quarto-toc-sheet-title";
+    title.className = "quarto-toc-sheet-title";
+    title.textContent = label;
+    const close = window.document.createElement("button");
+    close.type = "button";
+    close.className = "quarto-toc-sheet-close";
+    close.setAttribute("aria-label", closeLabel);
+    close.innerHTML = '<i class="bi bi-x-lg" aria-hidden="true"></i>';
+    header.append(title, close);
+
+    const nav = window.document.createElement("nav");
+    nav.setAttribute("aria-labelledby", "quarto-toc-sheet-title");
+    sheet.append(header, nav);
+
+    const pill = window.document.createElement("button");
+    pill.type = "button";
+    pill.className = "quarto-toc-pill";
+    pill.setAttribute("aria-haspopup", "dialog");
+    pill.setAttribute("aria-expanded", "false");
+    pill.setAttribute("aria-controls", sheet.id);
+    pill.innerHTML = '<i class="bi bi-list-nested" aria-hidden="true"></i>';
+    const pillLabel = window.document.createElement("span");
+    pillLabel.className = "quarto-toc-pill-label";
+    pillLabel.textContent = label;
+    pill.append(pillLabel);
+
+    // The copy keeps the links and scroll targets of the original, but
+    // none of its ids, which must stay unique. It lists every entry: the
+    // page cannot scroll while the sheet is open, so branches that the
+    // sidebar collapses would stay out of reach.
+    let copy = null;
+    const markCurrent = () => {
+      copy
+        .querySelectorAll("ul.collapse, ul.collapsing")
+        .forEach((ul) => ul.classList.remove("collapse", "collapsing"));
+      copy
+        .querySelectorAll("a[aria-current]")
+        .forEach((a) => a.removeAttribute("aria-current"));
+      const active = copy.querySelectorAll("a.active");
+      active[active.length - 1]?.setAttribute("aria-current", "location");
+    };
+    const mount = () => {
+      const fresh = list.cloneNode(true);
+      [fresh, ...fresh.querySelectorAll("[id]")].forEach((el) =>
+        el.removeAttribute("id")
+      );
+      const focusedHref = copy?.contains(window.document.activeElement)
+        ? window.document.activeElement.getAttribute("href")
+        : null;
+      if (copy) {
+        copy.replaceWith(fresh);
+      } else {
+        nav.append(fresh);
+      }
+      copy = fresh;
+      markCurrent();
+      if (focusedHref) {
+        [...copy.querySelectorAll("a")]
+          .find((a) => a.getAttribute("href") === focusedHref)
+          ?.focus();
+      }
+    };
+    const mirrorClasses = () => {
+      const source = list.querySelectorAll("ul, li, a");
+      const target = copy.querySelectorAll("ul, li, a");
+      source.forEach((el, index) => {
+        if (target[index].className !== el.className) {
+          target[index].className = el.className;
+        }
+      });
+      markCurrent();
+    };
+    mount();
+
+    // Other scripts may add nodes inside the TOC links, so a copy paired by
+    // position can drift. Clone again on any child change and copy only the
+    // classes otherwise, at most once for each animation frame.
+    let frame = 0;
+    let reclone = false;
+    const observer = new MutationObserver((records) => {
+      if (records.some((record) => record.type === "childList")) {
+        reclone = true;
+      }
+      if (frame) {
+        return;
+      }
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        if (reclone) {
+          mount();
+        } else {
+          mirrorClasses();
+        }
+        reclone = false;
+      });
+    });
+    observer.observe(list, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+
+    const unlockScroll = () => {
+      root.classList.remove("quarto-toc-sheet-open");
+    };
+    const open = () => {
+      sheet.showModal();
+      root.classList.add("quarto-toc-sheet-open");
+      pill.setAttribute("aria-expanded", "true");
+      (
+        copy.querySelector("a[aria-current]") || copy.querySelector("a")
+      )?.focus();
+    };
+    const dismiss = () => {
+      unlockScroll();
+      sheet.close();
+    };
+    pill.addEventListener("click", open);
+    close.addEventListener("click", dismiss);
+    sheet.addEventListener("close", () => {
+      unlockScroll();
+      pill.setAttribute("aria-expanded", "false");
+      // A click on the backdrop can leave the focus on the body in WebKit.
+      const active = window.document.activeElement;
+      if (active === window.document.body || sheet.contains(active)) {
+        pill.focus();
+      }
+    });
+    sheet.addEventListener("click", (event) => {
+      const link = event.target.closest("a");
+      if (!link) {
+        const box = sheet.getBoundingClientRect();
+        if (
+          event.clientX < box.left ||
+          event.clientX > box.right ||
+          event.clientY < box.top ||
+          event.clientY > box.bottom
+        ) {
+          dismiss();
+        }
+        return;
+      }
+      dismiss();
+      const plain =
+        !event.defaultPrevented &&
+        !(event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) &&
+        link.origin + link.pathname ===
+          window.location.origin + window.location.pathname;
+      if (!plain) {
+        return;
+      }
+      // Like the browser, look the id up as written first, then decoded: an
+      // id may hold a "%" that does not start a valid escape (#15297).
+      const rawId = link.hash.slice(1);
+      let decodedId = rawId;
+      try {
+        decodedId = decodeURIComponent(rawId);
+      } catch {
+        // Keep the raw id.
+      }
+      // Move focus to the target after the browser follows the link, so that
+      // keyboard and screen reader users land on the section.
+      const focusTarget = () => {
+        const target =
+          window.document.getElementById(rawId) ||
+          window.document.getElementById(decodedId);
+        const active = window.document.activeElement;
+        if (!target || (active !== window.document.body && active !== pill)) {
+          return;
+        }
+        const heading = target.matches(kHeading)
+          ? target
+          : target.querySelector(`:scope > ${kHeading}`) || target;
+        if (!heading.hasAttribute("tabindex")) {
+          heading.setAttribute("tabindex", "-1");
+          heading.addEventListener(
+            "blur",
+            () => heading.removeAttribute("tabindex"),
+            { once: true }
+          );
+        }
+        heading.focus({ preventScroll: true });
+      };
+      // Some browsers follow the link after a frame, and a fragment
+      // navigation clears the focus, so wait for it when the hash changes.
+      if (link.hash === window.location.hash) {
+        requestAnimationFrame(focusTarget);
+      } else {
+        window.addEventListener(
+          "hashchange",
+          () => setTimeout(focusTarget, 0),
+          { once: true }
+        );
+      }
+    });
+
+    const main =
+      window.document.querySelector("#quarto-content > main") ||
+      window.document.querySelector("main");
+    if (main) {
+      main.before(pill, sheet);
+    } else {
+      window.document.body.append(pill, sheet);
+    }
+
+    // Keep the pill clear of focused elements and scrolled-to headings.
+    const writePillHeight = () => {
+      root.style.setProperty(
+        "--quarto-toc-pill-height",
+        `${pill.getBoundingClientRect().height}px`
+      );
+    };
+    root.style.scrollPaddingBottom =
+      "calc(var(--quarto-toc-pill-height, 44px) + 1rem)";
+    const pillObserver = new ResizeObserver(writePillHeight);
+    pillObserver.observe(pill);
+
+    // Content wider than the screen widens the layout viewport on a phone, and
+    // a fixed element follows its far edge off screen. Offset the pill, the
+    // sheet and back-to-top by the gap to the visual viewport. A hidden fixed
+    // box measures the area that fixed elements use, which leaves out a
+    // classic desktop scrollbar.
+    const viewport = window.visualViewport;
+    const listeners = new AbortController();
+    let placeFrame = 0;
+    let area = null;
+    if (viewport) {
+      const { signal } = listeners;
+      area = window.document.createElement("div");
+      area.setAttribute("aria-hidden", "true");
+      area.style.cssText =
+        "display: block; position: fixed; inset: 0; margin: 0; padding: 0; border: 0; " +
+        "width: auto; height: auto; min-width: 0; min-height: 0; max-width: none; max-height: none; " +
+        "visibility: hidden; pointer-events: none;";
+      window.document.body.append(area);
+      const apply = () => {
+        placeFrame = 0;
+        const box = area.getBoundingClientRect();
+        const offsetX = box.right - (viewport.offsetLeft + viewport.width);
+        const offsetY = box.bottom - (viewport.offsetTop + viewport.height);
+        const offsetLeft = viewport.offsetLeft - box.left;
+        root.style.setProperty(
+          "--quarto-toc-offset-x",
+          `${Math.max(0, offsetX)}px`
+        );
+        root.style.setProperty(
+          "--quarto-toc-offset-y",
+          `${Math.max(0, offsetY)}px`
+        );
+        root.style.setProperty(
+          "--quarto-toc-offset-left",
+          `${Math.max(0, offsetLeft)}px`
+        );
+      };
+      const place = () => {
+        if (!placeFrame) {
+          placeFrame = requestAnimationFrame(apply);
+        }
+      };
+      viewport.addEventListener("resize", place, { signal });
+      viewport.addEventListener("scroll", place, { signal });
+      window.addEventListener("resize", place, { signal });
+      window.addEventListener("scroll", place, { signal, passive: true });
+      window.addEventListener("load", place, { signal });
+      apply();
+    }
+
+    return () => {
+      listeners.abort();
+      pillObserver.disconnect();
+      cancelAnimationFrame(placeFrame);
+      area?.remove();
+      ["pill-height", "offset-x", "offset-y", "offset-left"].forEach((name) =>
+        root.style.removeProperty(`--quarto-toc-${name}`)
+      );
+      root.style.removeProperty("scroll-padding-bottom");
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      unlockScroll();
+      if (sheet.open) {
+        sheet.close();
+      }
+      pill.remove();
+      sheet.remove();
+    };
+  };
+
+  let teardown = null;
+  const sync = () => {
+    if (narrow.matches && !teardown) {
+      teardown = build();
+    } else if (!narrow.matches && teardown) {
+      teardown();
+      teardown = null;
+    }
+  };
+  sync();
+  narrow.addEventListener("change", sync);
+};
+
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Recompute the position of margin elements and re-sync scrollable regions
   // anytime the body size changes. Trailing, so a resize that ends inside the
@@ -56,6 +397,7 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
   scrollableRegions.syncScrollableRegions();
 
   const tocEl = window.document.querySelector('nav.toc-active[role="doc-toc"]');
+  setupMobileToc(tocEl);
   const sidebarEl = window.document.getElementById("quarto-sidebar");
   const leftTocEl = window.document.getElementById("quarto-sidebar-toc-left");
   const marginSidebarEl = window.document.getElementById(

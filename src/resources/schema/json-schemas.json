@@ -1940,6 +1940,9 @@
           "announcement-dismiss-label": {
             "type": "string"
           },
+          "toc-sheet-close-label": {
+            "type": "string"
+          },
           "repo-action-links-edit": {
             "type": "string"
           },

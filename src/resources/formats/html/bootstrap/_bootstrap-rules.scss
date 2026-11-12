@@ -2331,6 +2331,207 @@ code.sourceCode a.code-annotation-anchor {
   z-index: 1000;
 }
 
+// These defaults sit here and not with the other $toc-* variables, because
+// the Bootstrap colours they use are not defined yet in that file.
+$toc-sheet-pill-bg: $body-bg !default;
+$toc-sheet-pill-color: $body-color !default;
+$toc-sheet-border-color: $border-color !default;
+$toc-sheet-bg: $body-bg !default;
+$toc-sheet-active-bg: mix($body-color, $body-bg, 10%) !default;
+$toc-sheet-border-radius: $border-radius-lg !default;
+
+// Table of contents button and bottom sheet on narrow screens, built by
+// quarto.js. The offsets are set by quarto.js when content is wider than
+// the screen. z-index 1020 is above page content, the docked sidebar and
+// back-to-top (1000), and below Bootstrap modals (1055) and the search overlay.
+.quarto-toc-pill {
+  position: fixed;
+  right: calc(
+    1rem + env(safe-area-inset-right) + var(--quarto-toc-offset-x, 0px)
+  );
+  bottom: calc(
+    1rem + env(safe-area-inset-bottom) + var(--quarto-toc-offset-y, 0px)
+  );
+  z-index: 1020;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 1rem;
+  border: 1px solid $toc-sheet-border-color;
+  border-radius: 999px;
+  background: $toc-sheet-pill-bg;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: $toc-sheet-pill-color;
+  font-size: 0.875rem;
+  line-height: 1;
+
+  &:dir(rtl) {
+    right: auto;
+    left: calc(
+      1rem + env(safe-area-inset-left) + var(--quarto-toc-offset-left, 0px)
+    );
+  }
+}
+
+.quarto-toc-pill:focus-visible,
+.quarto-toc-sheet-close:focus-visible,
+.quarto-toc-sheet a:focus-visible {
+  @include focus-ring;
+}
+
+body:has(.quarto-toc-pill) #quarto-back-to-top {
+  left: calc(
+    50% + (var(--quarto-toc-offset-left, 0px) - var(--quarto-toc-offset-x, 0px)) /
+      2
+  );
+  bottom: calc(
+    1rem + env(safe-area-inset-bottom) + var(--quarto-toc-offset-y, 0px) +
+      var(--quarto-toc-pill-height, 44px) + 0.75rem
+  );
+}
+
+body:has(#quarto-sidebar-glass.show) .quarto-toc-pill {
+  visibility: hidden;
+}
+
+html.quarto-toc-sheet-open {
+  overflow: hidden;
+}
+
+.quarto-toc-sheet {
+  inset: auto var(--quarto-toc-offset-x, 0px) var(--quarto-toc-offset-y, 0px)
+    var(--quarto-toc-offset-left, 0px);
+  box-sizing: border-box;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: 70vh;
+  max-height: 70dvh;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.6rem 0.75rem calc(1rem + env(safe-area-inset-bottom));
+  border: 0;
+  border-top: 1px solid $toc-sheet-border-color;
+  border-radius: $toc-sheet-border-radius $toc-sheet-border-radius 0 0;
+  background: $toc-sheet-bg;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.18);
+  color: $toc-sheet-pill-color;
+  transition: transform 0.2s ease-out;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  ul {
+    margin: 0;
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  ul ul a {
+    padding-inline-start: 1.2rem;
+  }
+
+  ul ul ul a {
+    padding-inline-start: 1.9rem;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0.2rem 0.5rem;
+    color: inherit;
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  a.active {
+    border-radius: 0 999px 999px 0;
+    background: $toc-sheet-active-bg;
+    box-shadow: inset 3px 0 0 $toc-active-border;
+    font-weight: 700;
+
+    &:dir(rtl) {
+      border-radius: 999px 0 0 999px;
+      box-shadow: inset -3px 0 0 $toc-active-border;
+    }
+  }
+
+  .header-section-number {
+    margin-inline-end: 0.35rem;
+  }
+}
+
+@starting-style {
+  .quarto-toc-sheet[open] {
+    transform: translateY(100%);
+  }
+}
+
+.quarto-toc-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 0.4rem;
+  margin-inline-start: 0.5rem;
+}
+
+.quarto-toc-sheet-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.quarto-toc-sheet-close {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 1px solid $toc-sheet-border-color;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quarto-toc-sheet {
+    transition: none;
+  }
+}
+
+@media print {
+  .quarto-toc-pill,
+  .quarto-toc-sheet {
+    display: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .quarto-toc-pill:focus-visible,
+  .quarto-toc-sheet-close:focus-visible,
+  .quarto-toc-sheet a:focus-visible {
+    outline-color: Highlight;
+  }
+
+  .quarto-toc-pill,
+  .quarto-toc-sheet-close {
+    border-color: ButtonText;
+  }
+
+  .quarto-toc-sheet {
+    border: 1px solid CanvasText;
+  }
+
+  .quarto-toc-sheet a.active {
+    border-inline-start: 3px solid Highlight;
+    box-shadow: none;
+  }
+}
+
 // override _reboot.scss
 
 // code blocks
