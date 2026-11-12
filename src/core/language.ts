@@ -182,20 +182,19 @@ export function mergeLanguages(
   base: FormatLanguage | undefined,
   language: FormatLanguage | undefined,
 ): FormatLanguage {
-  const merged = mergeConfigs({} as FormatLanguage, base);
-  if (!language) {
-    return merged;
-  }
-  const keys = Object.keys(language).filter((key) =>
-    isTranslationKey(language, key)
-  );
+  const merged = { ...base } as FormatLanguage;
+  const next = language ?? {};
+  const keys = Object.keys(next).filter((key) => isTranslationKey(next, key));
   Object.keys(merged).forEach((variation) => {
     if (!isTranslationKey(merged, variation)) {
-      const translations = merged[variation] as Record<string, unknown>;
+      const translations = {
+        ...merged[variation] as Record<string, unknown>,
+      };
       keys.forEach((key) => delete translations[key]);
+      merged[variation] = translations;
     }
   });
-  return mergeConfigs(merged, language);
+  return mergeConfigs(merged, next);
 }
 
 export function translationsForLang(language: FormatLanguage, lang: string) {

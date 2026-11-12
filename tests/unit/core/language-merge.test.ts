@@ -5,78 +5,73 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assertEquals } from "testing/asserts";
+import { assertEquals } from "../../asserts.ts";
 
 import { translationsForLang } from "../../../src/core/language.ts";
-import { mergeFormatMetadata } from "../../../src/config/metadata.ts";
+import {
+  mergeFormatMetadata,
+  mergeProjectMetadata,
+} from "../../../src/config/metadata.ts";
 import { FormatLanguage } from "../../../src/config/types.ts";
 
 const kKey = "toc-title-document";
+const kOtherKey = "toc-title-website";
 
 type Layer = { language: FormatLanguage };
 
-function resolve(lang: string, ...languages: FormatLanguage[]) {
-  const [first, ...rest] = languages.map((language): Layer => ({ language }));
-  const merged = mergeFormatMetadata<Layer>(first, ...rest);
-  return translationsForLang(merged.language, lang)[kKey];
+const kEarlyFr: Layer = {
+  language: {
+    [kKey]: "early",
+    [kOtherKey]: "early other",
+    fr: { [kKey]: "early fr", [kOtherKey]: "early other fr" },
+    "fr-CA": { [kKey]: "early fr-CA" },
+  },
+};
+
+function resolve(
+  lang: string,
+  key: string,
+  merge: (config: Layer, ...configs: Layer[]) => Layer,
+  ...layers: Layer[]
+) {
+  const [first, ...rest] = layers;
+  return translationsForLang(merge(first, ...rest).language, lang)[key];
 }
 
-unitTest(
-  "language-merge - later plain key replaces earlier variation",
-  async () => {
-    assertEquals(
-      resolve("fr", { [kKey]: "early", fr: { [kKey]: "early fr" } }, {
-        [kKey]: "late",
-      }),
-      "late",
-    );
-  },
-);
-
-unitTest(
-  "language-merge - later key replaces every earlier variation",
-  async () => {
-    assertEquals(
-      resolve("fr-CA", {
-        [kKey]: "early",
-        fr: { [kKey]: "early fr" },
-        "fr-CA": { [kKey]: "early fr-CA" },
-      }, { [kKey]: "late" }),
-      "late",
-    );
-  },
-);
-
-unitTest("language-merge - variation wins in its own language", async () => {
-  assertEquals(
-    resolve("fr", { [kKey]: "early", fr: { [kKey]: "early fr" } }),
-    "early fr",
+for (
+  const [name, merge] of [
+    ["mergeFormatMetadata", mergeFormatMetadata<Layer>],
+    ["mergeProjectMetadata", mergeProjectMetadata<Layer>],
+  ] as const
+) {
+  unitTest(
+    `language-merge - ${name} - later plain key replaces earlier variations`,
+    async () => {
+      const late = { language: { [kKey]: "late" } };
+      assertEquals(resolve("fr", kKey, merge, kEarlyFr, late), "late");
+      assertEquals(resolve("fr-CA", kKey, merge, kEarlyFr, late), "late");
+    },
   );
-});
 
-unitTest(
-  "language-merge - later variation replaces earlier plain key",
-  async () => {
-    assertEquals(
-      resolve("fr", { [kKey]: "early" }, {
-        [kKey]: "late",
-        fr: { [kKey]: "late fr" },
-      }),
-      "late fr",
-    );
-  },
-);
+  unitTest(
+    `language-merge - ${name} - earlier variation keeps other keys`,
+    async () => {
+      const late = { language: { [kKey]: "late" } };
+      assertEquals(
+        resolve("fr", kOtherKey, merge, kEarlyFr, late),
+        "early other fr",
+      );
+    },
+  );
 
-unitTest(
-  "language-merge - other keys of earlier variation remain",
-  async () => {
-    const merged = mergeFormatMetadata<Layer>(
-      { language: { fr: { [kKey]: "early fr", "toc-title-website": "site" } } },
-      { language: { [kKey]: "late" } },
-    );
-    assertEquals(
-      translationsForLang(merged.language, "fr")["toc-title-website"],
-      "site",
-    );
-  },
-);
+  unitTest(
+    `language-merge - ${name} - later variation replaces earlier plain key`,
+    async () => {
+      const late = { language: { [kKey]: "late", fr: { [kKey]: "late fr" } } };
+      assertEquals(
+        resolve("fr", kKey, merge, { language: { [kKey]: "early" } }, late),
+        "late fr",
+      );
+    },
+  );
+}

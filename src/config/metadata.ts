@@ -283,21 +283,30 @@ export function mergeFormatMetadata<T>(
         return mergePandocVariant(objValue, srcValue);
       } else if (kBooleanDisableArrays.includes(key)) {
         return mergeDisablableArray(objValue, srcValue);
-      } else if (
-        key === kLanguageDefaults && ld.isPlainObject(objValue) &&
-        ld.isPlainObject(srcValue)
-      ) {
-        return mergeLanguages(
-          objValue as FormatLanguage,
-          srcValue as FormatLanguage,
-        );
       } else {
-        return undefined;
+        return mergeLanguageCustomizer(objValue, srcValue, key);
       }
     },
     config,
     ...configs,
   );
+}
+
+function mergeLanguageCustomizer(
+  objValue: unknown,
+  srcValue: unknown,
+  key: string,
+) {
+  if (
+    key === kLanguageDefaults && ld.isPlainObject(objValue) &&
+    ld.isPlainObject(srcValue)
+  ) {
+    return mergeLanguages(
+      objValue as FormatLanguage,
+      srcValue as FormatLanguage,
+    );
+  }
+  return undefined;
 }
 
 export function mergeProjectMetadata<T>(
@@ -315,7 +324,7 @@ export function mergeProjectMetadata<T>(
       ) {
         return srcValue;
       } else {
-        return undefined;
+        return mergeLanguageCustomizer(objValue, srcValue, key);
       }
     },
     config,
