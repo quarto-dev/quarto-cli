@@ -305,12 +305,17 @@ function extractLetBlock(source: string, name: string): string | undefined {
 // Typst extensions can replace the definitions partial and then lack the
 // helpers that code annotations and filenames call. Define only the missing
 // ones, before the first line that can use them.
+// A helper counts as defined only in the template, before the document body.
+// A filter can redefine a helper in the body and call the original from there,
+// so a definition in the body still needs Quarto's helper before it.
 export function injectMissingAnnotationHelpers(
   content: string,
   definitionsSource: string,
 ): { content: string; injected: string[] } {
+  const bodyStart = content.search(/^#show: doc =>/m);
+  const preamble = bodyStart === -1 ? content : content.slice(0, bodyStart);
   const isDefined = (name: string) =>
-    new RegExp(`^\\s*#let ${name}\\b`, "m").test(content);
+    new RegExp(`^\\s*#let ${name}\\b`, "m").test(preamble);
   const isUsed = (name: string) =>
     new RegExp(`(?<!#let )\\b${name}\\(`).test(content);
 
