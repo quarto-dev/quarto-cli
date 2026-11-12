@@ -23,7 +23,9 @@ import {
   formatFromMetadata,
   formatKeys,
   includedMetadata,
+  mergeConfigsCustomized,
   mergeFormatMetadata,
+  mergeLanguageCustomizer,
   metadataAsFormat,
 } from "../../config/metadata.ts";
 
@@ -388,7 +390,8 @@ function mergeQuartoConfigs(
     return config;
   };
 
-  return mergeConfigs(
+  return mergeConfigsCustomized(
+    mergeLanguageCustomizer,
     fixupFormat(config),
     ...configs.map((c) => fixupFormat(c)),
   );

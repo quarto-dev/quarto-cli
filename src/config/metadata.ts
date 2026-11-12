@@ -292,7 +292,7 @@ export function mergeFormatMetadata<T>(
   );
 }
 
-function mergeLanguageCustomizer(
+export function mergeLanguageCustomizer(
   objValue: unknown,
   srcValue: unknown,
   key: string,

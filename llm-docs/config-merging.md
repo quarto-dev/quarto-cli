@@ -67,11 +67,11 @@ handling of `kTblColwidths` for an in-tree example.
 
 ## Format-level: `mergeFormatMetadata`
 
-`src/config/metadata.ts:266` wraps `mergeConfigsCustomized` for `Format`
+`src/config/metadata.ts:267` wraps `mergeConfigsCustomized` for `Format`
 objects (the `.pandoc`, `.metadata`, `.language`, `.render`, `.execute`,
 etc. subtrees on a per-format basis).
 
-Adds three semantics on top of `mergeConfigs`:
+Adds four semantics on top of `mergeConfigs`:
 
 - `kTblColwidths`: `srcValue` always wins (replace, not array union).
 - `kVariant`: Pandoc extension strings (`+yaml_metadata_block-tex_math_dollars`)
@@ -79,6 +79,11 @@ Adds three semantics on top of `mergeConfigs`:
   do not lose previously-enabled extensions.
 - `kCodeLinks` / `kOtherLinks` (`kBooleanDisableArrays`): explicit `false`
   becomes an empty array (the disable signal), not the default array-union.
+- `language` (`kLanguageDefaults`), when both sides are objects: merged by
+  `mergeLanguages` (`src/core/language.ts`) through the shared
+  `mergeLanguageCustomizer`. A plain key of the later map also clears that
+  key from every locale sub-block (`fr:`, `fr-CA:`) of the earlier map, so
+  an earlier `_language-fr.yml` cannot beat a later plain key (#15349).
 
 Use this — not raw `mergeConfigs` — anywhere two `Format` objects need to
 combine (project default + directory `_metadata.yml` + document
@@ -86,20 +91,22 @@ frontmatter).
 
 ## Project-level: `mergeProjectMetadata`
 
-`src/config/metadata.ts:294` wraps `mergeConfigsCustomized` for the project
-config tree. Adds one rule:
+`src/config/metadata.ts:312` wraps `mergeConfigsCustomized` for the project
+config tree. Adds two rules:
 
 - `contents` key holding a string: `srcValue` replaces. Avoids spurious
   concat of glob-string lists (`["docs/*"]` merged with `["src/*"]` would
   produce `["docs/*", "src/*"]` under the default array-union, often
   unintended for `contents:`).
+- `language`: the same `mergeLanguageCustomizer` as `mergeFormatMetadata`,
+  so profiles, includes and project type extensions follow the same rule.
 
 Reach for this when merging project YAML layers (project root, parent
 project, includes).
 
 ## The escape hatch: `mergeConfigsCustomized`
 
-`src/config/metadata.ts:317` —
+`src/config/metadata.ts:335` —
 `mergeConfigsCustomized<T>(customizer, config, ...configs): T`.
 
 Use directly only when none of the named wrappers fit. The customizer
@@ -112,7 +119,8 @@ short-circuit, or return `undefined` to fall through to
 | Site | What's merged |
 |---|---|
 | `src/core/language.ts:formatLanguage` | `_language.yml` defaults ← user-supplied `language:` block. Same FormatLanguage shape Quarto exposes under `$quarto.language.<key>$`. |
-| `src/project/project-context.ts:resolveLanguageTranslations` | Project `kLanguageDefaults` ← `translations.language` (user overrides win on project language defaults). |
+| `src/project/project-context.ts:resolveLanguageTranslations` | `mergeLanguages(translations.language, projectConfig.language)`: the inline project `language:` wins over `_language.yml` and its `_language-<lang>.yml` sub-blocks. |
+| `src/command/render/render-contexts.ts:mergeQuartoConfigs` | Document front matter ← `metadata-files` includes ← `--metadata` flags, through `mergeConfigsCustomized(mergeLanguageCustomizer, …)`. |
 | `src/command/render/render-contexts.ts:resolveFormats` | Three-layer `mergeFormatMetadata(projFormat, directoryFormat, inputFormat)` — project / `_metadata.yml` / frontmatter, leaf-key precedence. |
 | `src/command/render/defaults.ts:generateDefaults` | `variables.quarto.*` builder output ← user-supplied `variables.quarto.*` escape hatch. Internal namespace; user-set leaf keys win at any depth. |
 | `src/command/render/pandoc.ts` | Multiple layered metadata merges across format / theme / extension contributions. |
