@@ -172,6 +172,28 @@ unitTest(
   },
 );
 
+unitTest(
+  "typst-skylighting-patch - helpers: a redefinition after its first use does not count, whatever the template show rule",
+  async () => {
+    const filename = definitionsSource.search(/^#let quarto-code-filename\(/m);
+    const afterFilename = definitionsSource.slice(filename + 1).search(
+      /^(#let |#show|\/\/)/m,
+    );
+    const withoutFilename = definitionsSource.slice(0, filename) +
+      definitionsSource.slice(filename + 1 + afterFilename);
+    const body = `#show: tmpl.with(title: "T")
+#let ext-native-filename = quarto-code-filename
+#let quarto-code-filename(filename, body) = ext-native-filename(filename, body)
+#quarto-code-filename("a.py")[x]
+`;
+    const result = injectMissingAnnotationHelpers(
+      withoutFilename + body,
+      definitionsSource,
+    );
+    assertEquals(result.injected, ["quarto-code-filename"]);
+  },
+);
+
 unitTest("typst-skylighting-patch - helpers: all present", async () => {
   const content = definitionsSource + usingDocument;
   const result = injectMissingAnnotationHelpers(content, definitionsSource);
