@@ -299,7 +299,7 @@ main.page-columns > header > h1.title {
     }
   }
 
-  nav[role="doc-toc"] {
+  nav[role="doc-toc"]:not(main nav) {
     display: none;
   }
 }
