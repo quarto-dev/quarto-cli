@@ -72,7 +72,7 @@ for (const { name, order } of listingOrders) {
       );
       await expect(
         page.locator(
-          `div.category[data-category="${btoa(encodeURIComponent("beta"))}"]`,
+          `.quarto-listing-category .category[data-category="${btoa(encodeURIComponent("beta"))}"]`,
         ),
       ).toHaveClass(/active/);
       await expect(page.getByRole("link", { name: "Post one", exact: true }))

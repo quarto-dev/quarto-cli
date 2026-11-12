@@ -1,0 +1,13 @@
+---
+title: "Multiple, unnumbered"
+listing:
+  id: posts
+  contents: posts
+  type: grid
+  sort: "title asc"
+  categories: unnumbered
+  category-selection: multiple
+---
+
+::: {#posts}
+:::

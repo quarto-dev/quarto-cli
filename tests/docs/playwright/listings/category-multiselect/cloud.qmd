@@ -1,0 +1,13 @@
+---
+title: "Multiple, cloud"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+  categories: cloud
+  category-selection: multiple
+---
+
+::: {#posts}
+:::

@@ -1,0 +1,10 @@
+---
+title: "Post 3"
+date: 2026-01-03
+author: "Alan"
+venue: "Lab C"
+description: "Third post."
+categories: [alpha]
+---
+
+Post 3 content.

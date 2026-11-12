@@ -10660,6 +10660,10 @@ var init_yaml_intelligence_resources = __esm({
               "listing-page-field-categories": "string",
               "listing-page-minutes-compact": "string",
               "listing-page-category-all": "string",
+              "listing-page-category-reset": "string",
+              "listing-page-category-results-one": "string",
+              "listing-page-category-results": "string",
+              "listing-page-category-clear": "string",
               "listing-page-no-matches": "string",
               "listing-page-words": "string",
               "listing-page-filter": "string",
@@ -10843,6 +10847,17 @@ var init_yaml_intelligence_resources = __esm({
                 description: {
                   short: "Display item categories from this listing in the margin of the page.",
                   long: "Display item categories from this listing in the margin of the page.\n\n  - `numbered`: Category list with number of items\n  - `unnumbered`: Category list\n  - `cloud`: Word cloud style categories\n"
+                }
+              },
+              "category-selection": {
+                enum: [
+                  "single",
+                  "multiple"
+                ],
+                default: "single",
+                description: {
+                  short: "How readers select categories in the margin of the page.",
+                  long: "How readers select categories in the margin of the page.\nThis option has no effect unless `categories` is set.\n\n  - `single`: Readers select one category at a time\n  - `multiple`: Readers select several categories at once, and the listing shows the items in any of them.\n    A category selected from a listing item replaces the selection.\n\nA page has one category list for all its listings, so the first listing on the page that sets this option decides it.\n"
                 }
               },
               feed: {
@@ -22780,6 +22795,10 @@ var init_yaml_intelligence_resources = __esm({
           short: "Display item categories from this listing in the margin of the\npage.",
           long: "Display item categories from this listing in the margin of the\npage."
         },
+        {
+          short: "How readers select categories in the margin of the page.",
+          long: "How readers select categories in the margin of the page. This option\nhas no effect unless <code>categories</code> is set."
+        },
         "Enables an RSS feed for the listing.",
         "The number of items to include in your feed. Defaults to 20.",
         {
@@ -25909,12 +25928,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222313,
+        _internalId: 222324,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222305,
+            _internalId: 222316,
             type: "enum",
             enum: [
               "png",
@@ -25930,7 +25949,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222312,
+            _internalId: 222323,
             type: "anyOf",
             anyOf: [
               {

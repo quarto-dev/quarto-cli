@@ -1,0 +1,10 @@
+---
+title: "Post 1"
+date: 2026-01-01
+author: "Ada"
+venue: "Lab A"
+description: "First post."
+categories: [alpha, "data science"]
+---
+
+Post 1 content.

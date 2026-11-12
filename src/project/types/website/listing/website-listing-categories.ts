@@ -6,6 +6,10 @@
 import { Document } from "deno_dom/deno-dom-wasm-noinit.ts";
 import {
   kListingPageCategoryAll,
+  kListingPageCategoryClear,
+  kListingPageCategoryReset,
+  kListingPageCategoryResults,
+  kListingPageCategoryResultsOne,
   kListingPageFieldCategories,
 } from "../../../../config/constants.ts";
 import { localizedString } from "../../../../config/localization.ts";
@@ -13,6 +17,7 @@ import { Format } from "../../../../config/types.ts";
 
 import {
   CategoryStyle,
+  kCategorySelection,
   kCategoryStyle,
   ListingDescriptor,
   ListingSharedOptions,
@@ -26,11 +31,28 @@ export function categorySidebar(
   options: ListingSharedOptions,
 ) {
   const categoryStyle: CategoryStyle = options[kCategoryStyle];
+  const multiple = options[kCategorySelection] === "multiple";
 
-  // The heading
+  // The heading holds the button that clears the filter. The heading and the
+  // group take their name from the visible text only, not from the button's
+  // aria-label, which says what the button does.
+  const titleTextEl = doc.createElement("span");
+  titleTextEl.id = kCategoryTitleTextId;
+  titleTextEl.innerText = localizedString(format, kListingPageFieldCategories);
+
+  const resetEl = doc.createElement("button");
+  resetEl.setAttribute("type", "button");
+  resetEl.classList.add("quarto-listing-category-reset");
+  resetEl.setAttribute(
+    "aria-label",
+    localizedString(format, kListingPageCategoryReset),
+  );
+  resetEl.appendChild(titleTextEl);
+
   const headingEl = doc.createElement("h5");
-  headingEl.innerText = localizedString(format, kListingPageFieldCategories);
   headingEl.classList.add("quarto-listing-category-title");
+  headingEl.setAttribute("aria-labelledby", kCategoryTitleTextId);
+  headingEl.appendChild(resetEl);
 
   // The categories
   const cats = accumCategories(listingDescriptors);
@@ -39,6 +61,12 @@ export function categorySidebar(
 
   // Mark the form
   categoriesEl.classList.add(categoryStyle);
+  categoriesEl.setAttribute("role", "group");
+  categoriesEl.setAttribute("aria-labelledby", kCategoryTitleTextId);
+  if (multiple) {
+    categoriesEl.setAttribute("data-category-selection", "multiple");
+    categoriesEl.appendChild(categoryClearButton(doc, format));
+  }
 
   const defaultFormat = (category: string, count: number) => {
     return category +
@@ -69,6 +97,12 @@ export function categorySidebar(
       formatFn(allCategory, totalCategories),
       "",
     );
+    if (multiple) {
+      // "All" clears the selection; nothing is selected until the script
+      // reads the URL hash, so it starts as the current entry
+      allEl.setAttribute("aria-current", "true");
+      allEl.classList.add("active");
+    }
     categoriesEl.appendChild(allEl);
   }
 
@@ -79,10 +113,40 @@ export function categorySidebar(
   ) {
     const count = cats[cat];
     const catEl = categoryElement(doc, cat, formatFn(cat, count), cat);
+    if (multiple) {
+      catEl.setAttribute("aria-pressed", "false");
+    }
     categoriesEl.appendChild(catEl);
   }
 
   return { headingEl, categoriesEl };
+}
+
+// A polite live region that quarto-listing.js fills with the number of
+// matching items after the user changes the category filter
+export function categoryStatusRegion(doc: Document, format: Format) {
+  const statusEl = doc.createElement("div");
+  statusEl.classList.add("visually-hidden", "quarto-listing-category-status");
+  statusEl.setAttribute("role", "status");
+  statusEl.setAttribute(
+    "data-results-one",
+    localizedString(format, kListingPageCategoryResultsOne),
+  );
+  statusEl.setAttribute(
+    "data-results",
+    localizedString(format, kListingPageCategoryResults),
+  );
+  return statusEl;
+}
+
+const kCategoryTitleTextId = "quarto-listing-category-title-text";
+
+function categoryClearButton(doc: Document, format: Format) {
+  const clearEl = doc.createElement("button");
+  clearEl.setAttribute("type", "button");
+  clearEl.classList.add("quarto-listing-category-clear");
+  clearEl.innerText = localizedString(format, kListingPageCategoryClear);
+  return clearEl;
 }
 
 function itemCount(listingDescriptors: ListingDescriptor[]) {
@@ -118,7 +182,8 @@ function categoryElement(
   contents: string,
   value?: string,
 ) {
-  const categoryEl = doc.createElement("div");
+  const categoryEl = doc.createElement("button");
+  categoryEl.setAttribute("type", "button");
   categoryEl.classList.add("category");
   categoryEl.setAttribute(
     "data-category",

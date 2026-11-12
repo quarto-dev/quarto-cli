@@ -2159,6 +2159,18 @@
           "listing-page-category-all": {
             "type": "string"
           },
+          "listing-page-category-reset": {
+            "type": "string"
+          },
+          "listing-page-category-results-one": {
+            "type": "string"
+          },
+          "listing-page-category-results": {
+            "type": "string"
+          },
+          "listing-page-category-clear": {
+            "type": "string"
+          },
           "listing-page-no-matches": {
             "type": "string"
           },
@@ -2329,6 +2341,12 @@
                   "cloud"
                 ]
               }
+            ]
+          },
+          "category-selection": {
+            "enum": [
+              "single",
+              "multiple"
             ]
           },
           "feed": {

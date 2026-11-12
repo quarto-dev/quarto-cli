@@ -387,6 +387,11 @@ export const kListingPageFieldCategories = "listing-page-field-categories";
 export const kListingPageMinutesCompact = "listing-page-minutes-compact";
 export const kListingPageWords = "listing-page-words";
 export const kListingPageCategoryAll = "listing-page-category-all";
+export const kListingPageCategoryReset = "listing-page-category-reset";
+export const kListingPageCategoryResultsOne =
+  "listing-page-category-results-one";
+export const kListingPageCategoryResults = "listing-page-category-results";
+export const kListingPageCategoryClear = "listing-page-category-clear";
 export const kListingPageNoMatches = "listing-page-no-matches";
 export const kNotebookPreviewDownload = "notebook-preview-download";
 export const kNotebookPreviewDownloadSrc = "notebook-preview-download-src";
@@ -524,6 +529,10 @@ export const kLanguageDefaultsKeys = [
   kListingPageMinutesCompact,
   kListingPageWords,
   kListingPageCategoryAll,
+  kListingPageCategoryReset,
+  kListingPageCategoryResultsOne,
+  kListingPageCategoryResults,
+  kListingPageCategoryClear,
   kListingPageNoMatches,
   kTitleBlockAuthorSingle,
   kTitleBlockAuthorPlural,

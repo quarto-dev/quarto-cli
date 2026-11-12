@@ -1,0 +1,20 @@
+---
+title: "Multiple, two listings"
+listing:
+  - id: alpha-posts
+    contents: [posts/post-1.qmd, posts/post-3.qmd]
+    type: default
+    sort: "title asc"
+    categories: true
+  - id: cafe-posts
+    contents: posts/post-2.qmd
+    type: default
+    sort: "title asc"
+    category-selection: multiple
+---
+
+::: {#alpha-posts}
+:::
+
+::: {#cafe-posts}
+:::

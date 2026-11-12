@@ -1,0 +1,10 @@
+---
+title: "Post 2"
+date: 2026-01-02
+author: "Grace"
+venue: "Lab B"
+description: "Second post."
+categories: [café, "R & Python"]
+---
+
+Post 2 content.

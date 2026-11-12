@@ -862,6 +862,10 @@ export type FormatLanguage = {
   "listing-page-field-categories"?: string;
   "listing-page-minutes-compact"?: string;
   "listing-page-category-all"?: string;
+  "listing-page-category-reset"?: string;
+  "listing-page-category-results-one"?: string;
+  "listing-page-category-results"?: string;
+  "listing-page-category-clear"?: string;
   "listing-page-no-matches"?: string;
   "listing-page-words"?: string;
   "listing-page-filter"?: string;
@@ -917,6 +921,16 @@ of field names. */;
 fields that will be used to filter the listing, provide a list
 of field names. By default all fields of the listing will be used
 when filtering. */;
+  "category-selection"?:
+    | "single"
+    | "multiple" /* How readers select categories in the margin of the page.
+This option has no effect unless `categories` is set.
+
+  - `single`: Readers select one category at a time
+  - `multiple`: Readers select several categories at once, and the listing shows the items in any of them.
+    A category selected from a listing item replaces the selection.
+
+A page has one category list for all its listings, so the first listing on the page that sets this option decides it. */;
   "date-format"?:
     string /* The date format to use when displaying dates (e.g. d-M-yyy).
 Learn more about supported date formatting values [here](https://quarto.org/docs/reference/dates.html). */;

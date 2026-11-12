@@ -1,0 +1,15 @@
+---
+title: "Categories, grid with an untitled item"
+listing:
+  id: posts
+  type: grid
+  categories: unnumbered
+  contents:
+    - path: posts/post-1.qmd
+      title: ""
+      description: "An item with an empty title."
+      categories: [alpha]
+---
+
+::: {#posts}
+:::
