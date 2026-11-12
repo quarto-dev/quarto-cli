@@ -13,6 +13,7 @@ All changes included in 1.12:
   - ([jgm/pandoc#11831](https://github.com/jgm/pandoc/pull/11831)): HTML documents using `theme: pandoc` pick up Pandoc 3.13's style updates. Links now inherit the surrounding text color unless `linkcolor` is set, horizontal rules and table borders follow the text color, and printed output drops backgrounds and the fixed 12pt font size, rendering at the 11pt print size used by other Quarto HTML themes. Pandoc 3.13's automatic dark mode is not enabled for `theme: pandoc`.
   - ([jgm/pandoc#11845](https://github.com/jgm/pandoc/issues/11845)): In Word output, cross-reference targets are now hidden bookmarks with generated names instead of their Quarto id (`fig-plot`). Cross-reference links inside the document still work, but a link or script that looks a bookmark up by its Quarto id from outside the document, such as `report.docx#fig-plot` or `officer`, VBA or `python-docx` code, no longer finds it.
   - ([jgm/pandoc 3.13](https://github.com/jgm/pandoc/releases/tag/3.13)): A YAML bibliography file with a duplicated key, such as two `title` fields in one reference, now stops the render with an error giving the file, line and column. Before, the last value was kept silently. Remove the duplicate key to render again.
+  - ([jgm/pandoc@c73a35a](https://github.com/jgm/pandoc/commit/c73a35a2e7ed1144132f1e533b4f0ae4c3648143)): Support Pandoc's `--math-method` option in `quarto render`, so that `--math-method=katex` works with `--embed-resources` and keeps math intact in `llms.md` output, like `--katex` does.
 
 ## Accessibility
 
