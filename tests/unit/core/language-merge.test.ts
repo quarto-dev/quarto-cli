@@ -75,3 +75,11 @@ for (
     },
   );
 }
+
+unitTest("language-merge - earlier array value stays an array", async () => {
+  const merged = mergeFormatMetadata<Layer>(
+    { language: { custom: ["a", "b"] } as unknown as FormatLanguage },
+    { language: { [kKey]: "late" } },
+  );
+  assertEquals(merged.language.custom, ["a", "b"]);
+});
