@@ -81,6 +81,7 @@ All changes included in 1.12:
 ## Extensions
 
 - ([#15063](https://github.com/quarto-dev/quarto-cli/issues/15063)): Fix a format extension's own `language` file stopping the render with a "does not exist" error, and its `metadata-files` being ignored. Both now resolve relative to the extension's directory, and per-language files such as `_language-fr.yml` load beside the `language` file. (author: @mcanouil)
+- ([#14170](https://github.com/quarto-dev/quarto-cli/pull/14170)): A Typst format or filter can redefine `quarto-code-filename` to draw its own frame around a code block with a filename, and can change the inset, radius and outline of code blocks through the `quarto-code-block-style` state. (author: @mcanouil)
 
 ## Other fixes and improvements
 
