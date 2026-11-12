@@ -1,0 +1,33 @@
+---
+title: Rich annotation items
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-annotation-item\("annotated-cell-1", 1, \['
+          - 'First paragraph'
+          - 'Second paragraph'
+          - 'nested'
+          - 'code span'
+          - 'https://example\.org'
+          - 'x\^2'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. First paragraph with `code span` and [a link](https://example.org).
+
+    Second paragraph with math $$x^2$$.
+
+    - nested item one
+    - nested item two

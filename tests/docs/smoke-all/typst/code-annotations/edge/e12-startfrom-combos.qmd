@@ -1,0 +1,30 @@
+---
+title: startFrom with fenced echo and filename
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-code-filename\("a\.py"'
+          - 'annotations: \("1": 1\)'
+          - 'annotations: \("2": 1\)'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{.python startFrom="5" filename="a.py"}
+x = 1  # <1>
+```
+
+1. Assign x.
+
+```{{python}}
+y = 2  # <1>
+```
+
+1. Assign y.

@@ -1,0 +1,25 @@
+---
+title: Code Annotations (light/dark highlighting object)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+syntax-highlighting:
+  light: github
+  dark: github-dark
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell'
+          - 'quarto-annotation-item\("annotated-cell'
+        -
+          - '#quarto-code-annotation\('
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.

@@ -74,11 +74,14 @@ function fold_code_and_lift_codeblocks()
         end,
         CodeBlock = function(block)
           local folded_block, did_fold = render_folded_block(block)
-          local need_to_lift = did_fold or block.classes:includes("code-annotation-code")
+          -- Typst keeps annotated code in the float, next to its annotation marker
+          local lift_annotated = block.classes:includes("code-annotation-code")
+            and not _quarto.format.isTypstOutput()
+          local need_to_lift = did_fold or lift_annotated
           if need_to_lift then
             folded_block = _quarto.ast.make_scaffold(pandoc.Div, { folded_block } )
           end
-          if block.classes:includes("code-annotation-code") then
+          if lift_annotated then
             prev_annotated_code_block_scaffold = folded_block
             prev_annotated_code_block = block
           else

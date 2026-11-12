@@ -1,0 +1,30 @@
+---
+title: Layout cell
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "annotated-cell-1", annotations: \("1": 1\)'
+          - 'quarto-annotation-item\("annotated-cell-1"'
+        -
+          - 'quarto-code-annotations:'
+          - '# <1>'
+---
+
+::: {layout-ncol=2}
+```{.python}
+z = 1  # <1>
+```
+
+1. Assign z.
+
+```{.python}
+w = 2
+```
+:::

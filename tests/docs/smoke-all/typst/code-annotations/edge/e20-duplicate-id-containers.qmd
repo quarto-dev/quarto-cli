@@ -1,0 +1,37 @@
+---
+title: Duplicate cell ids in separate containers
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+      printsMessage:
+        level: INFO
+        regex: "Duplicate code cell id 'lst-b'"
+      ensureTypstFileRegexMatches:
+        -
+          - 'cell-id: "lst-b", annotations'
+          - 'cell-id: "lst-b-2", annotations'
+          - 'quarto-annotation-item\("lst-b-2"'
+        -
+          - 'quarto-code-annotations:'
+---
+
+::: {.callout-note}
+```{#lst-b .python}
+x = 1  # <1>
+```
+
+1. First.
+:::
+
+::: {.callout-tip}
+```{#lst-b .python}
+y = 2  # <1>
+```
+
+1. Second.
+:::

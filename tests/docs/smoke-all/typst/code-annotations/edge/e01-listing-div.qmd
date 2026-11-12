@@ -1,0 +1,26 @@
+---
+title: Listing div
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrorsOrWarnings: default
+      ensureTypstFileRegexMatches:
+        -
+          - '#figure'
+          - 'quarto-annotation-item\("annotated-cell-1"'
+        -
+          - 'quarto-code-annotations:'
+          - '# <1>'
+---
+
+::: {#lst-x lst-cap="A listing"}
+```{.python}
+z = 1  # <1>
+```
+:::
+
+1. Assign z.

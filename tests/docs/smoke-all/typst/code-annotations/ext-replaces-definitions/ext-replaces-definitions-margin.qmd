@@ -1,0 +1,25 @@
+---
+title: Extension that replaces definitions.typ, annotated block in the margin
+keep-typ: true
+format:
+  fake-typst:
+    code-annotations: true
+    syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    fake-typst:
+      noErrors: default
+      ensureTypstFileRegexMatches:
+        -
+          - '#let quarto-annotation-item\('
+          - 'quarto-annotation-item\("annotated-cell-1"'
+        - []
+---
+
+::: {.column-margin}
+```{.python filename="m.py"}
+x = 1  # <1>
+```
+
+1. Assign x.
+:::
