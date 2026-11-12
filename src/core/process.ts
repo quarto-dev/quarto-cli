@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { MuxAsyncIterator, pooledMap } from "async";
+import { MuxAsyncIterator } from "async";
 import { debug, info } from "../deno_ral/log.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
@@ -129,10 +129,7 @@ export async function execProcess(
         iterator: AsyncIterableIterator<Uint8Array<ArrayBuffer>>,
         filter?: (output: string) => string,
       ) => {
-        const streamIter = filter
-          ? filteredAsyncIterator(iterator, filter)
-          : iterator;
-        multiplexIterator.add(streamIter);
+        multiplexIterator.add(filteredAsyncIterator(iterator, filter));
       };
 
       addStream(process.stdout.values());
@@ -227,17 +224,27 @@ export function processSuccessResult(): ProcessResult {
   };
 }
 
-function filteredAsyncIterator(
-  iterator: AsyncIterableIterator<Uint8Array>,
-  filter: (output: string) => string,
-): AsyncIterableIterator<Uint8Array> {
+// Re-encodes a byte stream so each yielded chunk holds whole characters: a
+// multi-byte character split across two reads is held back until complete.
+// Chunks that decode to no text yet are skipped, so the filter never sees "".
+async function* filteredAsyncIterator(
+  iterator: AsyncIterable<Uint8Array>,
+  filter?: (output: string) => string,
+): AsyncGenerator<Uint8Array> {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-  return pooledMap(1, iterator, (data: Uint8Array) => {
-    return Promise.resolve(
-      encoder.encode(filter(decoder.decode(data))),
-    );
-  });
+  const encode = (text: string) =>
+    encoder.encode(filter ? filter(text) : text);
+  for await (const chunk of iterator) {
+    const text = decoder.decode(chunk, { stream: true });
+    if (text !== "") {
+      yield encode(text);
+    }
+  }
+  const tail = decoder.decode();
+  if (tail !== "") {
+    yield encode(tail);
+  }
 }
 
 // Processes ouptut from an interator (stderr, stdout, etc...)
@@ -248,18 +255,25 @@ async function processOutput(
 ): Promise<string> {
   const decoder = new TextDecoder();
   let outputText = "";
+  const accept = (text: string) => {
+    if (text === "") {
+      return;
+    }
+    if ((output === "inherit" || output === undefined) && !which) {
+      info(text, { newline: false });
+    }
+    outputText += text;
+  };
   for await (const chunk of iterator) {
     if (output === "inherit" || output === undefined) {
       if (which === "stdout") {
         Deno.stdout.writeSync(chunk);
       } else if (which === "stderr") {
         Deno.stderr.writeSync(chunk);
-      } else {
-        info(decoder.decode(chunk), { newline: false });
       }
     }
-    const text = decoder.decode(chunk);
-    outputText += text;
+    accept(decoder.decode(chunk, { stream: true }));
   }
+  accept(decoder.decode());
   return outputText;
 }
