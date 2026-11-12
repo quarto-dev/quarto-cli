@@ -127,12 +127,26 @@
   }
 }
 
+// Inset, radius and outline of code blocks. A template or a filter that frames
+// code blocks itself can change them for part of the document with
+// quarto-code-block-style.update(...).
+#let quarto-code-block-style = state("quarto-code-block-style", (inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(128)))
+
+// Draw a code block with the current code block style.
+// With fill: auto, the block takes its fill from the set rules.
+#let quarto-code-block(fill: auto, body) = context {
+  let style = quarto-code-block-style.get()
+  let args = (width: 100%, inset: style.inset, radius: style.radius, stroke: style.stroke)
+  if fill != auto {
+    args.insert("fill", fill)
+  }
+  block(..args, body)
+}
+
 // Style native raw code blocks with default inset and radius
 // Default fill is a set rule so a later `set block(fill: ...)` (brand or user) wins
 #show raw.where(block: true): set block(fill: luma(230))
-#show raw.where(block: true): it => block(
-  width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(128), it,
-)
+#show raw.where(block: true): it => quarto-code-block(it)
 
 #let block_with_new_content(old_block, new_content) = {
   let fields = old_block.fields()

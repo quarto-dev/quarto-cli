@@ -62,6 +62,7 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 - `quarto-code-annotation` is the native-mode renderer. The Skylighting patch contains its own per-line copy of the same layout. Change both together.
 - With `.number-lines`, annotated rows use `width: 100% - annote-ln-width` so the circle stays on the code line.
 - The default code fill is a `set block(fill: ...)` rule, so a brand or user `set block(fill: ...)` wins.
+- `quarto-code-block` draws every code block, from the patched `Skylighting` function and from the native raw block rule. It reads the inset, radius and outline from the `quarto-code-block-style` state, so a template or a filter that frames code blocks itself can change them with `quarto-code-block-style.update(...)` for part of the document.
 
 ## Known limits
 

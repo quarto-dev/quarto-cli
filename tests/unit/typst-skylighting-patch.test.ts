@@ -42,6 +42,7 @@ unitTest("typst-skylighting-patch - all patches apply", async () => {
   const result = patchSkylightingFunction(skylightingFn);
   assertEquals(result.failedPatch, undefined);
   assert(result.fn.includes("annotations: (:)"));
+  assert(result.fn.includes("quarto-code-block(fill: bgcolor, blocks)"));
 });
 
 unitTest(
@@ -51,7 +52,7 @@ unitTest(
     const result = patchSkylightingFunction(source);
     assert(result.failedPatch !== undefined);
     assert(!result.fn.includes("annotations:"));
-    assert(result.fn.includes("width: 100%, inset: 8pt"));
+    assert(result.fn.includes("quarto-code-block(fill: bgcolor, blocks)"));
   },
 );
 
@@ -136,6 +137,38 @@ unitTest(
       result.content.indexOf("#let quarto-code-filename(filename, body) = {") <
         result.content.indexOf("#let ext-native-filename"),
     );
+  },
+);
+
+unitTest(
+  "typst-skylighting-patch - helpers: the code block style comes before the code block",
+  async () => {
+    const content = `#let Skylighting(sourcelines) = {
+  quarto-code-block(fill: none, sourcelines)
+}
+#show: doc => doc
+#Skylighting(([x],));
+`;
+    const result = injectMissingAnnotationHelpers(content, definitionsSource);
+    assertEquals(result.injected, [
+      "quarto-code-block-style",
+      "quarto-code-block",
+    ]);
+    assert(
+      result.content.indexOf("#let quarto-code-block-style =") <
+        result.content.indexOf("#let quarto-code-block("),
+    );
+  },
+);
+
+unitTest(
+  "typst-skylighting-patch - helpers: an update of the code block style counts as a use",
+  async () => {
+    const content = `#show: doc => doc
+#quarto-code-block-style.update(style => style)
+`;
+    const result = injectMissingAnnotationHelpers(content, definitionsSource);
+    assertEquals(result.injected, ["quarto-code-block-style"]);
   },
 );
 

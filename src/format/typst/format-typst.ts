@@ -216,10 +216,11 @@ export function patchSkylightingFunction(
   fn: string,
   brandBgColor?: string,
 ): { fn: string; failedPatch?: string } {
-  // Fix block() call: add width, inset, radius, stroke
+  // Draw the block through quarto-code-block, which adds the width and the
+  // outline that quarto-code-block-style holds
   let styled = fn.replace(
     "block(fill: bgcolor, blocks)",
-    "block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(128), blocks)",
+    "quarto-code-block(fill: bgcolor, blocks)",
   );
 
   // Override bgcolor with brand monospace-block background-color
@@ -283,6 +284,8 @@ async function pandocVersion(): Promise<string> {
 }
 
 const annotationHelperDependencies: [string, string[]][] = [
+  ["quarto-code-block-style", []],
+  ["quarto-code-block", ["quarto-code-block-style"]],
   ["quarto-annote-link", []],
   ["quarto-circled-number", []],
   ["quarto-annote-color", []],
@@ -292,7 +295,7 @@ const annotationHelperDependencies: [string, string[]][] = [
 ];
 
 function extractLetBlock(source: string, name: string): string | undefined {
-  const start = source.search(new RegExp(`^#let ${name}\\(`, "m"));
+  const start = source.search(new RegExp(`^#let ${name}(?=[\\s(=])`, "m"));
   if (start === -1) {
     return undefined;
   }
@@ -315,9 +318,9 @@ export function injectMissingAnnotationHelpers(
   const bodyStart = content.search(/^#show: doc =>/m);
   const preamble = bodyStart === -1 ? content : content.slice(0, bodyStart);
   const isDefined = (name: string) =>
-    new RegExp(`^\\s*#let ${name}\\b`, "m").test(preamble);
+    new RegExp(`^\\s*#let ${name}(?=[\\s(=])`, "m").test(preamble);
   const isUsed = (name: string) =>
-    new RegExp(`(?<!#let )\\b${name}\\(`).test(content);
+    new RegExp(`(?<!#let )\\b${name}[(.]`).test(content);
 
   const needed = new Set<string>();
   for (const [name, dependencies] of annotationHelperDependencies) {
