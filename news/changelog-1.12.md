@@ -54,6 +54,7 @@ All changes included in 1.12:
 
 - ([#15168](https://github.com/quarto-dev/quarto-cli/issues/15168)): Fix definitions, examples and exercises being set in italics in Typst output with the default `theorem-appearance: simple`. Their body is now upright, as in LaTeX output, while theorems, lemmas, corollaries, propositions and conjectures keep an italic body. (author: @mcanouil)
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics with `theorem-appearance: simple` and using the colours of theorems with `theorem-appearance: fancy`. They now look like definitions, examples and exercises. (author: @mcanouil)
+- ([#15311](https://github.com/quarto-dev/quarto-cli/issues/15311)): Fix `logo: false` not removing the brand logo in Typst output. The rest of the brand still applies. (author: @SAMARTHJAISWAL)
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's Typst template following Pandoc 3.13 support:
   - Horizontal rules are full-width, using Typst 0.15's native `divider`. A Typst binary set with `QUARTO_TYPST` must be 0.15 or later.
   - In a tight definition list, a one-paragraph definition now sits on the same line as its term.
