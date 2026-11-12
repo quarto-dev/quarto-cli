@@ -18,7 +18,12 @@ import { existsSync, walk, walkSync } from "../deno_ral/fs.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
-import { Format, Metadata, PandocFlags } from "../config/types.ts";
+import {
+  Format,
+  FormatLanguage,
+  Metadata,
+  PandocFlags,
+} from "../config/types.ts";
 import {
   kProjectLibDir,
   kProjectOutputDir,
@@ -53,6 +58,7 @@ import { projectType, projectTypes } from "./types/project-types.ts";
 
 import { resolvePathGlobs } from "../core/path.ts";
 import {
+  mergeLanguages,
   readLanguageTranslations,
   resolveLanguageMetadata,
 } from "../core/language.ts";
@@ -985,9 +991,9 @@ async function resolveLanguageTranslations(
   const translations = await readLanguageTranslations(
     join(dir, "_language.yml"),
   );
-  projectConfig[kLanguageDefaults] = mergeConfigs(
+  projectConfig[kLanguageDefaults] = mergeLanguages(
     translations.language,
-    projectConfig[kLanguageDefaults],
+    projectConfig[kLanguageDefaults] as FormatLanguage,
   );
   files.push(...translations.files);
   return files;

@@ -12,8 +12,8 @@ canonical in-tree helpers — never raw `lodash.merge` or shallow spread.
 | Helper | File | Use when |
 |---|---|---|
 | `mergeConfigs<T>(config, ...configs): T` | `src/core/config.ts` | General nested-object merge. Deep-merges objects; **arrays union-concat with dedup by `JSON.stringify`** (not last-wins); scalars last-wins. Deep-clones inputs. |
-| `mergeFormatMetadata<T>(config, ...configs): T` | `src/config/metadata.ts` | Format-level objects (`.pandoc`, `.metadata`, `.language`, `.render`). Adds `kTblColwidths` replace, `kVariant` pandoc-extension merge, and `kCodeLinks`/`kOtherLinks` `false→[]` semantics on top of `mergeConfigs`. |
-| `mergeProjectMetadata<T>(config, ...configs): T` | `src/config/metadata.ts` | Project YAML trees. Adds string-vs-string replace for `contents:` to avoid spurious glob concat. |
+| `mergeFormatMetadata<T>(config, ...configs): T` | `src/config/metadata.ts` | Format-level objects (`.pandoc`, `.metadata`, `.language`, `.render`). Adds `kTblColwidths` replace, `kVariant` pandoc-extension merge, `kCodeLinks`/`kOtherLinks` `false→[]` semantics, and `language` merging through `mergeLanguages` (a later plain key also clears that key from earlier locale sub-blocks) on top of `mergeConfigs`. |
+| `mergeProjectMetadata<T>(config, ...configs): T` | `src/config/metadata.ts` | Project YAML trees. Adds string-vs-string replace for `contents:` to avoid spurious glob concat, and the same `language` merging as `mergeFormatMetadata`. |
 | `mergeConfigsCustomized<T>(customizer, config, ...configs): T` | `src/config/metadata.ts` | Escape hatch — supply a per-key customizer that runs before `mergeArrayCustomizer`. |
 
 Shallow `{ ...a, ...b }` is correct **only** when both sides are flat

@@ -1,0 +1,5 @@
+project:
+  type: default
+lang: fr
+language:
+  toc-title-document: "Contents from the project"

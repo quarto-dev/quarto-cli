@@ -1,0 +1,16 @@
+---
+title: "The project language overrides the per-language file next to the project"
+toc: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the project</h2>']
+        - ['Sommaire du fichier de langue', 'Contents from the language file']
+---
+
+## Section
+
+The project sets `lang: fr` and `toc-title-document` under `language`.
+The project directory also has `_language.yml` and `_language-fr.yml` files.
+The value in `_quarto.yml` must replace the value of the French language file.
