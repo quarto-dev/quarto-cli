@@ -86,8 +86,8 @@ $navbar-bg: theme-override-value(
 $btn-bg: if(variable-exists(secondary), $secondary, #6c757d) !default;
 $btn-fg: theme-contrast($btn-bg, $btn-bg) !default;
 
-$body-contrast-bg: if(variable-exists(body-bg), $body-bg, $white);
-$body-contrast-color: if(variable-exists(body-color), $body-color, $gray-900);
+$body-contrast-bg: if(variable-exists(body-bg) and $body-bg != null, $body-bg, $white);
+$body-contrast-color: if(variable-exists(body-color) and $body-color != null, $body-color, $gray-900);
 $navbar-fg: if(
   $navbar-bg == transparent,
   theme-override-value(
@@ -178,7 +178,7 @@ $title-block-contast-color: $body-contrast-bg !default;
 $title-block-padding-top: 2.5em !default;
 
 // Footer coloring
-$footer-bg: if(variable-exists(body-bg), $body-bg, #fff) !default;
+$footer-bg: if(variable-exists(body-bg) and $body-bg != null, $body-bg, #fff) !default;
 $footer-fg: theme-contrast($footer-bg, $footer-bg, "AA") !default;
 $footer-font-size: 0.825em !default;
 $footer-left-font-size: $footer-font-size !default;
@@ -261,12 +261,12 @@ $breadcrumb-divider: quote(">") !default;
 
 // table variable overrides
 $table-group-separator-color: mix(
-  if(variable-exists(body-color), $body-color, $gray-900),
+  if(variable-exists(body-color) and $body-color != null, $body-color, $gray-900),
   $body-contrast-bg,
   50%
 ) !default;
 $table-group-separator-color-lighter: mix(
-  if(variable-exists(body-color), $body-color, $gray-900),
+  if(variable-exists(body-color) and $body-color != null, $body-color, $gray-900),
   $body-contrast-bg,
   20%
 ) !default;
@@ -301,8 +301,8 @@ $link-decoration: null !default;
 /// if a theme does not provide body-color or body-bg
 /// defaults to boostrap own default value for theses variables (in _variables.scss)
 $border-color: mix(
-  if(variable-exists(body-color), $body-color, $gray-900),
-  if(variable-exists(body-bg), $body-bg, $white),
+  if(variable-exists(body-color) and $body-color != null, $body-color, $gray-900),
+  if(variable-exists(body-bg) and $body-bg != null, $body-bg, $white),
   15%
 ) !default;
 /// Make sure table border are the same as the border color (in case change in bootstrap default)

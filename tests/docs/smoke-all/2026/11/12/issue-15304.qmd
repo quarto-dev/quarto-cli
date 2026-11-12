@@ -1,0 +1,16 @@
+---
+title: "Theme declaring a null body-bg and body-color"
+format:
+  html:
+    theme:
+      - default
+      - custom-15304.scss
+_quarto:
+  tests:
+    html:
+      ensureCssRegexMatches:
+        - ['#test-15304\s*\{\s*background-color:\s*#fff;\s*color:\s*#212529;?\s*\}']
+---
+
+A theme that declares `$body-bg: null !default;` or `$body-color: null !default;`
+must render with Bootstrap's default body colours.
