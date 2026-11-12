@@ -1,0 +1,93 @@
+---
+title: Long captioned table breaks across pages
+format: typst
+_quarto:
+  tests:
+    typst:
+      ensurePdfTextPositions:
+        - # The table is taller than a page. A breakable figure starts on
+          # page 1 below the title; an unbreakable one moves whole to page 2
+          # and its last rows run past the page bottom.
+          - subject: "FIRSTROW_MARKER"
+            relation: above
+            object:
+              role: Page
+              page: 1
+              edge: bottom
+        - []
+---
+
+| A | B |
+|---|---|
+| 1 | FIRSTROW_MARKER |
+| 2 | row 2 |
+| 3 | row 3 |
+| 4 | row 4 |
+| 5 | row 5 |
+| 6 | row 6 |
+| 7 | row 7 |
+| 8 | row 8 |
+| 9 | row 9 |
+| 10 | row 10 |
+| 11 | row 11 |
+| 12 | row 12 |
+| 13 | row 13 |
+| 14 | row 14 |
+| 15 | row 15 |
+| 16 | row 16 |
+| 17 | row 17 |
+| 18 | row 18 |
+| 19 | row 19 |
+| 20 | row 20 |
+| 21 | row 21 |
+| 22 | row 22 |
+| 23 | row 23 |
+| 24 | row 24 |
+| 25 | row 25 |
+| 26 | row 26 |
+| 27 | row 27 |
+| 28 | row 28 |
+| 29 | row 29 |
+| 30 | row 30 |
+| 31 | row 31 |
+| 32 | row 32 |
+| 33 | row 33 |
+| 34 | row 34 |
+| 35 | row 35 |
+| 36 | row 36 |
+| 37 | row 37 |
+| 38 | row 38 |
+| 39 | row 39 |
+| 40 | row 40 |
+| 41 | row 41 |
+| 42 | row 42 |
+| 43 | row 43 |
+| 44 | row 44 |
+| 45 | row 45 |
+| 46 | row 46 |
+| 47 | row 47 |
+| 48 | row 48 |
+| 49 | row 49 |
+| 50 | row 50 |
+| 51 | row 51 |
+| 52 | row 52 |
+| 53 | row 53 |
+| 54 | row 54 |
+| 55 | row 55 |
+| 56 | row 56 |
+| 57 | row 57 |
+| 58 | row 58 |
+| 59 | row 59 |
+| 60 | row 60 |
+| 61 | row 61 |
+| 62 | row 62 |
+| 63 | row 63 |
+| 64 | row 64 |
+| 65 | row 65 |
+| 66 | row 66 |
+| 67 | row 67 |
+| 68 | row 68 |
+| 69 | row 69 |
+| 70 | row 70 |
+
+: Long table {#tbl-long}
