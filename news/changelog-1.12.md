@@ -52,6 +52,12 @@ All changes included in 1.12:
 
 - ([#15063](https://github.com/quarto-dev/quarto-cli/issues/15063)): Fix a format extension's own `language` file stopping the render with a "does not exist" error, and its `metadata-files` being ignored. Both now resolve relative to the extension's directory, and per-language files such as `_language-fr.yml` load beside the `language` file. (author: @mcanouil)
 
+## Engines
+
+### `jupyter`
+
+- ([#15281](https://github.com/quarto-dev/quarto-cli/issues/15281)): Fix the `cap-location` cell option in Jupyter notebooks using the `fig-cap-location` value instead of its own. (author: @SAMARTHJAISWAL)
+
 ## Other fixes and improvements
 
 - ([#14389](https://github.com/quarto-dev/quarto-cli/pull/14389)): Add `ar` (Arabic) language translation. The `skip-to-content`, `navigation-*-label`, `scrollable-*-label`, `link-external-newwindow-label`, `announcement-dismiss-label` and `revealjs-menu-button-label` keys use reviewed machine translation. (author: @ezAldinWaez)
