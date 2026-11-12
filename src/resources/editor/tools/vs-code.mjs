@@ -10660,6 +10660,9 @@ var init_yaml_intelligence_resources = __esm({
               "listing-page-field-categories": "string",
               "listing-page-minutes-compact": "string",
               "listing-page-category-all": "string",
+              "listing-page-category-reset": "string",
+              "listing-page-category-results-one": "string",
+              "listing-page-category-results": "string",
               "listing-page-no-matches": "string",
               "listing-page-words": "string",
               "listing-page-filter": "string",
@@ -25909,12 +25912,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222313,
+        _internalId: 222319,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222305,
+            _internalId: 222311,
             type: "enum",
             enum: [
               "png",
@@ -25930,7 +25933,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222312,
+            _internalId: 222318,
             type: "anyOf",
             anyOf: [
               {

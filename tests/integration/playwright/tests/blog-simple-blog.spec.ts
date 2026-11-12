@@ -31,7 +31,7 @@ Object.entries(testPages).forEach(([postDir, pageName]) => {
   const checkCategoryLink = async (page: Page, category: string, pageName: string, postTitle: string) => {
     await page.getByText(category, { exact: true }).click();
     await expect(page).toHaveURL(getUrl(`blog/simple-blog/_site/${pageName}#category=${encodeURIComponent(category)}`));
-    await expect(page.locator(`div.category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
+    await expect(page.locator(`.quarto-listing-category .category[data-category="${btoa(encodeURIComponent(category))}"]`)).toHaveClass(/active/);
     await expect(page.getByRole('link', { name: postTitle })).toBeVisible();
   };
 

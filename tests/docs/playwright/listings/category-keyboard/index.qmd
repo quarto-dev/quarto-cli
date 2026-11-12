@@ -1,0 +1,12 @@
+---
+title: "Categories, tags only"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+  fields: [title, description, categories]
+---
+
+::: {#posts}
+:::

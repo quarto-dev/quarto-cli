@@ -7,13 +7,15 @@ window.quartoListingCategory = (category) => {
   if (categoriesLoaded) {
     activateCategory(category);
     setCategoryHash(category);
+    announceCategoryResults();
   }
 };
 
 const wiredListings = new Set();
 
-// Apply the category and per-listing page stored in the URL hash
-function applyListingHash() {
+// Apply the category and per-listing page stored in the URL hash.
+// `announce` is true when the hash changed after a user action.
+function applyListingHash(announce = false) {
   const hash = getHash();
   if (!hash || !window["quarto-listings"]) {
     return;
@@ -24,6 +26,9 @@ function applyListingHash() {
     // category hash are URI encoded so we need to decode it before processing
     // so that we can match it with the category element processed in JS
     activateCategory(decodeURIComponent(hash.category));
+    if (announce) {
+      announceCategoryResults();
+    }
   }
   // Paginate a specific listing
   for (const listingId of Object.keys(window["quarto-listings"])) {
@@ -65,7 +70,7 @@ window["quarto-listing-loaded"] = () => {
   }
 };
 
-window.addEventListener("hashchange", applyListingHash);
+window.addEventListener("hashchange", () => applyListingHash(true));
 
 window.document.addEventListener("DOMContentLoaded", function (_event) {
   // Attach click handlers to categories
@@ -81,23 +86,87 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     categoryEl.onclick = () => {
       activateCategory(category);
       setCategoryHash(category);
+      announceCategoryResults();
     };
   }
 
-  // Attach a click handler to the category title
+  // Attach a click handler to the button in the category title
   // (there should be only one, but since it is a class name, handle N)
-  const categoryTitleEls = window.document.querySelectorAll(
-    ".quarto-listing-category-title"
+  const categoryResetEls = window.document.querySelectorAll(
+    ".quarto-listing-category-reset"
   );
-  for (const categoryTitleEl of categoryTitleEls) {
-    categoryTitleEl.onclick = () => {
+  for (const categoryResetEl of categoryResetEls) {
+    categoryResetEl.onclick = () => {
       activateCategory("");
       setCategoryHash("");
+      announceCategoryResults();
     };
+  }
+
+  // Item category tags are links to the category hash, so they work before
+  // this script runs. Handle the click here as well: quarto-nav.js rewrites
+  // `index.html` links to the directory URL, which would reload the page, and
+  // filtering re-renders the items, which would drop the focus.
+  window.document.addEventListener("click", (event) => {
+    const tagEl = event.target.closest?.(".listing-categories a.listing-category");
+    if (!tagEl || event.defaultPrevented || event.button !== 0 ||
+      event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    const category = tagCategory(tagEl);
+    if (!category) {
+      return;
+    }
+    event.preventDefault();
+    activateCategory(category);
+    setCategoryHash(category);
+    announceCategoryResults();
+    // With pagination, the clicked item can move off the shown page
+    const focusEl = tagEl.isConnected
+      ? tagEl
+      : [...window.document.querySelectorAll(
+        ".listing-categories a.listing-category"
+      )].find((el) => tagCategory(el) === category);
+    focusEl?.focus();
+  });
+
+  // Without a category in the hash, the unfiltered entry is the current one
+  if (!getHash()?.category) {
+    markCurrentCategory("");
   }
 
   categoriesLoaded = true;
 });
+
+function tagCategory(tagEl) {
+  return parseHash(new URL(tagEl.href).hash.slice(1))?.category;
+}
+
+let announceTimer;
+
+function announceCategoryResults() {
+  const statusEl = window.document.querySelector(
+    ".quarto-listing-category-status"
+  );
+  if (!statusEl || !window["quarto-listings"]) {
+    return;
+  }
+  let count = 0;
+  for (const list of Object.values(window["quarto-listings"])) {
+    count += list.matchingItems.length;
+  }
+  const message =
+    count === 1
+      ? statusEl.dataset.resultsOne
+      : statusEl.dataset.results.replace("{0}", count);
+  // Screen readers skip a live region whose text does not change, so empty
+  // it first and write the message once the empty state has been seen
+  statusEl.textContent = "";
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => {
+    statusEl.textContent = message;
+  }, 100);
+}
 
 function toggleNoMatchingMessage(list) {
   const selector = `#${list.listContainer.id} .listing-no-matching`;
@@ -225,15 +294,21 @@ function showPage(listingId, page) {
 }
 
 function activateCategory(category) {
-  // Deactivate existing categories
+  markCurrentCategory(category);
+
+  // Filter the listings to this category
+  filterListingCategory(category);
+}
+
+function markCurrentCategory(category) {
   const activeEls = window.document.querySelectorAll(
-    ".quarto-listing-category .category.active"
+    ".quarto-listing-category .category.active, .quarto-listing-category .category[aria-current]"
   );
   for (const activeEl of activeEls) {
     activeEl.classList.remove("active");
+    activeEl.removeAttribute("aria-current");
   }
 
-  // Activate this category
   const categoryEl = window.document.querySelector(
     `.quarto-listing-category .category[data-category='${btoa(
       encodeURIComponent(category)
@@ -241,10 +316,8 @@ function activateCategory(category) {
   );
   if (categoryEl) {
     categoryEl.classList.add("active");
+    categoryEl.setAttribute("aria-current", "true");
   }
-
-  // Filter the listings to this category
-  filterListingCategory(category);
 }
 
 function filterListingCategory(category) {

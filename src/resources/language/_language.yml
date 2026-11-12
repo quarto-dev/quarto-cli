@@ -176,6 +176,13 @@ listing-page-field-wordcount: "Word Count"
 listing-page-field-categories: "Categories"
 listing-page-minutes-compact: "{0} min"
 listing-page-category-all: "All"
+# Accessible name of the button in the "Categories" heading that clears the category filter.
+# Keep the word used for "Categories" so voice control users can say what they see.
+listing-page-category-reset: "Show all categories"
+# Announced to screen readers after a category filter changes, when exactly one item matches.
+listing-page-category-results-one: "1 matching item"
+# Announced to screen readers after a category filter changes; {0} is the number of matching items.
+listing-page-category-results: "{0} matching items"
 listing-page-no-matches: "No matching items"
 # Word count shown per item in a listing, e.g. "1,234 words"; {0} is the formatted number.
 # A single string serves every count; pick the plural form that reads best for large numbers.

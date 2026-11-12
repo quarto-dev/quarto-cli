@@ -10,6 +10,7 @@ All changes included in 1.12:
 
 ## Accessibility
 
+- ([#15067](https://github.com/quarto-dev/quarto-cli/issues/15067)): Make listing categories usable with a keyboard. The category filter, its heading and the category tags on listing items are now buttons and links that Tab reaches, and screen readers hear the selected category and the number of matching items. (author: @mcanouil)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Announce every link that opens a new tab to screen readers, not only links opened by `link-external-newwindow`. (author: @mcanouil)
 - ([#15306](https://github.com/quarto-dev/quarto-cli/issues/15306)): Fix the notebook preview title taking the theme's heading color on the primary-colored header bar, which left it low-contrast or unreadable with themes such as `lux` or a custom `$headings-color`. The title now uses the same color as the header buttons. (author: @SabyaXSachi)
 

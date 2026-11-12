@@ -40,7 +40,6 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ::: {.g-col-1 <%= listing.utilities.metadataAttrs(item) %> }
 
 ```{=html}
-<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link no-external-icon">
 <div class="quarto-grid-item card h-100 <%= `card-${align}` %><%= hideBorders ? ' borderless' : '' %>">
 ```
 
@@ -67,8 +66,8 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 
 ::: {.card-body .post-contents}
 
-<% if (showField('title')) { %>
-<h5 class="no-anchor card-title listing-title"><%= item.title %></h5>
+<% if (showField('title') && item.title) { %>
+<h5 class="no-anchor card-title listing-title"><a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link stretched-link no-external-icon"><%= item.title %></a></h5>
 <% } %>
 
 <% if (showField('subtitle')) { %>
@@ -88,7 +87,7 @@ return !["title", "image", "image-alt", "date", "author", "subtitle", "descripti
 ```{=html}
 <div class="listing-categories">
 <% for (const category of item.categories) { %>
-<div class="listing-category" onclick="window.quartoListingCategory('<%= utils.b64encode(category ) %>'); return false;"><%= category %></div>
+<a class="listing-category" href="#category=<%- encodeURIComponent(category) %>"><%= category %></a>
 <% } %>
 </div>
 ```
@@ -177,7 +176,10 @@ let value = readField(item, field);
 <% } %>
 
 ```{=html}
-</div></a>
+<% if (!(showField('title') && item.title)) { %>
+<a href="<%- item.path %>"<%= listing.utilities.targetAttrs(item) %> class="quarto-grid-link stretched-link no-external-icon"><span class="visually-hidden"><%= item.title || item.path %></span></a>
+<% } %>
+</div>
 ```
 
 :::

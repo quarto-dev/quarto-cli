@@ -50,7 +50,10 @@ import {
   templateMarkdownHandler,
 } from "./website-listing-template.ts";
 import { completeListingItems, readListings } from "./website-listing-read.ts";
-import { categorySidebar } from "./website-listing-categories.ts";
+import {
+  categorySidebar,
+  categoryStatusRegion,
+} from "./website-listing-categories.ts";
 import { TempContext } from "../../../../core/temp.ts";
 import { completeStagedFeeds, createFeed } from "./website-listing-feed.ts";
 import {
@@ -377,6 +380,10 @@ function listingPostProcess(
   format: Format,
 ) {
   debug(`[listing] Post processing ${listingDescriptors.length} listings`);
+  // Category filters announce their result here; item category tags can
+  // filter a listing even without the category sidebar
+  const statusEl = categoryStatusRegion(doc, format);
+
   // Render categories, if necessary
   const categories = options[kFieldCategories];
   if (categories) {
@@ -403,6 +410,13 @@ function listingPostProcess(
         rightSidebar?.appendChild(categoriesEl);
       }
     }
+  }
+  // The region stays next to the listing, in the main column: the margin
+  // sidebar is hidden on narrow screens, which would silence it
+  if (listingDescriptors.length > 0) {
+    doc.getElementById(`listing-${listingDescriptors[0].listing.id}`)?.after(
+      statusEl,
+    );
   }
 
   // Purge any images that made it into the description

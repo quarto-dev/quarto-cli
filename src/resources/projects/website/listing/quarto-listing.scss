@@ -104,7 +104,9 @@ $theme-name: null !default;
   padding-bottom: 5px;
 
   .listing-category {
+    display: inline-block;
     color: listing-override-value($theme-name, "category-color", $text-muted);
+    text-decoration: none;
 
     $val: listing-override-value($theme-name, "category-border", null);
     @if $val != null {
@@ -268,16 +270,25 @@ ul.pagination {
     font-size: 1rem;
   }
   .quarto-listing-category-title {
-    cursor: pointer;
     font-weight: 600;
     font-size: 1rem;
   }
 }
 
+// The reset and the category entries are buttons that look like text
+.quarto-listing-category-reset,
+.quarto-listing-category .category {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
 .quarto-listing-category {
-  .category {
-    cursor: pointer;
-  }
   .category.active {
     font-weight: 600;
   }
@@ -288,6 +299,7 @@ ul.pagination {
   flex-wrap: wrap;
   align-items: baseline;
   .category {
+    display: inline;
     padding-right: 5px;
   }
 
@@ -345,6 +357,24 @@ ul.pagination {
 .quarto-grid-link:hover {
   text-decoration: none;
   color: inherit;
+}
+
+// The item link stretches over the whole card; other links in the card
+// sit above it so that they take their own clicks
+.quarto-grid-item .listing-category,
+.quarto-grid-item a:not(.stretched-link) {
+  position: relative;
+  z-index: 2;
+}
+
+// The focus ring follows the click area: the whole card, not the title
+.quarto-grid-item:has(.stretched-link:focus-visible) {
+  @include focus-ring;
+}
+
+.quarto-grid-item .stretched-link:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .quarto-grid-item {

@@ -1,0 +1,13 @@
+---
+title: "Categories, paged"
+listing:
+  id: posts
+  contents: posts
+  type: default
+  sort: "title asc"
+  categories: true
+  page-size: 1
+---
+
+::: {#posts}
+:::
