@@ -7,14 +7,16 @@ All changes included in 1.12:
   - Update `esbuild` to 0.28.2 (fixes a CSS minification bug involving `&` and a TypeScript import-alias tree-shaking bug).
   - Update `typst-gather` to 0.2.4.
   - Update `verapdf` to 1.30.3 (used by `quarto install verapdf` for PDF/A validation).
-- Update `pandoc` to 3.13
-  - ([jgm/pandoc#11540](https://github.com/jgm/pandoc/issues/11540)): Horizontal rules (`---`) in Typst output are now full-width, following Pandoc 3.13's use of Typst 0.15's native `divider` element, instead of the previous centered half-width line. Restyle them with `#show divider: set line(stroke: 2pt)` in a raw Typst block or a custom template. A Typst binary set through `QUARTO_TYPST` must now be version 0.15 or later.
-  - ([jgm/pandoc#11748](https://github.com/jgm/pandoc/pull/11748)): In Typst output, a single-paragraph definition in a tight definition list now sits on the same line as its term instead of below it. Definitions in loose lists, or made of several blocks, still start below the term.
-  - ([jgm/pandoc#11831](https://github.com/jgm/pandoc/pull/11831)): HTML documents using `theme: pandoc` pick up Pandoc 3.13's style updates. Links now inherit the surrounding text color unless `linkcolor` is set, horizontal rules and table borders follow the text color, and printed output drops backgrounds and the fixed 12pt font size, rendering at the 11pt print size used by other Quarto HTML themes. Pandoc 3.13's automatic dark mode is not enabled for `theme: pandoc`.
-  - ([jgm/pandoc#11845](https://github.com/jgm/pandoc/issues/11845)): In Word output, cross-reference targets are now hidden bookmarks with generated names instead of their Quarto id (`fig-plot`). Cross-reference links inside the document still work, but a link or script that looks a bookmark up by its Quarto id from outside the document, such as `report.docx#fig-plot` or `officer`, VBA or `python-docx` code, no longer finds it.
-  - ([jgm/pandoc 3.13](https://github.com/jgm/pandoc/releases/tag/3.13)): A YAML bibliography file with a duplicated key, such as two `title` fields in one reference, now stops the render with an error giving the file, line and column. Before, the last value was kept silently. Remove the duplicate key to render again.
-  - ([jgm/pandoc@c73a35a](https://github.com/jgm/pandoc/commit/c73a35a2e7ed1144132f1e533b4f0ae4c3648143)): Support Pandoc's `--math-method` option in `quarto render`, so that `--math-method=katex` works with `--embed-resources` and keeps math intact in `llms.md` output, like `--katex` does.
-  - ([jgm/pandoc#11745](https://github.com/jgm/pandoc/issues/11745)): A Div with an id that starts with a heading now renders as a single section instead of a div around a section, and the wrapper's classes move onto that section (CSS such as `div.myclass > section` no longer matches). Revealjs now shows such slides and dashboards no longer nest such rows or cards. In HTML, EPUB, revealjs, beamer, DocBook, ConTeXt and AsciiDoc, Quarto keeps the heading id on the section, so crossrefs and table of contents links still target the heading; in beamer, DocBook, ConTeXt, AsciiDoc and revealjs the wrapper id is no longer written. An explicit `.section` wrapper in HTML follows Pandoc's new behavior: the section takes the wrapper id.
+- ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update `pandoc` to 3.13. Pandoc changes that alter existing documents:
+  - A YAML bibliography file with a duplicated key, such as two `title` fields in one reference, now stops the render with an error. Before, the last value was kept silently.
+  - In Word output, cross-reference targets are hidden bookmarks with generated names. Links inside the document still work, but a link from outside it to a Quarto id, such as `report.docx#fig-plot`, no longer finds the target.
+  - In Word output, an image width given as a percentage is now a percentage of the text width, so small images can get larger.
+  - In PowerPoint output, a slide with text followed by a table now uses the "Title and Content" layout instead of "Content with Caption", and a slide with bullets, a table and more bullets is no longer split in two.
+  - HTML without the Bootstrap theme (`minimal: true`, `theme: none`, `theme: pandoc`) and Pandoc's other HTML formats now render math as MathML when no `html-math-method` is set, instead of plain text. Set `html-math-method: plain` for the previous output.
+  - The `--katex`, `--mathjax`, `--mathml` and `--webtex` options of `quarto render` still work but now print a deprecation warning pointing to `--math-method`.
+  - In citeproc bibliographies, a lowercase particle written in a `family` name, such as `de Gaulle`, now stays part of it, so the entry sorts under "d". Use the `non-dropping-particle` field to keep the previous sorting.
+  - YAML metadata blocks after the front matter are now read as YAML 1.2, so `yes` and `no` there are strings, as they already were in the front matter.
+  - In Typst output, a Div with a `typst-label` attribute now gets that Typst label, and a Span with `lang` sets the text language.
 
 ## Accessibility
 
@@ -23,15 +25,26 @@ All changes included in 1.12:
 
 ## Formats
 
+### All Formats
+
+- ([#15344](https://github.com/quarto-dev/quarto-cli/pull/15344)): A Div with an id that starts with a heading now renders as that heading's section, which takes the Div's classes, so CSS such as `div.myclass > section` no longer matches. Quarto keeps the heading id on the section, so crossrefs and table of contents links still target the heading; in beamer, DocBook, ConTeXt, AsciiDoc and revealjs the Div's id is no longer written.
+
 ### `html`
 
 - ([#9606](https://github.com/quarto-dev/quarto-cli/issues/9606)): Fix `format-links` entries written as `{format, text}` adding a second, default link for the same format instead of renaming its link.
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Fix `link-external-newwindow` overriding a `target` set explicitly on a link. (author: @mcanouil)
 - ([#15297](https://github.com/quarto-dev/quarto-cli/issues/15297)): Fix the table of contents highlight not following the scroll position when a heading id contains a `%` or a `:`. (author: @chenyangsu)
+- ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update `theme: pandoc` to Pandoc 3.13's styles:
+  - Links inherit the text color unless `linkcolor` is set, and horizontal rules and table borders follow the text color.
+  - Printed output drops backgrounds and uses the 11pt print size of the other Quarto HTML themes.
+  - Pandoc 3.13's automatic dark mode is not enabled.
 
 ### `pdf`
 
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics. Their body is now upright, like definitions, examples and exercises. (author: @mcanouil)
+- ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's LaTeX template following Pandoc 3.13 support:
+  - Table captions are set with the `caption` package, with a 6pt gap to the table.
+  - Footnotes in long tables are placed after the table by Pandoc, and no longer rely on `footnotehyper`.
 
 ### `revealjs`
 
@@ -41,6 +54,10 @@ All changes included in 1.12:
 
 - ([#15168](https://github.com/quarto-dev/quarto-cli/issues/15168)): Fix definitions, examples and exercises being set in italics in Typst output with the default `theorem-appearance: simple`. Their body is now upright, as in LaTeX output, while theorems, lemmas, corollaries, propositions and conjectures keep an italic body. (author: @mcanouil)
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics with `theorem-appearance: simple` and using the colours of theorems with `theorem-appearance: fancy`. They now look like definitions, examples and exercises. (author: @mcanouil)
+- ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's Typst template following Pandoc 3.13 support:
+  - Horizontal rules are full-width, using Typst 0.15's native `divider`. A Typst binary set with `QUARTO_TYPST` must be 0.15 or later.
+  - In a tight definition list, a one-paragraph definition now sits on the same line as its term.
+  - Bibliographies apply the hanging indent and entry spacing of the CSL style, which were dropped before.
 
 ## Projects
 
@@ -55,6 +72,10 @@ All changes included in 1.12:
 
 - ([#14783](https://github.com/quarto-dev/quarto-cli/issues/14783)): Fix `quarto preview` ignoring project metadata contributed by an extension, such as `brand`. Contributed project metadata now applies to every command that builds a project context, `quarto inspect` included. (author: @mcanouil)
 - ([#15266](https://github.com/quarto-dev/quarto-cli/issues/15266)): Fix `quarto preview` keeping the project metadata an extension contributed at startup, such as `brand`, after its `_extension.yml` changes.
+
+### `quarto render`
+
+- ([#15321](https://github.com/quarto-dev/quarto-cli/pull/15321)): Support Pandoc's `--math-method` option, so `--math-method=katex` works with `--embed-resources` and in `llms.md` output, as `--katex` does.
 
 ## Extensions
 
