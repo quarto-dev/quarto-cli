@@ -1,0 +1,30 @@
+---
+title: "Single TOC in beamer output"
+format:
+  beamer:
+    toc: true
+    # render to .tex only, no PDF recipe needed
+    output-ext: tex
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        -
+          - '\\tableofcontents'
+        -
+          # duplicate \tableofcontents outside the frame, removed from
+          # Pandoc's beamer template in 3.11 (jgm/pandoc#11819)
+          - '\\end\{frame\}\n\\setcounter\{tocdepth\}\{[0-9]+\}\n\\tableofcontents'
+---
+
+# Section One
+
+## Slide A
+
+Content A
+
+# Section Two
+
+## Slide B
+
+Content B

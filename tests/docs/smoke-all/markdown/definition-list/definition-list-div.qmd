@@ -29,7 +29,7 @@ _quarto:
     typst:
       ensureTypstFileRegexMatches:
         - - '/ Loose term: #block\['
-          - '/ Inner term: #block\['
+          - '/ Outer term: #block\[\s*/ Inner term: Inner definition\.'
           - '/ Table term: #block\[\s*#table\('
         - []
 ---

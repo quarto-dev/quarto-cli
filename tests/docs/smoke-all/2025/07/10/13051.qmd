@@ -30,8 +30,8 @@ _quarto:
         - 
           - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a01\")]"
           - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Table\u00a02\")]"
-          - "//w:hyperlink[@w:anchor='tbl-1']"
-          - "//w:hyperlink[@w:anchor='tbl-2']"
+          - "//w:hyperlink[@w:anchor='{{bookmark:tbl-1}}']"
+          - "//w:hyperlink[@w:anchor='{{bookmark:tbl-2}}']"
         - 
           - "//w:tbl//w:tbl//w:tblCaption[contains(@w:val, 'caption for the table 1')]"
           - "//w:tbl//w:tbl//w:tblCaption[contains(@w:val, 'caption for the table 2')]"

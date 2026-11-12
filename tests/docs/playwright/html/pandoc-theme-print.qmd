@@ -1,0 +1,12 @@
+---
+title: theme pandoc print styles
+format:
+  html:
+    theme: pandoc
+linkcolor: "#ff0000"
+monobackgroundcolor: "#eeeeee"
+---
+
+A [link](https://quarto.org) and `inline code`.
+
+> A blockquote.

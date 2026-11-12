@@ -36,31 +36,11 @@ body {
     font-size: 1.8em;
   }
 }
-@media print {
-  html {
-    background-color: $if(backgroundcolor)$$backgroundcolor$$else$white$endif$;
-  }
-  body {
-    background-color: transparent;
-    color: black;
-    font-size: 12pt;
-  }
-  p, h2, h3 {
-    orphans: 3;
-    widows: 3;
-  }
-  h2, h3, h4 {
-    page-break-after: avoid;
-  }
-}
 p {
   margin: 1em 0;
 }
-a {
-  color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
-}
-a:visited {
-  color: $if(linkcolor)$$linkcolor$$else$#1a1a1a$endif$;
+a, a:visited {
+  color: $if(linkcolor)$$linkcolor$$else$inherit$endif$;
 }
 img {
   max-width: 100%;
@@ -147,7 +127,7 @@ pre code {
 }
 hr {
   border: none;
-  border-top: 1px solid #1a1a1a;
+  border-top: 1px solid currentColor;
   height: 1px;
   margin: 1em 0;
 }
@@ -164,11 +144,11 @@ table caption {
 }
 tbody {
   margin-top: 0.5em;
-  border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
-  border-bottom: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
 }
 th {
-  border-top: 1px solid $if(fontcolor)$$fontcolor$$else$#1a1a1a$endif$;
+  border-top: 1px solid currentColor;
   padding: 0.25em 0.5em 0.25em 0.5em;
 }
 td {
@@ -218,3 +198,24 @@ $endif$
 $if(csl-css)$
 $styles.citations.html()$
 $endif$
+@media print {
+  html {
+    color-scheme: light only;
+  }
+  html, body, pre, code {
+    background-color: transparent;
+  }
+  body, a, a:visited, blockquote {
+    color: black;
+  }
+  pre, code {
+    padding: 0;
+  }
+  p, h2, h3 {
+    orphans: 3;
+    widows: 3;
+  }
+  h2, h3, h4 {
+    page-break-after: avoid;
+  }
+}
