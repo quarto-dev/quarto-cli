@@ -49,6 +49,9 @@ code-tools-hide-all-code: "הסתר את הקוד כולו"
 code-tools-view-source: "הצג מקור"
 code-tools-source-code: "קוד מקור"
 
+tools-share: "שתף"
+tools-download: "הורד"
+
 code-line: "שורה"
 code-lines: "שורות"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "הצג מקור"
 repo-action-links-issue: "דווח על בעיה"
 
 back-to-top: "חזרה למעלה"
+
+skip-to-content: "דלג לתוכן הראשי"
 
 search-no-results-text: "אין תוצאות"
 search-matching-documents-text: "מסמכים תואמים"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "נתיב"   # libreoffice sw 'Path' (attested ter
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "קוד הניתן לגלילה"    # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "פלט הניתן לגלילה"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(נפתח בלשונית חדשה)"
+
+announcement-dismiss-label: "סגור את ההודעה"
+
+revealjs-menu-button-label: "תפריט שקופיות"
 
 crossref-fig-title: "תרשים"
 crossref-tbl-title: "טבלה"

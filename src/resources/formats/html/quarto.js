@@ -142,12 +142,33 @@ window.document.addEventListener("DOMContentLoaded", function (_event) {
     });
   });
 
+  // An id may contain a "%" that does not start a valid escape (#15297), so
+  // decoding must not throw: that would stop the rest of this handler.
+  const safeDecodeURI = (value) => {
+    try {
+      return decodeURI(value);
+    } catch {
+      return value;
+    }
+  };
+
+  // data-scroll-target holds the link's raw href with ":" escaped as "\:".
+  // Like the browser does for a URL fragment, look the id up as written first,
+  // then percent-decoded.
   const sections = tocLinks.map((link) => {
     const target = link.getAttribute("data-scroll-target");
     if (target.startsWith("#")) {
-      return window.document.getElementById(decodeURI(`${target.slice(1)}`));
+      const id = target.slice(1).replace(/\\:/g, ":");
+      return (
+        window.document.getElementById(id) ||
+        window.document.getElementById(safeDecodeURI(id))
+      );
     } else {
-      return window.document.querySelector(decodeURI(`${target}`));
+      try {
+        return window.document.querySelector(safeDecodeURI(target));
+      } catch {
+        return null;
+      }
     }
   });
 

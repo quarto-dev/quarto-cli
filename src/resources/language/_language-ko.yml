@@ -32,6 +32,7 @@ title-block-author-plural: "저자"
 title-block-affiliation-single: "소속"
 title-block-affiliation-plural: "소속"
 title-block-published: "공개"
+title-block-modified: "수정"
 title-block-keywords: "키워드"
 
 callout-tip-title: "힌트"
@@ -51,6 +52,9 @@ code-tools-hide-all-code: "전체 코드 숨기기"
 code-tools-view-source: "소스 코드 표시"
 code-tools-source-code: "소스 코드"
 
+tools-share: "공유"
+tools-download: "다운로드"
+
 copy-button-tooltip: "클립보드 복사"
 copy-button-tooltip-success: "복사완료!"
 
@@ -59,6 +63,8 @@ repo-action-links-source: "소스코드 보기"
 repo-action-links-issue: "이슈 보고"
 
 back-to-top: "맨 위로"
+
+skip-to-content: "본문으로 건너뛰기"
 
 search-no-results-text: "일치 없음"
 search-matching-documents-text: "일치된 문서"
@@ -93,6 +99,12 @@ navigation-breadcrumbs-label: "사이트 이동 경로"  # wikidata Q846205
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "스크롤 가능한 코드"    # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "스크롤 가능한 출력"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(새 탭에서 열립니다)"
+
+announcement-dismiss-label: "공지 닫기"
+
+revealjs-menu-button-label: "슬라이드 메뉴"
 
 crossref-fig-title: "그림"
 crossref-tbl-title: "표"

@@ -12,7 +12,7 @@ function bibliography_formats()
       elseif _quarto.format.isTypstOutput() and doc.meta.bibliography ~= nil
         and quarto.doc.cite_method() ~= "citeproc" then
         -- pandoc's Typst writer backslash-escapes any metadata string starting
-        -- with a literal dot (jgm/pandoc#11511). Rewriting each bibliography
+        -- with a literal dot (jgm/pandoc#11761). Rewriting each bibliography
         -- path as a raw typst inline bypasses that escaping entirely.
         --
         -- Skip this when citeproc is handling citations natively (cite-method

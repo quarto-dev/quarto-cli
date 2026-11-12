@@ -5,7 +5,8 @@
  */
 
 import { assert } from "testing/asserts";
-import { ensureDirSync, existsSync } from "../../../src/deno_ral/fs.ts";
+import { existsSync } from "../../../src/deno_ral/fs.ts";
+import { writeFixture } from "../../utils.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { unitTest } from "../../test.ts";
 import { renderCleanup } from "../../../src/command/render/cleanup.ts";
@@ -46,11 +47,9 @@ unitTest("renderCleanup - narrows ipynb supporting despite path separator mismat
     const filesDir = join(projectDir, "index_files");
     const figureHtmlDir = join(filesDir, "figure-html");
     const figureIpynbDir = join(filesDir, "figure-ipynb");
-    ensureDirSync(figureHtmlDir);
-    ensureDirSync(figureIpynbDir);
     const figureHtmlPlot = join(figureHtmlDir, "plot.png");
-    Deno.writeTextFileSync(figureHtmlPlot, "html-figure");
-    Deno.writeTextFileSync(join(figureIpynbDir, "plot.png"), "ipynb-figure");
+    writeFixture(figureHtmlDir, "plot.png", "html-figure");
+    writeFixture(figureIpynbDir, "plot.png", "ipynb-figure");
 
     // Engine reports the supporting dir with forward slashes (as knitr does).
     const supportingForwardSlash = filesDir.replaceAll("\\", "/");

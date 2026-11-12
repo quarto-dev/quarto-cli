@@ -18,12 +18,14 @@ package/dist/**
 /tests/test-out.json
 *~
 .env
+# deno lock files generated outside the pinned root lockfile (the root deno.lock is committed)
+tests/deno.lock
+src/deno.lock
+
 # deno_std library
 src/resources/deno_std/cache
 src/vendor-*
 
-# deno lock file
-deno.lock
 
 # windows configuration file
 win_configuration.bat

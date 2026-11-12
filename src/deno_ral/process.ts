@@ -8,3 +8,7 @@ export const call = async (path: string, opts: Deno.CommandOptions = {}) => {
   const cmd = new Deno.Command(path, opts);
   return cmd.output();
 };
+
+export function execPath(): string {
+  return Deno.execPath();
+}

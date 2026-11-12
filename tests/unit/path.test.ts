@@ -18,7 +18,7 @@ import {
   skipHiddenWithin,
 } from "../../src/core/path.ts";
 import { existsSync, walkSync } from "../../src/deno_ral/fs.ts";
-import { docs } from "../utils.ts";
+import { docs, writeFixture } from "../utils.ts";
 
 const workingDir = Deno.makeTempDirSync({ prefix: "quarto-test" });
 const emptyDir = join(workingDir, "empty");
@@ -42,8 +42,7 @@ unitTest("path - removeIfEmptyDir", async () => {
   removeIfEmptyDir(emptyDir);
   assert(!existsSync(emptyDir), "Empty directory was not removed");
 
-  Deno.mkdirSync(emptyDir);
-  Deno.writeTextFileSync(join(emptyDir, "foo.txt"), "Hello World");
+  writeFixture(workingDir, "empty/foo.txt", "Hello World");
 
   removeIfEmptyDir(emptyDir);
   assert(existsSync(emptyDir), "Non-empty directory was removed");
@@ -124,8 +123,7 @@ unitTest("path - skipHiddenWithin only skips hidden paths below dir", async () =
   try {
     const root = join(tmp, ".parent", "proj");
     for (const file of ["a.qmd", "x.y/b.qmd", ".git/c", "sub/.venv/d"]) {
-      Deno.mkdirSync(join(root, file, ".."), { recursive: true });
-      Deno.writeTextFileSync(join(root, file), "");
+      writeFixture(tmp, `.parent/proj/${file}`, "");
     }
     for (
       const dir of [root, root + SEP, root.replaceAll("\\", "/")]

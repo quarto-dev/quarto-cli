@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Gesamten Code verbergen"
 code-tools-view-source: "Quellcode anzeigen"
 code-tools-source-code: "Quellcode"
 
+tools-share: "Teilen"
+tools-download: "Herunterladen"
+
 copy-button-tooltip: "In die Zwischenablage kopieren"
 copy-button-tooltip-success: "Kopiert"
 
@@ -96,6 +99,10 @@ navigation-breadcrumbs-label: "Pfad"      # libreoffice sw 'Path' (attested term
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Scrollbarer Code"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Scrollbare Ausgabe"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+announcement-dismiss-label: "Ankündigung schließen"
+
+revealjs-menu-button-label: "Folienmenü"
 
 crossref-fig-title: "Abbildung"
 crossref-tbl-title: "Tabelle"

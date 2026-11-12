@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Скрыть код"
 code-tools-view-source: "Показать код"
 code-tools-source-code: "Исходный код"
 
+tools-share: "Поделиться"
+tools-download: "Скачать"
+
 copy-button-tooltip: "Скопировать текст"
 copy-button-tooltip-success: "Скопировано"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Показать код"
 repo-action-links-issue: "Сообщить о проблеме"
 
 back-to-top: "Наверх"
+
+skip-to-content: "Перейти к основному содержанию"
 
 search-no-results-text: "Поиск не дал результатов"
 search-matching-documents-text: "Результаты поиска"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Путь"             # libreoffice sw 'Path' (at
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Прокручиваемый код"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Прокручиваемый вывод"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(открывается в новой вкладке)"
+
+announcement-dismiss-label: "Закрыть объявление"
+
+revealjs-menu-button-label: "Меню слайдов"
 
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблица"

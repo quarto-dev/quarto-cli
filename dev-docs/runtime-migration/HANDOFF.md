@@ -22,6 +22,10 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 ## State
 
 - The plans merged to `main` as #15133 on 2026-10-20.
+- Updated 2026-11-03: Quarto 1.11.9 shipped stable on 2026-10-30 with Deno 2.9.8; `main` now targets 1.12. PR 00a (#15186) and the runtime behavior verification are complete. The boundary codemods and script deprecation notice did not ship in 1.11; apply the README release and backport corrections before executing a plan.
+- PR 09 is active in draft #15223, rebased onto current `main`; its changelog targets 1.12. Local verification on Deno 2.9.8 is recorded in the private tracker; check the current PR CI before reviewing or merging. Continue that PR rather than opening a duplicate implementation.
+- Updated 2026-11-05: #15259 merged on 2026-11-03 and landed the lockfile half of PR 00b (committed frozen `deno.lock` in configure, the dev launchers, `quarto-bld` and the bundle). The PR 00b remainder is the `deno_std` download/lock scripts, the external-specifier and test-import checks, the `deno-cache` CI input and the three-OS bundle gate; the README overlap row carries the verified inventory.
+- Corrected release targets: boundary work and the script notice in 1.12 on Deno, Node in 1.13, bundled-Deno removal in 1.14. The README release correction row governs old version promises, compatibility windows, rollback and changelog paths at plan step 0.
 - Everything durable is in this directory (`dev-docs/runtime-migration/`):
   - `README.md`: entry point, the ordered table of 45 PRs, two spikes and one milestone, dependency graph, conventions the plans decided, progress metric.
   - `00-assessment.md`: decision record (why Node, impact, phased plan, spike results, module-by-module refactoring plan).
@@ -46,7 +50,7 @@ These were throwaway and are recreated by the plans when needed:
 `REVIEW-2026-10-15.md` is the principal review of the first draft (13 structural findings, per-plan defects, the landing strategy, the decisions taken in its section 6).
 Every plan was then reworked against it: six new PRs (00a, 00b, 00c, 02b, 14b, 20b, 27b), PR 21 folded into 25, PR 07 and PR 39 rewritten and renamed, `SPIKES.md` added, `_TEMPLATE.md` vocabulary updated, `00-assessment.md` given an errata section.
 `README.md` carries the new table, dependency graph, conventions and baseline.
-The plans are now executable in the README order; PR 02 (#15135), 02c (#15153) and 02d (#15218) are merged; 00a is in progress as the Deno 2.9.8 security bump (#15152), and 00b runs next.
+PR 02 (#15135), 02c (#15153), 02d (#15218) and 00a (#15186) are merged, and #15259 landed the lockfile half of 00b. PR 09 (#15223) is in progress; the README corrections govern the remaining plans.
 
 ## Reconciliation pass (bucket B of `TRIAGE-2026-10-16.md`): done on 2026-10-16
 
@@ -78,7 +82,7 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. PR 02, 02c and 02d are merged, and 00a is in progress; open the remaining plans as PRs against `main` in the README order: 00b, then 03–06 in parallel, then 07.
+5. PR 02, 02c, 02d and 00a are merged. Continue PR 09 in #15223. On the Phase 0 path, #15259 landed the lockfile half of 00b; execute the 00b remainder per the README overlap row. 03–06 still wait for the full 00b gate, followed by 07.
    Each plan names its branch, executor and verification commands.
    For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check
    `local/multi-worktree-workflow.md` if it exists — it is a maintainer-local, untracked note.
@@ -88,7 +92,7 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 
 A management pre-validation of the plans (report in French under `/mnt/project-files/revue-organisation/`) found the content complete and the organisation incomplete: no named roles, no release dates in the index, no merge rule for shared files, two stale hand-offs (00b → 07, 22 → 27b).
 Its corrections are in README ("Roles", "Release calendar", "Open decisions with an owner", ground rule 8, step 0 of "How to execute a plan"), `SPIKES.md` (decider column), `_TEMPLATE.md` and the plan headers it lists.
-The "Roles" table has since been filled in for a solo maintainer (Chris) plus LLM-driven agents; the cut dates remain Chris's to confirm before Phase 0 starts.
+The "Roles" table has since been filled in for a solo maintainer (Chris) plus LLM-driven agents; the remaining cut dates need confirmation against the corrected release calendar in README.
 
 ## Known loose ends in the plans
 
@@ -115,9 +119,6 @@ The "Roles" table has since been filled in for a solo maintainer (Chris) plus LL
 
 ## Tracking
 
-This repository has no issue tracker for this work: the files in this directory are the whole record.
-The order, dependencies and status of every PR, spike and milestone are in `README.md` (the sequence tables and the dependency graph), and each plan file holds its own checkbox steps.
-
-Anyone who wants issue-level tracking sets it up in their own tooling, from the README "The sequence" tables: one item per row (45 PRs, two spikes, one milestone), a dependency for each "depends on" entry, and a link to the row's plan file.
-The maintainer does this in a private tracker that is not committed.
-Keep the plans as the source for design; a tracker only needs status and ordering.
+The maintainer's private beads tree tracks the PRs, spikes, milestone and additional prerequisites. It is not committed to the repository.
+`README.md` holds the shared sequence, dependencies and status; each plan holds its design and checkbox steps. Keep the private tracker and README aligned, including blockers discovered after planning.
+Corrections to an unexecuted plan go in README "Open decisions with an owner"; the executor applies them at step 0 rather than treating the old plan as current.

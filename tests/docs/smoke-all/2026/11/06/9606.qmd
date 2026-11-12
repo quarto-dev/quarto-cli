@@ -1,0 +1,29 @@
+---
+title: "format-links with only `{format, text}` entries"
+format:
+  html:
+    format-links:
+      - format: typst
+        text: PDF
+        icon: file-pdf
+      - format: docx
+        text: Word
+        icon: file-word
+  typst: default
+  docx: default
+_quarto:
+  tests:
+    html:
+      ensureHtmlElementCount:
+        selectors:
+          - '.quarto-alternate-formats a'
+          - '.quarto-alternate-formats a[href="9606.pdf"]'
+          - '.quarto-alternate-formats a[href="9606.docx"]'
+        counts: [2, 1, 1]
+      ensureHtmlElementContents:
+        selectors: ['.quarto-alternate-formats a[href="9606.docx"]']
+        matches: ['^Word$']
+---
+
+`format-links` lists every format as a `{format, text, icon}` object and has no plain string entry.
+Listing a format this way renames its link: "Other Formats" shows only PDF and Word, not the default Typst and MS Word links as well (#9606).

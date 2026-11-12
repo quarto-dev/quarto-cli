@@ -19,5 +19,5 @@
   "Lua.runtime.version": "Lua 5.3",
   "Lua.workspace.checkThirdParty": false,
   "Lua.workspace.library": ["src/resources/lua-types"],
-  "Lua.workspace.ignoreDir": ["tests/renv", ".vscode", "**/node_modules/*"]
+  "Lua.workspace.ignoreDir": ["tests/.rvenv", ".vscode", "**/node_modules/*"]
 }

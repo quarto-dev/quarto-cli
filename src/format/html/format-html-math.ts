@@ -7,14 +7,14 @@
 
 import { kHtmlEmptyPostProcessResult } from "../../command/render/constants.ts";
 import { Document } from "../../core/deno-dom.ts";
-import { kHtmlMathMethod } from "../../config/constants.ts";
+import { kHtmlMathMethod, kMathMethod } from "../../config/constants.ts";
 import { Format, PandocFlags } from "../../config/types.ts";
 import { MathMethods } from "../../resources/types/schema-types.ts";
 
 export interface HtmlMathMethod {
   method: MathMethods;
   url?: string;
-  // true when a command line flag (--katex, --mathjax, ...) chose the method
+  // true when a command line flag (--math-method, --katex, ...) chose the method
   fromFlag: boolean;
 }
 
@@ -29,6 +29,14 @@ export function resolveHtmlMathMethod(
   format: Format,
   flags?: PandocFlags,
 ): HtmlMathMethod | undefined {
+  const mathMethod = flags?.[kMathMethod];
+  if (mathMethod) {
+    return {
+      method: mathMethod.method as MathMethods,
+      url: mathMethod.url,
+      fromFlag: true,
+    };
+  }
   const flagMethod = kMathFlags.find((method) => flags?.[method]);
   if (flagMethod) {
     return { method: flagMethod, fromFlag: true };

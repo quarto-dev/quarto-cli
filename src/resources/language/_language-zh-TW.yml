@@ -52,6 +52,8 @@ code-tools-hide-all-code: "隱藏所有程式碼區塊"
 code-tools-view-source: "查看本頁原始碼"
 code-tools-source-code: "原始碼"
 
+tools-download: "下載"
+
 copy-button-tooltip: "複製到剪貼簿"
 copy-button-tooltip-success: "已複製"
 
@@ -96,6 +98,10 @@ navigation-breadcrumbs-label: "路徑"  # libreoffice sw zh-TW 'Path'; attested 
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "可滾動的程式碼"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "可滾動的輸出"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+announcement-dismiss-label: "關閉公告"
+
+revealjs-menu-button-label: "投影片選單"
 
 crossref-fig-title: "圖"
 crossref-tbl-title: "表"
@@ -143,3 +149,5 @@ listing-page-words: "{0} 個單詞"
 listing-page-filter: "篩選"
 
 draft: "草稿"
+
+link-external-newwindow-label: "（在新分頁中開啟）"

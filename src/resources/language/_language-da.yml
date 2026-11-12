@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Skjul al kode"
 code-tools-view-source: "Vis kilde"
 code-tools-source-code: "Kildekode"
 
+tools-share: "Del"
+tools-download: "Download"
+
 copy-button-tooltip: "Kopier til udklipsholder"
 copy-button-tooltip-success: "Kopieret!"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Vis kilde"
 repo-action-links-issue: "Anmeld problem"
 
 back-to-top: "Tilbage til toppen"
+
+skip-to-content: "Gå til hovedindholdet"
 
 search-no-results-text: "Ingen resultater"
 search-matching-documents-text: "Matchende dokumenter"
@@ -94,6 +99,8 @@ navigation-breadcrumbs-label: "Sti"        # libreoffice sw 'Path' (no attested 
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Kode, der kan scrolles"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Output, der kan scrolles"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(åbnes i en ny fane)"
 
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabel"

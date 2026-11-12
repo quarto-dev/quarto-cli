@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Piilota kaikki koodi"
 code-tools-view-source: "Näytä lähdekoodi"
 code-tools-source-code: "Lähdekoodi"
 
+tools-share: "Jaa"
+tools-download: "Lataa"
+
 copy-button-tooltip: "Kopioi leikepöydälle"
 copy-button-tooltip-success: "Kopioitu!"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Näytä lähdekoodi"
 repo-action-links-issue: "Ilmoita ongelmasta"
 
 back-to-top: "Takaisin alkuun"
+
+skip-to-content: "Siirry pääsisältöön"
 
 search-no-results-text: "Ei tuloksia"
 search-matching-documents-text: "tulokset"
@@ -95,6 +100,12 @@ navigation-breadcrumbs-label: "Linkkipolku"  # wikidata Q846205
 # No attested "scrollable" here; from "vierittää" (to scroll).
 scrollable-code-label: "Vieritettävä koodi"      # derived + code-summary — assembled, needs review
 scrollable-output-label: "Vieritettävä tuloste"  # derived + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(avautuu uudelle välilehdelle)"
+
+announcement-dismiss-label: "Sulje ilmoitus"
+
+revealjs-menu-button-label: "Diavalikko"
 
 crossref-fig-title: "Kuva"
 crossref-tbl-title: "Taulukko"

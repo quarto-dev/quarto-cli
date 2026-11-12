@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Сховати код"
 code-tools-view-source: "Показати код"
 code-tools-source-code: "Вихідний код"
 
+tools-share: "Поділитися"
+tools-download: "Завантажити"
+
 code-line: "Лінія"
 code-lines: "Лінії"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Показати код"
 repo-action-links-issue: "Повідомити про проблему"
 
 back-to-top: "Вгору"
+
+skip-to-content: "Перейти до основного вмісту"
 
 search-no-results-text: "Пошук не дав результатів"
 search-matching-documents-text: "Результати пошуку"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Шлях"             # libreoffice sw 'Path' (at
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Код, що прокручується"      # firefox devtools (uk) + code-summary — assembled, needs review
 scrollable-output-label: "Вивід, що прокручується"  # firefox devtools (uk) + libreoffice dbaccess (uk) — assembled, needs review
+
+link-external-newwindow-label: "(відкривається в новій вкладці)"
+
+announcement-dismiss-label: "Закрити оголошення"
+
+revealjs-menu-button-label: "Меню слайдів"
 
 crossref-fig-title: "Рисунок"
 crossref-tbl-title: "Таблиця"

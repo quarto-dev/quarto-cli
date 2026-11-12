@@ -1037,7 +1037,17 @@ body .nav-footer {
     font-size: 1.2em;
     margin-top: -0.15em;
   }
+  // A <button> for keyboard and screen reader access; reset the browser's
+  // button styles so it looks like the bare icon it replaces. The global
+  // :focus-visible rule draws its keyboard focus ring.
   .quarto-announcement-action {
     cursor: pointer;
+    align-self: flex-start;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
   }
 }

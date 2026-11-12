@@ -261,7 +261,7 @@ export async function validateRequiredTypstVersion() {
   if (Deno.env.get("QUARTO_TYPST")) {
     const version = await typstVersion();
     if (version) {
-      const required = ">=0.8";
+      const required = ">=0.15";
       if (!satisfies(version, required)) {
         error(
           "An updated version of the Typst CLI is required for rendering typst documents.\n",

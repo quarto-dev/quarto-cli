@@ -7,7 +7,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
-import { info } from "../../../src/deno_ral/log.ts";
+import { error, info } from "../../../src/deno_ral/log.ts";
 
 import {
   Configuration,
@@ -33,59 +33,132 @@ import {
 
 import * as ld from "../../../src/core/lodash.ts";
 
+import { execProcess } from "../../../src/core/process.ts";
+import { pandocBinaryPath } from "../../../src/core/resources.ts";
+
 export function updatePandoc() {
   return new Command()
     .name("update-pandoc")
     .arguments("<version:string>")
     .description("Updates Pandoc to the specified version")
-    .action(async (_args, version: string) => {
+    .option(
+      "--skip-archive",
+      "Regenerate templates and format-extension.ts without archiving to S3, configuring the binary, or updating configuration. Requires QUARTO_PANDOC to resolve to the requested version.",
+    )
+    // deno-lint-ignore no-explicit-any
+    .action(async (options: any, version: string) => {
       info(`Updating Pandoc to ${version}`);
 
       const configuration = readConfiguration();
+      const skipArchive = !!options.skipArchive;
 
-      // Update the configuration file
-      info("  updating configuration file.");
-      const configFilePath = join(
-        configuration.directoryInfo.root,
-        "configuration",
-      );
-      const configText = Deno.readTextFileSync(configFilePath);
-      const configLines = lines(configText);
-      const outputLines: string[] = [];
-      for (const line of configLines) {
-        if (line.startsWith("export PANDOC=")) {
-          outputLines.push(`export PANDOC=${version}`);
-        } else {
-          outputLines.push(line);
+      if (skipArchive) {
+        // writeVariants() needs the target Pandoc binary to enumerate formats/extensions.
+        const overridePath = Deno.env.get("QUARTO_PANDOC");
+        if (!overridePath) {
+          error(
+            `QUARTO_PANDOC is not set. Set it to a Pandoc ${version} executable ` +
+              "before using --skip-archive.",
+          );
+          throw new Error("QUARTO_PANDOC is not set");
         }
-      }
-      Deno.writeTextFileSync(configFilePath, outputLines.join("\n"));
 
-      const pandocDependency = pandoc(version);
-
-      // Call archive-bin-deps for this file
-      await withWorkingDir(async (workingDir) => {
-        await archiveBinaryDependency(pandocDependency, workingDir);
-
-        // Configure this version of pandoc
-        await configureDependency(
-          pandocDependency,
-          join(configuration.directoryInfo.bin, "tools"),
-          configuration,
+        // An unresolved QUARTO_PANDOC can fall back to the bundled binary.
+        // Verify the version before generating format-extension.ts.
+        let reported: string | undefined;
+        try {
+          reported = lines(
+            (await execProcess({
+              cmd: pandocBinaryPath(),
+              args: ["--version"],
+              stdout: "piped",
+            })).stdout!,
+          )[0]?.split(" ")[1];
+        } catch (_e) {
+          error(
+            "Could not run the QUARTO_PANDOC binary to verify its version. " +
+              `QUARTO_PANDOC is set to "${overridePath}". Confirm it points at a ` +
+              "runnable Pandoc executable.",
+          );
+          throw new Error("QUARTO_PANDOC binary is not runnable");
+        }
+        if (
+          normalizePandocVersion(reported) !== normalizePandocVersion(version)
+        ) {
+          error(
+            `The Pandoc binary resolved via QUARTO_PANDOC reports version ` +
+              `${reported}, not the requested ${version}. QUARTO_PANDOC is set to ` +
+              `"${overridePath}". An unresolved override can fall back to the ` +
+              `bundled binary. Set QUARTO_PANDOC to a Pandoc ${version} executable ` +
+              "and retry.",
+          );
+          throw new Error("QUARTO_PANDOC does not resolve to the requested version");
+        }
+      } else {
+        info("  updating configuration file.");
+        const configFilePath = join(
+          configuration.directoryInfo.root,
+          "configuration",
         );
+        const configText = Deno.readTextFileSync(configFilePath);
+        const configLines = lines(configText);
+        const outputLines: string[] = [];
+        for (const line of configLines) {
+          if (line.startsWith("export PANDOC=")) {
+            outputLines.push(`export PANDOC=${version}`);
+          } else {
+            outputLines.push(line);
+          }
+        }
+        Deno.writeTextFileSync(configFilePath, outputLines.join("\n"));
+      }
 
-        // Generate templates
+      await withWorkingDir(async (workingDir) => {
+        if (!skipArchive) {
+          const pandocDependency = pandoc(version);
+
+          await archiveBinaryDependency(pandocDependency, workingDir);
+
+          await configureDependency(
+            pandocDependency,
+            join(configuration.directoryInfo.bin, "tools"),
+            configuration,
+          );
+        }
+
+        // Templates are downloaded from Pandoc's source archive on GitHub.
         await writePandocTemplates(configuration, version, workingDir);
 
-        // Generate variants
+        // Generate format extensions using the resolved Pandoc binary,
+        // including any QUARTO_PANDOC override.
         await writeVariants(configuration);
       });
 
-      // print the warning to complete the checklist
-      console.log(bgBlack(brightWhite(bold(
-        "\n** Remember to complete the checklist in /dev-docs/update-pandoc-checklist.md! **",
-      ))));
+      if (skipArchive) {
+        console.log(bgBlack(brightWhite(bold(
+          "\n** Templates and src/core/pandoc/format-extension.ts regenerated. **" +
+            "\n** Review `git diff` and port relevant upstream changes to Quarto's templates. **" +
+            "\n** Configuration is unchanged. Complete dev-docs/update-pandoc-checklist.md before merging. **",
+        ))));
+      } else {
+        console.log(bgBlack(brightWhite(bold(
+          "\n** Remember to complete the checklist in /dev-docs/update-pandoc-checklist.md! **",
+        ))));
+      }
     });
+}
+
+// Pad a Pandoc version to at least 3 parts so "3.10" matches "3.10.0".
+// Longer versions keep every part: 3.1.6.1 and 3.1.6.2 are distinct releases.
+function normalizePandocVersion(version: string | undefined): string {
+  if (!version) {
+    return "";
+  }
+  const parts = version.split(".");
+  if (parts.length < 3) {
+    return parts.concat(Array(3 - parts.length).fill("0")).join(".");
+  }
+  return parts.join(".");
 }
 
 // Starting in Pandoc 3, we saw a number of variants that appear to be supported

@@ -1,0 +1,40 @@
+name: "Set up rig"
+description: "Installs a pinned rig release and adds it to PATH. rig proj is experimental, so callers get one pinned version rather than latest."
+inputs:
+  version:
+    description: "rig version to install, without the leading v"
+    required: false
+    default: "0.11.1"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install rig (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      env:
+        RIG_VERSION: ${{ inputs.version }}
+      run: |
+        $zip = Join-Path $env:RUNNER_TEMP "rig.zip"
+        $dest = Join-Path $env:RUNNER_TEMP "rig"
+        Invoke-WebRequest -Uri "https://github.com/r-lib/rig/releases/download/v$($env:RIG_VERSION)/rig-windows-x86_64-$($env:RIG_VERSION).zip" -OutFile $zip
+        Expand-Archive -Path $zip -DestinationPath $dest -Force
+        Join-Path $dest "bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+        & (Join-Path $dest "bin/rig.exe") --version
+
+    - name: Install rig
+      if: runner.os != 'Windows'
+      shell: bash
+      env:
+        RIG_VERSION: ${{ inputs.version }}
+      run: |
+        case "$RUNNER_OS-$RUNNER_ARCH" in
+          Linux-X64) asset="rig-linux-x86_64-${RIG_VERSION}.tar.gz" ;;
+          macOS-ARM64) asset="rig-macos-arm64-${RIG_VERSION}.tar.gz" ;;
+          *) echo "::error::No rig build configured for $RUNNER_OS-$RUNNER_ARCH"; exit 1 ;;
+        esac
+        dest="$RUNNER_TEMP/rig"
+        mkdir -p "$dest"
+        curl -fsSL "https://github.com/r-lib/rig/releases/download/v${RIG_VERSION}/${asset}" | tar -xz -C "$dest"
+        echo "$dest/bin" >> "$GITHUB_PATH"
+        "$dest/bin/rig" --version

@@ -1,0 +1,17 @@
+---
+title: "An extension under an organisation directory reads its own language file"
+format: orgfile-html
+toc: true
+_quarto:
+  tests:
+    orgfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the organisation extension</h2>']
+        - []
+---
+
+## Section
+
+The `orgfile` extension is in an organisation directory, `_extensions/acme/orgfile/`.
+Before the fix, Quarto looked for the language file in `_extensions/acme/_extensions/acme/orgfile/`.
+The table of contents must show the title from the language file of the extension.

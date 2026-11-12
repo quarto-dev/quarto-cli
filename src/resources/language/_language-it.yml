@@ -52,6 +52,9 @@ code-tools-hide-all-code: "Nascondere il codice"
 code-tools-view-source: "Vedere il codice"
 code-tools-source-code: "Eseguire il codice"
 
+tools-share: "Condividi"
+tools-download: "Scarica"
+
 copy-button-tooltip: "Copia negli appunti"
 copy-button-tooltip-success: "Copiato!"
 
@@ -96,6 +99,12 @@ navigation-breadcrumbs-label: "Percorso"           # libreoffice sw 'Path' (atte
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Codice scorrevole"    # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Uscita scorrevole"  # firefox devtools + gnome control-center — assembled, needs review
+
+link-external-newwindow-label: "(si apre in una nuova scheda)"
+
+announcement-dismiss-label: "Chiudi l'annuncio"
+
+revealjs-menu-button-label: "Menu delle diapositive"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Tabella"

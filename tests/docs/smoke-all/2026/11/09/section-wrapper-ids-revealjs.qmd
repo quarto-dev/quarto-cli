@@ -1,0 +1,43 @@
+---
+title: Section wrapper ids, revealjs
+format: revealjs
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        - - 'section#sec-s2.slide.bg'
+          - 'section#sec-x.slide'
+          - 'a.quarto-xref[href="#/sec-s2"]'
+          - 'div#frag.fragment'
+        - - 'section#myslide'
+          - 'section#explicit'
+---
+
+Revealjs strips slide heading ids, so a crossref to a heading wrapped in an
+id'd Div must resolve to the slide through the heading id moved onto the
+section. This covers a plain wrapper, an explicit `.section` wrapper (also
+swapped in revealjs), and a `.fragment` wrapper, which is never merged.
+
+## S1 {#sec-s1}
+
+See @sec-s2 and @sec-x.
+
+::: {#myslide .bg}
+## S2 {#sec-s2}
+
+Content 2
+
+::: {#frag .fragment}
+### Sub {#sec-sub}
+
+Fragment text
+:::
+:::
+
+::: {#explicit .section}
+## X {#sec-x}
+
+Content X
+:::
+
+## S4 {#sec-s4}

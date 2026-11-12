@@ -1,0 +1,17 @@
+---
+title: "A format extension reads its own metadata files"
+format: metafile-html
+toc: true
+_quarto:
+  tests:
+    metafile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the extension metadata file</h2>']
+        - []
+---
+
+## Section
+
+The `metafile` extension sets `metadata-files` for its HTML format, and the file sets `toc-title`.
+Before the fix, Quarto looked for the file in the wrong directory and ignored it without a message.
+The table of contents must show the title from this file.

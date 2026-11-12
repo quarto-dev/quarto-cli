@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Slėpti visą kodą"
 code-tools-view-source: "Rodyti pirminį kodą"
 code-tools-source-code: "Pirminis kodas"
 
+tools-share: "Bendrinti"
+tools-download: "Atsisiųsti"
+
 code-line: "Eilutė"
 code-lines: "Eilutės"
 
@@ -61,6 +64,8 @@ repo-action-links-issue: "Pranešti apie problemą"
 
 back-to-top: "Grįžti į viršų"
 
+skip-to-content: "Pereiti prie pagrindinio turinio"
+
 search-no-results-text: "Nėra rezultatų"
 search-matching-documents-text: "atitinkančių dokumentų"
 search-copy-link-title: "Kopijuoti nuorodą į paiešką"
@@ -71,7 +76,7 @@ search-clear-button-title: "Išvalyti"
 search-text-placeholder: ""
 search-detached-cancel-button-title: "Atšaukti"
 search-submit-button-title: "Pateikti"
-search: "Paieška"
+search-label: "Paieška"
 
 toggle-section: "Rodyti/Slėpti skiltį"
 toggle-sidebar: "Rodyti/Slėpti šoninę navigacijos skiltį"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Kelias"         # gnome gtk lt; LibreOffice has '
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Slenkamas kodas"      # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Slenkama išvestis"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(atsidaro naujame skirtuke)"
+
+announcement-dismiss-label: "Uždaryti pranešimą"
+
+revealjs-menu-button-label: "Skaidrių meniu"
 
 crossref-fig-title: "Paveikslas"
 crossref-tbl-title: "Lentelė"

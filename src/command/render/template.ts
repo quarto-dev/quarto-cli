@@ -26,6 +26,7 @@ import { normalizePath } from "../../core/path.ts";
 import { isGlob } from "../../core/lib/glob.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { resolveHtmlMathMethod } from "../../format/html/format-html-math.ts";
 
 export const kPatchedTemplateExt = ".patched";
 export const kTemplatePartials = "template-partials";
@@ -214,11 +215,8 @@ function applyTemplatePatches(
 }
 
 function mathConfig(format: Format, flags?: RenderFlags) {
-  // if any command line math flags were passed then bail
-  if (
-    flags?.mathjax || flags?.katex || flags?.webtex || flags?.gladtex ||
-    flags?.mathml
-  ) {
+  // if a command line math flag chose the method, Pandoc handles it
+  if (resolveHtmlMathMethod(format, flags)?.fromFlag) {
     return undefined;
   }
 

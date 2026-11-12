@@ -28,12 +28,15 @@
         border-bottom: solid 1px;
       }
 
+      /* The title sits on the theme's primary background, so it inherits the
+         header's contrasting text color instead of the theme heading color */
       #quarto-embed-header h6 {
         font-size: 1.1em;
         padding-top: 0.6em;
         margin-left: 1em;
         margin-right: 1em;
         font-weight: 400;
+        color: inherit;
       }
 
       #quarto-embed-header a.quarto-back-link,
@@ -123,7 +126,7 @@ $endif$
   </head>
 
   <body>
-    <nav id="quarto-embed-header" class="headroom fixed-top bg-primary" aria-labelledby="quarto-embed-title">
+    <nav id="quarto-embed-header" class="headroom fixed-top text-bg-primary" aria-labelledby="quarto-embed-title">
 
       <a href="$if(nbMeta.backHref)$$nbMeta.backHref$$endif$" onclick="window.quartoBackToArticle(); return false;" class="btn btn-primary quarto-back-link"><i class="bi bi-caret-left"></i> $nbMeta.backLabel$</a>
       <h6 id="quarto-embed-title"><i class="bi bi-journal-code"></i> $nbMeta.title$</h6>

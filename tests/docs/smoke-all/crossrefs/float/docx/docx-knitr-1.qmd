@@ -6,7 +6,7 @@ _quarto:
       ensureDocxXpath:
         -
           - "//w:tbl//w:p//w:r//w:t[contains(text(), \"Figure\u00a01\")]"
-          - "//w:hyperlink[@w:anchor=\"fig-plot\"]//w:t[contains(text(), \"Figure\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:fig-plot}}\"]//w:t[contains(text(), \"Figure\u00a01\")]"
         - []
 ---
 

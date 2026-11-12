@@ -1,0 +1,23 @@
+---
+title: "Horizontal rule uses Typst's native divider"
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      # Pandoc 3.13's typst writer emits #divider() for HorizontalRule; Quarto's
+      # template must not shadow divider so it resolves to the native
+      # std.divider element (restyleable via show/set rules), matching
+      # pandoc's default template with typst >= 0.15.
+      ensureTypstFileRegexMatches:
+        - ['\#divider\(\)']
+        - ['\#let divider']
+      noErrors: default
+---
+
+a
+
+---
+
+b

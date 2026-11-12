@@ -52,6 +52,9 @@ code-tools-hide-all-code: "すべてのコードを非表示"
 code-tools-view-source: "ソースコードを表示"
 code-tools-source-code: "ソースコード"
 
+tools-share: "共有"
+tools-download: "ダウンロード"
+
 copy-button-tooltip: "コピー"
 copy-button-tooltip-success: "コピーしました"
 
@@ -96,6 +99,12 @@ navigation-breadcrumbs-label: "パンくずリスト"  # wikidata Q846205
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "スクロール可能なコード"   # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "スクロール可能な出力"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "（新しいタブで開きます）"
+
+announcement-dismiss-label: "お知らせを閉じる"
+
+revealjs-menu-button-label: "スライドメニュー"
 
 crossref-fig-title: "図"
 crossref-tbl-title: "表"

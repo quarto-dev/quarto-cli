@@ -154,6 +154,7 @@ import {
   kManuscriptMecaBundle,
   kMarkdownHeadings,
   kMathjax,
+  kMathMethod,
   kMathml,
   kMergeIncludes,
   kMermaidFormat,
@@ -198,6 +199,7 @@ import {
   kScrollableOutputLabel,
   kLinkExternalNewwindowLabel,
   kRevealjsMenuButtonLabel,
+  kAnnouncementDismissLabel,
   kSearchClearButtonTitle,
   kSearchCopyLinkTitle,
   kSearchDetatchedCancelButtonTitle,
@@ -644,6 +646,7 @@ export interface PandocFlags {
   [kMathml]?: boolean;
   [kGladtex]?: boolean;
   [kWebtex]?: boolean;
+  [kMathMethod]?: { method: string; url?: string };
 }
 
 // the requested pdf engine, it's options, and the bib engine
@@ -721,6 +724,7 @@ export interface FormatLanguage {
   [kScrollableOutputLabel]?: string;
   [kLinkExternalNewwindowLabel]?: string;
   [kRevealjsMenuButtonLabel]?: string;
+  [kAnnouncementDismissLabel]?: string;
   [kSearchMatchingDocumentsText]?: string;
   [kSearchCopyLinkTitle]?: string;
   [kSearchMoreMatchText]?: string;

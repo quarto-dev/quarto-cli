@@ -1,15 +1,48 @@
 # Check R environment ---
 Write-Host -ForegroundColor green ">>>> Configuring R environment"
-try { $null = gcm Rscript -ea stop; $r=$true} catch { 
-  Write-Host -ForegroundColor red "No Rscript found in PATH - Check your PATH or install R and add to PATH"
+try { $null = gcm rig -ea stop; $rig=$true } catch {
+  Write-Host -ForegroundColor red "No rig found in PATH - the R test environment is a rig project (rproj.toml). Install rig 0.11.1 or later: https://github.com/r-lib/rig"
 }
 
-If ($r) {
-  Write-Host -ForegroundColor green "   > Restoring renv project"
-  Rscript -e 'renv::restore()'
-  Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
-  Rscript -e "install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos')))"
-  Rscript -e "install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos')))"
+If ($rig) {
+  # rig defaults to admin mode, where installing R raises a UAC prompt. User
+  # mode installs R in the user profile instead; an explicit RIG_MODE wins.
+  # The variable is removed again in `finally`, even after Ctrl+C or an
+  # error, so it does not leak into a dot-sourcing shell. rig.exe does not
+  # need the mode later: rvenv.cfg records the absolute path of the R it
+  # selected.
+  $rigModeWasSet = [bool]$env:RIG_MODE
+  If (-not $rigModeWasSet) { $env:RIG_MODE = 'user' }
+  try {
+    # In admin mode rig proj sync installs a missing R by re-running itself
+    # elevated, which leaves the project library owned by the admin account.
+    # Install R separately (rig add does nothing when it is already installed),
+    # then sync as this user.
+    $rLockVersion = (Select-String -Path rproj.lock -Pattern '^r_version = "(.+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+    Write-Host -ForegroundColor green "   > Installing R $rLockVersion if missing"
+    rig add $rLockVersion
+    If ($LASTEXITCODE -eq 0) {
+      Write-Host -ForegroundColor green "   > Syncing R packages from rproj.lock"
+      rig proj sync --no-install-r
+    }
+    If ($LASTEXITCODE -ne 0) {
+      Write-Host -ForegroundColor red "Installing R or rig proj sync failed - R tests will run without the locked packages"
+    } Else {
+      # Installs on top of the lock must target the project library and the
+      # exact R the sync used; rig's default is the default R's user library.
+      $rVersion = (Select-String -Path .rvenv/rvenv.cfg -Pattern '^r-version = (.+)$').Matches[0].Groups[1].Value.Trim()
+      $rLib = (Resolve-Path .rvenv/lib).Path
+      Write-Host -ForegroundColor green "   > Installing dev knitr and rmarkdown"
+      foreach ($dev in @(@('rmarkdown', 'https://rstudio.r-universe.dev'), @('knitr', 'https://yihui.r-universe.dev'))) {
+        rig pkg install --r-version $rVersion --library $rLib --with-repos $dev[1] $dev[0]
+        If ($LASTEXITCODE -ne 0) {
+          Write-Host -ForegroundColor yellow "Dev $($dev[0]) not installed - tests use the locked version"
+        }
+      }
+    }
+  } finally {
+    If (-not $rigModeWasSet) { Remove-Item Env:RIG_MODE }
+  }
 }
 
 # Check python test environment ---

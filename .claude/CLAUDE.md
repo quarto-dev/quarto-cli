@@ -23,6 +23,7 @@ Downloads Deno + dependencies, runs `quarto-bld configure`, vendors TypeScript d
 - `configuration` — version numbers for all binary/JS dependencies (Deno, Pandoc, Dart Sass, …) and the `QUARTO_VERSION` field
 - `deno.jsonc` — auto-generated (see `dev-docs/update-deno_jsonc.md`)
 - `src/import_map.json` / `src/dev_import_map.json` — Deno import mappings (production / development)
+- `deno.lock` — committed pins (with integrity hashes) for every remote module of the six vendored entrypoints; vendoring, `quarto-bld` and the dev launcher run `--frozen`, so a stale lock fails `configure`. Regenerate with `QUARTO_UPDATE_DENO_LOCK=1` + configure after an import-map change (see `dev-docs/add-typescript-dependency.md`)
 
 ## Building & Testing
 

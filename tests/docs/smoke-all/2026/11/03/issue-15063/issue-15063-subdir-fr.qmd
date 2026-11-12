@@ -1,0 +1,18 @@
+---
+title: "The per-language file beside a language file in a subfolder is found"
+format: subdirfile-html
+toc: true
+lang: fr
+_quarto:
+  tests:
+    subdirfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Sommaire du sous-dossier</h2>']
+        - ['Contents from the extension subfolder']
+---
+
+## Section
+
+The `subdirfile` extension keeps its language files in the `i18n/` subfolder.
+Quarto must find `i18n/strings.yml`, and then load `i18n/strings-fr.yml` next to it for `lang: fr`.
+The table of contents must show the French title, not the English title.

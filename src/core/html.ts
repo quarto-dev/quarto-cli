@@ -40,16 +40,16 @@ const kTagBrackets: Record<string, string> = {
 };
 
 const kAttrReplacements: Record<string, string> = {
+  "&": "&amp;",
   '"': "&quot;",
   "'": "&#039;",
   ...kTagBrackets,
-  "&": "&amp;",
 };
 export function encodeAttributeValue(value: unknown) {
   if (typeof (value) === "string") {
     let result: string = value as string;
     Object.keys(kAttrReplacements).forEach((key) => {
-      result = result.replace(key, kAttrReplacements[key]);
+      result = result.replaceAll(key, kAttrReplacements[key]);
     });
     return result;
   } else {

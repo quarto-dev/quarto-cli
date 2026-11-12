@@ -5,21 +5,57 @@
 *
 */
 
-import { testQuartoCmd } from "../../test.ts";
+import { testQuartoCmd, type Verify } from "../../test.ts";
 import { printsMessage } from "../../verify.ts";
 
-// If this test fails, it indicates that there is a version mismatch 
-// Check 'src\command\check\check.ts' for the recorded versions, and compare to 'configuration' file
+// For unexpected mismatches, compare versionConstraints in
+// src/command/check/check.ts with configuration.
+
+// QUARTO_TEST_EXPECTED_PANDOC records an intentional override. Accept either
+// OK or a strict-mismatch note for that version, normalized as in check.ts.
+const expectedPandocOverride = Deno.env.get("QUARTO_TEST_EXPECTED_PANDOC");
+
+// Mirrors the padding/truncation check.ts applies before its strict
+// comparison, so a requested "3.10" matches the reported "3.10.0".
+const normalizePandocVersion = (version: string): string => {
+  const parts = version.split(".");
+  if (parts.length > 3) {
+    return parts.slice(0, 3).join(".");
+  }
+  return parts.concat(Array(3 - parts.length).fill("0")).join(".");
+};
+
+const verifies: Verify[] = [
+  printsMessage({
+    level: "INFO",
+    regex: "(Dart Sass|Deno|Typst) version .*does not strictly match",
+    negate: true,
+  }),
+];
+
+if (expectedPandocOverride) {
+  verifies.push(
+    printsMessage({
+      level: "INFO",
+      regex: `Pandoc version ${
+        normalizePandocVersion(expectedPandocOverride).replaceAll(".", "\\.")
+      }(: OK| does not strictly match)`,
+    }),
+  );
+} else {
+  verifies.push(
+    printsMessage({
+      level: "INFO",
+      regex: "Pandoc version .*does not strictly match",
+      negate: true,
+    }),
+  );
+}
+
 testQuartoCmd(
   "check",
   ["versions"],
-  [
-    printsMessage({
-      level: "INFO",
-      regex: "does not strictly match",
-      negate: true  // Verify this message does NOT appear
-    })
-  ],
+  verifies,
   undefined,
-  "check versions --strict should not show version mismatches"
+  "check versions should report expected dependency versions",
 );

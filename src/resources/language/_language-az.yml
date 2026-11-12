@@ -101,6 +101,10 @@ navigation-breadcrumbs-label: "Səhifə yolu"
 scrollable-code-label: "Sürüşdürülə bilən kod"      # derived + code-summary — assembled, needs review
 scrollable-output-label: "Sürüşdürülə bilən çıxış"  # derived + derived — assembled, needs review
 
+announcement-dismiss-label: "Elanı bağla"
+
+revealjs-menu-button-label: "Slayd menyusu"
+
 crossref-fig-title: "Şəkil"
 crossref-tbl-title: "Cədvəl"
 crossref-lst-title: "Listinq"

@@ -111,7 +111,8 @@ export async function renderToCSLJSON(
       // Pandoc has no reader for a YAML bibliography: read as markdown, it
       // only works when wrapped in --- delimiters. Like --bibliography, use
       // the first YAML document, either a references: map or a bare array.
-      // json: true lets a duplicate key win last, as pandoc does.
+      // json: true lets a duplicate key win last instead of throwing here;
+      // pandoc itself rejects duplicate keys when it reads the bibliography.
       const firstDoc = loadAll(Deno.readTextFileSync(absBiblioPath), null, {
         schema: kBibliographyYamlSchema,
         json: true,

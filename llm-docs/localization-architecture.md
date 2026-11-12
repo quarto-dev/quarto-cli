@@ -16,14 +16,13 @@ key_files:
   - src/resources/filters/modules/authors.lua
   - src/resources/filters/modules/callouts.lua
   - src/resources/filters/layout/meta.lua
-  - src/resources/formats/html/pandoc/html.template
+  - src/resources/formats/html/pandoc/template.html
+  - src/resources/formats/html/pandoc/toc.html
   - src/resources/formats/html/pandoc/title-block.html
   - src/resources/formats/html/templates/title-metadata.html
-  - src/resources/formats/pdf/pandoc/latex.template
   - src/resources/formats/pdf/pandoc/babel-lang.tex
   - src/resources/formats/pdf/pandoc/toc.tex
-  - src/resources/formats/beamer/pandoc/beamer.template
-  - src/resources/formats/typst/pandoc/typst.template
+  - src/resources/formats/beamer/pandoc/toc.tex
   - src/resources/formats/typst/pandoc/quarto/typst-template.typ
   - src/resources/formats/typst/pandoc/quarto/typst-show.typ
   - src/resources/extension-subtrees/orange-book/_extensions/orange-book/typst-show.typ
@@ -151,11 +150,13 @@ These bypass both Pandoc metadata and Lua filters. The string lands directly in 
 
 `quarto.*` is an internal namespace. The user-facing override path for localized strings is the top-level `language:` YAML key (resolved by `formatLanguage`, already merged into `options.format.language` before the builder runs). The schema does not advertise `variables.quarto.*` as a user option, but the merge in `generateDefaults` honors a user-set value on collision: it deep-merges via `mergeConfigs` (`src/core/config.ts`) so user-supplied keys win at any nesting depth while all other localized values remain available. For example, a user setting `variables.quarto.language.crossref-ch-prefix: Bouquin` overrides only that one leaf — `$quarto.language.toc-title-document$` still resolves to the localized fallback. (Same helper is used in `src/core/language.ts:formatLanguage` to merge user-supplied `language:` onto `_language.yml` defaults.) A non-object `variables.quarto` (string, number, array) is ignored defensively. New contributors to this file should design around the `language:` path, not around the escape hatch.
 
-From any Pandoc template — built-in (`html.template`, `latex.template`, `typst-template.typ`), extension partial, or custom user template — every localized key is then accessible as:
+From any Pandoc template — built-in (`template.html`, `template.tex`, `typst-template.typ`), extension partial, or custom user template — every localized key is then accessible as:
 
 ```pandoc
 $quarto.language.<key>$
 ```
+
+> **Naming note**: Citations below refer to Quarto's rendering templates: `template.html` (HTML), `template.tex` (LaTeX/PDF and Beamer), and `quarto/typst-template.typ` (Typst). See `dev-docs/update-pandoc-checklist.md` for the corresponding Pandoc reference copies.
 
 For example, `$quarto.language.crossref-ch-prefix$` resolves to `Chapitre` when `lang: fr` is set. Hyphens within the leaf segment are valid Pandoc template-variable syntax (manual: *"Variable names can include letters, numbers, underscores, hyphens, and periods"*).
 
@@ -173,9 +174,9 @@ It does **not** replace 2a — Lua filters still need `param("key")` because Pan
 
 Localization paths used:
 
-- **Document `lang` attribute**: `_language.yml` lookup not involved. `lang:` flows as Pandoc-native metadata, template renders `<html lang="$lang$" xml:lang="$lang$">` (`html.template:2`).
-- **TOC title**: `$toc-title$` resolved via channel 2b. Used in `html.template:60`, `toc.html:3`.
-- **Abstract title**: `$abstract-title$` resolved via 2b. Used in `html.template:51`, `title-block.html:15`.
+- **Document `lang` attribute**: `_language.yml` lookup not involved. `lang:` flows as Pandoc-native metadata, template renders `<html$if(lang)$ lang="$lang$" xml:lang="$lang$"$endif$>` (`template.html:2`).
+- **TOC title**: `$toc-title$` resolved via channel 2b. Used in `toc.html:3`.
+- **Abstract title**: `$abstract-title$` resolved via 2b. Used in `title-block.html:15`.
 - **Title block labels** (`Authors`, `Affiliations`, `Published`, `Modified`, `Doi`, `Abstract`, `Keywords`): `$labels.*$` written into meta by `modules/authors.lua:854-913` (`computeLabels`). Templates: `title-metadata.html:3,4,32,43,52,61,74,83`, `manuscript/title-metadata.html:6,7,37,48,57,66,83,92`.
 - **Crossref text** (`Figure 1.1`, `Table 2.1`): assembled in Lua by `crossref/format.lua` using `title()` / `refPrefix()` which call `param("crossref-<type>-title"/"-prefix")`. Written as inline text directly into the AST. By the time Pandoc renders HTML, the localized prefix is already document content.
 - **Callout titles** (`Tip`, `Note`, etc.): `modules/callouts.lua:15,185` reads `param("callout-<type>-title", default)`, writes into the callout node.
@@ -191,7 +192,7 @@ Three localization paths layered:
 
    Other Lua filters use `metaInjectLatex` for non-language LaTeX customization (`crossref/custom.lua:78`, `layout/meta.lua`, `quarto-post/landscape.lua`, etc. — they inject packages or styling, not localized strings).
 
-3. **Pandoc template `$var$`** — `pdf/pandoc/toc.tex:3` and `pdf/pandoc/latex.template:93-94` use `$toc-title$` to set `\contentsname`. Beamer templates (`beamer/pandoc/beamer.template:146-151`, `beamer/pandoc/toc.tex:3`) likewise.
+3. **Pandoc template `$var$`** — `pdf/pandoc/toc.tex:2-3` uses `$toc-title$` to set `\contentsname`. Beamer's `beamer/pandoc/toc.tex:2-3` does the same.
 
 PDF-side TS code does not read `format.language` directly except `src/format/pdf/format-pdf.ts:242` which registers `"babel-lang"` as a Quarto partial.
 

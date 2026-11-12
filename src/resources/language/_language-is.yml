@@ -99,6 +99,12 @@ navigation-breadcrumbs-label: "Brauðmolaslóð"  # wikidata Q846205
 scrollable-code-label: "Skrunanlegur kóði"     # derived + code-summary — assembled, needs review
 scrollable-output-label: "Skrunanlegt frálag"  # derived + libreoffice dbaccess — assembled, needs review
 
+link-external-newwindow-label: "(opnast í nýjum flipa)"
+
+announcement-dismiss-label: "Loka tilkynningu"
+
+revealjs-menu-button-label: "Skyggnuvalmynd"
+
 crossref-fig-title: "Mynd"
 crossref-tbl-title: "Tafla"
 crossref-lst-title: "Listun"

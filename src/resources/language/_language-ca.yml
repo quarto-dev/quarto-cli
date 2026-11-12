@@ -49,6 +49,9 @@ code-tools-hide-all-code: "Amaga tot el codi"
 code-tools-view-source: "Visualitza el codi"
 code-tools-source-code: "Codi font"
 
+tools-share: "Comparteix"
+tools-download: "Descarrega"
+
 code-line: "Línia"
 code-lines: "Línies"
 
@@ -60,6 +63,8 @@ repo-action-links-source: "Mostra la font"
 repo-action-links-issue: "Informa d'un problema"
 
 back-to-top: "Torna a dalt"
+
+skip-to-content: "Vés al contingut principal"
 
 search-no-results-text: "Cap resultat"
 search-matching-documents-text: "documents que coincideixen"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Camí"       # libreoffice sw 'Path' (attested te
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Codi desplaçable"       # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Sortida desplaçable"  # firefox devtools + libreoffice dbaccess — assembled, needs review
+
+link-external-newwindow-label: "(s'obre en una pestanya nova)"
+
+announcement-dismiss-label: "Tanca l'avís"
+
+revealjs-menu-button-label: "Menú de diapositives"
 
 crossref-fig-title: "Figura"
 crossref-tbl-title: "Taula"

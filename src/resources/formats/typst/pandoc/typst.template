@@ -1,14 +1,13 @@
-#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
-
-#show terms.item: it => block(breakable: false)[
-  #text(weight: "bold")[#it.term]
-  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
-]
+#set terms(hanging-indent: 1.5em)
 
 #set table(
   inset: 6pt,
   stroke: none
 )
+
+#let horizontalRule = line(start: (25%,0%), end: (75%,0%))
+// Polyfill divider to allow compiling with typst < 0.15:
+#let divider = if "divider" in std { divider } else { horizontalRule }
 
 #show figure.where(
   kind: table
@@ -21,6 +20,18 @@
 $if(highlighting-definitions)$
 // syntax highlighting functions from skylighting:
 $highlighting-definitions$
+
+$endif$
+$if(csl-settings)$
+// formatting called for by CSL style
+#show <refs>: set par(
+$if(csl-hanging-indent)$
+  hanging-indent: $csl-hanging-indent$,
+$endif$
+$if(csl-entry-spacing)$
+  spacing: $csl-entry-spacing$,
+$endif$
+)
 
 $endif$
 $if(template)$
@@ -61,7 +72,7 @@ $endfor$
     ),
 $endif$
 $if(keywords)$
-  keywords: ($for(keywords)$$keywords$$sep$,$endfor$),
+  keywords: ($for(keywords)$"$keywords/nowrap$"$sep$,$endfor$),
 $endif$
 $if(date)$
   date: [$date$],

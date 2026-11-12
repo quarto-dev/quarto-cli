@@ -1,0 +1,37 @@
+---
+title: Dash
+format: dashboard
+_quarto:
+  tests:
+    dashboard:
+      ensureHtmlElements:
+        - []
+        - ['.card .card']
+---
+
+This is a characterization test, not a test of the section id filter. It
+pins Pandoc 3.13's flat dashboard: wrapped rows and cards are not nested
+inside other cards. Dashboard sections are `.section` Divs by finalize, so
+the filter does not act here.
+
+## Row {height=40%}
+
+### Card A {#card-a}
+
+Alpha.
+
+::: {#wrapped-row}
+## Row 2
+
+### Card B
+
+Beta.
+:::
+
+## Row 3
+
+::: {#wrapped-card .myc}
+### Card C {#card-c}
+
+Gamma.
+:::

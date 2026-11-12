@@ -37,9 +37,16 @@ export class ServeRenderManager {
 
   public submitRender(render: () => Promise<RenderResult>) {
     return HttpDevServerRenderMonitor.trackInFlight(
-      this.renderQueue_.enqueue(render),
+      this.renderQueue_.enqueue(render) as Promise<RenderResult>,
       (result) => !result.error,
     );
+  }
+
+  // Queue a non-render task (e.g. a project context refresh) on the render
+  // queue so it cannot overlap an in-flight render. Never call this from
+  // inside a queued task: PromiseQueue deadlocks on nested submission.
+  public submit<T>(task: () => Promise<T>): Promise<T> {
+    return this.renderQueue_.enqueue(task) as Promise<T>;
   }
 
   public isRendering() {
@@ -125,5 +132,5 @@ export class ServeRenderManager {
   }
 
   private fileRenders_ = new Map<string, string>();
-  private renderQueue_ = new PromiseQueue<RenderResult>();
+  private renderQueue_ = new PromiseQueue<unknown>();
 }

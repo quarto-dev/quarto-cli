@@ -6,7 +6,9 @@ function line_numbers()
     CodeBlock = function(el)
       if #el.attr.classes > 0 then
         local lineNumbers = lineNumbersAttribute(el)
+        local fragmentIndices = el.attr.attributes[_quarto.modules.constants.kCodeLineFragmentIndices]
         el.attr.attributes[_quarto.modules.constants.kCodeLineNumbers] = nil
+        el.attr.attributes[_quarto.modules.constants.kCodeLineFragmentIndices] = nil
         if lineNumbers ~= false then
           -- use the pandoc line numbering class
           el.attr.classes:insert("number-lines")
@@ -14,11 +16,54 @@ function line_numbers()
           if type(lineNumbers) == "string" and (_quarto.format.isRevealJsOutput() or _quarto.format.isDocusaurusOutput()) then
             el.attr.attributes[_quarto.modules.constants.kCodeLineNumbers] = lineNumbers
           end
+          -- only stepped highlighting in reveal has fragments to index
+          if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and isSteppedLineNumbers(lineNumbers) then
+            if validFragmentIndices(fragmentIndices, lineNumbers) then
+              el.attr.attributes[_quarto.modules.constants.kCodeLineFragmentIndices] = fragmentIndices
+            else
+              warn(
+                'Ignoring code-line-fragment-indices="' .. fragmentIndices .. '"; expected ' ..
+                countSteps(lineNumbers) .. ' strictly increasing non-negative integers, one for each highlight step after the first.'
+              )
+            end
+          end
+        end
+        if fragmentIndices ~= nil and _quarto.format.isRevealJsOutput() and not isSteppedLineNumbers(lineNumbers) then
+          warn(
+            'code-line-fragment-indices="' .. fragmentIndices ..
+            '" needs a stepped code-line-numbers, such as "|1|2"; the attribute is ignored.'
+          )
         end
         return el
       end
     end
   }
+end
+
+function isSteppedLineNumbers(lineNumbers)
+  return type(lineNumbers) == "string" and string.find(lineNumbers, "|", 1, true) ~= nil
+end
+
+function countSteps(lineNumbers)
+  local _, count = string.gsub(lineNumbers, "|", "")
+  return count
+end
+
+function validFragmentIndices(fragmentIndices, lineNumbers)
+  local count = 0
+  local previous = -1
+  for entry in (fragmentIndices .. ","):gmatch("([^,]*),") do
+    if not entry:match("^%s*%d+%s*$") then
+      return false
+    end
+    local index = tonumber(entry)
+    if index <= previous then
+      return false
+    end
+    previous = index
+    count = count + 1
+  end
+  return count == countSteps(lineNumbers)
 end
 
 function lineNumbersAttribute(el)

@@ -15,7 +15,7 @@ on:
         type: boolean
         default: false
       extra-r-packages:
-        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        description: "extra R packages installed on top of tests/rproj.lock (like a dev version of one of the deps) - comma separated, passed to rig pkg install: pkg, owner/repo[@ref], gitlab::group/project, url::https://...; pkg@1.2.3 means exactly 1.2.3"
         required: false
         type: string
         default: ""
@@ -67,7 +67,12 @@ on:
         type: boolean
         default: false
       extra-r-packages:
-        description: "extra R package to install for the runs (like a dev version of one of the deps) - comma separated, passed to renv::install"
+        description: "extra R packages installed on top of tests/rproj.lock (like a dev version of one of the deps) - comma separated, passed to rig pkg install: pkg, owner/repo[@ref], gitlab::group/project, url::https://...; pkg@1.2.3 means exactly 1.2.3"
+        required: false
+        type: string
+        default: ""
+      pandoc-override-version:
+        description: "Pandoc release tag to download from GitHub for smoke tests before S3 archival (e.g. 3.10.1). Quarto selects it through QUARTO_PANDOC. Leave empty to use the configured binary."
         required: false
         type: string
         default: ""
@@ -105,6 +110,16 @@ jobs:
           # Empty keeps the standard checkout behavior.
           ref: ${{ inputs.ref }}
 
+      - name: Check the ref supports the rig test environment
+        shell: bash
+        run: |
+          for f in tests/rproj.lock .github/actions/setup-rig/action.yml; do
+            if [ ! -f "$f" ]; then
+              echo "::error::This checkout has no $f. The R test environment needs a ref that uses the rig project (releases before it was introduced are not supported)."
+              exit 1
+            fi
+          done
+
       # macOS runners boot with an unresolvable `.local` hostname, so any process
       # resolving its own hostname stalls ~35s (actions/runner-images#14568).
       - name: Set a resolvable hostname (macOS)
@@ -123,7 +138,7 @@ jobs:
         shell: bash
 
       # Drops a slow azure.archive.ubuntu.com from the apt mirror list so the job uses
-      # archive.ubuntu.com (actions/runner-images#14823): sampled here before setup-r,
+      # archive.ubuntu.com (actions/runner-images#14823): sampled here before rig installs R,
       # and after a failed attempt in later apt steps run via $APT_WITH_FALLBACK.
       # Inline, not a local action, because release mode checks out older tags.
       - name: Configure apt mirror fallback
@@ -186,13 +201,8 @@ jobs:
           fi
           exit 0
 
-      - name: Set up R
-        uses: r-lib/actions/setup-r@v2
-        with:
-          r-version: "4.6.1"
-          use-public-rspm: true
-          # required to avoid rtools bin in path
-          windows-path-include-rtools: false
+      - name: Set up rig
+        uses: ./.github/actions/setup-rig
 
       - name: Install node (for Playwright, MECA)
         uses: actions/setup-node@v6
@@ -232,6 +242,16 @@ jobs:
         run: |
           VERSION=$(node -p "require('@playwright/test/package.json').version")
           echo "PLAYWRIGHT_VERSION=$VERSION" >> "$GITHUB_ENV"
+          # Browser builds are per OS release (e.g. WebKit links the distro's ICU),
+          # but the install directory name is not, so the cache must not cross
+          # OS releases (ubuntu 24.04 -> 26.04).
+          if [ -r /etc/os-release ]; then
+            . /etc/os-release
+            HOST="$ID-$VERSION_ID"
+          else
+            HOST="macos-$(sw_vers -productVersion | cut -d. -f1)"
+          fi
+          echo "PLAYWRIGHT_HOST=$HOST" >> "$GITHUB_ENV"
         working-directory: ./tests/integration/playwright
         shell: bash
 
@@ -244,9 +264,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-${{ env.PLAYWRIGHT_HOST }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
           restore-keys: |
-            ${{ runner.os }}-playwright-
+            ${{ runner.os }}-${{ env.PLAYWRIGHT_HOST }}-playwright-
 
       - name: Install Playwright system dependencies
         if: >-
@@ -277,29 +297,6 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: npm install -g meca --loglevel=error --no-audit
 
-      - name: Set RENV_PATHS_ROOT
-        shell: bash
-        run: |
-          echo "RENV_PATHS_ROOT=${{ runner.temp }}/renv" >> $GITHUB_ENV
-
-      - name: Get R and OS version
-        id: get-version
-        run: |
-          cat("os-version=", sessionInfo()$running, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-          cat("r-version=", R.Version()$version.string, "\n", file = Sys.getenv("GITHUB_OUTPUT"), sep = "", append = TRUE)
-        shell: Rscript {0}
-
-      - name: Restore Renv package cache
-        id: cache-renv-packages-restore
-        uses: actions/cache/restore@v5
-        with:
-          path: |
-            ${{ env.RENV_PATHS_ROOT }}
-            renv/library
-          key: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-${{ hashFiles('tests/renv.lock') }}
-          restore-keys: |
-            ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-renv-2-
-
       - name: Install missing system deps
         if: runner.os == 'Linux'
         run: |
@@ -325,56 +322,77 @@ jobs:
           brew install --cask xquartz
           brew install poppler librsvg
 
-      - name: Restore R packages
-        id: restore-r-packages
+      - name: Install R from rproj.lock
         working-directory: tests
+        shell: bash
         run: |
-          cat("::group::Installing renv if needed\n")
-          if (!requireNamespace('renv', quietly = TRUE)) install.packages('renv')
-          cat("::endgroup::\n")
-          cat("::group::Restoring R packages from renv.lock\n")
-          renv::restore()
-          cat("::endgroup::\n")
-          cat("::group::Verifying R packages are synchronized after restore\n")
-          status <- renv::status()
-          if (!isTRUE(status$synchronized)) {
-            cat("::error::R packages are not synchronized after restore - some packages may have failed to install\n")
-            quit(status = 1)
-          }
-          cat("::endgroup::\n")
-          cat("::group::Installing dev versions of knitr and rmarkdown\n")
-          # Install dev versions for our testing
-          # Use r-universe to avoid github api calls
-          try(install.packages('rmarkdown', repos = c('https://rstudio.r-universe.dev', getOption('repos'))))
-          try(install.packages('knitr', repos = c('https://yihui.r-universe.dev', getOption('repos'))))
-          cat("::endgroup::\n")
-          # A failed dev install keeps the renv-restored version; flag it instead of failing setup
-          for (pkg in c('rmarkdown', 'knitr')) {
+          # A separate step because on Linux rig proj sync re-runs itself under sudo
+          # to install R, which leaves the project library owned by root.
+          r_version=$(sed -n 's/^r_version = "\(.*\)"/\1/p' rproj.lock | head -n 1 | tr -d '\r')
+          rig add "$r_version"
+
+      - name: Sync R packages from rproj.lock
+        working-directory: tests
+        shell: bash
+        run: |
+          # Refs that predate the rig project are rejected by the preflight step after checkout.
+          echo "::group::rig proj sync"
+          rig proj sync --locked --no-install-r
+          echo "::endgroup::"
+
+      - name: Install dev and extra R packages
+        working-directory: tests
+        shell: bash
+        env:
+          EXTRA_R_PACKAGES: ${{ inputs.extra-r-packages }}
+        run: |
+          # Installs on top of the lock must target the project library and the
+          # exact R the sync used; rig's default is the default R's user library.
+          r_version=$(sed -n 's/^r-version = //p' .rvenv/rvenv.cfg | tr -d '\r')
+          r_lib="$(cd .rvenv/lib && { pwd -W 2>/dev/null || pwd; })"
+          overlay() { rig pkg install --r-version "$r_version" --library "$r_lib" "$@"; }
+
+          echo "::group::Installing dev versions of knitr and rmarkdown"
+          # Use r-universe to avoid GitHub API calls. A failed dev install keeps
+          # the locked version; the check below flags it instead of failing setup.
+          overlay --with-repos https://rstudio.r-universe.dev rmarkdown || true
+          overlay --with-repos https://yihui.r-universe.dev knitr || true
+          echo "::endgroup::"
+
+          if [ -n "$EXTRA_R_PACKAGES" ]; then
+            echo "::notice::Running with the following extra R packages: $EXTRA_R_PACKAGES"
+            echo "::group::Installing extra R packages"
+            specs=()
+            IFS=',' read -ra items <<< "$EXTRA_R_PACKAGES"
+            for item in "${items[@]}"; do
+              item="${item#"${item%%[![:space:]]*}"}"
+              item="${item%"${item##*[![:space:]]}"}"
+              # renv's pkg@1.2.3 is an exact version; rig reads it as a minimum.
+              if [[ "$item" =~ ^[A-Za-z][A-Za-z0-9.]*@[0-9] ]]; then item="${item/@/@=}"; fi
+              specs+=("$item")
+            done
+            overlay "${specs[@]}"
+            echo "::endgroup::"
+          fi
+
+          echo "::group::Installing sessioninfo"
+          overlay sessioninfo
+          echo "::endgroup::"
+
+          # Run through the wrapper so the check sees the library the tests load.
+          cat > .rvenv/ci-r-check.R <<'EOF'
+          for (pkg in c("rmarkdown", "knitr")) {
             repo <- packageDescription(pkg)$Repository
-            if (is.null(repo) || !grepl('r-universe.dev', repo, fixed = TRUE)) {
+            if (is.null(repo) || !grepl("r-universe.dev", repo, fixed = TRUE)) {
               cat(sprintf("::notice::Dev version of %s not installed; tests use %s from %s\n",
-                          pkg, packageVersion(pkg), if (is.null(repo)) "unknown source" else repo))
+                          pkg, format(packageVersion(pkg)), if (is.null(repo)) "unknown source" else repo))
             }
           }
-          if ('${{ inputs.extra-r-packages }}' != '') {
-            cat(sprintf("::notice::Running with the following extra R packages for renv: %s\n", "${{ inputs.extra-r-packages }}"))
-            cat("::group::Installing extra R packages\n")
-            renv::install(strsplit("${{ inputs.extra-r-packages }}", split = ",")[[1]])
-            cat("::endgroup::\n")
-          }
-        shell: Rscript {0}
-        env:
-          GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Show R session information
-        working-directory: tests
-        run: |
-          # Session info
           cat("::group::Session info\n")
-          renv::install("sessioninfo")
           sessioninfo::session_info(pkgs = "installed", include_base = TRUE)
           cat("::endgroup::\n")
-        shell: Rscript {0}
+          EOF
+          .rvenv/bin/Rscript .rvenv/ci-r-check.R
 
       - name: Install uv for Python
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
@@ -503,6 +521,12 @@ jobs:
             && [ "$QUARTO_VERSION_INPUT" != "release" ]; then
             echo "QUARTO_TEST_EXPECTED_VERSION=$QUARTO_VERSION_INPUT" >> "$GITHUB_ENV"
           fi
+
+      # Guarded at the step so runs on older refs, which lack this action, never load it.
+      - if: inputs.pandoc-override-version != ''
+        uses: ./.github/workflows/actions/pandoc-override
+        with:
+          pandoc-version: ${{ inputs.pandoc-override-version }}
 
       - name: Install Tinytex
         env:
@@ -697,17 +721,6 @@ jobs:
         with:
           key: ${{ steps.cache-typst.outputs.cache-primary-key }}
           path: ${{ steps.cache-typst.outputs.cache-path }}
-
-      - name: Save Renv package cache
-        # don't save cache if we have extra R packages, or if the cache restore or
-        # renv::restore did not complete (partial library, see Typst cache above)
-        if: ${{ !cancelled() && steps.restore-r-packages.outcome == 'success' && steps.cache-renv-packages-restore.outputs.cache-hit != 'true' && inputs.extra-r-packages == '' }}
-        uses: actions/cache/save@v5
-        with:
-          path: |
-            ${{ env.RENV_PATHS_ROOT }}
-            renv/library
-          key: ${{ steps.cache-renv-packages-restore.outputs.cache-primary-key }}
 
       - uses: actions/upload-artifact@v7
         # Include the OS because sibling jobs share the workflow run.

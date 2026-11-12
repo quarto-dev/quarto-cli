@@ -785,6 +785,7 @@ export const ZodFormatLanguage = z.object({
   "scrollable-output-label": z.string(),
   "link-external-newwindow-label": z.string(),
   "revealjs-menu-button-label": z.string(),
+  "announcement-dismiss-label": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),
@@ -935,6 +936,8 @@ export const ZodWebsiteListing = z.object({
     z.object({}).passthrough(),
     z.array(z.object({}).passthrough()),
   ]),
+  rel: z.string(),
+  target: z.string(),
 }).strict().partial();
 
 export const ZodWebsiteListingContentsObject = z.object({
@@ -942,6 +945,8 @@ export const ZodWebsiteListingContentsObject = z.object({
   date: z.string(),
   title: z.string(),
   subtitle: z.string(),
+  rel: z.string(),
+  target: z.string(),
 }).passthrough().partial();
 
 export const ZodCslDate = z.union([

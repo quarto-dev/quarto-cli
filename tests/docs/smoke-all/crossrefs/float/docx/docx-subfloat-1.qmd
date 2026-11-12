@@ -9,9 +9,9 @@ _quarto:
           - "//w:p//w:r//w:t[text()=\"Figure\u00a01: Famous Elephants\"]"
           - "//w:tr//w:tc//w:p//w:r//w:t[text()=\"(a) Surus\"]"
           - "//w:tr//w:tc//w:p//w:r//w:t[text()=\"(b) Abbas\"]"
-          - "//w:hyperlink[@w:anchor=\"fig-elephants\"]//w:t[contains(text(), \"Figure\u00a01\")]"
-          - "//w:hyperlink[@w:anchor=\"fig-abbas\"]//w:t[contains(text(), \"Figure\u00a01 (b)\")]"
-          - "//w:hyperlink[@w:anchor=\"fig-surus\"]//w:t[contains(text(), \"Figure\u00a01 (a)\")]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:fig-elephants}}\"]//w:t[contains(text(), \"Figure\u00a01\")]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:fig-abbas}}\"]//w:t[contains(text(), \"Figure\u00a01 (b)\")]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:fig-surus}}\"]//w:t[contains(text(), \"Figure\u00a01 (a)\")]"
         - []
 ---
 

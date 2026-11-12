@@ -5,14 +5,14 @@ _quarto:
     docx:
       ensureDocxXpath:
         - 
-          - "//w:hyperlink[@w:anchor=\"tbl-cars\"]"
-          - "//w:hyperlink[@w:anchor=\"tbl-pressure\"]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:tbl-cars}}\"]"
+          - "//w:hyperlink[@w:anchor=\"{{bookmark:tbl-pressure}}\"]"
           - "//w:tbl//w:r//w:t[text()=\"(a) Cars\"]"
           - "//w:tbl//w:r//w:t[text()=\"(b) Pressure\"]"
           - "//w:r//w:t[text()=\"Table\u00a01: Tables\"]"
-          - "//w:tbl//w:bookmarkStart[@w:name=\"tbl-cars\"]"
-          - "//w:tbl//w:bookmarkStart[@w:name=\"tbl-pressure\"]"
-          - "//w:bookmarkStart[@w:name=\"tbl-tables\"]"
+          - "//w:tbl//w:bookmarkStart[@w:name=\"{{bookmark:tbl-cars}}\"]"
+          - "//w:tbl//w:bookmarkStart[@w:name=\"{{bookmark:tbl-pressure}}\"]"
+          - "//w:bookmarkStart[@w:name=\"{{bookmark:tbl-tables}}\"]"
         - []
 ---
 

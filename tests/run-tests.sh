@@ -124,6 +124,20 @@ then
   source configure-test-env.sh
 fi
 
+# Point Quarto at the R of the rig project in tests/ (rproj.toml): the
+# .rvenv wrapper sets the locked R version and package library itself, so
+# every R process a test starts gets them, whatever its working directory.
+QUARTO_RVENV_BIN="${QUARTO_ROOT}/tests/.rvenv/bin"
+if [[ -d "$QUARTO_RVENV_BIN" ]]
+then
+  export QUARTO_R="$QUARTO_RVENV_BIN"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    echo "> Using R from ${QUARTO_R}"
+  fi
+elif [[ "$VERBOSE_MODE" == "true" ]]; then
+  echo "> No rig project environment at ${QUARTO_RVENV_BIN}, using R from QUARTO_R, R_HOME or PATH"
+fi
+
 # Activating python virtualenv
 # set QUARTO_TESTS_FORCE_NO_VENV env var to not activate the virtualenv located in the project
 # QUARTO_TESTS_FORCE_NO_PIPENV is there for backward compatibility
@@ -152,8 +166,9 @@ SMOKE_ALL_TEST_FILE="./smoke/smoke-all.test.ts"
 
 # Deno prints its pre/post-test banners and final "ok |" summary outside any
 # group the harness can open, so a passing run is replayed inside one group
-# named after its target. A failing run is replayed verbatim so the harness's
-# grouping, annotations and failure sections stay intact.
+# named after its target. A failing run is replayed verbatim, preceded by a
+# label line, so the harness's grouping, annotations and failure sections stay
+# intact.
 # Usage: run_timed <label> <command> [args...]; returns the command's status.
 run_timed() {
   local label="$1"; shift
@@ -163,7 +178,6 @@ run_timed() {
     /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "$@"
     return $?
   fi
-  echo "> timing ${label}"
   /usr/bin/time -f "        %e real %U user %S sys" -a -o "$QUARTO_TEST_TIMING" "$@" > "$tmp" 2>&1
   status=$?
   if [ "$status" -eq 0 ]; then
@@ -171,6 +185,7 @@ run_timed() {
     grep -Ev '^::(group::|endgroup::)' "$tmp"
     echo "::endgroup::"
   else
+    echo "> timing ${label}"
     cat "$tmp"
   fi
   rm -f "$tmp"

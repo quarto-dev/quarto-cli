@@ -1,0 +1,12 @@
+---
+title: "Math method chosen with the --math-method command line option"
+format: html
+---
+
+Inline math $x^2$.
+
+$$
+E = mc^2
+$$ {#eq-energy}
+
+See @eq-energy.

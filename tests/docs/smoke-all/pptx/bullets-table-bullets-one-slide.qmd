@@ -1,0 +1,36 @@
+---
+title: Bullets, table, bullets
+format: pptx
+_quarto:
+  tests:
+    pptx:
+      ensurePptxMaxSlides:
+        - 2
+      ensurePptxLayout:
+        -
+          - 2
+          - "Title and Content"
+      ensurePptxRegexMatches:
+        - ['<a:t>before two</a:t>[\s\S]*<a:tbl>[\s\S]*<a:t>after one</a:t>']
+        - 2
+---
+
+<!--
+Characterization test for the Pandoc 3.10.1 slide splitting change
+(jgm/pandoc#11433): a slide holding a bullet list, a table, then another
+bullet list stays on a single "Title and Content" slide. Pandoc 3.10 put the
+first list and the table on one slide and moved the trailing list to the next.
+The title slide is slide 1, so the content slide is slide 2.
+-->
+
+## Slide
+
+- before one
+- before two
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+- after one
+- after two

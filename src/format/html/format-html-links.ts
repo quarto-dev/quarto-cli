@@ -112,6 +112,9 @@ export function alternateLinks(
     };
   };
 
+  // Formats renamed by a `{format, text}` entry, so no default link is added for them
+  const renamedFormats = new Set<RenderedFormat>();
+
   let count = 1;
   for (const userLink of userLinks || []) {
     if (typeof userLink === "string") {
@@ -132,6 +135,7 @@ export function alternateLinks(
           f.format.identifier[kTargetFormat] === thatLink.format
         );
         if (rf) {
+          renamedFormats.add(rf);
           // Just push through
           alternateLinks.push(
             alternateLinkForFormat(rf, count, thatLink.text, thatLink.icon),
@@ -159,7 +163,10 @@ export function alternateLinks(
   if (!userLinksHasFormat) {
     formats.forEach((renderedFormat) => {
       const baseFormat = renderedFormat.format.identifier["base-format"];
-      if (!kExcludeFormatUnlessExplicit.includes(baseFormat || "html")) {
+      if (
+        !kExcludeFormatUnlessExplicit.includes(baseFormat || "html") &&
+        !renamedFormats.has(renderedFormat)
+      ) {
         alternateLinks.push(alternateLinkForFormat(renderedFormat, count));
       }
       count++;

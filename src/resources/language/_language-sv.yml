@@ -39,7 +39,7 @@ callout-tip-title: "Tips"
 callout-note-title: "Notera"
 callout-warning-title: "Varning"
 callout-important-title: "Viktigt"
-callout-danger-title: "Försiktigt"
+callout-caution-title: "Försiktigt"
 
 code-summary: "Kod"
 
@@ -48,6 +48,9 @@ code-tools-show-all-code: "Visa all kod"
 code-tools-hide-all-code: "Göm all kod"
 code-tools-view-source: "Visa källa"
 code-tools-source-code: "Källkod"
+
+tools-share: "Dela"
+tools-download: "Ladda ner"
 
 code-line: "Rad"
 code-lines: "Rader"
@@ -60,6 +63,8 @@ repo-action-links-source: "Visa källa"
 repo-action-links-issue: "Rapportera ett problem"
 
 back-to-top: "Tillbaka till toppen"
+
+skip-to-content: "Hoppa till huvudinnehållet"
 
 search-no-results-text: "Inget resultat"
 search-matching-documents-text: "matchande dokument"
@@ -94,6 +99,12 @@ navigation-breadcrumbs-label: "Länkstig"  # wikidata Q846205
 # for translators: keep the word that says the region scrolls.
 scrollable-code-label: "Rullbar kod"        # firefox devtools + code-summary — assembled, needs review
 scrollable-output-label: "Rullbara utdata"  # firefox devtools + libreoffice sw — assembled, needs review
+
+link-external-newwindow-label: "(öppnas i en ny flik)"
+
+announcement-dismiss-label: "Stäng meddelandet"
+
+revealjs-menu-button-label: "Bildmeny"
 
 crossref-fig-title: "Figur"
 crossref-tbl-title: "Tabell"

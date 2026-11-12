@@ -100,6 +100,7 @@ import("./quarto-finalize/meta-cleanup.lua")
 -- import("./quarto-finalize/coalesceraw.lua")
 -- import("./quarto-finalize/descaffold.lua")
 import("./quarto-finalize/finalize-combined-1.lua")
+import("./quarto-finalize/section-ids.lua")
 import("./quarto-finalize/typst.lua")
 
 import("./normalize/flags.lua")
@@ -617,6 +618,10 @@ local quarto_finalize_filters = {
   },
   { name = "finalize-combined-1",
     filter = finalize_combined_1(),
+    traverser = 'jog',
+  },
+  { name = "finalize-section-ids",
+    filter = section_ids(),
     traverser = 'jog',
   },
   -- { name = "finalize-coalesce-raw",

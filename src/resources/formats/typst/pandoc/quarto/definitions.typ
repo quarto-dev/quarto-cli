@@ -17,11 +17,20 @@
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
-#show terms.item: it => block(breakable: false)[
-  #text(weight: "bold")[#it.term]
-  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
-]
+#set terms(hanging-indent: 1.5em)
 
+$if(csl-settings)$
+// formatting called for by CSL style
+#show <refs>: set par(
+$if(csl-hanging-indent)$
+  hanging-indent: $csl-hanging-indent$,
+$endif$
+$if(csl-entry-spacing)$
+  spacing: $csl-entry-spacing$,
+$endif$
+)
+
+$endif$
 // Some quarto-specific definitions.
 
 // Code annotation support

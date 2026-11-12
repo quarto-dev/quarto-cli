@@ -108,6 +108,7 @@ export const kFigEnv = "fig-env";
 export const kFigPos = "fig-pos";
 export const kCodeFold = "code-fold";
 export const kCodeLineNumbers = "code-line-numbers";
+export const kCodeLineFragmentIndices = "code-line-fragment-indices";
 export const kCodeOverflow = "code-overflow";
 export const kCodeLink = "code-link";
 export const kCodeTools = "code-tools";
@@ -308,6 +309,7 @@ export const kScrollableCodeLabel = "scrollable-code-label";
 export const kScrollableOutputLabel = "scrollable-output-label";
 export const kLinkExternalNewwindowLabel = "link-external-newwindow-label";
 export const kRevealjsMenuButtonLabel = "revealjs-menu-button-label";
+export const kAnnouncementDismissLabel = "announcement-dismiss-label";
 
 export const kNavigationSiteLabel = "navigation-site-label";
 export const kNavigationSectionLabel = "navigation-section-label";
@@ -453,6 +455,7 @@ export const kLanguageDefaultsKeys = [
   kScrollableOutputLabel,
   kLinkExternalNewwindowLabel,
   kRevealjsMenuButtonLabel,
+  kAnnouncementDismissLabel,
   kCopyButtonTooltip,
   kCopyButtonTooltipSuccess,
   kBackToTop,
@@ -606,6 +609,7 @@ export const kKatex = "katex";
 export const kMathml = "mathml";
 export const kGladtex = "gladtex";
 export const kWebtex = "webtex";
+export const kMathMethod = "math-method";
 
 // metadata fields
 export const kQuartoInternal = "quarto-internal";

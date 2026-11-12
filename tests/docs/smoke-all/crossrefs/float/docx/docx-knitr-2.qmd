@@ -8,7 +8,7 @@ _quarto:
         - 
           - "//w:i"
           - "//m:oMath"
-          - "//w:bookmarkStart[@w:name=\"fig-plot\"]"
+          - "//w:bookmarkStart[@w:name=\"{{bookmark:fig-plot}}\"]"
           - "//w:drawing"
 ---
 

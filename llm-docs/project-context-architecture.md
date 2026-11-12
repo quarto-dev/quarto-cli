@@ -1,6 +1,6 @@
 ---
-main_commit: 04e334159
-analyzed_date: 2026-10-03
+main_commit: 3190292c7
+analyzed_date: 2026-11-02
 key_files:
   - src/project/project-context.ts
   - src/command/command-utils.ts
@@ -9,6 +9,7 @@ key_files:
   - src/execute/engine.ts
   - src/core/cache/cache.ts
   - src/project/types/single-file/single-file.ts
+  - src/project/serve/watch.ts
 ---
 
 # Project Context Resolution
@@ -56,14 +57,21 @@ None of them touch `engines`.
 
 ## `projectContext()` — full context and input walk
 
-`projectContext(path, notebookContext, renderOptions?, force?)` calls `resolveProjectConfig()` from `path` (or its dir), then:
+`projectContext(path, notebookContext, renderOptions?, force?, options?)` calls `resolveProjectConfig()` from `path` (or its dir), then:
 
 - **Project found, `config.project` set** — builds the `ProjectContext` (temp context and disk cache under `<dir>/.quarto`), applies `type.config()`, walks inputs, then applies the membership check below.
 - **Project found, no `project` key** — same context without type hooks.
 - **No project, `force`** — synthetic project at the original dir, see `llm-docs/synthetic-project-context.md`.
 - **No project** — returns `undefined`; callers fall back to `singleFileProjectContext()`.
 
-`mergeExtensionMetadata()` runs on the returned context only when `renderOptions` is passed.
+`mergeExtensionMetadataForContext()` always runs on the returned context, so extension-contributed project metadata (such as `brand`) applies to every command.
+`options.extensionMetadataPolicy` decides what an invalid contribution does; `projectContextForDirectory()` and `singleFileProjectContext()` take the same option.
+
+- `"warn"` (default) — `warnOnce()` with the reason and `No project metadata from <id> was applied.`; only that extension's contribution is dropped.
+- `"fatal"` — the context is cleaned up, then the error is rethrown. Only `render()` in `render-shared.ts` and the context re-initialisation in `renderProject()` pass it.
+
+The preview watcher rebuilds the context with `refreshProjectContext()` (`src/project/serve/watch.ts`).
+It builds the new context first, and keeps the previous one if the rebuild fails.
 
 ### Input walk
 
@@ -98,7 +106,7 @@ Membership is decided by the full walk, so rendering one file still pays for wal
 Each built context opens a `Deno.Kv` disk cache via `createProjectCache()` (`src/core/cache/cache.ts`) under `<dir>/.quarto` (synthetic: under the temp dir) and a temp context.
 `returnResult()` registers `context.cleanup` with `onCleanup()`, which closes the cache at process exit.
 
-If anything throws after the context is built (`type.config()`, the input walk, `mergeExtensionMetadata()`), each branch calls `context.cleanup()` before rethrowing, so the cache is closed and the temp dir removed right away.
+If anything throws after the context is built (`type.config()`, the input walk, `mergeExtensionMetadataForContext()` under the `"fatal"` policy), each branch calls `context.cleanup()` before rethrowing, so the cache is closed and the temp dir removed right away.
 
 The membership fallback returns `undefined` **after** creating the cache, without calling cleanup: the handle stays open for the process lifetime (not fixed yet).
 On Windows the project dir then cannot be removed in-process (os error 32).

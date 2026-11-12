@@ -1937,6 +1937,9 @@
           "revealjs-menu-button-label": {
             "type": "string"
           },
+          "announcement-dismiss-label": {
+            "type": "string"
+          },
           "repo-action-links-edit": {
             "type": "string"
           },
@@ -2478,6 +2481,12 @@
                 "type": "object"
               }
             ]
+          },
+          "rel": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
           }
         }
       }
@@ -2505,6 +2514,12 @@
             "type": "string"
           },
           "subtitle": {
+            "type": "string"
+          },
+          "rel": {
+            "type": "string"
+          },
+          "target": {
             "type": "string"
           }
         }

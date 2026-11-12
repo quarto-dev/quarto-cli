@@ -1,0 +1,18 @@
+---
+title: "A format extension reads the per-language file beside its language file"
+format: langfile-html
+toc: true
+lang: fr
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Sommaire de l extension</h2>']
+        - ['Contents from the extension']
+---
+
+## Section
+
+The `langfile` extension has a `_language-fr.yml` file next to its `_language.yml` file.
+With `lang: fr`, Quarto must load the French file.
+Its title replaces the English title of the extension and the built-in French title of Quarto.

@@ -10,6 +10,6 @@ _quarto:
         - ['meta[name="citation_reference"][content*="citation_title=Cited reference;"]']
 ---
 
-The bibliography is a YAML file wrapped in `---` delimiters, with a duplicated `title` key. Pandoc warns and keeps the last value, so the Scholar reference tags do too.
+The bibliography is a YAML file wrapped in `---` delimiters. It still produces the Scholar reference tags.
 
 This article cites one work [@cited].

@@ -14,7 +14,7 @@ import { unitTest } from "../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 import { join, resolve } from "../../src/deno_ral/path.ts";
 import { isMac, isWindows } from "../../src/deno_ral/platform.ts";
-import { withTempDir } from "../utils.ts";
+import { withTempDir, writeFixture } from "../utils.ts";
 import {
   effectiveReportFile,
   reportDestinationError,
@@ -90,8 +90,7 @@ unitTest(
       );
 
       const fullDir = join(dir, "occupied");
-      Deno.mkdirSync(fullDir);
-      Deno.writeTextFileSync(join(fullDir, "keep.txt"), "keep");
+      writeFixture(dir, "occupied/keep.txt", "keep");
       assert(
         reportDestinationError(fullDir) !== undefined,
         "a non-empty directory destination must be rejected",
@@ -177,13 +176,12 @@ unitTest(
     await withTempDir(async (dir) => {
       const outputDir = join(dir, "_axe-checks");
       const cellsDir = join(outputDir, "cells");
-      Deno.mkdirSync(cellsDir, { recursive: true });
 
       // A cell the previous scan wrote — this run would regenerate it while
       // scanning, then silently overwrite it with markdown once the report
       // is written, corrupting a raw per-cell axe payload.
       const existingCell = join(cellsDir, "index__1440x900__light.json");
-      Deno.writeTextFileSync(existingCell, "{}");
+      writeFixture(cellsDir, "index__1440x900__light.json", "{}");
       assert(
         reportDestinationError(existingCell, [], cellsDir) !== undefined,
         "an existing cell file must be rejected as a --report destination",

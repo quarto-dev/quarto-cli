@@ -61,3 +61,20 @@ async () => {
   assertEquals(resolveHtmlMathMethod(createMockFormat()), undefined);
   assertEquals(resolveHtmlMathMethod(createMockFormat(), {}), undefined);
 });
+
+unitTest("resolveHtmlMathMethod - --math-method flag", //deno-lint-ignore require-await
+async () => {
+  const format = createMockFormat({
+    pandoc: { "html-math-method": "mathjax" },
+  });
+  assertEquals(
+    resolveHtmlMathMethod(format, {
+      "math-method": { method: "katex", url: "https://example.com/katex/" },
+    }),
+    { method: "katex", url: "https://example.com/katex/", fromFlag: true },
+  );
+  assertEquals(
+    resolveHtmlMathMethod(format, { "math-method": { method: "plain" } }),
+    { method: "plain", url: undefined, fromFlag: true },
+  );
+});

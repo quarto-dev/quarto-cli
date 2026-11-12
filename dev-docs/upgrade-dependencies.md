@@ -1,6 +1,8 @@
 Change version numbers in `./configuration` to correspond to new versions.
 
-Update hardcoded version strings in `src/command/check/check.ts` (the `versionConstraints` array in `checkVersions`) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment, and `tests/smoke/check/check-versions-no-mismatch.test.ts` fails until they match.
+Update hardcoded version strings in `src/command/check/check.ts` (the `versionConstraints` array in `checkVersions`) so that they match the new versions in `configuration`. The `configuration` file warns about this in a comment, and `tests/smoke/check/check-versions-no-mismatch.test.ts` fails until they match. The constraint tracks the bundled version exactly, not a minimum floor.
+
+For Pandoc, follow [update-pandoc-checklist.md](update-pandoc-checklist.md) for template updates and filename conventions, schema and Lua type checks, and CI smoke tests using `QUARTO_PANDOC` before S3 archival.
 
 ## Verify installer signing & notarization before merging (bundled binaries)
 
@@ -22,6 +24,8 @@ Why this bites (real incident, #14664): Dart Sass 1.101.0 changed its macOS AOT 
 - run `./configure.sh` (Linux/macOS) or `./configure.cmd` (Windows) to locally install all dependencies against the new Deno binary.
 
 - `src/import_map.json` has migrated to JSR (`jsr:/@std/<package>@<version>` entries). If `configure` errors with `Module not found: jsr:/@std/...`, bump only the specific `@std` package(s) named in the error to a compatible version on <https://jsr.io/@std>. Otherwise, leave `src/import_map.json` alone — historical pattern is reactive (no pre-emptive bumps).
+
+- regenerate `deno.lock` and commit it with the change. Vendoring runs `deno install --frozen`, so after an import-map change `configure` fails with `The lockfile is out of date` until the lock is updated: run `QUARTO_UPDATE_DENO_LOCK=1 ./configure.sh` (Windows: `set QUARTO_UPDATE_DENO_LOCK=1`, then `configure.cmd`). A Deno bump can also rewrite the lockfile format version, so regenerate the lock on every Deno upgrade even without an import-map change. See [add-typescript-dependency.md](add-typescript-dependency.md#the-deno-lockfile).
 
 - run `./configure.sh` / `./configure.cmd` again.
 
