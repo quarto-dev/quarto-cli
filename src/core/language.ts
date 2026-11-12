@@ -164,20 +164,45 @@ export async function resolveLanguageMetadata(metadata: Metadata, dir: string) {
   }
 }
 
+// crossrefs can be custom, so be more lenient
+// any other non-object value is a user or extension defined string,
+// objects are locale variations
+function isTranslationKey(language: FormatLanguage, key: string) {
+  return kLanguageDefaultsKeys.includes(key) ||
+    /^crossref-.*-title$/.test(key) ||
+    /^crossref-.*-prefix$/.test(key) ||
+    language[key] === null ||
+    typeof language[key] !== "object";
+}
+
+// A variation applies on top of the plain keys of the language that holds it,
+// so a plain key of a later language must also replace that key in the
+// variations of the earlier languages, or the variation would win.
+export function mergeLanguages(
+  base: FormatLanguage | undefined,
+  language: FormatLanguage | undefined,
+): FormatLanguage {
+  const merged = mergeConfigs({} as FormatLanguage, base);
+  if (!language) {
+    return merged;
+  }
+  const keys = Object.keys(language).filter((key) =>
+    isTranslationKey(language, key)
+  );
+  Object.keys(merged).forEach((variation) => {
+    if (!isTranslationKey(merged, variation)) {
+      const translations = merged[variation] as Record<string, unknown>;
+      keys.forEach((key) => delete translations[key]);
+    }
+  });
+  return mergeConfigs(merged, language);
+}
+
 export function translationsForLang(language: FormatLanguage, lang: string) {
   // start with the defaults
   let translations = {} as FormatLanguage;
   Object.keys(language).forEach((key) => {
-    // crossrefs can be custom, so be more lenient
-    // any other non-object value is a user or extension defined string,
-    // objects are locale variations and are merged below instead
-    if (
-      kLanguageDefaultsKeys.includes(key) ||
-      key.match(/^crossref-.*-title$/) ||
-      key.match(/^crossref-.*-prefix$/) ||
-      language[key] === null ||
-      typeof language[key] !== "object"
-    ) {
+    if (isTranslationKey(language, key)) {
       translations[key] = language[key];
     }
   });

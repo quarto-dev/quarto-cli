@@ -12,6 +12,7 @@ import { error } from "../deno_ral/log.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeArrayCustomizer } from "../core/config.ts";
+import { mergeLanguages } from "../core/language.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
@@ -44,7 +45,7 @@ import {
   kTblColwidths,
   kVariant,
 } from "./constants.ts";
-import { Format, Metadata } from "./types.ts";
+import { Format, FormatLanguage, Metadata } from "./types.ts";
 import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown-consts.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 
@@ -282,6 +283,14 @@ export function mergeFormatMetadata<T>(
         return mergePandocVariant(objValue, srcValue);
       } else if (kBooleanDisableArrays.includes(key)) {
         return mergeDisablableArray(objValue, srcValue);
+      } else if (
+        key === kLanguageDefaults && ld.isPlainObject(objValue) &&
+        ld.isPlainObject(srcValue)
+      ) {
+        return mergeLanguages(
+          objValue as FormatLanguage,
+          srcValue as FormatLanguage,
+        );
       } else {
         return undefined;
       }
