@@ -1,0 +1,14 @@
+---
+title: "Post by authors with name particles"
+author:
+  - name:
+      given: Frank S.
+      non-dropping-particle: de
+      family: Boer
+  - name:
+      given: Ludwig
+      dropping-particle: van
+      family: Beethoven
+---
+
+A post whose authors have structured names with particles.
