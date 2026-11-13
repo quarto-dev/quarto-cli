@@ -25,8 +25,15 @@ import { withTempDir } from "../utils.ts";
 
 const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
 
+// Prints the arguments and, when Deno got a --location option, its URL.
 const probe = 'import process from "node:process";\n' +
-  'console.log("ARGS=" + JSON.stringify(process.argv.slice(2)));\n';
+  'console.log("ARGS=" + JSON.stringify(process.argv.slice(2)));\n' +
+  'let loc = "";\n' +
+  "try { loc = globalThis.location.href; } catch { /* no --location */ }\n" +
+  'console.log("LOC=" + loc);\n';
+
+// A Deno option whose value holds characters cmd would otherwise interpret.
+const location = "http://example.com/?a=1&b=^c!d";
 
 const specialArgs = [
   "C:\\work\\notes!",
@@ -73,6 +80,23 @@ async function assertArgumentsReachDeno(
     argsLine,
     "ARGS=" + JSON.stringify(args),
     `quarto.cmd changed its arguments ${details}`,
+  );
+  assert(result.success, `quarto.cmd exited with an error ${details}`);
+}
+
+async function assertOptionsReachDeno(launcher: Launcher, cwd: string) {
+  const { result, stdout, details } = await launch({
+    cmd: launcher.cmd,
+    env: {
+      ...launcher.env,
+      QUARTO_DENO_EXTRA_OPTIONS: `--location=${location}`,
+    },
+  }, ["run"], cwd);
+  const locLine = stdout.split(/\r?\n/).find((line) => line.startsWith("LOC="));
+  assertEquals(
+    locLine,
+    `LOC=${location}`,
+    `quarto.cmd changed QUARTO_DENO_EXTRA_OPTIONS ${details}`,
   );
   assert(result.success, `quarto.cmd exited with an error ${details}`);
 }
@@ -127,6 +151,7 @@ unitTest(
         };
         await assertArgumentsReachDeno(launcher, ["run", ...specialArgs], dir);
         await assertArgumentsReachDeno(launcher, ["a & b", "x"], dir);
+        await assertOptionsReachDeno(launcher, dir);
         await assertShortCircuits(launcher, dir);
       } finally {
         // Remove the junction itself (not its target) before the temp dir goes.
@@ -156,6 +181,7 @@ unitTest(
       };
       await assertArgumentsReachDeno(launcher, ["run", ...specialArgs], dir);
       await assertArgumentsReachDeno(launcher, ["a & b", "x"], dir);
+      await assertOptionsReachDeno(launcher, dir);
       await assertShortCircuits(launcher, dir);
     });
   },
