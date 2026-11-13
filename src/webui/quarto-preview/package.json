@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@fluentui/react-icons": "^2.0.343",
-    "@fluentui/react-components": "~9.74.9",
+    "@fluentui/react-components": "~9.74.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ansi-output": "^0.0.9"
