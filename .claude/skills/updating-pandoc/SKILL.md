@@ -28,8 +28,10 @@ A stage is done when its output exists: probe results recorded, one work item pe
 
 ```bash
 QUARTO_PANDOC=/path/to/pandoc-<old>/bin/pandoc package/dist/bin/quarto render doc.qmd -o old.html
-package/dist/bin/quarto render doc.qmd -o new.html   # bundled = new version
+QUARTO_PANDOC=/path/to/pandoc-<new>/bin/pandoc package/dist/bin/quarto render doc.qmd -o new.html
 ```
+
+Name both binaries explicitly. Until Phase 2 runs `configure`, the bundled binary is still the old version.
 
 Copy the old bundled binary to a scratch directory at stage 1: Phase 2's `configure` replaces it. `QUARTO_PANDOC` keeps everything except Pandoc fixed. Use the previous Quarto release only when the old binary is gone, and then rule out Quarto changes before blaming Pandoc. A changelog entry that explains a change makes it a candidate for drift, not a proven case: confirm that the new output is still correct for users (links resolve, crossrefs work, content is present). Update an assertion only after that check, and name the upstream change in the commit.
 
