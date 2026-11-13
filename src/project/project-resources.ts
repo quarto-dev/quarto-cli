@@ -11,6 +11,7 @@ import { asArray } from "../core/array.ts";
 
 import {
   normalizePath,
+  pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
 } from "../core/path.ts";
@@ -117,8 +118,13 @@ function handleCssReferences(
   // read the css
   const css = Deno.readTextFileSync(destFile);
 
-  // offset for root references
-  const offset = relative(dirname(srcFile), rootDir);
+  // offset for root references. fixupCssReferences puts it directly in
+  // front of the path, so it needs a trailing slash unless the stylesheet
+  // is at the root (where the offset is empty).
+  const rootOffset = pathWithForwardSlashes(
+    relative(dirname(srcFile), rootDir),
+  );
+  const offset = rootOffset ? `${rootOffset}/` : "";
 
   // function that can be used to copy a ref
   const copyRef = (ref: string) => {

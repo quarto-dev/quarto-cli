@@ -1,0 +1,9 @@
+project:
+  type: website
+
+website:
+  title: "css-root-url"
+
+format:
+  html:
+    css: styles/fonts.css

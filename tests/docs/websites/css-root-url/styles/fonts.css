@@ -1,0 +1,8 @@
+@font-face {
+  font-family: "Test";
+  src: url(/assets/x.woff2);
+}
+
+body {
+  background: url("/assets/bg.png");
+}

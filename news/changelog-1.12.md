@@ -67,6 +67,7 @@ All changes included in 1.12:
 
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Fix listing `image-alt` values containing quotes or `&` rendering broken or double-escaped alt text. (author: @mcanouil)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Add `target` and `rel` options to listings and listing items, with the listing value as the default for its items. (author: @mcanouil)
+- ([#15362](https://github.com/quarto-dev/quarto-cli/issues/15362)): Fix a root-relative `url()` in a `css:` stylesheet in a subdirectory, such as `url(/assets/font.woff2)` in `styles/fonts.css`, becoming `..assets/font.woff2`, with the referenced file not copied to the output directory. (author: @EnginKarahan)
 
 ## Commands
 
