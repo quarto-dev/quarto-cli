@@ -241,6 +241,7 @@ import {
   kTitlePrefix,
   kToc,
   kTocDepth,
+  kTocSheetCloseLabel,
   kTocTitleDocument,
   kTocTitleWebsite,
   kToggleDarkMode,
@@ -710,6 +711,7 @@ export interface FormatLanguage {
   [kCopyButtonTooltipSuccess]?: string;
   [kBackToTop]?: string;
   [kSkipToContent]?: string;
+  [kTocSheetCloseLabel]?: string;
   [kToggleDarkMode]?: string;
   [kToggleNavigation]?: string;
   [kToggleReaderMode]?: string;

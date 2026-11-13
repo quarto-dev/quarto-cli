@@ -789,6 +789,7 @@ export type FormatLanguage = {
   "link-external-newwindow-label"?: string;
   "revealjs-menu-button-label"?: string;
   "announcement-dismiss-label"?: string;
+  "toc-sheet-close-label"?: string;
   "repo-action-links-edit"?: string;
   "repo-action-links-source"?: string;
   "repo-action-links-issue"?: string;

@@ -1,0 +1,13 @@
+---
+title: "Mobile TOC overlap"
+format:
+  html:
+    toc: true
+    toc-location: right
+---
+
+::: {.column-margin}
+A margin note that is placed next to the table of contents.
+:::
+
+{{< include _sections.md >}}

@@ -321,6 +321,7 @@ export const kCopyButtonTooltip = "copy-button-tooltip";
 export const kCopyButtonTooltipSuccess = "copy-button-tooltip-success";
 export const kBackToTop = "back-to-top";
 export const kSkipToContent = "skip-to-content";
+export const kTocSheetCloseLabel = "toc-sheet-close-label";
 export const kRepoActionLinksEdit = "repo-action-links-edit";
 export const kRepoActionLinksSource = "repo-action-links-source";
 export const kRepoActionLinksIssue = "repo-action-links-issue";
@@ -460,6 +461,7 @@ export const kLanguageDefaultsKeys = [
   kCopyButtonTooltipSuccess,
   kBackToTop,
   kSkipToContent,
+  kTocSheetCloseLabel,
   kRepoActionLinksEdit,
   kRepoActionLinksSource,
   kRepoActionLinksIssue,
