@@ -136,12 +136,22 @@ const setupMobileToc = (tocEl) => {
           ?.focus();
       }
     };
-    const mirrorClasses = () => {
+    // Scripts may also hide entries after load with the hidden attribute.
+    const kMirrored = ["class", "hidden"];
+    const mirrorState = () => {
       const source = list.querySelectorAll("ul, li, a");
       const target = copy.querySelectorAll("ul, li, a");
       source.forEach((el, index) => {
-        if (target[index].className !== el.className) {
-          target[index].className = el.className;
+        for (const name of kMirrored) {
+          const value = el.getAttribute(name);
+          if (target[index].getAttribute(name) === value) {
+            continue;
+          }
+          if (value === null) {
+            target[index].removeAttribute(name);
+          } else {
+            target[index].setAttribute(name, value);
+          }
         }
       });
       markCurrent();
@@ -150,7 +160,7 @@ const setupMobileToc = (tocEl) => {
 
     // Other scripts may add nodes inside the TOC links, so a copy paired by
     // position can drift. Clone again on any child change and copy only the
-    // classes otherwise, at most once for each animation frame.
+    // classes and hidden otherwise, at most once for each animation frame.
     let frame = 0;
     let reclone = false;
     const observer = new MutationObserver((records) => {
@@ -165,7 +175,7 @@ const setupMobileToc = (tocEl) => {
         if (reclone) {
           mount();
         } else {
-          mirrorClasses();
+          mirrorState();
         }
         reclone = false;
       });
@@ -174,7 +184,7 @@ const setupMobileToc = (tocEl) => {
       subtree: true,
       childList: true,
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: kMirrored,
     });
 
     const unlockScroll = () => {
