@@ -17,14 +17,22 @@ author:
   - name:
       literal: Jean de La Fontaine
       dropping-particle: de
+  - name:
+      given: Alexander
+      family: Humboldt
+      dropping-particle: von
 format:
   html: default
   jats: default
 _quarto:
   tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<p>Charles de Gaulle\s*</p>', '<p>Frank S\. de Boer\s*</p>', '<p>Ludwig van Beethoven\s*</p>', '<p>Alexander von Humboldt\s*</p>', '<p>Johannes van der Waals\s*</p>', '<p>Plato\s*</p>']
+        - ['<p>Frank S\. Boer\s*</p>', '<p>Ludwig Beethoven\s*</p>', '<p>Alexander Humboldt\s*</p>']
     jats:
       ensureFileRegexMatches:
-        - ['<surname>de Gaulle</surname>', '<surname>de Boer</surname>', '<surname>van Beethoven</surname>', '<surname>van der Waals</surname>', '<surname>Plato</surname>', '<surname>von Goethe</surname>', '<given-names>J\. W\.</given-names>', '<surname>La Fontaine</surname>', '<given-names>Jean de</given-names>']
+        - ['<given-names>Alexander von</given-names>', '<surname>de Gaulle</surname>', '<surname>de Boer</surname>', '<surname>van Beethoven</surname>', '<surname>van der Waals</surname>', '<surname>Plato</surname>', '<surname>von Goethe</surname>', '<given-names>J\. W\.</given-names>', '<surname>La Fontaine</surname>', '<given-names>Jean de</given-names>']
         - ['<surname>Gaulle</surname>', '<surname>Boer</surname>', '<surname>Beethoven</surname>', '<surname>Waals</surname>', 'J\. W\.Johann', '<given-names>Johann Wolfgang</given-names>', '<surname>de La Fontaine</surname>']
 ---
 
@@ -37,3 +45,4 @@ Particles in author names must survive author normalization.
 - `Plato` is a single-word string: no particle, no stray spaces.
 - `Johann Wolfgang von Goethe` has a literal plus a written `given`, which must survive the parse.
 - `Jean de La Fontaine` has a literal plus an explicit particle, which wins over the parse.
+- `Alexander von Humboldt` has an explicit `dropping-particle`: the title block shows it, and JATS keeps it with the given names.

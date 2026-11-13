@@ -421,15 +421,15 @@ local function bibtexParseName(nameRaw)
 end
 
 local function createNameLiteral(name)
+  -- CSL display order, skipping absent parts
   local literalName = {}
-  if name[kFamilyName] and name[kGivenName] then
-    tappend(literalName, name[kGivenName])
-    tappend(literalName, {pandoc.Space()})
-    tappend(literalName, name[kFamilyName])
-  elseif name[kFamilyName] then
-    tappend(literalName, name[kFamilyName])
-  elseif name[kGivenName] then
-    tappend(literalName, name[kGivenName])
+  for _, field in ipairs({ kGivenName, kDroppingParticle, kNonDroppingParticle, kFamilyName }) do
+    if name[field] ~= nil then
+      if #literalName > 0 then
+        tappend(literalName, {pandoc.Space()})
+      end
+      tappend(literalName, name[field])
+    end
   end
   return literalName
 end
