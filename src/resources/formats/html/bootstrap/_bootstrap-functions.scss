@@ -162,7 +162,7 @@
       navbar-bg:
         if(
           $default == #378dfc,
-          if(variable-exists(body-bg), $body-bg, $black),
+          if(variable-exists(body-bg) and $body-bg != null, $body-bg, $black),
           $default
         ),
       navbar-fg: rgba($black, 0.5),
@@ -285,7 +285,7 @@
   // being set
   $theme-bgs: (
     litera: $white,
-    cyborg: if(variable-exists(body-bg), $body-bg, #000),
+    cyborg: if(variable-exists(body-bg) and $body-bg != null, $body-bg, #000),
   );
 
   $bg: quarto-map.get($theme-bgs, $theme);
