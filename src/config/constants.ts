@@ -762,6 +762,7 @@ export const kPandocDefaultsKeys = [
   "epub-metadata",
   "epub-fonts",
   "epub-chapter-level",
+  "epub-title-page",
   kEPubCoverImage,
   "reference-links",
   kReferenceLocation,
