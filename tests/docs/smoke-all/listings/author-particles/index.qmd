@@ -1,0 +1,24 @@
+---
+title: "Listing of posts by authors with name particles"
+listing:
+  id: author-particles
+  type: default
+  contents: posts
+_quarto:
+  render-project: true
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          # particles are part of the displayed name, in CSL order
+          - '<div class="listing-author">\s*Frank S\. de Boer, Ludwig van Beethoven\s*</div>'
+          # absent name parts are skipped
+          - '<div class="listing-author">\s*Aristotle\s*</div>'
+---
+
+::: {#author-particles}
+:::
+
+Listing items show each author's full name, including the dropping and
+non-dropping particles of a structured name, as the post's title block does.
+A structured name without a given name shows only the parts it has.

@@ -103,7 +103,7 @@ import {
 } from "../../../../config/constants.ts";
 import { projectRelativeHref } from "../website-shared.ts";
 import { isYamlPath, readYaml } from "../../../../core/yaml.ts";
-import { parseAuthor } from "../../../../core/author.ts";
+import { cslNameToString, parseAuthor } from "../../../../core/author.ts";
 import { parsePandocDate, resolveDate } from "../../../../core/date.ts";
 import { ProjectOutputFile } from "../../types.ts";
 import {
@@ -1206,11 +1206,7 @@ async function listItemFromFile(
       );
     }
     const author = structuredAuthors
-      ? uniq(
-        structuredAuthors.map((auth) =>
-          auth.literal || `${auth.given} ${auth.family}`
-        ),
-      )
+      ? uniq(structuredAuthors.map(cslNameToString))
       : [];
 
     const readingContext = target?.markdown?.markdown

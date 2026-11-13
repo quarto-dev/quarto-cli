@@ -1,0 +1,8 @@
+---
+title: "Post by an author with only a family name"
+author:
+  - name:
+      family: Aristotle
+---
+
+A post whose author has a structured name with a family name and no given name.
