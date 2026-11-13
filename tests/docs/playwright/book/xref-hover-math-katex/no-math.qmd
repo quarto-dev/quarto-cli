@@ -1,0 +1,5 @@
+# No math {#sec-no-math}
+
+This chapter has no math of its own.
+
+See @sec-math, @sec-math-section and @eq-pythagoras.

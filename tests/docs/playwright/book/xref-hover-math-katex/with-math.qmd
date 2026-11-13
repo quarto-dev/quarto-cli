@@ -1,0 +1,9 @@
+# With math {#sec-with-math}
+
+This chapter has math of its own, $e^{i\pi} = -1$.
+
+$$
+\sum_{k=1}^n k = \frac{n(n+1)}{2}
+$$ {#eq-local}
+
+See @sec-math, @sec-math-section, @eq-pythagoras and @eq-local.
