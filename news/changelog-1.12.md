@@ -65,6 +65,7 @@ All changes included in 1.12:
 
 ### `website`
 
+- ([#15178](https://github.com/quarto-dev/quarto-cli/issues/15178)): Fix the `solana` about page template keeping the image at the left edge instead of centring it when the layout stacks on narrow screens. (author: @SAMARTHJAISWAL)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Fix listing `image-alt` values containing quotes or `&` rendering broken or double-escaped alt text. (author: @mcanouil)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Add `target` and `rel` options to listings and listing items, with the listing value as the default for its items. (author: @mcanouil)
 

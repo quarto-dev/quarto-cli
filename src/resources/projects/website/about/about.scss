@@ -109,6 +109,8 @@ div.quarto-about-solana {
 
   .about-entity {
     display: flex !important;
+    align-items: start;
+    justify-content: space-between;
 
     @include media-breakpoint-up(lg) {
       flex-direction: row;
@@ -118,9 +120,6 @@ div.quarto-about-solana {
       align-items: center;
       text-align: center;
     }
-
-    align-items: start;
-    justify-content: space-between;
 
     .entity-contents {
       display: flex;
