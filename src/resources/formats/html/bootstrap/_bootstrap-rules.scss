@@ -2392,6 +2392,12 @@ body:has(.quarto-toc-pill) #quarto-back-to-top {
   );
 }
 
+// scroll-padding-bottom cannot lift the end of the page above the pill, as
+// the page cannot scroll further, so leave room for the pill below it.
+body:has(.quarto-toc-pill) {
+  padding-bottom: calc(var(--quarto-toc-pill-height, 44px) + 1rem);
+}
+
 body:has(#quarto-sidebar-glass.show) .quarto-toc-pill {
   visibility: hidden;
 }

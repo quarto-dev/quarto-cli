@@ -4,6 +4,7 @@ project:
 website:
   title: "mobile-toc"
   back-to-top-navigation: true
+  page-navigation: true
   sidebar:
     style: docked
     contents:

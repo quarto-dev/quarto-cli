@@ -237,6 +237,32 @@ test.describe("Mobile TOC pill", () => {
     }
   });
 
+  test("an entry hidden in the TOC after load is hidden in the sheet too", async ({ page }) => {
+    await openPage(page, "right");
+    const entry = sheetOf(page)
+      .getByRole("navigation")
+      .getByRole("link", { name: "Subsection 2.1", exact: true });
+    for (const tag of ["li", "a"]) {
+      const setHidden = (hidden: boolean) =>
+        page.evaluate(
+          ([name, value]) => {
+            const link = document.querySelector("nav#TOC a[href$='#sec-2-1']")!;
+            const el = (name === "a" ? link : link.closest("li")) as HTMLElement;
+            el.hidden = value === "true";
+          },
+          [tag, String(hidden)],
+        );
+      await setHidden(true);
+      await openSheet(page);
+      await expect(entry).toBeHidden();
+      await page.keyboard.press("Escape");
+      await setHidden(false);
+      await openSheet(page);
+      await expect(entry).toBeVisible();
+      await page.keyboard.press("Escape");
+    }
+  });
+
   test("axe finds no violation with the sheet closed and open", async ({ page }) => {
     await openPage(page, "right");
     expect(await axeViolations(page)).toEqual([]);
@@ -274,6 +300,23 @@ test.describe("Mobile TOC pill", () => {
     const current = sheetOf(page).locator("a[aria-current=location]");
     await expect(current).toHaveCount(1);
     await expect(current).toHaveAttribute("href", /#sec-3-2$/);
+  });
+
+  test("the last link of a website page is not covered by the pill", async ({ page }) => {
+    await page.setViewportSize(NARROW);
+    await page.goto(getUrl("website/mobile-toc/_site/index.html"));
+    await expect(pillOf(page)).toBeVisible();
+    // The page navigation link sits at the bottom right of the page, where
+    // the page cannot scroll any further.
+    const last = page.locator(".nav-page-next a");
+    await last.focus();
+    await expect(last).toBeFocused();
+    await expect.poll(async () => {
+      const a = await last.boundingBox();
+      const b = await pillOf(page).boundingBox();
+      return a!.y + a!.height <= b!.y || b!.y + b!.height <= a!.y ||
+        a!.x + a!.width <= b!.x || b!.x + b!.width <= a!.x;
+    }).toBe(true);
   });
 
   test("back-to-top sits above the pill on a website", async ({ page }) => {
