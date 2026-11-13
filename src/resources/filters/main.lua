@@ -406,9 +406,18 @@ local quarto_pre_filters = {
     -- table_colwidth(),
     table_classes(),
     input_traits(),
-    resolve_book_file_targets(),
     project_paths()
   }),
+    traverser = 'jog',
+  },
+
+  -- runs after the pass above has indexed every book file's target, so
+  -- links to files later in the book resolve too (#2571)
+  { name = "pre-resolve-book-file-targets",
+    filter = combineFilters({
+      file_metadata(),
+      resolve_book_file_targets(),
+    }),
     traverser = 'jog',
   },
 

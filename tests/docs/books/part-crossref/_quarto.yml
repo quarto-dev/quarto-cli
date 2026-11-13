@@ -1,0 +1,18 @@
+project:
+  type: book
+
+book:
+  title: "Part Crossref"
+  chapters:
+    - index.qmd
+    - part: part.qmd
+      chapters:
+        - chapter.qmd
+    - part: part-two.qmd
+      chapters:
+        - chapter-two.qmd
+
+format:
+  html: default
+  pdf:
+    keep-tex: true
