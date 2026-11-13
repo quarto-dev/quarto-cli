@@ -171,12 +171,10 @@ IF DEFINED QUARTO_TS_PROFILE (
 REM The command is built with !VAR!, so cmd does not interpret & or ^ in option values,
 REM and runs with delayed expansion off: %* is substituted before delayed expansion,
 REM which would consume any "!" or "^" in the arguments. %%C is substituted after cmd
-REM parses the line, which keeps the built command literal.
+REM parses the line, which keeps the built command literal. No parentheses around the
+REM DO command: a ")" in an unquoted argument would close them.
 SET "QUARTO_DENO_CMD="!QUARTO_DENO!" !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! "!QUARTO_TARGET!""
-FOR /F "delims=" %%C IN ("!QUARTO_DENO_CMD!") DO (
-	SETLOCAL DISABLEDELAYEDEXPANSION
-	%%C %*
-)
+FOR /F "delims=" %%C IN ("!QUARTO_DENO_CMD!") DO SETLOCAL DISABLEDELAYEDEXPANSION & %%C %*
 
 
 :end

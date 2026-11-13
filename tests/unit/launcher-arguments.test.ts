@@ -84,6 +84,33 @@ async function assertArgumentsReachDeno(
   assert(result.success, `quarto.cmd exited with an error ${details}`);
 }
 
+// Runs quarto.cmd through cmd with an unquoted command line, as typed in a
+// terminal, where cmd itself sees the ")" in "report(1).qmd".
+async function assertTypedArgumentsReachDeno(launcher: Launcher, cwd: string) {
+  const result = await execProcess({
+    cmd: "cmd",
+    args: ["/d", "/s", "/c", `""${launcher.cmd}" run report(1).qmd C:\\notes!"`],
+    windowsRawArguments: true,
+    cwd,
+    stdout: "piped",
+    stderr: "piped",
+    env: launcher.env,
+  });
+  const stdout = result.stdout ?? "";
+  const details = `(exit ${result.code})\nstdout:\n${stdout}\nstderr:\n${
+    result.stderr ?? ""
+  }`;
+  const argsLine = stdout.split(/\r?\n/).find((line) =>
+    line.startsWith("ARGS=")
+  );
+  assertEquals(
+    argsLine,
+    'ARGS=["run","report(1).qmd","C:\\\\notes!"]',
+    `quarto.cmd changed a typed command line ${details}`,
+  );
+  assert(result.success, `quarto.cmd exited with an error ${details}`);
+}
+
 async function assertOptionsReachDeno(launcher: Launcher, cwd: string) {
   const { result, stdout, details } = await launch({
     cmd: launcher.cmd,
@@ -152,6 +179,7 @@ unitTest(
         await assertArgumentsReachDeno(launcher, ["run", ...specialArgs], dir);
         await assertArgumentsReachDeno(launcher, ["a & b", "x"], dir);
         await assertOptionsReachDeno(launcher, dir);
+        await assertTypedArgumentsReachDeno(launcher, dir);
         await assertShortCircuits(launcher, dir);
       } finally {
         // Remove the junction itself (not its target) before the temp dir goes.
@@ -182,6 +210,7 @@ unitTest(
       await assertArgumentsReachDeno(launcher, ["run", ...specialArgs], dir);
       await assertArgumentsReachDeno(launcher, ["a & b", "x"], dir);
       await assertOptionsReachDeno(launcher, dir);
+      await assertTypedArgumentsReachDeno(launcher, dir);
       await assertShortCircuits(launcher, dir);
     });
   },
