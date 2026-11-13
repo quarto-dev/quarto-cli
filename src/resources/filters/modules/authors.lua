@@ -118,7 +118,7 @@ local kFamilyName = 'family'
 local kLiteralName = 'literal'
 local kDroppingParticle = 'dropping-particle'
 local kNonDroppingParticle = 'non-dropping-particle'
-local kNameFields = { kGivenName, kFamilyName, kLiteralName}
+local kNameFields = { kGivenName, kFamilyName, kLiteralName, kDroppingParticle, kNonDroppingParticle }
 
 -- Academic titles or professional certifications displayed following a personal name (for example, “MD”, “PhD”).
 local kDegrees = 'degrees'
@@ -445,19 +445,21 @@ local function normalizeName(name)
   -- no family or given name, parse the literal and create one
   if name[kFamilyName] == nil or name[kGivenName] == nil then
     if name[kLiteralName] then
-      local parsedName = bibtexParseName(name)
+      local parsedName = bibtexParseName(name[kLiteralName])
       if type(parsedName) == 'table' then
-        if parsedName.given ~= nil then
+        -- fields the author wrote win over what the parse infers
+        if name[kGivenName] == nil and parsedName.given ~= nil then
           name[kGivenName] = {pandoc.Str(parsedName.given)}
         end
-        if parsedName.family ~= nil then
+        if name[kFamilyName] == nil and parsedName.family ~= nil then
           name[kFamilyName] = {pandoc.Str(parsedName.family)}
         end
-        if name[kDroppingParticle] ~= nil then
-          name[kDroppingParticle] = parsedName[kDroppingParticle]
-        end
-        if name[kNonDroppingParticle] ~= nil then
-          name[kNonDroppingParticle] = parsedName[kNonDroppingParticle]
+        if name[kDroppingParticle] == nil and name[kNonDroppingParticle] == nil then
+          for _, particle in ipairs({ kDroppingParticle, kNonDroppingParticle }) do
+            if parsedName[particle] ~= nil then
+              name[particle] = {pandoc.Str(parsedName[particle])}
+            end
+          end
         end
       else
         if #name[kLiteralName] > 1 then
