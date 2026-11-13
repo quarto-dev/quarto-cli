@@ -29,6 +29,7 @@ All changes included in 1.12:
 
 ### All Formats
 
+- ([#12649](https://github.com/quarto-dev/quarto-cli/issues/12649)): Fix name particles such as `de` or `van` missing from author names in title blocks and JATS output.
 - ([#15344](https://github.com/quarto-dev/quarto-cli/pull/15344)): A Div with an id that starts with a heading now renders as that heading's section, which takes the Div's classes, so CSS such as `div.myclass > section` no longer matches. Quarto keeps the heading id on the section, so crossrefs and table of contents links still target the heading; in beamer, DocBook, ConTeXt, AsciiDoc and revealjs the Div's id is no longer written.
 
 ### `html`
