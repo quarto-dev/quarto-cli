@@ -8,7 +8,7 @@ All changes included in 1.12:
   - Update `typst-gather` to 0.2.4.
   - Update `verapdf` to 1.30.3 (used by `quarto install verapdf` for PDF/A validation).
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update `pandoc` to 3.13. Pandoc changes that alter existing documents:
-  - A YAML bibliography file with a duplicated key, such as two `title` fields in one reference, now stops the render with an error. Before, the last value was kept silently.
+  - A duplicated key in a YAML bibliography file, such as two `title` fields in one reference, or in a YAML metadata block after the front matter, now stops the render with an error. Before, the last value was kept.
   - In Word output, cross-reference targets are hidden bookmarks with generated names. Links inside the document still work, but a link from outside it to a Quarto id, such as `report.docx#fig-plot`, no longer finds the target.
   - In Word output, an image width given as a percentage is now a percentage of the text width, so small images can get larger.
   - In PowerPoint output, a slide with text followed by a table now uses the "Title and Content" layout instead of "Content with Caption", and a slide with bullets, a table and more bullets is no longer split in two.
@@ -17,6 +17,8 @@ All changes included in 1.12:
   - In citeproc bibliographies, a lowercase particle written in a `family` name, such as `de Gaulle`, now stays part of it, so the entry sorts under "d". Use the `non-dropping-particle` field to keep the previous sorting.
   - YAML metadata blocks after the front matter are now read as YAML 1.2, so `yes` and `no` there are strings, as they already were in the front matter.
   - In Typst output, a Div with a `typst-label` attribute now gets that Typst label, and a Span with `lang` sets the text language.
+  - A nested ordered list must now start at 1. An item `1. one` followed by an indented `3. sub3` no longer starts a sublist: `3. sub3` is plain text in the parent item.
+  - ([#14987](https://github.com/quarto-dev/quarto-cli/issues/14987)): Fix Typst compilation failing on math such as `$[x]^T \in A$`, where the space after an escaped expression was dropped (`unknown variable: Tin`).
 
 ## Accessibility
 
