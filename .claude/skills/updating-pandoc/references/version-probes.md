@@ -31,12 +31,13 @@ For every added, renamed or deprecated option, check `parseRenderFlags` in `src/
 
 ## Template diff
 
+Use a `jgm/pandoc` source checkout containing both release tags. Set `PANDOC_SRC` to its path and `OLD_TAG` and `NEW_TAG` to the release tags matching the two binaries.
+
 ```bash
-gh api --paginate "repos/jgm/pandoc/compare/$OLD_TAG...$NEW_TAG?per_page=100" \
-  --jq '.files[]? | select(.filename | startswith("data/templates")) | .filename' | sort -u
+git -C "$PANDOC_SRC" diff --name-only "$OLD_TAG" "$NEW_TAG" -- data/templates
 ```
 
-Without `--paginate`, the compare API stops at 300 files and drops templates in a multi-release range. The list says which reference copies will change and therefore which Quarto templates need a port (map in `dev-docs/update-pandoc-checklist.md`).
+Use this list to identify affected reference copies and Quarto template ports (map in `dev-docs/update-pandoc-checklist.md`). Inspect the changes by running the command again without `--name-only`.
 
 ## Writer probes
 
