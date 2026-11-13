@@ -149,6 +149,22 @@ test.describe("Mobile TOC pill", () => {
     }).toBe(true);
   });
 
+  test("a cancelled sheet link does not move focus on a later hash change", async ({ page }) => {
+    await openPage(page, "right");
+    await openSheet(page);
+    await page.evaluate(() =>
+      document.addEventListener("click", (event) => event.preventDefault(), { once: true })
+    );
+    await sheetOf(page).locator("a[href$='#sec-3-2']").click();
+    await expect(page).not.toHaveURL(/#sec-3-2$/);
+    await expect(page.locator("dialog#quarto-toc-sheet[open]")).toHaveCount(0);
+    await page.evaluate(() => {
+      window.location.hash = "#sec-1";
+    });
+    await page.evaluate(() => new Promise((done) => setTimeout(done, 100)));
+    await expect(page.locator("#sec-3-2 > h3")).not.toBeFocused();
+  });
+
   test("the current section is marked in the sheet", async ({ page }) => {
     await openPage(page, "right");
     await page.evaluate(() => window.scrollTo(0, document.getElementById("sec-2-1")!.offsetTop));

@@ -213,6 +213,7 @@ const setupMobileToc = (tocEl) => {
         pill.focus();
       }
     });
+    let pendingHash = null;
     sheet.addEventListener("click", (event) => {
       const link = event.target.closest("a");
       if (!link) {
@@ -270,15 +271,26 @@ const setupMobileToc = (tocEl) => {
       };
       // Some browsers follow the link after a frame, and a fragment
       // navigation clears the focus, so wait for it when the hash changes.
+      pendingHash?.abort();
       if (link.hash === window.location.hash) {
         requestAnimationFrame(focusTarget);
-      } else {
-        window.addEventListener(
-          "hashchange",
-          () => setTimeout(focusTarget, 0),
-          { once: true }
-        );
+        return;
       }
+      // Another script can cancel the navigation, so stop waiting at the next
+      // sheet link, at a hash change to another target, or after a second.
+      const pending = new AbortController();
+      pendingHash = pending;
+      window.addEventListener(
+        "hashchange",
+        () => {
+          pending.abort();
+          if (window.location.hash === link.hash) {
+            setTimeout(focusTarget, 0);
+          }
+        },
+        { signal: pending.signal }
+      );
+      setTimeout(() => pending.abort(), 1000);
     });
 
     const main =
@@ -353,6 +365,7 @@ const setupMobileToc = (tocEl) => {
 
     return () => {
       listeners.abort();
+      pendingHash?.abort();
       pillObserver.disconnect();
       cancelAnimationFrame(placeFrame);
       area?.remove();
