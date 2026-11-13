@@ -451,10 +451,13 @@ local function normalizeName(name)
         if name[kGivenName] == nil and parsedName.given ~= nil then
           name[kGivenName] = {pandoc.Str(parsedName.given)}
         end
-        if name[kFamilyName] == nil and parsedName.family ~= nil then
+        -- a parsed particle belongs to the parsed family: a written
+        -- family already holds whatever particle the author meant
+        local familyFromParse = name[kFamilyName] == nil and parsedName.family ~= nil
+        if familyFromParse then
           name[kFamilyName] = {pandoc.Str(parsedName.family)}
         end
-        if name[kDroppingParticle] == nil and name[kNonDroppingParticle] == nil then
+        if familyFromParse and name[kDroppingParticle] == nil and name[kNonDroppingParticle] == nil then
           for _, particle in ipairs({ kDroppingParticle, kNonDroppingParticle }) do
             if parsedName[particle] ~= nil then
               name[particle] = {pandoc.Str(parsedName[particle])}
