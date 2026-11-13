@@ -290,15 +290,14 @@ const setupMobileToc = (tocEl) => {
       window.document.body.append(pill, sheet);
     }
 
-    // Keep the pill clear of focused elements and scrolled-to headings.
+    // The stylesheet keeps focused elements and the end of the page clear of
+    // the pill, from its height.
     const writePillHeight = () => {
       root.style.setProperty(
         "--quarto-toc-pill-height",
         `${pill.getBoundingClientRect().height}px`
       );
     };
-    root.style.scrollPaddingBottom =
-      "calc(var(--quarto-toc-pill-height, 44px) + 1rem)";
     const pillObserver = new ResizeObserver(writePillHeight);
     pillObserver.observe(pill);
 
@@ -360,7 +359,6 @@ const setupMobileToc = (tocEl) => {
       ["pill-height", "offset-x", "offset-y", "offset-left"].forEach((name) =>
         root.style.removeProperty(`--quarto-toc-${name}`)
       );
-      root.style.removeProperty("scroll-padding-bottom");
       observer.disconnect();
       cancelAnimationFrame(frame);
       unlockScroll();

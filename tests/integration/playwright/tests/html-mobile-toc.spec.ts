@@ -319,6 +319,25 @@ test.describe("Mobile TOC pill", () => {
     }).toBe(true);
   });
 
+  test("the bottom padding follows the pill when it moves up", async ({ page }) => {
+    await page.setViewportSize(NARROW);
+    await page.goto(getUrl("website/mobile-toc/_site/index.html"));
+    await expect(pillOf(page)).toBeVisible();
+    // quarto.js sets this offset when content is wider than the screen; the
+    // safe area inset moves the pill up the same way on a phone.
+    const room = await page.evaluate(() => {
+      document.documentElement.style.setProperty("--quarto-toc-offset-y", "30px");
+      const pill = document.querySelector(".quarto-toc-pill")!.getBoundingClientRect();
+      const needed = window.innerHeight - pill.top;
+      const body = parseFloat(getComputedStyle(document.body).paddingBottom);
+      const scroll = parseFloat(getComputedStyle(document.documentElement).scrollPaddingBottom);
+      return { needed, body, scroll };
+    });
+    // WebKit rounds the computed padding to whole pixels.
+    expect(room.body).toBeGreaterThanOrEqual(room.needed - 1);
+    expect(room.scroll).toBeGreaterThanOrEqual(room.needed - 1);
+  });
+
   test("back-to-top sits above the pill on a website", async ({ page }) => {
     await page.setViewportSize(NARROW);
     await page.goto(getUrl("website/mobile-toc/_site/index.html"));

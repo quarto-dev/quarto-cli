@@ -2381,21 +2381,28 @@ $toc-sheet-border-radius: $border-radius-lg !default;
   @include focus-ring;
 }
 
+// The distance from the bottom of the screen to the top of the pill. Focused
+// elements and scrolled-to headings stay above it. scroll-padding-bottom cannot
+// lift the end of the page, as the page cannot scroll further, so the body
+// gets the same room below it.
+:root:has(.quarto-toc-pill) {
+  --quarto-toc-clearance: calc(
+    1rem + env(safe-area-inset-bottom) + var(--quarto-toc-offset-y, 0px) +
+      var(--quarto-toc-pill-height, 44px)
+  );
+  scroll-padding-bottom: var(--quarto-toc-clearance);
+}
+
+body:has(.quarto-toc-pill) {
+  padding-bottom: var(--quarto-toc-clearance);
+}
+
 body:has(.quarto-toc-pill) #quarto-back-to-top {
   left: calc(
     50% + (var(--quarto-toc-offset-left, 0px) - var(--quarto-toc-offset-x, 0px)) /
       2
   );
-  bottom: calc(
-    1rem + env(safe-area-inset-bottom) + var(--quarto-toc-offset-y, 0px) +
-      var(--quarto-toc-pill-height, 44px) + 0.75rem
-  );
-}
-
-// scroll-padding-bottom cannot lift the end of the page above the pill, as
-// the page cannot scroll further, so leave room for the pill below it.
-body:has(.quarto-toc-pill) {
-  padding-bottom: calc(var(--quarto-toc-pill-height, 44px) + 1rem);
+  bottom: calc(var(--quarto-toc-clearance) + 0.75rem);
 }
 
 body:has(#quarto-sidebar-glass.show) .quarto-toc-pill {
