@@ -78,6 +78,7 @@ All changes included in 1.12:
 ### `quarto render`
 
 - ([#15321](https://github.com/quarto-dev/quarto-cli/pull/15321)): Support Pandoc's `--math-method` option, so `--math-method=katex` works with `--embed-resources` and in `llms.md` output, as `--katex` does.
+- ([#15358](https://github.com/quarto-dev/quarto-cli/pull/15358)): Fix equation numbers missing from HTML output when the math method is chosen with `--mathml` or `--math-method`.
 
 ## Extensions
 
