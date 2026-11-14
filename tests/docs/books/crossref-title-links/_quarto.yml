@@ -1,0 +1,11 @@
+project:
+  type: book
+
+book:
+  title: "Crossref Title Links"
+  chapters:
+    - index.qmd
+    - chapter.qmd
+
+format:
+  html: default

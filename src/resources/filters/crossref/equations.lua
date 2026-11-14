@@ -52,7 +52,10 @@ function process_equations(blockEl)
           end
 
           local order = indexNextOrder("eq")
-          indexAddEntry(label, nil, order)
+          -- an optional name is used as the text of empty links to
+          -- the equation, e.g. [](#eq-energy) (#4532)
+          local name = attributes and attributes["name"] or nil
+          indexAddEntry(label, nil, order, name and markdownToInlines(name) or nil)
 
           local eq = mathInlines[1]
           local alt = attributes and attributes["alt"] or nil

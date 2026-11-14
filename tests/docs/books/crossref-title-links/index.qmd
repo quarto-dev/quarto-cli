@@ -1,0 +1,14 @@
+# Introduction {#sec-intro}
+
+Test book for links with no text to sections and equations in other chapters
+(<https://github.com/quarto-dev/quarto-cli/issues/1196>).
+
+## Some details {#sec-details}
+
+$$
+a = b
+$$ {#eq-named name="the identity"}
+
+$$
+c = d
+$$ {#eq-plain}
