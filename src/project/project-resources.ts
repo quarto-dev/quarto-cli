@@ -11,6 +11,7 @@ import { asArray } from "../core/array.ts";
 
 import {
   normalizePath,
+  pathWithForwardSlashes,
   resolvePathGlobs,
   safeExistsSync,
 } from "../core/path.ts";
@@ -86,11 +87,15 @@ export function fixupCssReferences(
   offset: string,
   onRef: (ref: string) => string,
 ) {
+  // root references are rewritten as offset + path, so the offset must end
+  // in a slash (an empty offset means the stylesheet is at the root)
+  const prefix = offset === "" || offset.endsWith("/") ? offset : `${offset}/`;
+
   // fixup / copy refs from url()
   let destCss = css.replaceAll(
     kCssUrlRegex,
     (_match, p1: string, p2: string) => {
-      const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
+      const ref = p2.startsWith("/") ? `${prefix}${p2.slice(1)}` : p2;
       return `url(${p1 || ""}${onRef(ref)}${p1 || ""})`;
     },
   );
@@ -99,7 +104,7 @@ export function fixupCssReferences(
   destCss = destCss.replaceAll(
     kCssImportRegex,
     (_match, p1: string, p2: string) => {
-      const ref = p2.startsWith("/") ? `${offset}${p2.slice(1)}` : p2;
+      const ref = p2.startsWith("/") ? `${prefix}${p2.slice(1)}` : p2;
       return `@import ${p1 || ""}${onRef(ref)}${p1 || ""}`;
     },
   );
@@ -117,8 +122,9 @@ function handleCssReferences(
   // read the css
   const css = Deno.readTextFileSync(destFile);
 
-  // offset for root references
-  const offset = relative(dirname(srcFile), rootDir);
+  // offset for root references, with forward slashes because it ends up in
+  // a url
+  const offset = pathWithForwardSlashes(relative(dirname(srcFile), rootDir));
 
   // function that can be used to copy a ref
   const copyRef = (ref: string) => {
