@@ -9,7 +9,7 @@
  */
 
 import { unitTest } from "../../test.ts";
-import { assertEquals } from "testing/asserts";
+import { assertEquals } from "../../asserts.ts";
 import { fixupCssReferences } from "../../../src/project/project-resources.ts";
 
 const css = '@import "/a/base.css";\nbody { background: url(/a/bg.png); }';
