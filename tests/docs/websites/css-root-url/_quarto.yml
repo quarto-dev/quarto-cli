@@ -1,5 +1,7 @@
 project:
   type: website
+  resources:
+    - styles/sub/other.css
 
 website:
   title: "css-root-url"

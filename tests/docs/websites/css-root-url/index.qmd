@@ -2,4 +2,5 @@
 title: "Root-relative url() in a stylesheet from a subdirectory"
 ---
 
-The stylesheet `styles/fonts.css` refers to `/assets/x.woff2` and `/assets/bg.png`.
+The stylesheet `styles/fonts.css` refers to `/assets/x.woff2` and `/assets/bg.png` and imports
+`/assets/base.css`. The resource `styles/sub/other.css` refers to `/assets/sub-bg.png`.
