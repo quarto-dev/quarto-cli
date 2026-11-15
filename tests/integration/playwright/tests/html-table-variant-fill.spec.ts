@@ -36,10 +36,11 @@ for (const scheme of ['light', 'dark'] as const) {
       await expect(page.locator('#variant-rows tr.plain td')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     });
 
-    test('self-styled table background shows through transparent cells (#7566)', async ({ page }) => {
+    test('self-styled table keeps its own fill and text colour (#7566)', async ({ page }) => {
       await page.goto(url);
       await expect(page.locator('#self-styled')).toHaveCSS('background-color', 'rgb(128, 128, 128)');
       await expect(page.locator('#self-styled tbody td')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+      await expect(page.locator('#self-styled tbody td')).toHaveCSS('color', 'rgb(0, 0, 0)');
     });
   });
 }
