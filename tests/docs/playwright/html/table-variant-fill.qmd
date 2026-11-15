@@ -1,0 +1,27 @@
+---
+title: Table variant fill
+format:
+  html:
+    respect-user-color-scheme: true
+    theme:
+      light: [cosmo, table-variant-fill.scss]
+      dark: [darkly, table-variant-fill.scss]
+---
+
+<table id="variant-table" class="table table-primary">
+<thead><tr><th>Header</th></tr></thead>
+<tbody><tr><td>Cell</td></tr></tbody>
+</table>
+
+<table id="variant-rows" class="table">
+<tbody>
+<tr class="table-success"><td>Success</td></tr>
+<tr class="table-danger"><td>Danger</td></tr>
+<tr class="plain"><td>Plain</td></tr>
+</tbody>
+</table>
+
+<table id="self-styled" class="table self-styled">
+<thead><tr><th>Header</th></tr></thead>
+<tbody><tr><td>Cell</td></tr></tbody>
+</table>

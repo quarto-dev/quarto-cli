@@ -41,6 +41,7 @@ All changes included in 1.12:
   - Links inherit the text color unless `linkcolor` is set, and horizontal rules and table borders follow the text color.
   - Printed output drops backgrounds and uses the 11pt print size of the other Quarto HTML themes.
   - Pandoc 3.13's automatic dark mode is not enabled.
+- ([#15300](https://github.com/quarto-dev/quarto-cli/issues/15300)): Fix Bootstrap table variant classes such as `.table-primary` losing their background fill. (author: @mcanouil)
 
 ### `pdf`
 

@@ -2287,11 +2287,10 @@ code.sourceCode a.code-annotation-anchor {
     word-break: break-word;
   }
 
-  // This disables new styling taken from boostrap that overrides
-  // table level styling
+  // Inherit the text colour set on the table itself instead of Bootstrap's.
+  // The fill stays transparent through $table-bg.
   // See https://github.com/quarto-dev/quarto-cli/issues/7566
   > :not(caption) > * > * {
-    background-color: unset;
     color: unset;
   }
 }
