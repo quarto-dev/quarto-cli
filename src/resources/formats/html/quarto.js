@@ -363,7 +363,22 @@ const setupMobileToc = (tocEl) => {
       apply();
     }
 
+    // When the screen widens, the side TOC shows again and the pill goes away.
+    // Move focus that was on the pill or in the sheet to the current link
+    // there, so that it does not drop to the body.
+    const handOverFocus = () => {
+      const active = list.querySelectorAll("a.active");
+      for (const link of [active[active.length - 1], list.querySelector("a")]) {
+        link?.focus();
+        if (window.document.activeElement === link) {
+          return;
+        }
+      }
+    };
+
     return () => {
+      const focused = window.document.activeElement;
+      const hadFocus = focused === pill || sheet.contains(focused);
       listeners.abort();
       pendingHash?.abort();
       pillObserver.disconnect();
@@ -380,6 +395,9 @@ const setupMobileToc = (tocEl) => {
       }
       pill.remove();
       sheet.remove();
+      if (hadFocus) {
+        handOverFocus();
+      }
     };
   };
 

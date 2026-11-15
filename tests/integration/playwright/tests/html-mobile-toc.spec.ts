@@ -193,6 +193,41 @@ test.describe("Mobile TOC pill", () => {
     }
   });
 
+  // Turning a phone or tablet, or zooming out, can cross the breakpoint while
+  // the pill or the sheet has focus. Focus then moves to the side TOC.
+  for (const name of ["right", "left"]) {
+    test(`${name}: widening with the sheet open moves focus to the side TOC`, async ({ page }) => {
+      await openPage(page, name);
+      await openSheet(page);
+      await page.setViewportSize(WIDE);
+      await expect(page.locator("nav#TOC a:focus")).toBeVisible();
+    });
+
+    test(`${name}: widening with the pill focused moves focus to the side TOC`, async ({ page }) => {
+      await openPage(page, name);
+      await pillOf(page).focus();
+      await page.setViewportSize(WIDE);
+      await expect(page.locator("nav#TOC a:focus")).toBeVisible();
+    });
+  }
+
+  test("widening leaves focus elsewhere in place", async ({ page }) => {
+    await openPage(page, "right");
+    await expect(pillOf(page)).toBeVisible();
+    const probe = page.locator("#focus-probe");
+    await page.evaluate(() => {
+      const link = document.createElement("a");
+      link.id = "focus-probe";
+      link.href = "#sec-1";
+      link.textContent = "Probe";
+      document.querySelector("main")!.prepend(link);
+    });
+    await probe.focus();
+    await page.setViewportSize(WIDE);
+    await expect(pillOf(page)).toHaveCount(0);
+    await expect(probe).toBeFocused();
+  });
+
   test("keyboard only: Tab reaches the pill before the content, Enter opens, Escape closes", async ({
     page,
     browserName,
