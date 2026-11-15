@@ -18,6 +18,7 @@ format:
 <tr class="table-success"><td>Success</td></tr>
 <tr class="table-danger"><td>Danger</td></tr>
 <tr class="plain"><td>Plain</td></tr>
+<tr class="cell-variant"><td class="table-warning">Warning cell</td></tr>
 </tbody>
 </table>
 

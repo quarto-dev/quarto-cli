@@ -7,11 +7,15 @@ const expected = {
     primary: 'rgb(212, 230, 249)',
     success: 'rgb(217, 240, 209)',
     danger: 'rgb(255, 204, 215)',
+    warning: 'rgb(255, 227, 209)',
+    warningColor: 'rgb(0, 0, 0)',
   },
   dark: {
     primary: 'rgb(55, 90, 127)',
     success: 'rgb(0, 188, 140)',
     danger: 'rgb(231, 76, 60)',
+    warning: 'rgb(243, 156, 18)',
+    warningColor: 'rgb(255, 255, 255)',
   },
 };
 
@@ -29,6 +33,13 @@ for (const scheme of ['light', 'dark'] as const) {
       await page.goto(url);
       await expect(page.locator('#variant-rows tr.table-success td')).toHaveCSS('background-color', expected[scheme].success);
       await expect(page.locator('#variant-rows tr.table-danger td')).toHaveCSS('background-color', expected[scheme].danger);
+    });
+
+    test('table-warning cell uses the variant fill and text colour', async ({ page }) => {
+      await page.goto(url);
+      const cell = page.locator('#variant-rows td.table-warning');
+      await expect(cell).toHaveCSS('background-color', expected[scheme].warning);
+      await expect(cell).toHaveCSS('color', expected[scheme].warningColor);
     });
 
     test('plain row cells stay transparent', async ({ page }) => {
