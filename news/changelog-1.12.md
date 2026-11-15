@@ -37,11 +37,11 @@ All changes included in 1.12:
 - ([#9606](https://github.com/quarto-dev/quarto-cli/issues/9606)): Fix `format-links` entries written as `{format, text}` adding a second, default link for the same format instead of renaming its link.
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Fix `link-external-newwindow` overriding a `target` set explicitly on a link. (author: @mcanouil)
 - ([#15297](https://github.com/quarto-dev/quarto-cli/issues/15297)): Fix the table of contents highlight not following the scroll position when a heading id contains a `%` or a `:`. (author: @chenyangsu)
+- ([#15300](https://github.com/quarto-dev/quarto-cli/issues/15300)): Fix Bootstrap table variant classes such as `.table-primary` losing their background fill. (author: @mcanouil)
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update `theme: pandoc` to Pandoc 3.13's styles:
   - Links inherit the text color unless `linkcolor` is set, and horizontal rules and table borders follow the text color.
   - Printed output drops backgrounds and uses the 11pt print size of the other Quarto HTML themes.
   - Pandoc 3.13's automatic dark mode is not enabled.
-- ([#15300](https://github.com/quarto-dev/quarto-cli/issues/15300)): Fix Bootstrap table variant classes such as `.table-primary` losing their background fill. (author: @mcanouil)
 
 ### `pdf`
 
