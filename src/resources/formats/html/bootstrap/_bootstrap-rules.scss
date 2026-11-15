@@ -2375,9 +2375,9 @@ $toc-sheet-border-radius: $border-radius-lg !default;
   }
 }
 
-.quarto-toc-pill:focus-visible,
-.quarto-toc-sheet-close:focus-visible,
-.quarto-toc-sheet a:focus-visible {
+// The drop shadow of the pill replaces the inner tone of the focus ring, as
+// both use box-shadow, so include the ring again.
+.quarto-toc-pill:focus-visible {
   @include focus-ring;
 }
 
@@ -2534,12 +2534,6 @@ html.quarto-toc-sheet-open {
 }
 
 @media (forced-colors: active) {
-  .quarto-toc-pill:focus-visible,
-  .quarto-toc-sheet-close:focus-visible,
-  .quarto-toc-sheet a:focus-visible {
-    outline-color: Highlight;
-  }
-
   .quarto-toc-pill,
   .quarto-toc-sheet-close {
     border-color: ButtonText;
