@@ -407,6 +407,38 @@ test.describe("Mobile TOC pill", () => {
     }).toBe(true);
   });
 
+  // A larger body text, as some themes set, makes back-to-top taller than the
+  // 2.5rem fallback, so only its measured height keeps it clear of the link.
+  for (const { width, bodyText } of [
+    { width: 320, bodyText: "" },
+    { width: 360, bodyText: "" },
+    { width: 375, bodyText: "" },
+    { width: 320, bodyText: "1.5rem" },
+  ]) {
+    test(`back-to-top does not cover the next page link at the end of the page, ${width} px${bodyText ? ` with ${bodyText} body text` : ""}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 640 });
+      await page.goto(getUrl("website/mobile-toc/_site/index.html"));
+      await expect(pillOf(page)).toBeVisible();
+      await page.evaluate((size) => {
+        document.body.style.fontSize = size;
+      }, bodyText);
+      // quarto-nav.js shows back-to-top after a scroll up, or at the end of the page.
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight - 40));
+      const backToTop = page.locator("#quarto-back-to-top");
+      await expect(backToTop).toBeVisible();
+      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      const next = page.locator(".nav-page-next a");
+      await expect.poll(async () => {
+        const a = await backToTop.boundingBox();
+        const b = await next.boundingBox();
+        return a!.y + a!.height <= b!.y || b!.y + b!.height <= a!.y ||
+          a!.x + a!.width <= b!.x || b!.x + b!.width <= a!.x;
+      }).toBe(true);
+    });
+  }
+
   test("forced colours keep the pill and the current link visible", async ({
     page,
     browserName,

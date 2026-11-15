@@ -1,5 +1,5 @@
 ---
-title: "About"
+title: "About this website and its authors"
 ---
 
 About page.

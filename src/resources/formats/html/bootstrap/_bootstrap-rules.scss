@@ -2397,6 +2397,16 @@ body:has(.quarto-toc-pill) {
   padding-bottom: var(--quarto-toc-clearance);
 }
 
+// Back-to-top sits above the pill, so the end of the page also needs room for
+// it and a gap on each side. Until quarto.js measures it, 2.5rem is about its
+// height.
+body:has(.quarto-toc-pill):has(#quarto-back-to-top) {
+  padding-bottom: calc(
+    var(--quarto-toc-clearance) +
+      var(--quarto-toc-back-to-top-height, 2.5rem) + 1.5rem
+  );
+}
+
 body:has(.quarto-toc-pill) #quarto-back-to-top {
   left: calc(
     50% + (var(--quarto-toc-offset-left, 0px) - var(--quarto-toc-offset-x, 0px)) /

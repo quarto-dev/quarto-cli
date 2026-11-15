@@ -303,15 +303,27 @@ const setupMobileToc = (tocEl) => {
     }
 
     // The stylesheet keeps focused elements and the end of the page clear of
-    // the pill, from its height.
-    const writePillHeight = () => {
-      root.style.setProperty(
-        "--quarto-toc-pill-height",
-        `${pill.getBoundingClientRect().height}px`
-      );
-    };
-    const pillObserver = new ResizeObserver(writePillHeight);
-    pillObserver.observe(pill);
+    // the pill and back-to-top, from their heights. quarto-nav.js hides
+    // back-to-top until the reader scrolls up, so keep the last height it had
+    // on screen.
+    const backToTop = window.document.getElementById("quarto-back-to-top");
+    const heightObserver = new ResizeObserver((entries) => {
+      for (const { target } of entries) {
+        const height = target.getBoundingClientRect().height;
+        if (target === pill) {
+          root.style.setProperty("--quarto-toc-pill-height", `${height}px`);
+        } else if (height > 0) {
+          root.style.setProperty(
+            "--quarto-toc-back-to-top-height",
+            `${height}px`
+          );
+        }
+      }
+    });
+    heightObserver.observe(pill);
+    if (backToTop) {
+      heightObserver.observe(backToTop);
+    }
 
     // Content wider than the screen widens the layout viewport on a phone, and
     // a fixed element follows its far edge off screen. Offset the pill, the
@@ -381,12 +393,16 @@ const setupMobileToc = (tocEl) => {
       const hadFocus = focused === pill || sheet.contains(focused);
       listeners.abort();
       pendingHash?.abort();
-      pillObserver.disconnect();
+      heightObserver.disconnect();
       cancelAnimationFrame(placeFrame);
       area?.remove();
-      ["pill-height", "offset-x", "offset-y", "offset-left"].forEach((name) =>
-        root.style.removeProperty(`--quarto-toc-${name}`)
-      );
+      [
+        "pill-height",
+        "back-to-top-height",
+        "offset-x",
+        "offset-y",
+        "offset-left",
+      ].forEach((name) => root.style.removeProperty(`--quarto-toc-${name}`));
       observer.disconnect();
       cancelAnimationFrame(frame);
       unlockScroll();
