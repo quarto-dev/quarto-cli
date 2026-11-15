@@ -2297,7 +2297,10 @@ code.sourceCode a.code-annotation-anchor {
   // A variant class on a cell keeps the text colour that matches its fill.
   @each $variant, $_ in $table-variants {
     > :not(caption) > * > .table-#{$variant} {
-      color: var(--#{$prefix}table-color);
+      color: var(
+        --#{$prefix}table-color-state,
+        var(--#{$prefix}table-color-type, var(--#{$prefix}table-color))
+      );
     }
   }
 }
