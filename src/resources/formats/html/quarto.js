@@ -303,9 +303,9 @@ const setupMobileToc = (tocEl) => {
     }
 
     // The stylesheet keeps focused elements and the end of the page clear of
-    // the pill and back-to-top, from their heights. quarto-nav.js hides
-    // back-to-top until the reader scrolls up, so keep the last height it had
-    // on screen.
+    // the pill, from its height, and the end of the page clear of
+    // back-to-top. quarto-nav.js hides back-to-top until the reader scrolls
+    // up, so keep the last height it had on screen.
     const backToTop = window.document.getElementById("quarto-back-to-top");
     const heightObserver = new ResizeObserver((entries) => {
       for (const { target } of entries) {

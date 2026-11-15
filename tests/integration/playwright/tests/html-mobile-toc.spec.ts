@@ -422,10 +422,9 @@ test.describe("Mobile TOC pill", () => {
       await page.evaluate((size) => {
         document.body.style.fontSize = size;
       }, bodyText);
-      // quarto-nav.js shows back-to-top after a scroll up, or at the end of the page.
+      // quarto-nav.js shows back-to-top at the end of the page. quarto.js
+      // measures it then, and the page grows, so scroll to the new end.
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-      await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
-      await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight - 40));
       const backToTop = page.locator("#quarto-back-to-top");
       await expect(backToTop).toBeVisible();
       await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
