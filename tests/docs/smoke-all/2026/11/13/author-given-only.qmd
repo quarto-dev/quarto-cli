@@ -1,0 +1,24 @@
+---
+title: Given-only author names
+author:
+  - given: Plato
+  - name: Ada Lovelace
+format:
+  html: default
+  jats: default
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<p>Plato\s*</p>', '<p>Ada Lovelace\s*</p>']
+        - []
+    jats:
+      ensureFileRegexMatches:
+        - ['<given-names>Plato</given-names>', '<surname>Lovelace</surname>']
+        - ['<surname>Plato</surname>']
+---
+
+An author written with only a given name must be kept, and must not take the given name as a family name.
+
+- `Plato` is a flat object with only `given`: it is a recognized author, not an unknown shape.
+- `Ada Lovelace` is a plain string next to it: a recognized author must not be dropped because of its neighbour.
