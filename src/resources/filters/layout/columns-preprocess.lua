@@ -318,7 +318,7 @@ function resolveScopedCaptionClasses(el, scope)
     return clz:sub(18)
   end)
   
-  if tcontains(mapped, 'margin') then
+  if tcontains(mapped, 'margin') and resolve_margin_caption_location('margin') == 'margin' then
     return {'margin-caption'}
   else 
     return {}
