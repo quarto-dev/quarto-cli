@@ -438,13 +438,15 @@ end
 -- family and given names
 local function normalizeName(name)
   -- no literal name, create one
-  if name[kLiteralName] == nil then
+  local literalWritten = name[kLiteralName] ~= nil
+  if not literalWritten then
     name[kLiteralName] = createNameLiteral(name)
   end
 
-  -- no family or given name, parse the literal and create one
+  -- no family or given name, parse the written literal and create one.
+  -- A literal built from the parts carries nothing new to parse.
   if name[kFamilyName] == nil or name[kGivenName] == nil then
-    if name[kLiteralName] then
+    if literalWritten and name[kLiteralName] then
       local parsedName = bibtexParseName(name[kLiteralName])
       if type(parsedName) == 'table' then
         -- fields the author wrote win over what the parse infers
