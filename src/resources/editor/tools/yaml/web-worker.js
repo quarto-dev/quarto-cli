@@ -8081,9 +8081,13 @@ try {
                 {
                   enum: [
                     "top",
-                    "bottom"
+                    "bottom",
+                    "margin"
                   ],
-                  errorDescription: "be one of: `top`, `bottom`, `margin`"
+                  completions: [
+                    "top",
+                    "bottom"
+                  ]
                 },
                 {
                   enum: {
@@ -8123,9 +8127,13 @@ try {
                 {
                   enum: [
                     "top",
-                    "bottom"
+                    "bottom",
+                    "margin"
                   ],
-                  errorDescription: "be one of: `top`, `bottom`, `margin`"
+                  completions: [
+                    "top",
+                    "bottom"
+                  ]
                 },
                 {
                   enum: {
@@ -8165,9 +8173,13 @@ try {
                 {
                   enum: [
                     "top",
-                    "bottom"
+                    "bottom",
+                    "margin"
                   ],
-                  errorDescription: "be one of: `top`, `bottom`, `margin`"
+                  completions: [
+                    "top",
+                    "bottom"
+                  ]
                 },
                 {
                   enum: {

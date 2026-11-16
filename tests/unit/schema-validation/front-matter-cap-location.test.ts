@@ -65,4 +65,17 @@ for (const option of options) {
     // The error lists every valid value, `margin` included.
     assertStringIncludes(yamlValidationErrors[0].niceError.heading, "`margin`");
   });
+
+  yamlValidationUnitTest(`front matter ${option}: a typo of margin suggests margin`, async () => {
+    const schema = await getFrontMatterSchema();
+    const { yamlValidationErrors } = await readAndValidateYamlFromMappedString(
+      asMappedString(`title: Page\n${option}: margn\n`),
+      schema,
+    );
+    assertEquals(yamlValidationErrors.length, 1);
+    assertStringIncludes(
+      String(yamlValidationErrors[0].niceError.info["did-you-mean-value"]),
+      "margin",
+    );
+  });
 }

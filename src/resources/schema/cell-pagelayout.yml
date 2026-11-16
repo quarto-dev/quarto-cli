@@ -34,8 +34,8 @@
     formats: [$html-files, $pdf-all, typst]
   schema:
     anyOf:
-      - enum: [top, bottom]
-        errorDescription: "be one of: `top`, `bottom`, `margin`"
+      - enum: [top, bottom, margin]
+        completions: [top, bottom]
       - enum:
           values: [margin]
           tags:
@@ -49,8 +49,8 @@
     formats: [$html-files, $pdf-all, typst]
   schema:
     anyOf:
-      - enum: [top, bottom]
-        errorDescription: "be one of: `top`, `bottom`, `margin`"
+      - enum: [top, bottom, margin]
+        completions: [top, bottom]
       - enum:
           values: [margin]
           tags:
@@ -64,8 +64,8 @@
     formats: [$html-files, $pdf-all, typst]
   schema:
     anyOf:
-      - enum: [top, bottom]
-        errorDescription: "be one of: `top`, `bottom`, `margin`"
+      - enum: [top, bottom, margin]
+        completions: [top, bottom]
       - enum:
           values: [margin]
           tags:

@@ -8080,9 +8080,13 @@ var init_yaml_intelligence_resources = __esm({
               {
                 enum: [
                   "top",
-                  "bottom"
+                  "bottom",
+                  "margin"
                 ],
-                errorDescription: "be one of: `top`, `bottom`, `margin`"
+                completions: [
+                  "top",
+                  "bottom"
+                ]
               },
               {
                 enum: {
@@ -8122,9 +8126,13 @@ var init_yaml_intelligence_resources = __esm({
               {
                 enum: [
                   "top",
-                  "bottom"
+                  "bottom",
+                  "margin"
                 ],
-                errorDescription: "be one of: `top`, `bottom`, `margin`"
+                completions: [
+                  "top",
+                  "bottom"
+                ]
               },
               {
                 enum: {
@@ -8164,9 +8172,13 @@ var init_yaml_intelligence_resources = __esm({
               {
                 enum: [
                   "top",
-                  "bottom"
+                  "bottom",
+                  "margin"
                 ],
-                errorDescription: "be one of: `top`, `bottom`, `margin`"
+                completions: [
+                  "top",
+                  "bottom"
+                ]
               },
               {
                 enum: {

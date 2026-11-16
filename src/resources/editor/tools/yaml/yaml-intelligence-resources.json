@@ -1053,9 +1053,13 @@
           {
             "enum": [
               "top",
-              "bottom"
+              "bottom",
+              "margin"
             ],
-            "errorDescription": "be one of: `top`, `bottom`, `margin`"
+            "completions": [
+              "top",
+              "bottom"
+            ]
           },
           {
             "enum": {
@@ -1095,9 +1099,13 @@
           {
             "enum": [
               "top",
-              "bottom"
+              "bottom",
+              "margin"
             ],
-            "errorDescription": "be one of: `top`, `bottom`, `margin`"
+            "completions": [
+              "top",
+              "bottom"
+            ]
           },
           {
             "enum": {
@@ -1137,9 +1145,13 @@
           {
             "enum": [
               "top",
-              "bottom"
+              "bottom",
+              "margin"
             ],
-            "errorDescription": "be one of: `top`, `bottom`, `margin`"
+            "completions": [
+              "top",
+              "bottom"
+            ]
           },
           {
             "enum": {
