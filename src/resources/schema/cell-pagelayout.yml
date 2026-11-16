@@ -1,7 +1,7 @@
 - name: column
   tags:
     contexts: [document-layout]
-    formats: [$html-files, $pdf-all, typst]
+    formats: [$html-doc, latex, pdf, typst]
   schema:
     ref: page-column
   description:
@@ -11,7 +11,7 @@
 - name: fig-column
   tags:
     contexts: [document-layout, document-figures]
-    formats: [$html-files, $pdf-all, typst]
+    formats: [$html-doc, latex, pdf, typst]
   schema:
     ref: page-column
   description:
@@ -21,7 +21,7 @@
 - name: tbl-column
   tags:
     contexts: [document-layout, document-tables]
-    formats: [$html-files, $pdf-all, typst]
+    formats: [$html-doc, latex, pdf, typst]
   schema:
     ref: page-column
   description:
@@ -31,7 +31,7 @@
 - name: cap-location
   tags:
     contexts: [document-layout]
-    formats: [$html-files, $pdf-all, typst]
+    formats: [$html-doc, latex, pdf, typst]
   schema:
     enum: [top, bottom, margin]
   default: bottom
@@ -40,7 +40,7 @@
 - name: fig-cap-location
   tags:
     contexts: [document-layout, document-figures]
-    formats: [$html-files, $pdf-all, typst]
+    formats: [$html-doc, latex, pdf, typst]
   schema:
     enum: [top, bottom, margin]
   default: bottom
@@ -49,7 +49,7 @@
 - name: tbl-cap-location
   tags:
     contexts: [document-layout, document-tables]
-    formats: [$html-files, $pdf-all, typst]
+    formats: [$html-doc, latex, pdf, typst]
   schema:
     enum: [top, bottom, margin]
   default: top

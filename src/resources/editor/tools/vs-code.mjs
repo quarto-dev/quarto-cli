@@ -8005,8 +8005,9 @@ var init_yaml_intelligence_resources = __esm({
               "document-layout"
             ],
             formats: [
-              "$html-files",
-              "$pdf-all",
+              "$html-doc",
+              "latex",
+              "pdf",
               "typst"
             ]
           },
@@ -8026,8 +8027,9 @@ var init_yaml_intelligence_resources = __esm({
               "document-figures"
             ],
             formats: [
-              "$html-files",
-              "$pdf-all",
+              "$html-doc",
+              "latex",
+              "pdf",
               "typst"
             ]
           },
@@ -8047,8 +8049,9 @@ var init_yaml_intelligence_resources = __esm({
               "document-tables"
             ],
             formats: [
-              "$html-files",
-              "$pdf-all",
+              "$html-doc",
+              "latex",
+              "pdf",
               "typst"
             ]
           },
@@ -8067,8 +8070,9 @@ var init_yaml_intelligence_resources = __esm({
               "document-layout"
             ],
             formats: [
-              "$html-files",
-              "$pdf-all",
+              "$html-doc",
+              "latex",
+              "pdf",
               "typst"
             ]
           },
@@ -8090,8 +8094,9 @@ var init_yaml_intelligence_resources = __esm({
               "document-figures"
             ],
             formats: [
-              "$html-files",
-              "$pdf-all",
+              "$html-doc",
+              "latex",
+              "pdf",
               "typst"
             ]
           },
@@ -8113,8 +8118,9 @@ var init_yaml_intelligence_resources = __esm({
               "document-tables"
             ],
             formats: [
-              "$html-files",
-              "$pdf-all",
+              "$html-doc",
+              "latex",
+              "pdf",
               "typst"
             ]
           },
@@ -22125,6 +22131,7 @@ var init_yaml_intelligence_resources = __esm({
         "epub2",
         "epub3",
         "fb2",
+        "fodt",
         "gfm",
         "haddock",
         "html",
@@ -22163,6 +22170,7 @@ var init_yaml_intelligence_resources = __esm({
         "s5",
         "slideous",
         "slidy",
+        "t2t",
         "tei",
         "texinfo",
         "textile",
@@ -25909,12 +25917,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 222313,
+        _internalId: 227695,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 222305,
+            _internalId: 227687,
             type: "enum",
             enum: [
               "png",
@@ -25930,7 +25938,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 222312,
+            _internalId: 227694,
             type: "anyOf",
             anyOf: [
               {
