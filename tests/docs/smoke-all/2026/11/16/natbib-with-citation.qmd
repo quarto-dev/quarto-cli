@@ -1,0 +1,19 @@
+---
+title: natbib document with a citation
+format: pdf
+cite-method: natbib
+bibliography: natbib.bib
+biblio-style: plainnat
+_quarto:
+  tests:
+    pdf:
+      noErrors: []
+      printsMessage:
+        level: INFO
+        regex: 'generating bibliography'
+      ensurePdfRegexMatches:
+        - ['The TeXbook']
+        - []
+---
+
+This document cites @knuth with `cite-method: natbib`, so the `.aux` file has `\citation`, `\bibdata` and `\bibstyle`, and BibTeX must run to produce the bibliography.

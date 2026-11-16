@@ -1,0 +1,21 @@
+---
+title: natbib document without citations
+format: pdf
+cite-method: natbib
+bibliography: natbib.bib
+biblio-style: style-not-installed
+_quarto:
+  tests:
+    pdf:
+      noErrors: []
+      printsMessage:
+        level: INFO
+        regex: 'generating bibliography'
+        negate: true
+---
+
+This document uses `cite-method: natbib` but cites nothing, so the `.aux` file has `\bibstyle` and `\bibdata` but no `\citation`.
+BibTeX must not run for it, as in TinyTeX's `latexmk()`, which runs BibTeX only when all three are present.
+
+The style is deliberately not installed: if BibTeX ran, it would fail to open the `.bst` and the render would fail.
+Templates that always set a bibliography style, such as the `quarto-journals/springer` format, hit this with any document without citations.
