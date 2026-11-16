@@ -1,0 +1,33 @@
+---
+title: Given-only author names
+author:
+  - given: Plato
+  - name: Ada Lovelace
+  - name:
+      given: Socrates
+  - name:
+      literal: Aristotle
+  - name:
+      family: Smith Jones
+format:
+  html: default
+  jats: default
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<p>Plato\s*</p>', '<p>Ada Lovelace\s*</p>', '<p>Socrates\s*</p>', '<p>Aristotle\s*</p>', '<p>Smith Jones\s*</p>']
+        - []
+    jats:
+      ensureFileRegexMatches:
+        - ['<given-names>Plato</given-names>', '<surname>Lovelace</surname>', '<given-names>Socrates</given-names>', '<surname>Aristotle</surname>', '<surname>Smith Jones</surname>']
+        - ['<surname>Plato</surname>', '<surname>Socrates</surname>', '<surname>SocratesSocrates</surname>', '<given-names>Smith</given-names>']
+---
+
+An author written with only a given name must be kept, and must not take the given name as a family name.
+
+- `Plato` is a flat object with only `given`: it is a recognized author, not an unknown shape.
+- `Ada Lovelace` is a plain string next to it: a recognized author must not be dropped because of its neighbour.
+- `Socrates` is a `name:` table with only `given`: the literal built from it must not be parsed to invent a family name.
+- `Aristotle` is a written `literal` alone: the literal was written, so it is still parsed into a family name.
+- `Smith Jones` is a written `family` alone: it keeps the full surname and gets no inferred given name.

@@ -91,7 +91,7 @@ export function parseAuthor(authorRaw: unknown, strict?: boolean) {
         }
 
         parsed.push(auth);
-      } else if (author[kFamily]) {
+      } else if (author[kFamily] || author[kGiven]) {
         const given = author[kGiven];
         const family = author[kFamily];
         const dropping = author[kDropping];
