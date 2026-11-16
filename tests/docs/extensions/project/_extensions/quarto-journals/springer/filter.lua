@@ -37,7 +37,7 @@ return {
 
         -- When producing a pdf using pdflatex, we need to be sure
         -- this is included in the classoption for the document
-        if quarto.render.pdfEngine() == kPdfLatex then
+        if quarto.doc.pdfEngine() == kPdfLatex then
           local hasOption = false
           if meta[kClassOpt] ~= nil then
             hasOption = hasClassOption(meta, kPdfLatex)
@@ -51,7 +51,7 @@ return {
 
         -- When producing PDFs and using natbib, we need to move the proper style file into
         -- place for generating the bibliography and processing cites
-        if quarto.render.citeMethod() == 'natbib' then
+        if quarto.doc.citeMethod() == 'natbib' then
             local stylename = nil
 
             -- See if a class option is already set for this
