@@ -1,0 +1,40 @@
+---
+title: Margin caption chunk option in formats without a margin column
+engine: knitr
+format:
+  beamer:
+    # write the .tex only, no PDF compile
+    output-ext: tex
+  revealjs:
+    # keep the figure markup instead of a stretched image with a `p.caption`
+    auto-stretch: false
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        -
+          # the caption stays an ordinary caption (`.` stands for a backslash)
+          - '.caption\{.label\{fig-a\}Figure caption text\}'
+        -
+          - 'sidecaption'
+          - 'sidenotes'
+      printsMessage:
+        level: INFO
+        regex: "Caption location 'margin' is not supported in beamer output"
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'figcaption.quarto-float-caption-bottom'
+        -
+          - '.quarto-float-caption-margin'
+          - '.margin-caption'
+---
+
+A `fig-cap-location: margin` chunk option reaches the cell as a `.fig-cap-location-margin` class, which is forwarded to the figure as a margin caption. In formats without a margin column it gets the same bottom-caption fallback as the document option.
+
+```{r}
+#| label: fig-a
+#| fig-cap: Figure caption text
+#| fig-cap-location: margin
+plot(1)
+```

@@ -1,0 +1,61 @@
+---
+title: Margin caption in formats without a margin column
+cap-location: margin
+format:
+  beamer:
+    # write the .tex only, no PDF compile
+    output-ext: tex
+  revealjs: default
+  dashboard: default
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        - 
+          # the caption stays an ordinary caption (`.` stands for a backslash)
+          - '.caption\{.label\{fig-a\}Figure caption text\}'
+        -
+          # `\sidecaption` needs `figure*`, which beamer does not define
+          - 'sidecaption'
+          - 'sidenotes'
+      printsMessage:
+        level: INFO
+        regex: "Caption location 'margin' is not supported in beamer output"
+    revealjs:
+      ensureHtmlElements:
+        - 
+          - 'figcaption.quarto-float-caption-bottom'
+        - 
+          - '.quarto-float-caption-margin'
+          - '.margin-caption'
+      printsMessage:
+        level: INFO
+        regex: "Caption location 'margin' is not supported in revealjs output"
+    dashboard:
+      ensureHtmlElements:
+        - 
+          - 'figcaption.quarto-float-fig.quarto-float-caption-bottom'
+          - 'figcaption.quarto-float-tbl.quarto-float-caption-bottom'
+        - 
+          - '.quarto-float-caption-margin'
+          - '.margin-caption'
+      printsMessage:
+        level: INFO
+        regex: "Caption location 'margin' is not supported in dashboard output"
+---
+
+`cap-location: margin` needs a margin column. Beamer, revealjs and dashboards do not have one: beamer used to fail to compile, and the other two used to leave a margin caption class that nothing laid out. The caption falls back to the bottom with a warning.
+
+## Row
+
+::: {#fig-a}
+Figure content.
+
+Figure caption text
+:::
+
+| a | b |
+|---|---|
+| 1 | 2 |
+
+: Table caption text {#tbl-a}
