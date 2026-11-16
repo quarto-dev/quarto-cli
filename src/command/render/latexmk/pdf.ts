@@ -585,8 +585,11 @@ async function recompileLatexUntilComplete(
   }
 }
 
+// BibTeX needs all three entries; TinyTeX's require_bibtex() checks the same.
 function containsBiblioData(auxData: string) {
-  return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
+  return /^\\citation\{/m.test(auxData) &&
+    /^\\bibdata\{/m.test(auxData) &&
+    /^\\bibstyle\{/m.test(auxData);
 }
 
 function auxFile(stem: string, ext: string) {

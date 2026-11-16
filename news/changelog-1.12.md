@@ -52,6 +52,7 @@ All changes included in 1.12:
   - Table captions are set with the `caption` package, with a 6pt gap to the table.
   - Footnotes in long tables are placed after the table by Pandoc, and no longer rely on `footnotehyper`.
 - ([#15376](https://github.com/quarto-dev/quarto-cli/issues/15376)): Fix a missing BibTeX style file (`.bst`) not being installed automatically with `cite-method: natbib`, and the render crashing on Windows instead of reporting the error.
+- ([#15380](https://github.com/quarto-dev/quarto-cli/pull/15380)): Fix BibTeX running for `cite-method: natbib` documents without citations, which failed the render when the bibliography style is not installed.
 
 ### `revealjs`
 

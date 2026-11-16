@@ -1,0 +1,21 @@
+---
+title: natbib document with nocite and no citation
+format: pdf
+cite-method: natbib
+bibliography: natbib.bib
+biblio-style: plainnat
+nocite: |
+  @*
+_quarto:
+  tests:
+    pdf:
+      noErrors: []
+      printsMessage:
+        level: INFO
+        regex: 'generating bibliography'
+      ensurePdfRegexMatches:
+        - ['The TeXbook']
+        - []
+---
+
+This document cites nothing in its text but sets `nocite: "@*"`, which writes `\nocite{*}`, so the `.aux` file still has a `\citation{*}` entry and BibTeX must run to list every reference.
