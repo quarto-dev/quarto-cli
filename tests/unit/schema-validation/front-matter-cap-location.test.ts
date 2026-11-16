@@ -15,9 +15,8 @@ import {
   ObjectSchema,
 } from "../../../src/core/lib/yaml-schema/types.ts";
 
-// `top` and `bottom` place captions in every one of these formats, so the
-// options are offered for all of them. `margin` is the value that is limited
-// to some formats; that is tagged on the value, not on the option.
+// Caption location options are offered for these formats. The format
+// restriction on `margin` completions is tagged on the value schema.
 const formats = [
   "html",
   "pdf",
@@ -62,7 +61,6 @@ for (const option of options) {
       schema,
     );
     assertEquals(yamlValidationErrors.length, 1);
-    // The error lists every valid value, `margin` included.
     assertStringIncludes(yamlValidationErrors[0].niceError.heading, "`margin`");
   });
 

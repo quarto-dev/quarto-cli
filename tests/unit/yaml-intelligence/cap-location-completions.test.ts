@@ -21,8 +21,8 @@ async function fullInit() {
   await initYamlIntelligenceResourcesFromFilesystem();
 }
 
-// `margin` is only laid out in HTML documents, LaTeX/PDF and Typst, so the
-// other formats are not offered it. `top` and `bottom` work everywhere.
+// Offer `margin` only for HTML documents, LaTeX/PDF and Typst.
+// Offer `top` and `bottom` for all tested formats.
 const cases: [string, string[]][] = [
   ["html", ["top", "bottom", "margin"]],
   ["pdf", ["top", "bottom", "margin"]],
