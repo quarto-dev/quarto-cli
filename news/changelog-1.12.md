@@ -50,6 +50,7 @@ All changes included in 1.12:
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's LaTeX template following Pandoc 3.13 support:
   - Table captions are set with the `caption` package, with a 6pt gap to the table.
   - Footnotes in long tables are placed after the table by Pandoc, and no longer rely on `footnotehyper`.
+- ([#15376](https://github.com/quarto-dev/quarto-cli/issues/15376)): Fix a missing BibTeX style file (`.bst`) not being installed automatically with `cite-method: natbib`, and the render crashing on Windows instead of reporting the error.
 
 ### `revealjs`
 

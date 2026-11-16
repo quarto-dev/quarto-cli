@@ -431,14 +431,11 @@ async function makeBibliographyIntermediates(
 
           if (existsSync(log)) {
             const logOutput = Deno.readTextFileSync(log);
-            const match = logOutput.match(/.* open style file ([^ ]+).*/);
-
-            if (match) {
-              const file = match[1];
+            if (logOutput.match(/ open style file /)) {
               if (
                 await findAndInstallPackages(
                   pkgMgr,
-                  file,
+                  log,
                   response.result.stderr,
                   quiet,
                 )
