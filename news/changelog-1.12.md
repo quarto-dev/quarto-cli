@@ -32,6 +32,7 @@ All changes included in 1.12:
 - ([#12649](https://github.com/quarto-dev/quarto-cli/issues/12649)): Fix name particles such as `de` or `van` missing from author names in title blocks and JATS output.
 - ([#15344](https://github.com/quarto-dev/quarto-cli/pull/15344)): A Div with an id that starts with a heading now renders as that heading's section, which takes the Div's classes, so CSS such as `div.myclass > section` no longer matches. Quarto keeps the heading id on the section, so crossrefs and table of contents links still target the heading; in beamer, DocBook, ConTeXt, AsciiDoc and revealjs the Div's id is no longer written.
 - ([#15371](https://github.com/quarto-dev/quarto-cli/issues/15371)): Fix authors written with only a given name being dropped from the title block and JATS output, or getting the given name repeated as the family name in JATS.
+- ([#15378](https://github.com/quarto-dev/quarto-cli/issues/15378)): Fix `cap-location: margin` failing to compile in beamer and being ignored in revealjs and dashboards. Formats without a margin column now place the caption at the bottom and print a warning.
 
 ### `html`
 
@@ -50,6 +51,7 @@ All changes included in 1.12:
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's LaTeX template following Pandoc 3.13 support:
   - Table captions are set with the `caption` package, with a 6pt gap to the table.
   - Footnotes in long tables are placed after the table by Pandoc, and no longer rely on `footnotehyper`.
+- ([#15376](https://github.com/quarto-dev/quarto-cli/issues/15376)): Fix a missing BibTeX style file (`.bst`) not being installed automatically with `cite-method: natbib`, and the render crashing on Windows instead of reporting the error.
 - ([#15380](https://github.com/quarto-dev/quarto-cli/pull/15380)): Fix BibTeX running for `cite-method: natbib` documents without citations, which failed the render when the bibliography style is not installed.
 
 ### `revealjs`

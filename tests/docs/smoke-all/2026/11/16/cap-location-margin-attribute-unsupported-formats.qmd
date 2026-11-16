@@ -1,0 +1,55 @@
+---
+title: Margin caption attribute in formats without a margin column
+format:
+  beamer:
+    # write the .tex only, no PDF compile
+    output-ext: tex
+  revealjs: default
+  dashboard: default
+_quarto:
+  tests:
+    beamer:
+      ensureFileRegexMatches:
+        -
+          # the caption stays an ordinary caption (`.` stands for a backslash)
+          - '.caption\{.label\{fig-a\}Figure caption text\}'
+        -
+          - 'sidecaption'
+          - 'sidenotes'
+      printsMessage:
+        level: INFO
+        regex: "Caption location 'margin' is not supported in beamer output"
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'figcaption.quarto-float-caption-bottom'
+        -
+          - '.quarto-float-caption-margin'
+          - '.margin-caption'
+    dashboard:
+      ensureHtmlElements:
+        -
+          - 'figcaption.quarto-float-fig.quarto-float-caption-bottom'
+          - 'figcaption.quarto-float-tbl.quarto-float-caption-bottom'
+        -
+          - '.quarto-float-caption-margin'
+          - '.margin-caption'
+---
+
+A `cap-location="margin"` attribute on a single float, with no document-level `cap-location`, gets the same bottom-caption fallback as the document option in formats without a margin column.
+
+## Row
+
+::: {#fig-a cap-location="margin"}
+Figure content.
+
+Figure caption text
+:::
+
+::: {#tbl-a cap-location="margin"}
+| a | b |
+|---|---|
+| 1 | 2 |
+
+Table caption text
+:::
