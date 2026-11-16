@@ -284,7 +284,7 @@ function captionOption(key)
   local value = option(key,  nil)
   if value ~= nil then
   end
-  if value ~= nil and value[1].text == 'margin' then
+  if value ~= nil and resolve_margin_caption_location(value[1].text) == 'margin' then
     return {'margin-caption'}
   else
     return {}

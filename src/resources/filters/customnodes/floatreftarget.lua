@@ -108,6 +108,28 @@ _quarto.ast.add_handler({
   end
 })
 
+-- Margin captions need a margin column. Beamer does not provide one (the
+-- sidenotes package it would load needs `figure*`, so the document fails to
+-- compile), and slides and dashboards do not lay one out. Those formats get
+-- a bottom caption and a warning, once per document.
+function resolve_margin_caption_location(location)
+  if location ~= "margin" then
+    return location
+  end
+  local format = _quarto.format
+  local name = FORMAT
+  if format.isDashboardOutput() then
+    name = "dashboard"
+  elseif not (format.isBeamerOutput() or format.isHtmlSlideOutput()) then
+    return location
+  end
+  if not layoutState.warnedMarginCaption then
+    layoutState.warnedMarginCaption = true
+    quarto.log.warning("Caption location 'margin' is not supported in " .. name .. " output. Using 'bottom'.")
+  end
+  return "bottom"
+end
+
 function cap_location(obj)
   local ref
   local is_float = obj.t == "FloatRefTarget"
@@ -144,8 +166,8 @@ function cap_location(obj)
     result = "bottom"
     -- luacov: enable
   end
-    
-  return result
+
+  return resolve_margin_caption_location(result)
 end
 
 -- we need to expose this function for use in the docusaurus renderer
