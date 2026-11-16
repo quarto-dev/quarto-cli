@@ -31,26 +31,44 @@
 - name: cap-location
   tags:
     contexts: [document-layout]
-    formats: [$html-doc, latex, pdf, typst]
+    formats: [$html-files, $pdf-all, typst]
   schema:
-    enum: [top, bottom, margin]
+    anyOf:
+      - enum: [top, bottom]
+        errorDescription: "be one of: `top`, `bottom`, `margin`"
+      - enum:
+          values: [margin]
+          tags:
+            formats: [$html-doc, latex, pdf, typst]
   default: bottom
   description: "Where to place figure and table captions (`top`, `bottom`, or `margin`)"
 
 - name: fig-cap-location
   tags:
     contexts: [document-layout, document-figures]
-    formats: [$html-doc, latex, pdf, typst]
+    formats: [$html-files, $pdf-all, typst]
   schema:
-    enum: [top, bottom, margin]
+    anyOf:
+      - enum: [top, bottom]
+        errorDescription: "be one of: `top`, `bottom`, `margin`"
+      - enum:
+          values: [margin]
+          tags:
+            formats: [$html-doc, latex, pdf, typst]
   default: bottom
   description: "Where to place figure captions (`top`, `bottom`, or `margin`)"
 
 - name: tbl-cap-location
   tags:
     contexts: [document-layout, document-tables]
-    formats: [$html-doc, latex, pdf, typst]
+    formats: [$html-files, $pdf-all, typst]
   schema:
-    enum: [top, bottom, margin]
+    anyOf:
+      - enum: [top, bottom]
+        errorDescription: "be one of: `top`, `bottom`, `margin`"
+      - enum:
+          values: [margin]
+          tags:
+            formats: [$html-doc, latex, pdf, typst]
   default: top
   description: "Where to place table captions (`top`, `bottom`, or `margin`)"

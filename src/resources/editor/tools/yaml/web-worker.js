@@ -8071,17 +8071,35 @@ try {
                 "document-layout"
               ],
               formats: [
-                "$html-doc",
-                "latex",
-                "pdf",
+                "$html-files",
+                "$pdf-all",
                 "typst"
               ]
             },
             schema: {
-              enum: [
-                "top",
-                "bottom",
-                "margin"
+              anyOf: [
+                {
+                  enum: [
+                    "top",
+                    "bottom"
+                  ],
+                  errorDescription: "be one of: `top`, `bottom`, `margin`"
+                },
+                {
+                  enum: {
+                    values: [
+                      "margin"
+                    ],
+                    tags: {
+                      formats: [
+                        "$html-doc",
+                        "latex",
+                        "pdf",
+                        "typst"
+                      ]
+                    }
+                  }
+                }
               ]
             },
             default: "bottom",
@@ -8095,17 +8113,35 @@ try {
                 "document-figures"
               ],
               formats: [
-                "$html-doc",
-                "latex",
-                "pdf",
+                "$html-files",
+                "$pdf-all",
                 "typst"
               ]
             },
             schema: {
-              enum: [
-                "top",
-                "bottom",
-                "margin"
+              anyOf: [
+                {
+                  enum: [
+                    "top",
+                    "bottom"
+                  ],
+                  errorDescription: "be one of: `top`, `bottom`, `margin`"
+                },
+                {
+                  enum: {
+                    values: [
+                      "margin"
+                    ],
+                    tags: {
+                      formats: [
+                        "$html-doc",
+                        "latex",
+                        "pdf",
+                        "typst"
+                      ]
+                    }
+                  }
+                }
               ]
             },
             default: "bottom",
@@ -8119,17 +8155,35 @@ try {
                 "document-tables"
               ],
               formats: [
-                "$html-doc",
-                "latex",
-                "pdf",
+                "$html-files",
+                "$pdf-all",
                 "typst"
               ]
             },
             schema: {
-              enum: [
-                "top",
-                "bottom",
-                "margin"
+              anyOf: [
+                {
+                  enum: [
+                    "top",
+                    "bottom"
+                  ],
+                  errorDescription: "be one of: `top`, `bottom`, `margin`"
+                },
+                {
+                  enum: {
+                    values: [
+                      "margin"
+                    ],
+                    tags: {
+                      formats: [
+                        "$html-doc",
+                        "latex",
+                        "pdf",
+                        "typst"
+                      ]
+                    }
+                  }
+                }
               ]
             },
             default: "top",
@@ -25918,12 +25972,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 227695,
+          _internalId: 229192,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 227687,
+              _internalId: 229184,
               type: "enum",
               enum: [
                 "png",
@@ -25939,7 +25993,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 227694,
+              _internalId: 229191,
               type: "anyOf",
               anyOf: [
                 {
