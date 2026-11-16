@@ -1,0 +1,45 @@
+---
+title: "Name particles in Google Scholar metadata"
+google-scholar: true
+format: html
+author:
+  - given: Frank S.
+    family: Boer
+    non-dropping-particle: de
+  - name:
+      given: Ludwig
+      family: Beethoven
+      dropping-particle: van
+citation:
+  type: article-journal
+  container-title: Journal
+  issued: 2024-01-01
+  editor:
+    - given: Jan
+      family: Berg
+      non-dropping-particle: van den
+    - name:
+        given: Anna
+        family: Roos
+        dropping-particle: von
+    - family: Aristotle
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        -
+          - 'meta[name="citation_author"][content="Frank S. de Boer"]'
+          - 'meta[name="citation_author"][content="Ludwig van Beethoven"]'
+          - 'meta[name="citation_editor"][content="Jan van den Berg"]' # non-dropping-particle
+          - 'meta[name="citation_editor"][content="Anna von Roos"]' # dropping-particle in name: wrapper
+          - 'meta[name="citation_editor"][content="Aristotle"]' # no given name
+        -
+          - 'meta[name="citation_editor"][content*="undefined"]'
+---
+
+The `citation_author` and `citation_editor` meta tags should carry the same
+display name as the title block: given name, dropping particle, non-dropping
+particle, family name.
+Authors are normalized before they reach the meta tags, but `citation.editor`
+is not, so the editors exercise the name builder in `googleScholarMeta`.
+An editor without a given name must not render as "undefined Aristotle".
