@@ -11,6 +11,7 @@ import {
 } from "../../command/render/types.ts";
 import { kCanonicalUrl, kCitationTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
+import { cslNameToString } from "../../core/author.ts";
 import { bibliographyCslJson } from "../../core/bibliography.ts";
 import {
   CSL,
@@ -123,20 +124,14 @@ function googleScholarMeta(
   // Authors
   if (csl.author) {
     csl.author.forEach((author) => {
-      write(
-        "citation_author",
-        author.literal || `${author.given} ${author.family}`,
-      );
+      write("citation_author", cslNameToString(author));
     });
   }
 
   // Editors
   if (csl.editor) {
     csl.editor.forEach((editor) => {
-      write(
-        "citation_editor",
-        editor.literal || `${editor.given} ${editor.family}`,
-      );
+      write("citation_editor", cslNameToString(editor));
     });
   }
 

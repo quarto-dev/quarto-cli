@@ -468,7 +468,7 @@ function resolveCaptionClasses(el)
     return {'margin-caption'}
   else
     -- try looking for attributes
-    if el.attributes ~= nil and el.attributes['cap-location'] == "margin" then
+    if el.attributes ~= nil and resolve_margin_caption_location(el.attributes['cap-location']) == "margin" then
       return {'margin-caption'}
     else
       return {}

@@ -487,7 +487,9 @@ const packageMatchers = [
       return `${match}.ldf`;
     },
   },
-  { regex: /.* \\(file ([^)]+)\\): cannot open .*/g },
+  { regex: /.* \(file ([^)]+)\): cannot open .*/g },
+  // bibtex .blg log; \S keeps the match off the next log line
+  { regex: /.* open style file (\S+).*/g },
   { regex: /.*file [`']([^']+)' .*is missing.*/g },
   { regex: /.*! CTeX fontset [`']([^']+)' is unavailable.*/g },
   { regex: /.*: ([^:]+): command not found.*/g },

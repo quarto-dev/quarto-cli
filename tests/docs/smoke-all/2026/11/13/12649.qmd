@@ -1,0 +1,55 @@
+---
+title: Author name particles
+author:
+  - Charles de Gaulle
+  - name:
+      given: Frank S.
+      family: Boer
+      non-dropping-particle: de
+  - given: Ludwig
+    family: Beethoven
+    non-dropping-particle: van
+  - Johannes van der Waals
+  - Plato
+  - name:
+      literal: Johann Wolfgang von Goethe
+      given: J. W.
+  - name:
+      literal: Jean de La Fontaine
+      dropping-particle: de
+  - name:
+      given: Alexander
+      family: Humboldt
+      dropping-particle: von
+  - name:
+      literal: Vincent van Gogh
+      family: van Gogh
+  - name:
+      family: van den Bosch
+format:
+  html: default
+  jats: default
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<p>Charles de Gaulle\s*</p>', '<p>Frank S\. de Boer\s*</p>', '<p>Ludwig van Beethoven\s*</p>', '<p>Alexander von Humboldt\s*</p>', '<p>Johannes van der Waals\s*</p>', '<p>Plato\s*</p>']
+        - ['<p>Frank S\. Boer\s*</p>', '<p>Ludwig Beethoven\s*</p>', '<p>Alexander Humboldt\s*</p>']
+    jats:
+      ensureFileRegexMatches:
+        - ['<given-names>Alexander von</given-names>', '<surname>de Gaulle</surname>', '<surname>de Boer</surname>', '<surname>van Beethoven</surname>', '<surname>van der Waals</surname>', '<surname>Plato</surname>', '<surname>von Goethe</surname>', '<given-names>J\. W\.</given-names>', '<surname>La Fontaine</surname>', '<given-names>Jean de</given-names>', '<surname>van Gogh</surname>', '<surname>van den Bosch</surname>']
+        - ['<surname>Gaulle</surname>', '<surname>Boer</surname>', '<surname>Beethoven</surname>', '<surname>Waals</surname>', 'J\. W\.Johann', '<given-names>Johann Wolfgang</given-names>', '<surname>de La Fontaine</surname>', 'van van Gogh', 'van den van den Bosch']
+---
+
+Particles in author names must survive author normalization.
+
+- `Charles de Gaulle` is a plain string: Pandoc's BibTeX parse finds the particle `de`.
+- `Frank S. de Boer` is a `name:` table with an explicit `non-dropping-particle`.
+- `Ludwig van Beethoven` uses flat `given`, `family` and `non-dropping-particle` fields.
+- `Johannes van der Waals` is a string with a multi-word particle.
+- `Plato` is a single-word string: no particle, no stray spaces.
+- `Johann Wolfgang von Goethe` has a literal plus a written `given`, which must survive the parse.
+- `Jean de La Fontaine` has a literal plus an explicit particle, which wins over the parse.
+- `Alexander von Humboldt` has an explicit `dropping-particle`: the title block shows it, and JATS keeps it with the given names.
+- `Vincent van Gogh` has a literal plus a written `family` that already holds the particle, which must not be added twice.
+- `van den Bosch` is a written `family` alone, holding its particle: nothing is added to it.

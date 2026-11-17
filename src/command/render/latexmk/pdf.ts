@@ -431,14 +431,11 @@ async function makeBibliographyIntermediates(
 
           if (existsSync(log)) {
             const logOutput = Deno.readTextFileSync(log);
-            const match = logOutput.match(/.* open style file ([^ ]+).*/);
-
-            if (match) {
-              const file = match[1];
+            if (logOutput.match(/ open style file /)) {
               if (
                 await findAndInstallPackages(
                   pkgMgr,
-                  file,
+                  log,
                   response.result.stderr,
                   quiet,
                 )
@@ -588,8 +585,11 @@ async function recompileLatexUntilComplete(
   }
 }
 
+// BibTeX needs all three entries; TinyTeX's require_bibtex() checks the same.
 function containsBiblioData(auxData: string) {
-  return auxData.match(/^\\(bibdata|citation|bibstyle)\{/m);
+  return /^\\citation\{/m.test(auxData) &&
+    /^\\bibdata\{/m.test(auxData) &&
+    /^\\bibstyle\{/m.test(auxData);
 }
 
 function auxFile(stem: string, ext: string) {

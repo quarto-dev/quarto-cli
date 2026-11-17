@@ -53,6 +53,7 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
 (babel)                Suggested actions:
 (babel)                * Make sure you haven't misspelled it`, "ngerman.ldf");
   assertFound("!pdfTeX error: pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
+  assertFound("pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
   assertFound("! CTeX fontset `fandol' is unavailable in current mode", "fandol");
   assertFound("! CTeX fontset 'fandol' is unavailable in current mode", "fandol");
   assertFound('Package widetext error: Install the flushend package which is a part of sttools', "flushend.sty");
@@ -83,6 +84,22 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
 })
 
 // deno-lint-ignore require-await
+// https://github.com/quarto-dev/quarto-cli/issues/15376
+unitTest("Detect missing BibTeX style file in the .blg log", async () => {
+  // bibtex writes the next log line right after the style file name
+  const blg = `This is BibTeX, Version 0.99e (TeX Live 2026)
+The top-level auxiliary file: doc.aux
+I couldn't open style file agsm.bst
+---line 7 of file doc.aux
+ : \\bibstyle{agsm
+ :               }
+I'm skipping whatever remains of this command
+I found no style file---while reading file doc.aux
+(There were 2 error messages)
+`;
+  assertEquals(findMissingFontsAndPackages(blg, "."), ["agsm.bst"]);
+});
+
 unitTest("Detect luaotfload font fallback crash and surface an actionable hint", async () => {
   // The luaotfload font-fallback resolver crashes on recent TeX Live when a
   // fallback font is set (mainfontfallback/monofontfallback): define_font of the

@@ -8006,8 +8006,9 @@ try {
                 "document-layout"
               ],
               formats: [
-                "$html-files",
-                "$pdf-all",
+                "$html-doc",
+                "latex",
+                "pdf",
                 "typst"
               ]
             },
@@ -8027,8 +8028,9 @@ try {
                 "document-figures"
               ],
               formats: [
-                "$html-files",
-                "$pdf-all",
+                "$html-doc",
+                "latex",
+                "pdf",
                 "typst"
               ]
             },
@@ -8048,8 +8050,9 @@ try {
                 "document-tables"
               ],
               formats: [
-                "$html-files",
-                "$pdf-all",
+                "$html-doc",
+                "latex",
+                "pdf",
                 "typst"
               ]
             },
@@ -8074,10 +8077,33 @@ try {
               ]
             },
             schema: {
-              enum: [
-                "top",
-                "bottom",
-                "margin"
+              anyOf: [
+                {
+                  enum: [
+                    "top",
+                    "bottom",
+                    "margin"
+                  ],
+                  completions: [
+                    "top",
+                    "bottom"
+                  ]
+                },
+                {
+                  enum: {
+                    values: [
+                      "margin"
+                    ],
+                    tags: {
+                      formats: [
+                        "$html-doc",
+                        "latex",
+                        "pdf",
+                        "typst"
+                      ]
+                    }
+                  }
+                }
               ]
             },
             default: "bottom",
@@ -8097,10 +8123,33 @@ try {
               ]
             },
             schema: {
-              enum: [
-                "top",
-                "bottom",
-                "margin"
+              anyOf: [
+                {
+                  enum: [
+                    "top",
+                    "bottom",
+                    "margin"
+                  ],
+                  completions: [
+                    "top",
+                    "bottom"
+                  ]
+                },
+                {
+                  enum: {
+                    values: [
+                      "margin"
+                    ],
+                    tags: {
+                      formats: [
+                        "$html-doc",
+                        "latex",
+                        "pdf",
+                        "typst"
+                      ]
+                    }
+                  }
+                }
               ]
             },
             default: "bottom",
@@ -8120,10 +8169,33 @@ try {
               ]
             },
             schema: {
-              enum: [
-                "top",
-                "bottom",
-                "margin"
+              anyOf: [
+                {
+                  enum: [
+                    "top",
+                    "bottom",
+                    "margin"
+                  ],
+                  completions: [
+                    "top",
+                    "bottom"
+                  ]
+                },
+                {
+                  enum: {
+                    values: [
+                      "margin"
+                    ],
+                    tags: {
+                      formats: [
+                        "$html-doc",
+                        "latex",
+                        "pdf",
+                        "typst"
+                      ]
+                    }
+                  }
+                }
               ]
             },
             default: "top",
@@ -25913,12 +25985,12 @@ try {
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 227739,
+          _internalId: 229194,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 227731,
+              _internalId: 229186,
               type: "enum",
               enum: [
                 "png",
@@ -25934,7 +26006,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 227738,
+              _internalId: 229193,
               type: "anyOf",
               anyOf: [
                 {

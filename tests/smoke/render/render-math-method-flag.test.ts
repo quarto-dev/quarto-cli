@@ -30,3 +30,21 @@ testRender(input, "html", false, [
     /window\.backupDefine = window\.define/,
   ]),
 ], {}, ["--math-method", "katex"]);
+
+// The equation number must survive a method that ignores \tag. The number is
+// matched in the rendered MathML, not in its TeX annotation.
+const mathmlNumber = /<mo[^>]*>\(<\/mo><mn>1<\/mn>/;
+testRender(input, "html", false, [
+  noErrorsOrWarnings,
+  ensureFileRegexMatches(output.outputPath, [mathmlNumber]),
+], {}, ["--math-method=mathml"]);
+
+// --mathml is deprecated since Pandoc 3.11 and warns, so no warning check
+testRender(input, "html", false, [
+  ensureFileRegexMatches(output.outputPath, [mathmlNumber]),
+], {}, ["--mathml"]);
+
+testRender(input, "html", false, [
+  noErrorsOrWarnings,
+  ensureFileRegexMatches(output.outputPath, [/<sup>2<\/sup>\s*\(1\)/]),
+], {}, ["--math-method=plain"]);

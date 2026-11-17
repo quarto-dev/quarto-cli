@@ -14,7 +14,7 @@ SET "QUARTO_LOCK_OPTIONS=--no-lock"
 IF EXIST "!QUARTO_TS_PATH!" (
 	set QUARTO_DEV_MODE=true
 
-	IF "%1"=="--version" (
+	IF "%~1"=="--version" (
 		IF DEFINED QUARTO_FORCE_VERSION (
 			ECHO !QUARTO_FORCE_VERSION!
 			GOTO end
@@ -23,7 +23,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		GOTO end
 	)
 
-	IF "%1"=="-v" (
+	IF "%~1"=="-v" (
 		IF DEFINED QUARTO_FORCE_VERSION (
 			ECHO !QUARTO_FORCE_VERSION!
 			GOTO end
@@ -84,7 +84,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	  for %%i in ("!SCRIPT_PATH!\..\share") do SET "QUARTO_SHARE_PATH=%%~fi"
 	)
 
-	IF "%1"=="-v" (
+	IF "%~1"=="-v" (
 		IF DEFINED QUARTO_FORCE_VERSION (
 			ECHO !QUARTO_FORCE_VERSION!
 			GOTO end
@@ -93,7 +93,7 @@ IF EXIST "!QUARTO_TS_PATH!" (
 		GOTO end
 	)
 
-	IF "%1"=="--version" (
+	IF "%~1"=="--version" (
 		IF DEFINED QUARTO_FORCE_VERSION (
 			ECHO !QUARTO_FORCE_VERSION!
 			GOTO end
@@ -103,13 +103,14 @@ IF EXIST "!QUARTO_TS_PATH!" (
 	)
 
 	SET QUARTO_DENO_OPTIONS=--no-check
+	SET QUARTO_IMPORT_MAP_ARG=
 	SET QUARTO_ACTION=run
 	SET "QUARTO_TARGET=%SCRIPT_PATH%\quarto.js"
 	SET "QUARTO_BIN_PATH=%SCRIPT_PATH%"
 	SET QUARTO_CACHE_OPTIONS=--cached-only
 )
 
-IF "%1"=="--paths" (
+IF "%~1"=="--paths" (
 	ECHO !QUARTO_BIN_PATH!
 	ECHO !QUARTO_SHARE_PATH!
 	GOTO end
@@ -167,11 +168,13 @@ IF DEFINED QUARTO_TS_PROFILE (
 	SET "QUARTO_TS_PROFILE=true"
 )
 
-IF DEFINED QUARTO_DEV_MODE (
-	"!QUARTO_DENO!" !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! "!QUARTO_TARGET!" %*
-) ELSE (
-	"!QUARTO_DENO!" !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! "!QUARTO_TARGET!" %*
-)
+REM The command is built with !VAR!, so cmd does not interpret & or ^ in option values,
+REM and runs with delayed expansion off: %* is substituted before delayed expansion,
+REM which would consume any "!" or "^" in the arguments. %%C is substituted after cmd
+REM parses the line, which keeps the built command literal. No parentheses around the
+REM DO command: a ")" in an unquoted argument would close them.
+SET "QUARTO_DENO_CMD="!QUARTO_DENO!" !QUARTO_ACTION! !QUARTO_CACHE_OPTIONS! !QUARTO_DENO_OPTIONS! !QUARTO_DENO_EXTRA_OPTIONS! !QUARTO_IMPORT_MAP_ARG! "!QUARTO_TARGET!""
+FOR /F "delims=" %%C IN ("!QUARTO_DENO_CMD!") DO SETLOCAL DISABLEDELAYEDEXPANSION & %%C %*
 
 
 :end

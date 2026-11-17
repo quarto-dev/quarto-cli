@@ -284,7 +284,7 @@ function captionOption(key)
   local value = option(key,  nil)
   if value ~= nil then
   end
-  if value ~= nil and value[1].text == 'margin' then
+  if value ~= nil and resolve_margin_caption_location(value[1].text) == 'margin' then
     return {'margin-caption'}
   else
     return {}
@@ -318,7 +318,7 @@ function resolveScopedCaptionClasses(el, scope)
     return clz:sub(18)
   end)
   
-  if tcontains(mapped, 'margin') then
+  if tcontains(mapped, 'margin') and resolve_margin_caption_location('margin') == 'margin' then
     return {'margin-caption'}
   else 
     return {}

@@ -76,6 +76,7 @@ import { mergeConfigs } from "../../core/config.ts";
 import { projectType } from "../../project/types/project-types.ts";
 import { readCodePage } from "../../core/windows.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
+import { resolveHtmlMathMethod } from "../../format/html/format-html-math.ts";
 import { activeProfiles, kQuartoProfile } from "../../quarto-core/profile.ts";
 import {
   filterBuiltInExtensions,
@@ -608,7 +609,12 @@ async function quartoFilterParams(
     params[kShortcodes] = params[kShortcodes] || [];
     (params[kShortcodes] as string[]).push(...extShortcodes);
   }
-  params[kHtmlMathMethod] = defaults?.[kHtmlMathMethod];
+  // a command line math flag overrides html-math-method for Pandoc, so the
+  // filters (e.g. equation numbering) must see it too
+  const flagMathMethod = resolveHtmlMathMethod(format, options.flags);
+  params[kHtmlMathMethod] = flagMathMethod?.fromFlag
+    ? flagMathMethod.method
+    : defaults?.[kHtmlMathMethod];
 
   const figResponsive = format.metadata[kFigResponsive] === true;
   if (figResponsive) {
