@@ -1619,7 +1619,8 @@ kbd,
   // Undoes the `> div > :last-child` padding above for code ending a cell,
   // and for the code of a block with a filename.
   > .cell:last-child > .code-copy-outer-scaffold:last-child,
-  > .code-with-filename > .code-copy-outer-scaffold:last-child {
+  > .code-with-filename > .code-copy-outer-scaffold:last-child,
+  > .cell > .code-with-filename:last-child {
     padding-bottom: 0;
   }
 }

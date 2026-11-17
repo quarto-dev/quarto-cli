@@ -185,3 +185,17 @@ x = 1
 A paragraph.
 
 :::
+
+::: {#titled-cell-filename .callout-note}
+
+## Titled, cell with a filename
+
+```{r}
+#| filename: inside.R
+#| eval: false
+x <- 1
+```
+
+A paragraph.
+
+:::

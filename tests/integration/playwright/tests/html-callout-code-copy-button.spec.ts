@@ -119,21 +119,23 @@ test.describe("Code copy button in callouts", () => {
     expect(hit).toContain("code-annotation-anchor");
   });
 
-  // The titled-callout padding rule must not reach the scaffold inside the
-  // filename wrapper (#15382): the gap below the code matches a filename
-  // block outside a callout.
-  test("titled-filename: no extra space below the code of a filename block", async ({ page }) => {
-    const gapBelowCode = (selector: string) =>
-      page.evaluate((selector) => {
-        const code = document.querySelector(`${selector} div.sourceCode`)!;
-        const scaffold = code.parentElement!;
-        return scaffold.getBoundingClientRect().bottom -
-          code.getBoundingClientRect().bottom;
-      }, selector);
-    const outside = await gapBelowCode(
-      "div.code-with-filename:not(.callout *)",
-    );
-    const inside = await gapBelowCode("#titled-filename");
-    expect(Math.abs(inside - outside)).toBeLessThanOrEqual(1);
-  });
+  // The titled-callout padding rule must not add space inside the filename
+  // frame (#15382): the space below the code matches a filename block outside
+  // a callout.
+  for (const id of ["titled-filename", "titled-cell-filename"]) {
+    test(`${id}: no extra space below the code of a filename block`, async ({ page }) => {
+      const gapBelowCode = (selector: string) =>
+        page.evaluate((selector) => {
+          const frame = document.querySelector(selector)!;
+          const code = frame.querySelector("div.sourceCode")!;
+          return frame.getBoundingClientRect().bottom -
+            code.getBoundingClientRect().bottom;
+        }, selector);
+      const outside = await gapBelowCode(
+        "div.code-with-filename:not(.callout *)",
+      );
+      const inside = await gapBelowCode(`#${id} div.code-with-filename`);
+      expect(Math.abs(inside - outside)).toBeLessThanOrEqual(1);
+    });
+  }
 });
