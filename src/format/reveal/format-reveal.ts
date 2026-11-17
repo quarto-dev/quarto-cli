@@ -5,7 +5,7 @@
  */
 import { join } from "../../deno_ral/path.ts";
 
-import { Document, Element, NodeType } from "../../core/deno-dom.ts";
+import { Document, Element, Node, NodeType } from "../../core/deno-dom.ts";
 import {
   kBrandMode,
   kCodeLineNumbers,
@@ -1071,6 +1071,7 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           // Figure environment ? Get caption, id and alignment
           const quartoFig = slideEl.querySelector("div.quarto-figure");
           const caption = doc.createElement("p");
+          let captionBefore = false;
           if (quartoFig) {
             // Get alignment
             const align = quartoFig.className.match(
@@ -1085,6 +1086,9 @@ function applyStretch(doc: Document, autoStretch: boolean) {
             if (figCaption) {
               caption.classList.add("caption");
               caption.innerHTML = figCaption.innerHTML;
+              captionBefore =
+                (figCaption.compareDocumentPosition(imageEl) &
+                  Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
             }
           }
 
@@ -1096,11 +1100,11 @@ function applyStretch(doc: Document, autoStretch: boolean) {
           // insert at target position
           slideEl.insertBefore(image, nextEl);
 
-          // If there was a caption processed add it after
+          // If there was a caption processed, keep it on its side of the image
           if (caption.classList.contains("caption")) {
             slideEl.insertBefore(
               caption,
-              imageEl.nextElementSibling,
+              captionBefore ? imageEl : imageEl.nextElementSibling,
             );
           }
           // Remove container if still there
