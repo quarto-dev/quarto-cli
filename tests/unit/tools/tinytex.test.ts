@@ -417,6 +417,9 @@ unitTest("resolveTinytexRepo - falls back to kDefaultRepos when probe and mirror
 
 const kReleasesUrl = "https://github.com/rstudio/tinytex-releases/releases";
 
+// An empty token means no token; `undefined` would read GH_TOKEN, which CI sets.
+const kNoToken = "";
+
 function redirectResponse(location: string | null): Response {
   const headers = new Headers();
   if (location !== null) headers.set("Location", location);
@@ -509,7 +512,7 @@ unitTest("tinyTexLatestRelease - without a token, makes no api.github.com reques
   const { fetchFn, requests } = recordingStub(() =>
     redirectResponse(`${kReleasesUrl}/tag/v2026.11`)
   );
-  const info = await tinyTexLatestRelease(fetchFn, undefined);
+  const info = await tinyTexLatestRelease(fetchFn, kNoToken);
   assertEquals(info.version, "v2026.11");
   assertEquals(info.url, `${kReleasesUrl}/tag/v2026.11`);
   assertEquals(info.assets, tinyTexReleaseAssets("v2026.11"));
@@ -524,7 +527,7 @@ unitTest("tinyTexLatestRelease - falls back to the API when the redirect has no 
       ? apiReleaseResponse("v2026.10")
       : redirectResponse(null)
   );
-  const info = await tinyTexLatestRelease(fetchFn, undefined);
+  const info = await tinyTexLatestRelease(fetchFn, kNoToken);
   assertEquals(info.version, "v2026.10");
   assertEquals(requests.map((r) => r.url), [
     `${kReleasesUrl}/latest`,
@@ -563,7 +566,7 @@ unitTest("githubToken - returns undefined when no token is set", async () => {
 
 unitTest("getLatestRelease - sends no Authorization header without a token", async () => {
   const { fetchFn, requests } = recordingStub(() => apiReleaseResponse("v2026.10"));
-  await getLatestRelease(kTinyTexRepo, fetchFn, undefined);
+  await getLatestRelease(kTinyTexRepo, fetchFn, kNoToken);
   assertEquals(new Headers(requests[0].init?.headers).get("Authorization"), null);
 });
 
