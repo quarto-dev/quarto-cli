@@ -33,6 +33,7 @@ import {
   kTocDepth,
   kTocExpand,
   kTocLocation,
+  kTocSheetCloseLabel,
 } from "../../config/constants.ts";
 import {
   Format,
@@ -398,6 +399,10 @@ function bootstrapHtmlPostprocessor(
 
       // activate selection behavior for this
       toc.classList.add("toc-active");
+      const tocSheetCloseLabel = format.language[kTocSheetCloseLabel];
+      if (typeof tocSheetCloseLabel === "string" && tocSheetCloseLabel) {
+        toc.setAttribute("data-toc-sheet-close-label", tocSheetCloseLabel);
+      }
 
       const expanded = format.metadata[kTocExpand];
       if (expanded !== undefined) {

@@ -1,0 +1,49 @@
+---
+title: "Mobile TOC single-link"
+format:
+  html:
+    toc: true
+---
+
+## Section 1 {#sec-1}
+
+Paragraph 1 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 2 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 3 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 4 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 5 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 6 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 7 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 8 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 9 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 10 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 11 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 12 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 13 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 14 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 15 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 16 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 17 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 18 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 19 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+
+Paragraph 20 of section 1. The quick brown fox jumps over the lazy dog, again and again, to give the page some height.
+

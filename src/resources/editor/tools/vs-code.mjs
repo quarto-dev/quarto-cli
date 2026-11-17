@@ -10659,6 +10659,7 @@ var init_yaml_intelligence_resources = __esm({
               "link-external-newwindow-label": "string",
               "revealjs-menu-button-label": "string",
               "announcement-dismiss-label": "string",
+              "toc-sheet-close-label": "string",
               "repo-action-links-edit": "string",
               "repo-action-links-source": "string",
               "repo-action-links-issue": "string",
@@ -25983,12 +25984,12 @@ var init_yaml_intelligence_resources = __esm({
         mermaid: "%%"
       },
       "handlers/mermaid/schema.yml": {
-        _internalId: 229192,
+        _internalId: 229194,
         type: "object",
         description: "be an object",
         properties: {
           "mermaid-format": {
-            _internalId: 229184,
+            _internalId: 229186,
             type: "enum",
             enum: [
               "png",
@@ -26004,7 +26005,7 @@ var init_yaml_intelligence_resources = __esm({
             exhaustiveCompletions: true
           },
           theme: {
-            _internalId: 229191,
+            _internalId: 229193,
             type: "anyOf",
             anyOf: [
               {

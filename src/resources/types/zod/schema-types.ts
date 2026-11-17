@@ -786,6 +786,7 @@ export const ZodFormatLanguage = z.object({
   "link-external-newwindow-label": z.string(),
   "revealjs-menu-button-label": z.string(),
   "announcement-dismiss-label": z.string(),
+  "toc-sheet-close-label": z.string(),
   "repo-action-links-edit": z.string(),
   "repo-action-links-source": z.string(),
   "repo-action-links-issue": z.string(),

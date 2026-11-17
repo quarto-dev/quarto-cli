@@ -1,0 +1,10 @@
+---
+title: "Mobile TOC french"
+lang: fr
+format:
+  html:
+    toc: true
+    toc-title: "Sur cette page"
+---
+
+{{< include _sections.md >}}
