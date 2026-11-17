@@ -29,6 +29,9 @@
 
 local json = { _version = "0.1.2-quarto" }
 
+-- Keep JSON errors catchable when filters redefine the global error function.
+local error = error
+
 -- taken from https://www.lua.org/pil/19.3.html
 function pairsByKeys (t, f)
   local a = {}
