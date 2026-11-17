@@ -517,7 +517,8 @@ export function annotationBody(
 
 // A Github Release for a Github Repo
 
-// GH_TOKEN is the gh CLI's variable; GITHUB_TOKEN is the one Actions provides.
+// GH_TOKEN is the gh CLI's variable; GITHUB_TOKEN is the usual name for the
+// GitHub Actions token when a workflow exports it.
 export function githubToken(
   getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
 ): string | undefined {
