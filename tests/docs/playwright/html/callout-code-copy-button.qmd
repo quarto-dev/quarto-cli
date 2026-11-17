@@ -167,3 +167,21 @@ echo "last"
 ```
 
 :::
+
+## Filename block in a titled callout
+
+```{.python filename="outside.py"}
+x = 1
+```
+
+::: {#titled-filename .callout-note}
+
+## Titled, code with a filename
+
+```{.python #filename-inside filename="inside.py"}
+x = 1
+```
+
+A paragraph.
+
+:::

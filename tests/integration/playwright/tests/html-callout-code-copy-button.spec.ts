@@ -118,4 +118,22 @@ test.describe("Code copy button in callouts", () => {
     );
     expect(hit).toContain("code-annotation-anchor");
   });
+
+  // The titled-callout padding rule must not reach the scaffold inside the
+  // filename wrapper (#15382): the gap below the code matches a filename
+  // block outside a callout.
+  test("titled-filename: no extra space below the code of a filename block", async ({ page }) => {
+    const gapBelowCode = (selector: string) =>
+      page.evaluate((selector) => {
+        const code = document.querySelector(`${selector} div.sourceCode`)!;
+        const scaffold = code.parentElement!;
+        return scaffold.getBoundingClientRect().bottom -
+          code.getBoundingClientRect().bottom;
+      }, selector);
+    const outside = await gapBelowCode(
+      "div.code-with-filename:not(.callout *)",
+    );
+    const inside = await gapBelowCode("#titled-filename");
+    expect(Math.abs(inside - outside)).toBeLessThanOrEqual(1);
+  });
 });
