@@ -179,7 +179,7 @@ export async function updateOrInstallTool(
       return afterConfirm(
         `${tool} is not installed. Do you want to install it now?`,
         () => {
-          return installTool(tool, updatePath);
+          return installTool(tool, updatePath, summary?.latestRelease);
         },
         prompt,
       );
@@ -194,7 +194,7 @@ export async function updateOrInstallTool(
         return afterConfirm(
           `Do you want to update ${tool} from ${summary.installedVersion} to ${summary.latestRelease.version}?`,
           () => {
-            return updateTool(tool);
+            return updateTool(tool, summary);
           },
           prompt,
         );
@@ -208,13 +208,13 @@ export async function updateOrInstallTool(
         return afterConfirm(
           `${tool} is already installed. Do you want to update to ${summary.latestRelease.version}?`,
           () => {
-            return updateTool(tool);
+            return updateTool(tool, summary);
           },
           prompt,
         );
       }
     } else {
-      return installTool(tool, updatePath);
+      return installTool(tool, updatePath, summary?.latestRelease);
     }
   }
 }

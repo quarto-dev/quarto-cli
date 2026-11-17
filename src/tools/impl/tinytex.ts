@@ -26,7 +26,7 @@ import {
   RemotePackageInfo,
   ToolConfigurationState,
 } from "../types.ts";
-import { getLatestRelease } from "../github.ts";
+import { getLatestRelease, githubToken } from "../github.ts";
 import { hasTinyTex, tinyTexInstallDir } from "./tinytex-info.ts";
 import { copyTo } from "../../core/copy.ts";
 import { suggestUserBinPaths } from "../../core/path.ts";
@@ -52,6 +52,7 @@ export const kTlnetMirror = "https://tlnet.yihui.org";
 
 // Different packages
 const kTinyTexRepo = "rstudio/tinytex-releases";
+const kTinyTexReleasesUrl = `https://github.com/${kTinyTexRepo}/releases`;
 // const kPackageMinimal = "TinyTeX-0"; // smallest
 // const kPackageDefault = "TinyTeX-1"; // Compiles most RMarkdown
 const kPackageMaximal = "TinyTeX"; // Compiles 80% of documents
@@ -75,7 +76,7 @@ export const tinyTexInstallable: InstallableTool = {
   binDir,
   installedVersion,
   verifyConfiguration,
-  latestRelease: remotePackageInfo,
+  latestRelease: () => tinyTexLatestRelease(),
   preparePackage,
   install,
   afterInstall,
@@ -148,27 +149,55 @@ function noteInstalledVersion(version: string) {
   }
 }
 
-async function preparePackage(
+export async function preparePackage(
   context: InstallContext,
+  latest?: RemotePackageInfo,
+  fetchFn: typeof fetch = fetch,
 ): Promise<PackageInfo> {
-  // Find the latest version
-  const pkgInfo = await remotePackageInfo();
+  const pkgInfo = latest ?? await tinyTexLatestRelease(fetchFn);
   const version = pkgInfo.version;
 
-  // target package information
+  // Assets in candidate order; a release may carry only the old naming.
   const candidates = tinyTexPkgName(kPackageMaximal, version);
-  const result = tinyTexUrl(candidates, pkgInfo);
-  if (result) {
-    const filePath = join(context.workingDir, result.name);
-    await context.download(`TinyTex ${version}`, result.url, filePath);
+  const assets = candidates.flatMap((name) =>
+    pkgInfo.assets.filter((asset) => asset.name === name)
+  );
+  const asset = await firstAvailableAsset(assets, fetchFn);
+  if (asset) {
+    const filePath = join(context.workingDir, asset.name);
+    await context.download(`TinyTex ${version}`, asset.url, filePath);
     return { filePath, version };
-  } else {
-    context.error(
-      `Couldn't determine what URL to use to download TinyTeX. ` +
-        `Tried: ${candidates.join(", ")}`,
-    );
-    return Promise.reject();
   }
+  context.error(
+    `Couldn't determine what URL to use to download TinyTeX. ` +
+      `Tried: ${candidates.join(", ")}`,
+  );
+  return Promise.reject();
+}
+
+// A failed download ends the install, so a missing candidate is found with a
+// HEAD request first. Anything but a 404 counts as available: the download
+// then reports a real failure.
+async function firstAvailableAsset(
+  assets: Array<{ name: string; url: string }>,
+  fetchFn: typeof fetch,
+): Promise<{ name: string; url: string } | undefined> {
+  for (const asset of assets) {
+    try {
+      const response = await fetchFn(asset.url, {
+        method: "HEAD",
+        redirect: "manual",
+      });
+      if (response.status !== 404) {
+        return asset;
+      }
+      debug(`${asset.url} not found, trying the next candidate`);
+    } catch (e) {
+      debug(`HEAD ${asset.url} failed: ${e}`);
+      return asset;
+    }
+  }
+  return undefined;
 }
 
 async function install(
@@ -606,18 +635,42 @@ export function tinyTexPkgName(
   return candidates;
 }
 
-function tinyTexUrl(candidates: string[], remotePkgInfo: RemotePackageInfo) {
-  for (const pkg of candidates) {
-    const asset = remotePkgInfo.assets.find((asset) => asset.name === pkg);
-    if (asset) {
-      return { url: asset.url, name: pkg };
-    }
-  }
-  return undefined;
+// Reads the tag from the Location of github.com's releases/latest redirect.
+export function parseReleaseTag(location: string | null): string | undefined {
+  const match = location?.match(/\/releases\/tag\/([^/?#]+)\/?$/);
+  return match ? decodeURIComponent(match[1]) : undefined;
 }
 
-async function remotePackageInfo(): Promise<RemotePackageInfo> {
-  const githubRelease = await getLatestRelease(kTinyTexRepo);
+// Download URLs for this platform's TinyTeX bundle, in candidate order.
+// They are not checked against the release's assets.
+export function tinyTexReleaseAssets(
+  tag: string,
+  options?: { os?: string; arch?: string },
+): Array<{ name: string; url: string }> {
+  return tinyTexPkgName(kPackageMaximal, tag, options).map((name) => ({
+    name,
+    url: `${kTinyTexReleasesUrl}/download/${encodeURIComponent(tag)}/${name}`,
+  }));
+}
+
+// The unauthenticated REST API allows 60 requests per hour per IP, which
+// shared egress (CI runners, build farms, NAT) exhausts, so without a token
+// the tag comes from the github.com redirect. The API remains the fallback.
+export async function tinyTexLatestRelease(
+  fetchFn: typeof fetch = fetch,
+  token: string | undefined = githubToken(),
+): Promise<RemotePackageInfo> {
+  if (!token) {
+    const tag = await latestTagFromRedirect(fetchFn);
+    if (tag) {
+      return {
+        url: `${kTinyTexReleasesUrl}/tag/${encodeURIComponent(tag)}`,
+        version: tag,
+        assets: tinyTexReleaseAssets(tag),
+      };
+    }
+  }
+  const githubRelease = await getLatestRelease(kTinyTexRepo, fetchFn, token);
   return {
     url: githubRelease.html_url,
     version: githubRelease.tag_name,
@@ -625,6 +678,29 @@ async function remotePackageInfo(): Promise<RemotePackageInfo> {
       return { name: asset.name, url: asset.browser_download_url };
     }),
   };
+}
+
+async function latestTagFromRedirect(
+  fetchFn: typeof fetch,
+): Promise<string | undefined> {
+  const url = `${kTinyTexReleasesUrl}/latest`;
+  try {
+    const response = await fetchFn(url, {
+      method: "HEAD",
+      redirect: "manual",
+    });
+    const location = response.headers.get("Location");
+    const tag = parseReleaseTag(location);
+    if (!tag) {
+      debug(
+        `No release tag in ${url} response (status ${response.status}, Location ${location})`,
+      );
+    }
+    return tag;
+  } catch (e) {
+    debug(`Request to ${url} failed: ${e}`);
+    return undefined;
+  }
 }
 
 async function isWritable(path: string) {
