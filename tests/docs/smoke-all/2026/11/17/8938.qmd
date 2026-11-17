@@ -1,0 +1,42 @@
+---
+title: Auto-stretch keeps the figure caption location
+format: revealjs
+fig-cap-location: top
+_quarto:
+  tests:
+    revealjs:
+      ensureHtmlElements:
+        -
+          - 'section#top > p.caption + img.r-stretch#fig-top'
+          - 'section#unlabelled > p.caption + img.r-stretch'
+          - 'section#knitr > div.cell + p.caption + img.r-stretch#fig-knitr'
+          - 'section#bottom > img.r-stretch#fig-bottom + p.caption'
+        -
+          - 'section#top > img.r-stretch + p.caption'
+          - 'section#unlabelled > img.r-stretch + p.caption'
+          - 'section#knitr > img.r-stretch + p.caption'
+          - 'section#bottom > p.caption + img.r-stretch'
+---
+
+## Top {#top}
+
+A figure alone on a slide is auto-stretched: the image moves out of its figure to the slide level and its caption is rebuilt as a `p.caption` next to it. That caption must stay above the image when `fig-cap-location: top` is set.
+
+![Caption on top](https://placehold.co/100x50.png){#fig-top}
+
+## Unlabelled {#unlabelled}
+
+![Caption on top](https://placehold.co/100x50.png)
+
+## Knitr {#knitr}
+
+```{r}
+#| label: fig-knitr
+#| fig-cap: "Caption on top"
+#| echo: true
+plot(1:10)
+```
+
+## Bottom {#bottom}
+
+![Caption at bottom](https://placehold.co/100x50.png){#fig-bottom cap-location="bottom"}
