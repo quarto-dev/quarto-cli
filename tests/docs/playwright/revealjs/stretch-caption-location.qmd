@@ -1,0 +1,12 @@
+---
+title: Auto-stretched figure caption size
+format: revealjs
+---
+
+## Caption on top {#top}
+
+![Caption on top](quarto.png){#fig-top cap-location="top"}
+
+## Caption at bottom {#bottom}
+
+![Caption at bottom](quarto.png){#fig-bottom cap-location="bottom"}

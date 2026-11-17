@@ -58,6 +58,7 @@ All changes included in 1.12:
 ### `revealjs`
 
 - ([#7378](https://github.com/quarto-dev/quarto-cli/issues/7378)): Add `code-line-fragment-indices` to set the fragment index of each step of stepped `code-line-numbers` highlighting. (author: @mcanouil)
+- ([#8938](https://github.com/quarto-dev/quarto-cli/issues/8938)): Fix figure captions placed below the image when `fig-cap-location: top` is set and the image is auto-stretched to fill the slide.
 
 ### `typst`
 
