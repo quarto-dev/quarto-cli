@@ -167,3 +167,61 @@ echo "last"
 ```
 
 :::
+
+## Filename block in a titled callout
+
+```{.python filename="outside.py"}
+x = 1
+```
+
+::: {#titled-filename .callout-note}
+
+## Titled, code with a filename
+
+```{.python #filename-inside filename="inside.py"}
+x = 1
+```
+
+A paragraph.
+
+:::
+
+::: {#titled-cell-filename .callout-note}
+
+## Titled, cell with a filename
+
+```{r}
+#| filename: inside.R
+#| eval: false
+x <- 1
+```
+
+A paragraph.
+
+:::
+
+::: {#titled-filename-last .callout-note}
+
+## Titled, filename block last
+
+A paragraph.
+
+```{.python filename="last.py"}
+x = 1
+```
+
+:::
+
+::: {#titled-cell-filename-last .callout-note}
+
+## Titled, filename cell last
+
+A paragraph.
+
+```{r}
+#| filename: last.R
+#| eval: false
+x <- 1
+```
+
+:::
