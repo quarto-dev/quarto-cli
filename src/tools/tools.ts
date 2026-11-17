@@ -13,6 +13,7 @@ import {
   InstallableTool,
   InstallContext,
   kUpdatePath,
+  RemotePackageInfo,
   ToolConfigurationState,
   ToolSummaryData,
 } from "./types.ts";
@@ -119,7 +120,12 @@ export function checkToolRequirement(name: string) {
   }
 }
 
-export async function installTool(name: string, updatePath?: boolean) {
+// `latest` passes on a release the caller already looked up.
+export async function installTool(
+  name: string,
+  updatePath?: boolean,
+  latest?: RemotePackageInfo,
+) {
   name = name || "";
 
   // Deprecation: redirect chromium → chrome-headless-shell
@@ -168,7 +174,7 @@ export async function installTool(name: string, updatePath?: boolean) {
           }
 
           // Fetch the package information
-          const pkgInfo = await tool.preparePackage(context);
+          const pkgInfo = await tool.preparePackage(context, latest);
 
           // Do the install
           await tool.install(pkgInfo, context);
@@ -227,8 +233,9 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
   }
 }
 
-export async function updateTool(name: string) {
-  const summary = await toolSummary(name);
+// `known` passes on a summary the caller already looked up.
+export async function updateTool(name: string, known?: ToolSummaryData) {
+  const summary = known ?? await toolSummary(name);
   const tool = installableTool(name);
 
   if (tool && summary && summary.installed) {
@@ -240,7 +247,10 @@ export async function updateTool(name: string) {
       );
 
       // Fetch the package
-      const pkgInfo = await tool.preparePackage(context);
+      const pkgInfo = await tool.preparePackage(
+        context,
+        summary.latestRelease,
+      );
 
       context.info(`Removing ${summary.installedVersion}`);
 

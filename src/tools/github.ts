@@ -517,13 +517,24 @@ export function annotationBody(
 
 // A Github Release for a Github Repo
 
+// GH_TOKEN is the gh CLI's variable; GITHUB_TOKEN is the one Actions provides.
+export function githubToken(
+  getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
+): string | undefined {
+  return getEnv("GH_TOKEN") || getEnv("GITHUB_TOKEN") || undefined;
+}
+
 // Look up the latest release for a Github Repo
-export async function getLatestRelease(repo: string): Promise<GitHubRelease> {
+export async function getLatestRelease(
+  repo: string,
+  fetchFn: typeof fetch = fetch,
+  token: string | undefined = githubToken(),
+): Promise<GitHubRelease> {
   const url = `https://api.github.com/repos/${repo}/releases/latest`;
-  const headers = Deno.env.get("GH_TOKEN")
-    ? { headers: { Authorization: "Bearer " + Deno.env.get("GH_TOKEN") } }
+  const headers = token
+    ? { headers: { Authorization: "Bearer " + token } }
     : undefined;
-  const response = await fetch(url, headers);
+  const response = await fetchFn(url, headers);
   if (response.status !== 200) {
     throw new Error(
       `Unable to determine latest release for ${repo}\n${response.status} - ${response.statusText}`,

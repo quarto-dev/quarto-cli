@@ -10,11 +10,14 @@ import {
   isTlnet,
   kDefaultRepos,
   kTlnetMirror,
+  parseReleaseTag,
   resolveTinytexRepo,
   tinyTexInstallable,
+  tinyTexLatestRelease,
   tinyTexPkgName,
+  tinyTexReleaseAssets,
 } from "../../../src/tools/impl/tinytex.ts";
-import { getLatestRelease } from "../../../src/tools/github.ts";
+import { getLatestRelease, githubToken } from "../../../src/tools/github.ts";
 import { GitHubRelease, InstallContext, PackageInfo } from "../../../src/tools/types.ts";
 import { join } from "../../../src/deno_ral/path.ts";
 import { isLinux } from "../../../src/deno_ral/platform.ts";
@@ -408,4 +411,204 @@ unitTest("resolveTinytexRepo - falls back to kDefaultRepos when probe and mirror
     kDefaultRepos.includes(result),
     `Expected result in kDefaultRepos, got ${result}`,
   );
+});
+
+// ---- Release resolution without the GitHub REST API ----
+
+const kReleasesUrl = "https://github.com/rstudio/tinytex-releases/releases";
+
+function redirectResponse(location: string | null): Response {
+  const headers = new Headers();
+  if (location !== null) headers.set("Location", location);
+  return new Response(null, { status: 302, headers });
+}
+
+function apiReleaseResponse(tag: string): Response {
+  const release: GitHubRelease = {
+    html_url: `${kReleasesUrl}/tag/${tag}`,
+    tag_name: tag,
+    assets: [{
+      name: `TinyTeX-${tag}.zip`,
+      browser_download_url: `${kReleasesUrl}/download/${tag}/TinyTeX-${tag}.zip`,
+    }],
+  };
+  return new Response(JSON.stringify(release), { status: 200 });
+}
+
+// Records requested URLs and request headers.
+function recordingStub(
+  respond: (url: string) => Response,
+): { fetchFn: typeof fetch; requests: { url: string; init?: RequestInit }[] } {
+  const requests: { url: string; init?: RequestInit }[] = [];
+  const fetchFn: typeof fetch = (input, init) => {
+    const url = typeof input === "string" ? input : input.toString();
+    requests.push({ url, init });
+    return Promise.resolve(respond(url));
+  };
+  return { fetchFn, requests };
+}
+
+unitTest("parseReleaseTag - reads the tag from a releases/tag Location", async () => {
+  assertEquals(parseReleaseTag(`${kReleasesUrl}/tag/v2026.11`), "v2026.11");
+  assertEquals(parseReleaseTag(`${kReleasesUrl}/tag/v2026.11.02`), "v2026.11.02");
+});
+
+unitTest("parseReleaseTag - returns undefined for a missing or unrelated Location", async () => {
+  assertEquals(parseReleaseTag(null), undefined);
+  assertEquals(parseReleaseTag(`${kReleasesUrl}`), undefined);
+  assertEquals(parseReleaseTag("https://github.com/login"), undefined);
+});
+
+unitTest("tinyTexReleaseAssets - Windows download URLs, new then old naming", async () => {
+  assertEquals(
+    tinyTexReleaseAssets("v2026.11", { os: "windows", arch: "x86_64" }),
+    [
+      {
+        name: "TinyTeX-windows-v2026.11.exe",
+        url: `${kReleasesUrl}/download/v2026.11/TinyTeX-windows-v2026.11.exe`,
+      },
+      {
+        name: "TinyTeX-v2026.11.zip",
+        url: `${kReleasesUrl}/download/v2026.11/TinyTeX-v2026.11.zip`,
+      },
+    ],
+  );
+});
+
+unitTest("tinyTexReleaseAssets - Linux x86_64 download URLs, new then old naming", async () => {
+  assertEquals(
+    tinyTexReleaseAssets("v2026.11", { os: "linux", arch: "x86_64" }).map((a) => a.url),
+    [
+      `${kReleasesUrl}/download/v2026.11/TinyTeX-linux-x86_64-v2026.11.tar.xz`,
+      `${kReleasesUrl}/download/v2026.11/TinyTeX-v2026.11.tar.gz`,
+    ],
+  );
+});
+
+unitTest("tinyTexReleaseAssets - Linux aarch64 download URLs, new then old naming", async () => {
+  assertEquals(
+    tinyTexReleaseAssets("v2026.11", { os: "linux", arch: "aarch64" }).map((a) => a.url),
+    [
+      `${kReleasesUrl}/download/v2026.11/TinyTeX-linux-arm64-v2026.11.tar.xz`,
+      `${kReleasesUrl}/download/v2026.11/TinyTeX-arm64-v2026.11.tar.gz`,
+    ],
+  );
+});
+
+unitTest("tinyTexReleaseAssets - macOS download URLs, new then old naming", async () => {
+  assertEquals(
+    tinyTexReleaseAssets("v2026.11", { os: "darwin", arch: "aarch64" }).map((a) => a.url),
+    [
+      `${kReleasesUrl}/download/v2026.11/TinyTeX-darwin-v2026.11.tar.xz`,
+      `${kReleasesUrl}/download/v2026.11/TinyTeX-v2026.11.tgz`,
+    ],
+  );
+});
+
+unitTest("tinyTexLatestRelease - without a token, makes no api.github.com request", async () => {
+  const { fetchFn, requests } = recordingStub(() =>
+    redirectResponse(`${kReleasesUrl}/tag/v2026.11`)
+  );
+  const info = await tinyTexLatestRelease(fetchFn, undefined);
+  assertEquals(info.version, "v2026.11");
+  assertEquals(info.url, `${kReleasesUrl}/tag/v2026.11`);
+  assertEquals(info.assets, tinyTexReleaseAssets("v2026.11"));
+  assertEquals(requests.map((r) => r.url), [`${kReleasesUrl}/latest`]);
+  assertEquals(requests[0].init?.method, "HEAD");
+  assertEquals(requests[0].init?.redirect, "manual");
+});
+
+unitTest("tinyTexLatestRelease - falls back to the API when the redirect has no tag", async () => {
+  const { fetchFn, requests } = recordingStub((url) =>
+    url.startsWith("https://api.github.com/")
+      ? apiReleaseResponse("v2026.10")
+      : redirectResponse(null)
+  );
+  const info = await tinyTexLatestRelease(fetchFn, undefined);
+  assertEquals(info.version, "v2026.10");
+  assertEquals(requests.map((r) => r.url), [
+    `${kReleasesUrl}/latest`,
+    "https://api.github.com/repos/rstudio/tinytex-releases/releases/latest",
+  ]);
+});
+
+unitTest("tinyTexLatestRelease - with a token, uses the authenticated API", async () => {
+  const { fetchFn, requests } = recordingStub(() => apiReleaseResponse("v2026.10"));
+  const info = await tinyTexLatestRelease(fetchFn, "secret");
+  assertEquals(info.version, "v2026.10");
+  assertEquals(requests.map((r) => r.url), [
+    "https://api.github.com/repos/rstudio/tinytex-releases/releases/latest",
+  ]);
+  assertEquals(
+    new Headers(requests[0].init?.headers).get("Authorization"),
+    "Bearer secret",
+  );
+});
+
+// ---- GitHub token lookup ----
+
+const envOf = (vars: Record<string, string>) => (name: string) => vars[name];
+
+unitTest("githubToken - prefers GH_TOKEN over GITHUB_TOKEN", async () => {
+  assertEquals(githubToken(envOf({ GH_TOKEN: "gh", GITHUB_TOKEN: "ghs" })), "gh");
+});
+
+unitTest("githubToken - uses GITHUB_TOKEN when GH_TOKEN is unset", async () => {
+  assertEquals(githubToken(envOf({ GITHUB_TOKEN: "ghs" })), "ghs");
+});
+
+unitTest("githubToken - returns undefined when no token is set", async () => {
+  assertEquals(githubToken(envOf({})), undefined);
+});
+
+unitTest("getLatestRelease - sends no Authorization header without a token", async () => {
+  const { fetchFn, requests } = recordingStub(() => apiReleaseResponse("v2026.10"));
+  await getLatestRelease(kTinyTexRepo, fetchFn, undefined);
+  assertEquals(new Headers(requests[0].init?.headers).get("Authorization"), null);
+});
+
+// ---- preparePackage ----
+
+function downloadRecordingContext(
+  workingDir: string,
+  missing: string[] = [],
+): { context: InstallContext; downloads: string[] } {
+  const downloads: string[] = [];
+  const context = createMockContext(workingDir);
+  context.download = (_name, url, _target) => {
+    downloads.push(url);
+    if (missing.includes(url)) {
+      return Promise.reject(
+        new Error("download failed (HTTP status 404 - Not Found)"),
+      );
+    }
+    return Promise.resolve();
+  };
+  return { context, downloads };
+}
+
+unitTest("preparePackage - uses the release info it is given", async () => {
+  const latest = {
+    url: `${kReleasesUrl}/tag/v2000.01`,
+    version: "v2000.01",
+    assets: tinyTexReleaseAssets("v2000.01"),
+  };
+  const { context, downloads } = downloadRecordingContext("work");
+  const pkg = await tinyTexInstallable.preparePackage(context, latest);
+  assertEquals(pkg.version, "v2000.01");
+  assertEquals(downloads, [latest.assets[0].url]);
+});
+
+unitTest("preparePackage - tries the old asset name when the new one is a 404", async () => {
+  const latest = {
+    url: `${kReleasesUrl}/tag/v2000.01`,
+    version: "v2000.01",
+    assets: tinyTexReleaseAssets("v2000.01"),
+  };
+  const { context, downloads } = downloadRecordingContext("work", [
+    latest.assets[0].url,
+  ]);
+  const pkg = await tinyTexInstallable.preparePackage(context, latest);
+  assertEquals(downloads, [latest.assets[0].url, latest.assets[1].url]);
+  assertEquals(pkg.filePath, join("work", latest.assets[1].name));
 });
