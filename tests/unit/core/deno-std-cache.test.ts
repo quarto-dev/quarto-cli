@@ -90,6 +90,41 @@ unitTest(
   },
 );
 
+// `deno cache` writes transpiled local modules under gen/file/<absolute path of
+// the checkout that built the seed>, so each checkout or build machine has its
+// own entry. Every Quarto shares the user copy, so a missing gen/ file must not
+// count as a stale cache.
+unitTest(
+  "directoryListingsMatch - ignores Deno's gen/ output missing from the user copy",
+  async () => {
+    const result = await compare(
+      [
+        "cache/dep_analysis_cache_v2",
+        "cache/gen/file/C/build/package/scripts/deno_std/deno_std.ts.js",
+        "cache/gen/https/deno.land/abc.js",
+        "cache/npm/x/y.json",
+      ],
+      [
+        "cache/dep_analysis_cache_v2",
+        "cache/gen/file/D/a/package/scripts/deno_std/deno_std.ts.js",
+        "cache/npm/x/y.json",
+      ],
+    );
+    assertEquals(result, true);
+  },
+);
+
+unitTest(
+  "directoryListingsMatch - does not ignore a gen directory outside the cache root",
+  async () => {
+    const result = await compare(
+      ["cache/dep_analysis_cache_v2", "cache/npm/x/gen/y.js"],
+      ["cache/dep_analysis_cache_v2"],
+    );
+    assertEquals(result, false);
+  },
+);
+
 unitTest(
   "directoryListingsMatch - reports a missing cache database",
   async () => {
