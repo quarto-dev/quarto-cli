@@ -149,11 +149,12 @@ function noteInstalledVersion(version: string) {
   }
 }
 
-async function preparePackage(
+export async function preparePackage(
   context: InstallContext,
   latest?: RemotePackageInfo,
+  fetchFn: typeof fetch = fetch,
 ): Promise<PackageInfo> {
-  const pkgInfo = latest ?? await tinyTexLatestRelease();
+  const pkgInfo = latest ?? await tinyTexLatestRelease(fetchFn);
   const version = pkgInfo.version;
 
   // Assets in candidate order; a release may carry only the old naming.
@@ -161,23 +162,42 @@ async function preparePackage(
   const assets = candidates.flatMap((name) =>
     pkgInfo.assets.filter((asset) => asset.name === name)
   );
-  for (const asset of assets) {
+  const asset = await firstAvailableAsset(assets, fetchFn);
+  if (asset) {
     const filePath = join(context.workingDir, asset.name);
-    try {
-      await context.download(`TinyTex ${version}`, asset.url, filePath);
-      return { filePath, version };
-    } catch (e) {
-      if (!(e instanceof Error && e.message.includes("HTTP status 404"))) {
-        throw e;
-      }
-      debug(`${asset.url} not found, trying the next candidate`);
-    }
+    await context.download(`TinyTex ${version}`, asset.url, filePath);
+    return { filePath, version };
   }
   context.error(
     `Couldn't determine what URL to use to download TinyTeX. ` +
       `Tried: ${candidates.join(", ")}`,
   );
   return Promise.reject();
+}
+
+// A failed download ends the install, so a missing candidate is found with a
+// HEAD request first. Anything but a 404 counts as available: the download
+// then reports a real failure.
+async function firstAvailableAsset(
+  assets: Array<{ name: string; url: string }>,
+  fetchFn: typeof fetch,
+): Promise<{ name: string; url: string } | undefined> {
+  for (const asset of assets) {
+    try {
+      const response = await fetchFn(asset.url, {
+        method: "HEAD",
+        redirect: "manual",
+      });
+      if (response.status !== 404) {
+        return asset;
+      }
+      debug(`${asset.url} not found, trying the next candidate`);
+    } catch (e) {
+      debug(`HEAD ${asset.url} failed: ${e}`);
+      return asset;
+    }
+  }
+  return undefined;
 }
 
 async function install(
