@@ -250,7 +250,7 @@ async function writePandocTemplates(
     `https://github.com/jgm/pandoc/archive/refs/tags/${version}.zip`;
 
   const pandocDir = `pandoc-${version}`;
-  const zipFile = join(workingDir, "pandoc");
+  const zipFile = join(workingDir, "pandoc.zip");
   await download(srcZipUrl, zipFile);
   await unzip(zipFile, workingDir);
 
