@@ -2,6 +2,8 @@
 
 ## In this release
 
+- ([#15388](https://github.com/quarto-dev/quarto-cli/pull/15388)): Fix `quarto install tinytex` and `quarto update tinytex` failing with `403 - Forbidden` when many machines share an IP address, such as CI runners or corporate networks. The latest release is now found without the GitHub API unless a `GH_TOKEN` or `GITHUB_TOKEN` is set.
+
 ## In previous releases
 
 # v1.11 changes
