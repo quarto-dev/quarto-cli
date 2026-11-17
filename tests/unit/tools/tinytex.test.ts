@@ -11,6 +11,7 @@ import {
   kDefaultRepos,
   kTlnetMirror,
   parseReleaseTag,
+  preparePackage,
   resolveTinytexRepo,
   tinyTexInstallable,
   tinyTexLatestRelease,
@@ -572,6 +573,8 @@ unitTest("getLatestRelease - sends no Authorization header without a token", asy
 
 // ---- preparePackage ----
 
+// Like the install context, a failed download ends the install: it never
+// returns a 404 that preparePackage could recover from.
 function downloadRecordingContext(
   workingDir: string,
   missing: string[] = [],
@@ -581,37 +584,44 @@ function downloadRecordingContext(
   context.download = (_name, url, _target) => {
     downloads.push(url);
     if (missing.includes(url)) {
-      return Promise.reject(
-        new Error("download failed (HTTP status 404 - Not Found)"),
-      );
+      return Promise.reject(new Error(`install exited on ${url}`));
     }
     return Promise.resolve();
   };
   return { context, downloads };
 }
 
+// Answers HEAD requests: 404 for `missing` URLs, the CDN redirect otherwise.
+const assetProbeStub = (missing: string[] = []): typeof fetch => (input) => {
+  const url = typeof input === "string" ? input : input.toString();
+  return Promise.resolve(
+    missing.includes(url)
+      ? new Response(null, { status: 404 })
+      : redirectResponse("https://release-assets.githubusercontent.com/x"),
+  );
+};
+
+const kRelease2000 = {
+  url: `${kReleasesUrl}/tag/v2000.01`,
+  version: "v2000.01",
+  assets: tinyTexReleaseAssets("v2000.01"),
+};
+
 unitTest("preparePackage - uses the release info it is given", async () => {
-  const latest = {
-    url: `${kReleasesUrl}/tag/v2000.01`,
-    version: "v2000.01",
-    assets: tinyTexReleaseAssets("v2000.01"),
-  };
   const { context, downloads } = downloadRecordingContext("work");
-  const pkg = await tinyTexInstallable.preparePackage(context, latest);
+  const pkg = await preparePackage(context, kRelease2000, assetProbeStub());
   assertEquals(pkg.version, "v2000.01");
-  assertEquals(downloads, [latest.assets[0].url]);
+  assertEquals(downloads, [kRelease2000.assets[0].url]);
 });
 
-unitTest("preparePackage - tries the old asset name when the new one is a 404", async () => {
-  const latest = {
-    url: `${kReleasesUrl}/tag/v2000.01`,
-    version: "v2000.01",
-    assets: tinyTexReleaseAssets("v2000.01"),
-  };
-  const { context, downloads } = downloadRecordingContext("work", [
-    latest.assets[0].url,
-  ]);
-  const pkg = await tinyTexInstallable.preparePackage(context, latest);
-  assertEquals(downloads, [latest.assets[0].url, latest.assets[1].url]);
-  assertEquals(pkg.filePath, join("work", latest.assets[1].name));
+unitTest("preparePackage - downloads the old asset name when the new one is a 404", async () => {
+  const [newName, oldName] = kRelease2000.assets;
+  const { context, downloads } = downloadRecordingContext("work", [newName.url]);
+  const pkg = await preparePackage(
+    context,
+    kRelease2000,
+    assetProbeStub([newName.url]),
+  );
+  assertEquals(downloads, [oldName.url]);
+  assertEquals(pkg.filePath, join("work", oldName.name));
 });
