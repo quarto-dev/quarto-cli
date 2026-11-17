@@ -172,6 +172,10 @@ function compute_flags()
       if node.target:find("%{%{%<") then
         flags.has_shortcodes = true
       end
+      -- empty links to crossref targets, e.g. [](#sec-intro)
+      if #node.content == 0 and node.target:match("^#%a+%-") then
+        flags.has_crossref_title_links = true
+      end
     end,
     Span = function(node)
       if find_shortcode_in_attributes(node) then

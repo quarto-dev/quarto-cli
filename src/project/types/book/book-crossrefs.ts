@@ -24,6 +24,7 @@ import {
   kCrossrefChaptersAlpha,
   kCrossrefChaptersAppendix,
   kCrossrefChPrefix,
+  kCrossrefEqPrefix,
   kCrossrefLabels,
   kCrossrefSecPrefix,
   kOutputFile,
@@ -131,7 +132,7 @@ function resolveCrossrefs(
         parentLink.setAttribute("href", `${relativeFilePath}${hash}`);
       }
 
-      ref.innerHTML = formatCrossref(
+      const formatted = formatCrossref(
         type,
         index.files[entry.file],
         entry,
@@ -139,6 +140,19 @@ function resolveCrossrefs(
         format,
         entry.parent ? index.entries[entry.parent] : undefined,
       );
+      if (ref.classList.contains("ref-title")) {
+        // empty links like [](#sec-intro) show the title (#1196), falling
+        // back to a regular reference when there is none
+        if (entry.caption) {
+          ref.textContent = entry.caption;
+        } else {
+          ref.innerHTML = type === "eq"
+            ? `${format.language[kCrossrefEqPrefix]}&nbsp;${formatted}`
+            : formatted;
+        }
+      } else {
+        ref.innerHTML = formatted;
+      }
       ref.removeAttribute("class");
     } else {
       if (warn) {
