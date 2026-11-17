@@ -76,7 +76,11 @@ function process_equations(blockEl)
 
     -- process the inline unless it was already taken care of above
     if processInline then
-      if isDisplayMath(el) then
+      local multiRow = isDisplayMath(el) and not followedByEqAttr(inlines, i)
+        and renderMultiRowEquation(el)
+      if multiRow then
+          targetInlines:extend(multiRow)
+      elseif isDisplayMath(el) then
           mathInlines = pandoc.List()
           mathInlines:insert(el)
         else
@@ -143,6 +147,222 @@ function renderEquation(eq, label, alt, order)
     result:insert(pandoc.Span(eq, pandoc.Attr(label)))
   end
 
+  return result
+end
+
+-- does a {#eq-...} attribute follow the inline at index i?
+function followedByEqAttr(inlines, i)
+  for j = i + 1, #inlines do
+    local el = inlines[j]
+    if el.t ~= "Space" then
+      return el.t == "Str" and el.text:match("^{#eq%-") ~= nil
+    end
+  end
+  return false
+end
+
+-- math environments whose rows are numbered individually, so each
+-- row can carry its own \label{eq-...} (#2275)
+local multiRowEnvironments = {
+  align = true,
+  alignat = true,
+  eqnarray = true,
+  flalign = true,
+  gather = true
+}
+
+-- split math at a top level separator (\\ between rows, & between cells),
+-- skipping those inside braces or nested environments such as matrices
+function splitMath(body, separator)
+  local parts = pandoc.List()
+  local depth = 0
+  local partStart = 1
+  local i = 1
+  while i <= #body do
+    local env = body:match("^\\begin%b{}", i)
+    local endEnv = body:match("^\\end%b{}", i)
+    local c = body:sub(i, i)
+    if env then
+      depth = depth + 1
+      i = i + #env
+    elseif endEnv then
+      depth = depth - 1
+      i = i + #endEnv
+    elseif body:sub(i, i + #separator - 1) == separator and depth == 0 then
+      parts:insert(body:sub(partStart, i - 1))
+      i = i + #separator
+      partStart = i
+    elseif c == "\\" then
+      -- skip escaped characters such as \{ and \\ in nested content
+      i = i + 2
+    else
+      if c == "{" then
+        depth = depth + 1
+      elseif c == "}" then
+        depth = depth - 1
+      end
+      i = i + 1
+    end
+  end
+  parts:insert(body:sub(partStart))
+  return parts
+end
+
+-- convert a TeX math fragment to display style typst math
+local function typstDisplayMath(tex)
+  if not tex:match("%S") then
+    return "[]"
+  end
+  local doc = pandoc.Pandoc({ pandoc.Plain({ pandoc.Math("InlineMath", tex) }) })
+  local typst = pandoc.write(doc, "typst"):gsub("%s+$", "")
+  local inner = typst:match("^%$(.*)%$$")
+  if inner == nil then
+    -- pandoc couldn't convert the math, keep whatever it produced
+    return "[" .. typst .. "]"
+  end
+  return "$display(" .. inner .. ")$"
+end
+
+-- Typst has no per-row equation numbering, so lay the environment out as a
+-- grid like amsmath does: alternating right/left aligned columns (centered
+-- for gather) between flexible margins, and a column for the row numbers.
+-- Each number carries its row's label so references can link to it, and is
+-- set in math so it uses the math font like other equations' numbers.
+local function renderTypstMultiRow(env, rows)
+  local columnAlign
+  if env == "gather" then
+    columnAlign = function() return "center" end
+  elseif env == "eqnarray" then
+    columnAlign = function(i) return ({ "right", "center", "left" })[(i - 1) % 3 + 1] end
+  else
+    columnAlign = function(i) return i % 2 == 1 and "right" or "left" end
+  end
+
+  local cellRows = pandoc.List()
+  local columnCount = 1
+  for _, row in ipairs(rows) do
+    local cells = splitMath(row.tex, "&")
+    columnCount = math.max(columnCount, #cells)
+    cellRows:insert(cells)
+  end
+
+  local columns = pandoc.List({ "1fr" })
+  local aligns = pandoc.List({ "center" })
+  local gutters = pandoc.List({ "0pt" })
+  for i = 1, columnCount do
+    columns:insert("auto")
+    aligns:insert(columnAlign(i))
+    -- separate each right/left pair from the next, as amsmath does, and
+    -- leave a relation's thick space (5mu) where a pair is aligned
+    local gutter = "0pt"
+    if i < columnCount and env == "eqnarray" then
+      gutter = "0.2778em"
+    elseif i < columnCount and env ~= "gather" then
+      gutter = i % 2 == 0 and "2em" or "0.2778em"
+    end
+    gutters:insert(gutter)
+  end
+  columns:extend({ "1fr", "auto" })
+  aligns:extend({ "center", "right" })
+  gutters:insert("0pt")
+
+  local cells = pandoc.List()
+  for r, row in ipairs(rows) do
+    cells:insert("[]")
+    for i = 1, columnCount do
+      cells:insert(typstDisplayMath(cellRows[r][i] or ""))
+    end
+    cells:insert("[]")
+    if row.label then
+      cells:insert("[#[$\"(" .. row.number .. ")\"$]<" .. row.label .. ">]")
+    else
+      cells:insert("[]")
+    end
+  end
+
+  return "#block(width: 100%, grid(\n" ..
+    "  columns: (" .. table.concat(columns, ", ") .. "),\n" ..
+    "  column-gutter: (" .. table.concat(gutters, ", ") .. "),\n" ..
+    "  row-gutter: 0.65em,\n" ..
+    "  align: (col, row) => (" .. table.concat(aligns, ", ") .. ").at(col) + horizon,\n" ..
+    "  " .. table.concat(cells, ", ") .. "\n" ..
+    "))"
+end
+
+-- Render a display math multi-row environment (align, gather, ...) in which
+-- rows are labeled with \label{eq-...}. Each labeled row is indexed as an
+-- equation and numbered; unlabeled rows are left unnumbered so numbering
+-- matches across formats. Returns nil if this isn't such an environment.
+function renderMultiRowEquation(eq)
+  local env, body = eq.text:match("^%s*\\begin{(%a+)}(.*)\\end{%a+}%s*$")
+  if env == nil or not multiRowEnvironments[env] or not body:match("\\label{eq%-") then
+    return nil
+  end
+
+  local isLatex = _quarto.format.isLatexOutput()
+  local mathMethod = param("html-math-method", nil)
+  if type(mathMethod) == "table" and mathMethod["method"] then
+    mathMethod = mathMethod["method"]
+  end
+  local useTags = _quarto.format.isHtmlOutput() and (mathMethod == "mathjax" or mathMethod == "katex")
+
+  local labels = pandoc.List()
+  local typstRows = pandoc.List()
+  local rows = splitMath(body, "\\\\")
+  for i, row in ipairs(rows) do
+    local label = row:match("\\label{(eq%-[^}]+)}")
+    local number = nil
+    if label then
+      local order = indexNextOrder("eq")
+      indexAddEntry(label, nil, order)
+      crossref.index.entries[label].multirow = true
+      labels:insert(label)
+      number = inlinesToString(numberOption("eq", order))
+    end
+    if row:match("%S") then
+      typstRows:insert({
+        tex = row:gsub("\\label%b{}", ""):gsub("\\nonumber", ""):gsub("\\notag", ""),
+        label = label,
+        number = number
+      })
+    end
+    if label then
+      if useTags then
+        row = row:gsub("\\label{eq%-[^}]+}", function() return eqTag(number) end)
+      elseif not isLatex then
+        row = row:gsub("\\label{eq%-[^}]+}", function() return eqQquad(number) end)
+      end
+    elseif row:match("%S") then
+      if isLatex then
+        row = row .. "\\nonumber "
+      elseif useTags then
+        row = row .. "\\notag "
+      end
+    end
+    rows[i] = row
+  end
+
+  eq.text = "\\begin{" .. env .. "}" .. table.concat(rows, "\\\\") .. "\\end{" .. env .. "}"
+  if isLatex then
+    -- amsmath numbers the rows and resolves the \label{}s natively
+    return pandoc.Inlines({ eq })
+  end
+
+  local result = pandoc.Inlines({})
+  if _quarto.format.isTypstOutput() then
+    result:insert(pandoc.RawInline("typst", renderTypstMultiRow(env, typstRows)))
+    -- typst only counts numbered equations, so keep its counter in step
+    result:insert(pandoc.RawInline("typst",
+      "#counter(math.equation).update(n => n + " .. #labels .. ")"))
+  else
+    -- wrap the equation in a span per label, so every label's target
+    -- contains the equation (e.g. for html hover previews)
+    local anchored = eq
+    for i = #labels, 1, -1 do
+      anchored = pandoc.Span(anchored, pandoc.Attr(labels[i]))
+    end
+    result:insert(anchored)
+  end
   return result
 end
 
