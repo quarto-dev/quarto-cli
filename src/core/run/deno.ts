@@ -84,11 +84,15 @@ function directoryListing(path: string): Set<string> {
 // Deno may leave these in the seed and delete them from the user copy on a clean close
 const kSqliteSidecar = /_cache_v2-(shm|wal|journal)$/;
 
+// Deno's transpile output, regenerated on demand; gen/file/ entries are keyed by
+// the absolute path of the checkout that built the seed, so they differ per build
+const kGenOutput = /^[\\/]cache[\\/]gen([\\/]|$)/;
+
 export function directoryListingsMatch(path1: string, path2: string): boolean {
   const listing1 = directoryListing(path1),
     listing2 = directoryListing(path2);
   for (const path of listing1) {
-    if (kSqliteSidecar.test(path)) {
+    if (kSqliteSidecar.test(path) || kGenOutput.test(path)) {
       continue;
     }
     if (!listing2.has(path)) {
