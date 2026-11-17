@@ -1,6 +1,6 @@
 import { writeAll } from "io/write-all";
-import { CmdResult, runCmd } from "./cmd.ts";
-import { isWindows } from "../../../src/deno_ral/platform.ts";
+import { ensureDirSync } from "../../../src/deno_ral/fs.ts";
+import { unzip as coreUnzip } from "../../../src/core/zip.ts";
 
 // Read an environment variable
 export function getEnv(name: string, defaultValue?: string) {
@@ -28,19 +28,15 @@ export async function download(src: string, dest: string): Promise<void> {
   file.close();
 }
 
-export async function unzip(
-  zipFile: string,
-  dest: string,
-): Promise<CmdResult> {
-  if (isWindows) {
-    return await runCmd("PowerShell", [
-      "Expand-Archive",
-      "-Path",
-      `"${zipFile}"`,
-      "-DestinationPath",
-      `"${dest}"`,
-    ]);
-  } else {
-    return await runCmd("unzip", [zipFile, "-d", dest]);
+// Expand-Archive is avoided: Windows PowerShell 5.1 can load PowerShell 7's
+// Archive module from an inherited PSModulePath, fail, and still exit 0.
+export async function unzip(zipFile: string, dest: string): Promise<void> {
+  // the core helper runs unzip with dest as cwd on Linux/macOS
+  ensureDirSync(dest);
+  const result = await coreUnzip(zipFile, dest);
+  if (!result.success) {
+    throw new Error(
+      `Failed to extract ${zipFile} to ${dest}:\n${result.stderr ?? ""}`,
+    );
   }
 }
