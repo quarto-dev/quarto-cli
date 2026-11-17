@@ -1408,7 +1408,7 @@ async function mdFromCodeCell(
     classes.push(`tbl-column-${cell.options[kCellTblColumn]}`);
   }
   if (typeof cell.options[kCapLoc] === "string") {
-    classes.push(`caption-${cell.options[kFigCapLoc]}`);
+    classes.push(`caption-${cell.options[kCapLoc]}`);
   }
   if (typeof cell.options[kFigCapLoc] === "string") {
     classes.push(`fig-cap-location-${cell.options[kFigCapLoc]}`);
