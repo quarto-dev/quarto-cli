@@ -61,6 +61,8 @@ const cases = [
   { id: "titled-cell-first", button: "plain", edge: "top", reference: "titled-paragraph" },
   { id: "titled-cell-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
   { id: "titled-annotated", button: "plain-annotated", edge: "top", reference: "titled-paragraph" },
+  { id: "titled-filename-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
+  { id: "titled-cell-filename-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
   { id: "collapse-first", button: "plain", edge: null, reference: null },
   { id: "simple-first", button: "plain", edge: "top", reference: "simple-paragraph" },
   { id: "minimal-last", button: "plain", edge: "bottom", reference: "minimal-paragraph" },

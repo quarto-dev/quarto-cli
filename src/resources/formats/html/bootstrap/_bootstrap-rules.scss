@@ -1594,7 +1594,9 @@ kbd,
   }
 
   > .code-copy-outer-scaffold:last-child,
-  > .cell:last-child > .code-copy-outer-scaffold:last-child {
+  > .cell:last-child > .code-copy-outer-scaffold:last-child,
+  > .code-with-filename:last-child > .code-copy-outer-scaffold,
+  > .cell:last-child > .code-with-filename:last-child > .code-copy-outer-scaffold {
     > div.sourceCode {
       margin-bottom: 0;
     }
