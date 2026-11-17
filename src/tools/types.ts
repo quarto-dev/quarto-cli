@@ -17,7 +17,11 @@ export interface InstallableTool {
   binDir?: () => Promise<string | undefined>;
   installedVersion: () => Promise<string | undefined>;
   latestRelease: () => Promise<RemotePackageInfo>;
-  preparePackage: (ctx: InstallContext) => Promise<PackageInfo>;
+  // `latest` is the release already looked up for this install, if any.
+  preparePackage: (
+    ctx: InstallContext,
+    latest?: RemotePackageInfo,
+  ) => Promise<PackageInfo>;
   verifyConfiguration?: () => Promise<ToolConfigurationState>;
   install: (pkgInfo: PackageInfo, ctx: InstallContext) => Promise<void>;
   afterInstall: (ctx: InstallContext) => Promise<boolean>; // return true if restart is required, false if not
