@@ -1,5 +1,5 @@
 import { test, expect, Locator, Page } from '@playwright/test';
-import { tabKey } from '../src/utils';
+import { expectCloseTo, getCSSProperty, tabKey } from '../src/utils';
 
 test('logo and footer are correctly shown in default mode', async ({ page }) => {
   await page.goto('./revealjs/logo-footer.html#/slide-1');
@@ -82,6 +82,19 @@ test('internal id for links between slides are working', async ({ page }) => {
   await page.goto('./revealjs/links-id.html#/link-to-theorem');
   await page.getByRole('link', { name: 'Theorem' }).click();
   await page.waitForURL(/theorem$/);
+});
+
+test('auto-stretched figure caption keeps the caption size above the image (#8938)', async ({ page }) => {
+  await page.goto('./revealjs/stretch-caption-location.html#/top');
+  const topCaption = page.locator('#top > p.caption:has(+ img.r-stretch)');
+  const bottomCaption = page.locator('#bottom > img.r-stretch + p.caption');
+  await expect(topCaption).toBeAttached();
+  await expect(bottomCaption).toBeAttached();
+  const mainFontSize = await getCSSProperty(page.locator('body'), '--r-main-font-size', true) as number;
+  const topFontSize = await getCSSProperty(topCaption, 'font-size', true) as number;
+  const bottomFontSize = await getCSSProperty(bottomCaption, 'font-size', true) as number;
+  expect(bottomFontSize).toBeLessThan(mainFontSize);
+  expectCloseTo(topFontSize, bottomFontSize);
 });
 
 test('Home and End on a focused tabset tab do not change slide', async ({ page }) => {
