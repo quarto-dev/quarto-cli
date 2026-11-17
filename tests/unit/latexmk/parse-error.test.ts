@@ -53,6 +53,7 @@ unitTest("Detect missing files with `findMissingFontsAndPackages`", async () => 
 (babel)                Suggested actions:
 (babel)                * Make sure you haven't misspelled it`, "ngerman.ldf");
   assertFound("!pdfTeX error: pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
+  assertFound("pdflatex (file 8r.enc): cannot open encoding file for reading", "8r.enc");
   assertFound("! CTeX fontset `fandol' is unavailable in current mode", "fandol");
   assertFound("! CTeX fontset 'fandol' is unavailable in current mode", "fandol");
   assertFound('Package widetext error: Install the flushend package which is a part of sttools', "flushend.sty");
