@@ -77,6 +77,15 @@ function book_numbering()
             el.attr.classes:insert('unnumbered')
           end
 
+          -- headings in part files are unnumbered (see below), so index them
+          -- here to make them referenceable by title (#2571). this can't wait
+          -- for the crossref filters since latex part headings are replaced below
+          local partId = el.attr.identifier
+          local isPartRef = bookItemType == "part" and refType(partId) == "sec"
+          if isPartRef then
+            indexAddUnnumbered(partId, el.content)
+          end
+
           -- handle latex "part" and "appendix" headers
           if el.level == 1 and _quarto.format.isLatexOutput() then
             if bookItemType == "part" then
@@ -85,6 +94,9 @@ function book_numbering()
               })
               tappend(partPara.content, el.content)
               partPara.content:insert( pandoc.RawInline('latex', '}'))
+              if isPartRef then
+                partPara.content:insert(pandoc.RawInline('latex', '\\label{' .. partId .. '}'))
+              end
               return partPara
             elseif bookItemType == "appendix" then
               local appendixPara = pandoc.Para({
