@@ -72,6 +72,7 @@ import type { QuartoAPI } from "../../core/api/index.ts";
 let quarto: QuartoAPI;
 import { MappedString } from "../../core/mapped-text.ts";
 import { kJupyterPercentScriptExtensions } from "../../core/jupyter/percent.ts";
+import { reserveTransientNotebook } from "./transient-notebook.ts";
 import type { CheckConfiguration } from "../../command/check/check.ts";
 
 export const jupyterEngineDiscovery: ExecutionEngineDiscovery = {
@@ -317,23 +318,7 @@ title: "Title"
           // of additional changes to our file handling code (without changes,
           // our output files would be called $FILE.quarto.html, which
           // is not what we want). So for now, we'll use .quarto_ipynb
-          let counter: number | undefined = undefined;
-          let notebook = join(
-            fileDir,
-            `${fileStem}.quarto_ipynb${counter ? "_" + String(counter) : ""}`,
-          );
-
-          while (existsSync(notebook)) {
-            if (!counter) {
-              counter = 1;
-            } else {
-              ++counter;
-            }
-            notebook = join(
-              fileDir,
-              `${fileStem}.quarto_ipynb${counter ? "_" + String(counter) : ""}`,
-            );
-          }
+          const notebook = reserveTransientNotebook(fileDir, fileStem);
           const target = {
             source: file,
             input: notebook,
@@ -341,7 +326,13 @@ title: "Title"
             metadata,
             data: { transient: true, kernelspec: {} },
           };
-          nb = await createNotebookforTarget(target);
+          try {
+            nb = await createNotebookforTarget(target);
+          } catch (e) {
+            // don't leave the reserved (empty) notebook behind
+            safeRemoveSync(notebook);
+            throw e;
+          }
           target.data.kernelspec = nb.metadata.kernelspec;
           return target;
         } else if (quarto.jupyter.isJupyterNotebook(file)) {
