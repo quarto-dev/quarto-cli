@@ -260,6 +260,9 @@ $code-annotation-higlight-bg: #aaaaaa22 !default;
 $breadcrumb-divider: quote(">") !default;
 
 // table variable overrides
+// Cells stay transparent unless a variant class sets a fill, so the colours
+// a table sets on itself still show through (#7566).
+$table-bg: transparent !default;
 $table-group-separator-color: mix(
   if(variable-exists(body-color), $body-color, $gray-900),
   $body-contrast-bg,
