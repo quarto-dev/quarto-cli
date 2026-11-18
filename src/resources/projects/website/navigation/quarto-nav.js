@@ -146,6 +146,12 @@ window.document.addEventListener("DOMContentLoaded", function () {
     bodyEl.setAttribute("data-bs-offset", topOffset);
     bodyEl.style.paddingTop = topOffset + "px";
 
+    // Keep the header pinned until the page scrolls past the body padding,
+    // otherwise an empty band as tall as the header shows when it hides.
+    if (headroom) {
+      headroom.offset.up = headroom.offset.down = topOffset;
+    }
+
     // deal with sidebar offsets
     const sidebars = window.document.querySelectorAll(
       ".sidebar, .headroom-target"
@@ -203,9 +209,11 @@ window.document.addEventListener("DOMContentLoaded", function () {
 
   // initialize headroom
   var header = window.document.querySelector("#quarto-header");
+  let headroom = null;
   if (header && window.Headroom) {
-    const headroom = new window.Headroom(header, {
+    headroom = new window.Headroom(header, {
       tolerance: 5,
+      offset: headerOffset(),
       onPin: function () {
         const sidebars = window.document.querySelectorAll(
           ".sidebar, .headroom-target"
