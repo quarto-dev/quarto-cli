@@ -1,0 +1,11 @@
+---
+title: "Alicia"
+subtitle: "Data Scientist"
+about:
+  template: jolla
+  links:
+    - text: Github
+      href: https://github.com
+---
+
+A little bit about me.
