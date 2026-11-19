@@ -296,9 +296,108 @@ git add tools/runtime-boundary-baseline.json
 git commit -m "Lower runtime boundary baseline after core fs/temp codemod"
 ```
 
+### Task 6: Name the `fs`, `temp` and `errors` replacements in the ratchet
+
+Added at step 0 (README "Open decisions", the `kRalDenoReplacements` row and the PR 10 Task 6 row).
+A PR that adds one of these `Deno.*` uses in `src` or `package/src` then gets an error naming the layer function, instead of the "no replacement yet" warning.
+`tests` is left out: it keeps deliberate `Deno.*` fixtures whose increase the maintainer accepts, and a covered API is an error that no acceptance clears.
+
+**Files:**
+- Modify: `tools/check-runtime-boundary.ts`, `tests/unit/tools/check-runtime-boundary.test.ts`
+
+- [ ] **Step 1: Tests**
+
+In `tests/unit/tools/check-runtime-boundary.test.ts`, after the test "check-runtime-boundary - denoReplacement exact keys only", add:
+
+```ts
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - fs, temp and errors keys name their replacement in src and package/src", async () => {
+  assertEquals(denoReplacement("readTextFileSync", "src"), "readTextFileSync from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("realPathSync", "package/src"), "canonicalPathSync from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("FileInfo", "src"), "FileInfo from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("MakeTempOptions", "src"), "TempOptions from src/deno_ral/temp.ts");
+  assertEquals(denoReplacement("errors.NotFound", "src"), "isNotFound from src/deno_ral/errors.ts");
+  assertEquals(denoReplacement("errors.ConnectionReset", "src"), "isConnectionError from src/deno_ral/errors.ts");
+  for (const scope of ["tests", "resources", "src-js"]) {
+    assertEquals(denoReplacement("readTextFileSync", scope), undefined, scope);
+    assertEquals(denoReplacement("errors.NotFound", scope), undefined, scope);
+  }
+});
+```
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` Expected: `1 failed`, the new test, on its first `assertEquals` (`undefined` against the hint).
+
+- [ ] **Step 2: Keys**
+
+In `tools/check-runtime-boundary.ts`, after `kDenoRalImportScopes`, add:
+
+```ts
+/** The scopes of the fs, temp and errors keys. `tests` is left out: it keeps deliberate Deno.*
+ * fixtures whose increase a maintainer accepts, and a covered API is an error no acceptance clears. */
+const kRalLayerScopes: readonly string[] = ["src", "package/src"];
+
+/** One entry per Deno.<key>, naming the export of src/deno_ral/<module> to use instead: each of
+ * `names` under its own name, each key of `renamed` under its value. */
+function ralReplacements(
+  module: string,
+  names: readonly string[],
+  renamed: Record<string, string> = {},
+): Record<string, { hint: string; scopes: readonly string[] }> {
+  const entries = [...names.map((name) => [name, name]), ...Object.entries(renamed)];
+  return Object.fromEntries(
+    entries.map(([key, name]) => [
+      key,
+      { hint: `${name} from src/deno_ral/${module}`, scopes: kRalLayerScopes },
+    ]),
+  );
+}
+```
+
+and append to the `kRalDenoReplacements` object, after the `"build.arch"` entry:
+
+```ts
+  ...ralReplacements("fs.ts", [
+    "readTextFileSync", "readTextFile", "readFileSync", "readFile",
+    "writeTextFileSync", "writeTextFile", "writeFileSync", "writeFile",
+    "statSync", "stat", "lstatSync", "lstat", "mkdirSync", "mkdir",
+    "removeSync", "remove", "renameSync", "rename", "copyFileSync", "copyFile",
+    "readDirSync", "readDir", "symlinkSync", "symlink", "readLinkSync",
+    "realPath", "chmodSync", "chmod", "utimeSync", "truncateSync",
+    "open", "openSync", "create", "FileInfo", "DirEntry", "FsFile",
+  ], { realPathSync: "canonicalPathSync" }),
+  ...ralReplacements("temp.ts", [
+    "makeTempDirSync", "makeTempDir", "makeTempFileSync", "makeTempFile",
+  ], { MakeTempOptions: "TempOptions" }),
+  ...ralReplacements("errors.ts", [], {
+    "errors.NotFound": "isNotFound",
+    "errors.AlreadyExists": "isAlreadyExists",
+    "errors.PermissionDenied": "isPermissionDenied",
+    "errors.AddrInUse": "isAddrInUse",
+    "errors.ConnectionRefused": "isConnectionRefused",
+    "errors.BrokenPipe": "isConnectionError",
+    "errors.NotConnected": "isConnectionError",
+    "errors.ConnectionAborted": "isConnectionError",
+    "errors.ConnectionReset": "isConnectionError",
+  }),
+```
+
+The `fs` and `temp` names are the member and type tables of the `fs` and `temp` rules in `tools/codemod-deno-ral.ts` (`kFsNames`, `RULES`).
+
+- [ ] **Step 3: Verify and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` Expected: `0 failed`.
+
+Run: `quarto run --dev tools/check-runtime-boundary.ts` Expected: passes, counts unchanged from Task 5 (`tools/` is not a scope, and the test edits add no `Deno.` text).
+
+```bash
+git add tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts
+git commit -m "Name the deno_ral fs, temp and errors replacements in the runtime boundary check"
+```
+
 ## Verification
 
 - The three unit/smoke commands of Task 5 → `0 failed`.
+- `unit/tools/check-runtime-boundary.test.ts` → `0 failed` (Task 6).
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The grep in Acceptance criteria → empty.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
@@ -333,3 +432,17 @@ One representative maintenance fix backported through `--reverse` (`TRIAGE-2026-
 Pick the first real fix to `main` that touches a call site this PR renamed (`git log --oneline main -- src/core/path.ts | head`), run the backport step PR 37 Task 6 Step 1 spells out (same commands before the flip; the codemod runs through `quarto run --dev` on Deno) against a scratch branch off `v1.10`, confirm `git apply -3` succeeds and the scratch branch type-checks with its own tooling, and record the commit used in the triage row and in `dev-docs/checklist-backport-a-pr.md` (PR 09 adds the step there).
 The error predicates of Task 4 have no 1:1 reverse: they are the manual part the review asked to keep explicit.
 PR 37 Task 6 Step 2 repeats the exercise after the flip.
+
+## Execution log
+
+### Step 0: plan refresh (coordinator, 2026-11-19, `main` at `cda410214`)
+
+- Dependencies: PR 09 (#15223) and PR 02 are merged. Since the decision of 2026-11-17 (README "Open decisions", landing-order row), PR 10 lands before PRs 08 and 22: neither has landed, so `src/core/console.ts:174` still has `Deno.openSync` and the codemod rewrites it (the plan's other order).
+- Dry run on this branch: `Summary: 205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped`. The skipped and collision lines are exactly the five of Task 1 Step 2. This matches the README "PR 10 (audit of 2026-11-16)" row: 57 files, not 56; the `src` delta stays 170.
+- Cited lines, re-read on `cda410214`. Same: `monkey-patch.ts:17`, `metrics.ts:23,65`, `copy.ts:28,60,138,145,152,179,203,231-232,236`, `qualified-path.ts:69-77`, `http.ts:64,228-240`, `port.ts:131`, `jupyter-shared.ts:86,107`, `typst.ts:82`, `file.ts:22,53`, `download.ts:34,48`, `console.ts:174`, `resources.ts:179`, `api/types.ts:27`, `lib/errors.ts:27,33`, `lib/external/colors.ts:33-34`, `quarto-core/dotenv.ts:80`. Moved (content unchanged): `cache/cache.ts:161` is 186, `path.ts:53` is 61, `path.ts:189` is 197. The existing `deno_ral/fs.ts` import of `copy.ts` spans lines 15-23. Gone: none.
+- `Deno.errors` sites in the three directories (excluding `monkey-patch.ts`): 13, the ones Task 4 lists. `Deno.ReadFileOptions`: 1 (`qualified-path.ts:69`). The only importer of `qualified-path.ts` is `tests/unit/paths/qualified-path.test.ts`, which imports neither `readTextFile` nor `readTextFileSync`.
+- Type check: the command needs `--allow-import` (README row "Any plan that type-checks `src/quarto.ts`"). `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exits 0 on this branch before Task 1.
+- Every test file and directory the plan names exists.
+- Code-block audit: the plan's code defines `readTextFile`, `readTextFileSync` and `maybeDisplaySocketError`, which already exist and are rewritten; no indirect `Deno` access; no code comment names a PR.
+- Task 6 added (README rows `kRalDenoReplacements` and "PR 10 Task 6"). Its new helper `ralReplacements` has no equivalent in `tools/check-runtime-boundary.ts`; `same` in `tools/codemod-deno-ral.ts` builds the codemod's member table, and importing it would load ts-morph into the check. A trial on this branch: the new test failed on its first `assertEquals` (`43 passed | 1 failed`), then passed with the keys (`44 passed | 0 failed`), and `tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.` (`src 991`). The trial was reverted.
+- Follow-up after merge: per the README row "PRs 09, 10 and 37, backports", the `--reverse` demo must also cover `v1.11`, not only `v1.10`.
