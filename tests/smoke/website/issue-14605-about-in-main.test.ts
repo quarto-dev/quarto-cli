@@ -8,13 +8,13 @@
  */
 
 import { docs } from "../../utils.ts";
-import { join } from "../../../src/deno_ral/path.ts";
-import { existsSync } from "../../../src/deno_ral/fs.ts";
+import { join, resolve } from "../../../src/deno_ral/path.ts";
+import { existsSync, remove } from "../../../src/deno_ral/fs.ts";
 import { testQuartoCmd } from "../../test.ts";
 import { ensureHtmlElements, noErrorsOrWarnings } from "../../verify.ts";
 
 const renderDir = docs("websites/issue-14605");
-const outDir = join(Deno.cwd(), renderDir, "_site");
+const outDir = join(resolve(renderDir), "_site");
 
 testQuartoCmd(
   "render",
@@ -29,7 +29,7 @@ testQuartoCmd(
   {
     teardown: async () => {
       if (existsSync(outDir)) {
-        await Deno.remove(outDir, { recursive: true });
+        await remove(outDir, { recursive: true });
       }
     },
   },
