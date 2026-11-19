@@ -7,6 +7,10 @@
  */
 
 import { join, relative, resolve } from "../deno_ral/path.ts";
+import {
+  readTextFile as fsReadTextFile,
+  readTextFileSync as fsReadTextFileSync,
+} from "../deno_ral/fs.ts";
 import { UnreachableError } from "./lib/error.ts";
 
 export class InvalidPathError extends Error {
@@ -66,14 +70,14 @@ export function makePath(
   return result;
 }
 
-export function readTextFile(t: QualifiedPath, options?: Deno.ReadFileOptions) {
-  return Deno.readTextFile(t.asAbsolute().value, options);
+export function readTextFile(t: QualifiedPath) {
+  return fsReadTextFile(t.asAbsolute().value);
 }
 
 export function readTextFileSync(
   t: QualifiedPath,
 ) {
-  return Deno.readTextFileSync(t.asAbsolute().value);
+  return fsReadTextFileSync(t.asAbsolute().value);
 }
 
 // validates an absolute path
