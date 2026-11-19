@@ -7,6 +7,7 @@
  */
 
 import * as colors from "fmt/colors";
+import { writeTextFile } from "../../deno_ral/fs.ts";
 
 type StackEntry = {
   pos: string;
@@ -198,7 +199,7 @@ export const debugLogWithStack = async (...data: unknown[]) => {
     stack: getStackAsArray(),
     timestamp: new Date().toISOString(),
   };
-  await Deno.writeTextFile(
+  await writeTextFile(
     "/tmp/stack-debug.json",
     JSON.stringify(payload) + "\n",
     {

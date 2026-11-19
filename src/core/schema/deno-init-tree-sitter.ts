@@ -15,13 +15,14 @@ import {
 } from "../lib/external/tree-sitter-deno.js";
 import { setMainPath } from "../lib/yaml-intelligence/paths.ts";
 import { setTreeSitter } from "../lib/yaml-intelligence/parsing.ts";
+import { readFileSync } from "../../deno_ral/fs.ts";
 
 export async function initTreeSitter() {
   // run standard initialization...
 
   // ... and then the tree-sitter specific bits;
   setWasmBinaryFile(
-    Deno.readFileSync(resourcePath("editor/tools/yaml/tree-sitter.wasm")),
+    readFileSync(resourcePath("editor/tools/yaml/tree-sitter.wasm")),
   );
 
   //@ts-ignore: importing from .js makes type-script unhappy

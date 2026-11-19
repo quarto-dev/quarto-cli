@@ -10,7 +10,7 @@ import { execProcess } from "./process.ts";
 import { TempContext } from "./temp.ts";
 import { lines } from "./text.ts";
 import { debug, info } from "../deno_ral/log.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, writeTextFileSync } from "../deno_ral/fs.ts";
 import { warnOnce } from "./log.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 
@@ -34,7 +34,7 @@ export async function dartCompile(
   const inputFilePath = temp.createFile({ suffix: ".scss" });
 
   // Write the css itself to a file
-  Deno.writeTextFileSync(inputFilePath, input);
+  writeTextFileSync(inputFilePath, input);
   const args = [
     inputFilePath,
     outputFilePath,

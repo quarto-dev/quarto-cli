@@ -6,10 +6,19 @@
 
 import { debug, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 import { normalizePath, removeIfExists, safeRemoveIfExists } from "./path.ts";
 import { TempContext } from "./temp-types.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import {
+  makeTempDirSync,
+  makeTempFileSync,
+  type TempOptions,
+} from "../deno_ral/temp.ts";
 
 export type { TempContext } from "./temp-types.ts";
 
@@ -34,7 +43,7 @@ export function initSessionTempDir() {
     }
   }
 
-  tempDir = Deno.makeTempDirSync({ prefix: "quarto-session" });
+  tempDir = makeTempDirSync({ prefix: "quarto-session" });
 }
 
 export function cleanupSessionTempDir() {
@@ -55,11 +64,11 @@ export function globalTempContext() {
   return tempContext;
 }
 
-export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
+export function createTempContext(options?: TempOptions): TempContext {
   if (options?.dir) {
     ensureDirSync(options?.dir);
   }
-  let dir: string | undefined = Deno.makeTempDirSync({
+  let dir: string | undefined = makeTempDirSync({
     dir: tempDir,
     ...options,
   });
@@ -68,16 +77,16 @@ export function createTempContext(options?: Deno.MakeTempOptions): TempContext {
 
   const result: TempContext = {
     baseDir: dir,
-    createFileFromString: (content: string, options?: Deno.MakeTempOptions) => {
+    createFileFromString: (content: string, options?: TempOptions) => {
       const file = result.createFile(options);
-      Deno.writeTextFileSync(file, content);
+      writeTextFileSync(file, content);
       return file;
     },
-    createFile: (options?: Deno.MakeTempOptions) => {
-      return Deno.makeTempFileSync({ ...options, dir });
+    createFile: (options?: TempOptions) => {
+      return makeTempFileSync({ ...options, dir });
     },
-    createDir: (options?: Deno.MakeTempOptions) => {
-      return Deno.makeTempDirSync({ ...options, dir });
+    createDir: (options?: TempOptions) => {
+      return makeTempDirSync({ ...options, dir });
     },
     cleanup: () => {
       if (dir) {

@@ -3,7 +3,12 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 import { quartoCacheDir } from "./appdirs.ts";
 import { removeIfExists } from "./path.ts";
@@ -16,6 +21,7 @@ import {
   registryReadString,
 } from "./registry.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { makeTempFileSync } from "../deno_ral/temp.ts";
 
 export async function readRegistryKey(
   registryPath: string,
@@ -74,7 +80,7 @@ export async function cacheCodePage() {
     );
 
     if (value) {
-      Deno.writeTextFileSync(tokenPath, value);
+      writeTextFileSync(tokenPath, value);
     }
   }
 }
@@ -86,7 +92,7 @@ export function clearCodePageCache() {
 }
 
 function readCodePageCache() {
-  const codepage = Deno.readTextFileSync(tokenPath);
+  const codepage = readTextFileSync(tokenPath);
   if (codepage) {
     return codepage;
   } else {
@@ -150,11 +156,11 @@ export async function safeWindowsExec(
   args: string[],
   fnExec: (cmdExec: string[]) => Promise<ProcessResult>,
 ) {
-  const tempFile = Deno.makeTempFileSync(
+  const tempFile = makeTempFileSync(
     { prefix: "quarto-safe-exec", suffix: ".bat" },
   );
   try {
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       tempFile,
       ["@echo off", "chcp 65001 >nul", [program, ...args].join(" ")].join(
         "\r\n",

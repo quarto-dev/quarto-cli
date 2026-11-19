@@ -11,6 +11,7 @@ import { info } from "../deno_ral/log.ts";
 import { runningInCI } from "./ci-info.ts";
 import { SpinnerOptions } from "./console-types.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { openSync } from "../deno_ral/fs.ts";
 
 // The spinner and progress characters
 const kSpinnerChars = ["|", "/", "-", "\\"];
@@ -171,7 +172,7 @@ export function formatLine(values: string[], lengths: number[]) {
 }
 
 export function writeFileToStdout(file: string) {
-  const df = Deno.openSync(file, { read: true });
+  const df = openSync(file, { read: true });
   const contents = readAllSync(df);
   writeAllSync(Deno.stdout, contents);
   df.close();

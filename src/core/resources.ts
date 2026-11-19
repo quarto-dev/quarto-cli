@@ -5,7 +5,7 @@
  */
 
 import { debug } from "../deno_ral/log.ts";
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, readDirSync, statSync, walkSync } from "../deno_ral/fs.ts";
 import { dirname, join } from "../deno_ral/path.ts";
 import { warnOnce } from "./log.ts";
 import { safeExistsSync, which } from "./path.ts";
@@ -61,7 +61,7 @@ export function toolsPath(binary: string, defaultPath?: string): string {
         displayWarning();
       }
     } else {
-      if (Deno.statSync(binaryPath).isFile) {
+      if (statSync(binaryPath).isFile) {
         return binaryPath;
       } else {
         const fullPath = join(binaryPath, binary);
@@ -113,7 +113,7 @@ export async function rBinaryPath(
     // Use safeExistsSync: a malformed QUARTO_R (e.g. invalid path syntax)
     // makes the raw existsSync throw instead of returning false.
     if (safeExistsSync(quartoR)) {
-      const rBinDir = Deno.statSync(quartoR).isDirectory
+      const rBinDir = statSync(quartoR).isDirectory
         ? quartoR
         : dirname(quartoR);
       debug(`Found in ${rBinDir}`);
@@ -176,7 +176,7 @@ export async function rBinaryPath(
     const progFiles = Deno.env.get("programfiles");
     if (progFiles) {
       // Search program files for the binary
-      for (const entry of Deno.readDirSync(progFiles)) {
+      for (const entry of readDirSync(progFiles)) {
         if (entry.isDirectory && entry.name === "R") {
           // found the R directory, now walk to find bin directory
           for (const walk of walkSync(join(progFiles, "R"))) {

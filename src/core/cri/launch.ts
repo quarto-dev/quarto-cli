@@ -34,6 +34,7 @@ import {
   registerForExitCleanup,
   unregisterForExitCleanup,
 } from "../process.ts";
+import { makeTempDirSync } from "../../deno_ral/temp.ts";
 
 export interface ChromeLaunchOptions {
   /**
@@ -255,7 +256,7 @@ export async function launchChrome(
   const prefix = options.logPrefix ?? "chrome";
 
   const userDataDir = options.isolatedProfile
-    ? Deno.makeTempDirSync({ prefix: "quarto-chrome" })
+    ? makeTempDirSync({ prefix: "quarto-chrome" })
     : undefined;
 
   // Allow to adapt the headless mode depending on the Chrome version

@@ -13,6 +13,7 @@ import { mdFormatOutput, mdRawOutput } from "./jupyter.ts";
 import { lines, trimEmptyLines } from "../lib/text.ts";
 import { asYamlText } from "./jupyter-fixups.ts";
 import { kLangCommentChars } from "../lib/partition-cell-options.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 export const kJupyterPercentScriptExtensions = [
   ".py",
@@ -32,7 +33,7 @@ export function isJupyterPercentScript(file: string, extensions?: string[]) {
   const ext = extname(file).toLowerCase();
   const availableExtensions = extensions ?? kJupyterPercentScriptExtensions;
   if (availableExtensions.includes(ext)) {
-    const text = Deno.readTextFileSync(file);
+    const text = readTextFileSync(file);
     const cms = kLangCommentChars[kLanguageExtensions[ext]];
     // Use multiline mode (m) so ^ matches start of any line, not just start of file.
     // Group the alternation properly: (markdown|raw) not markdown|raw
@@ -55,7 +56,7 @@ export function markdownFromJupyterPercentScript(file: string) {
   // break into cells
   const cells: PercentCell[] = [];
   const activeCell = () => cells[cells.length - 1];
-  for (const line of lines(Deno.readTextFileSync(file).trim())) {
+  for (const line of lines(readTextFileSync(file).trim())) {
     const header = percentCellHeader(line, language);
     if (header) {
       cells.push({ header, lines: [] });

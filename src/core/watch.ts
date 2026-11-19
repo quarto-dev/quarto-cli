@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, statSync } from "../deno_ral/fs.ts";
 import { error } from "../deno_ral/log.ts";
 
 import { sleep } from "./async.ts";
@@ -36,7 +36,7 @@ export function watchForFileChanges(
   // inialize last modified times at startup
   const lastModified = new Map<string, Date | null>();
   fileList().forEach((file) =>
-    lastModified.set(file, existsSync(file) ? Deno.statSync(file).mtime : null)
+    lastModified.set(file, existsSync(file) ? statSync(file).mtime : null)
   );
 
   // if there is no polling interval then set it based on the initial
@@ -71,7 +71,7 @@ export function watchForFileChanges(
               // get prev mod (if any)
               const prevMod = lastModified.get(file);
               // read/update last mod
-              const lastMod = Deno.statSync(file).mtime;
+              const lastMod = statSync(file).mtime;
               lastModified.set(file, lastMod);
               // check for changes
               if (!prevMod) {

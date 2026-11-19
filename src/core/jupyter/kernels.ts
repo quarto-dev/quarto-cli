@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../deno_ral/path.ts";
-import { existsSync, walkSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync, walkSync } from "../../deno_ral/fs.ts";
 
 import { debug } from "../../deno_ral/log.ts";
 
@@ -107,7 +107,7 @@ async function computeJupyterKernelspecs(): Promise<
           }
           const kernelConfig = join(walk.path, "kernel.json");
           if (existsSync(kernelConfig)) {
-            const config = JSON.parse(Deno.readTextFileSync(kernelConfig));
+            const config = JSON.parse(readTextFileSync(kernelConfig));
             const name = basename(walk.path);
             kernelmap.set(name, {
               name,

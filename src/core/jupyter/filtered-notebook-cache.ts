@@ -4,7 +4,13 @@
  * Copyright (C) 2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { parseShellRunCommand } from "../../core/run/shell.ts";
@@ -20,7 +26,7 @@ export async function filteredNotebookFromCache(
   const invalidation = await notebookInvalidation(file, filters);
   const notebook = getCachedNotebook(file);
   if (notebook?.invalidation === invalidation) {
-    return Deno.readTextFileSync(notebook.fullPath);
+    return readTextFileSync(notebook.fullPath);
   } else {
     return undefined;
   }
@@ -46,7 +52,7 @@ async function notebookInvalidation(file: string, filters: string[]) {
   return [file, ...(await filterScriptPaths(file, filters || []))].reduce(
     (hash, file) => {
       try {
-        return hash + Deno.statSync(file).mtime?.toUTCString();
+        return hash + statSync(file).mtime?.toUTCString();
       } catch {
         return hash;
       }
@@ -99,7 +105,7 @@ function cacheNotebook(file: string, contents: CachedNotebookContents) {
   const path = index[file]?.path || globalThis.crypto.randomUUID();
 
   // write the notebook json to the cache
-  Deno.writeTextFileSync(notebookCachePath(path), contents.json);
+  writeTextFileSync(notebookCachePath(path), contents.json);
 
   // update the index
   index[file] = { invalidation: contents.invalidation, path };
@@ -112,7 +118,7 @@ function readNotebookIndex(): Record<
 > {
   const index = notebookIndexFile();
   if (existsSync(index)) {
-    return JSON.parse(Deno.readTextFileSync(index));
+    return JSON.parse(readTextFileSync(index));
   }
 
   return {};
@@ -121,7 +127,7 @@ function readNotebookIndex(): Record<
 function writeNotebookIndex(
   index: Record<string, { invalidation: string; path: string }>,
 ) {
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     notebookIndexFile(),
     JSON.stringify(index, undefined, 2),
   );

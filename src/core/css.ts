@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../deno_ral/fs.ts";
 import { dirname, extname, join } from "../deno_ral/path.ts";
 import { isFileRef } from "./http.ts";
 import { normalizePath } from "./path.ts";
@@ -19,7 +19,7 @@ export function cssFileResourceReferences(files: string[]) {
     if (extname(file).toLowerCase() === ".css") {
       if (existsSync(file)) {
         file = normalizePath(file);
-        const css = Deno.readTextFileSync(file);
+        const css = readTextFileSync(file);
         const cssRefs = cssFileRefs(css).map((ref) => join(dirname(file), ref));
         allRefs.push(...cssRefs);
         allRefs.push(...cssFileResourceReferences(cssRefs));

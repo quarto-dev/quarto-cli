@@ -237,6 +237,7 @@ export interface FsFile {
   readonly readable: ReadableStream<Uint8Array>;
   readonly writable: WritableStream<Uint8Array>;
   read(p: Uint8Array): Promise<number | null>;
+  readSync(p: Uint8Array): number | null;
   write(p: Uint8Array): Promise<number>;
   writeSync(p: Uint8Array): number;
   close(): void;

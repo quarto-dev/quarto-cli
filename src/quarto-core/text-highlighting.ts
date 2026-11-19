@@ -9,7 +9,7 @@ import { kDefaultHighlightStyle } from "../command/render/constants.ts";
 import { kHighlightStyle, kSyntaxHighlighting } from "../config/constants.ts";
 import { FormatPandoc } from "../config/types.ts";
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readTextFileSync, statSync } from "../deno_ral/fs.ts";
 import { resourcePath } from "../core/resources.ts";
 import { normalizePath } from "../core/path.ts";
 import { warnOnce } from "../core/log.ts";
@@ -137,12 +137,12 @@ export function readTheme(
     return undefined;
   }
 
-  if (Deno.statSync(themeFile).isDirectory) {
+  if (statSync(themeFile).isDirectory) {
     throw new Error(
       `The text highlighting theme ${themeFile} is a directory. Please provide a valid theme name or path to a .theme file.`,
     );
   }
-  return Deno.readTextFileSync(themeFile);
+  return readTextFileSync(themeFile);
 }
 
 // From  https://github.com/jgm/skylighting/blob/a1d02a0db6260c73aaf04aae2e6e18b569caacdc/skylighting-core/src/Skylighting/Format/HTML.hs#L117-L147

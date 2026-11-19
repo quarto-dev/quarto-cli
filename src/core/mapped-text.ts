@@ -16,6 +16,7 @@ import { debug } from "../deno_ral/log.ts";
 import * as mt from "./lib/mapped-text.ts";
 import { withTiming } from "./timing.ts";
 import { makeTimedFunction } from "./performance/function-times.ts";
+import { readTextFileSync } from "../deno_ral/fs.ts";
 
 export type EitherString = mt.EitherString;
 export type MappedString = mt.MappedString;
@@ -86,7 +87,7 @@ function mappedDiffInner(
 export const mappedDiff = makeTimedFunction("mappedDiff", mappedDiffInner);
 
 export function mappedStringFromFile(filename: string): MappedString {
-  const value = Deno.readTextFileSync(filename);
+  const value = readTextFileSync(filename);
 
   if (filename.startsWith("/")) {
     filename = relative(Deno.cwd(), filename);

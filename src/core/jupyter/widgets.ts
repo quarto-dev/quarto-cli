@@ -21,6 +21,8 @@ import {
   JupyterWidgetDependencies,
   JupyterWidgetsState,
 } from "./types.ts";
+import { makeTempFileSync } from "../../deno_ral/temp.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export function extractJupyterWidgetDependencies(
   nb: JupyterNotebook,
@@ -146,10 +148,10 @@ export function includesForJupyterWidgetDependencies(
 
   // create pandoc includes for our head and afterBody
   const widgetTempFile = (lines: string[]) => {
-    const tempFile = Deno.makeTempFileSync(
+    const tempFile = makeTempFileSync(
       { dir: tempDir, prefix: "jupyter-widgets-", suffix: ".html" },
     );
-    Deno.writeTextFileSync(tempFile, lines.join("\n") + "\n");
+    writeTextFileSync(tempFile, lines.join("\n") + "\n");
     return tempFile;
   };
 

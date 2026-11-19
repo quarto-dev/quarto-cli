@@ -14,7 +14,7 @@ import isoWeekPlugin from "../resources/library/dayjs/plugins/isoweek.js";
 import weekOfYearPlugin from "../resources/library/dayjs/plugins/weekofyear.js";
 import weekYearPlugin from "../resources/library/dayjs/plugins/weekyear.js";
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, statSync } from "../deno_ral/fs.ts";
 import { toFileUrl } from "../deno_ral/path.ts";
 import { resourcePath } from "./resources.ts";
 
@@ -107,7 +107,7 @@ export function parseSpecialDate(
 
     let lastModifiedTs = 0;
     for (const inp of input) {
-      const stat = Deno.statSync(inp);
+      const stat = statSync(inp);
       if (stat.mtime) {
         lastModifiedTs = Math.max(lastModifiedTs, stat.mtime.getTime());
       }

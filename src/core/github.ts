@@ -8,7 +8,7 @@ import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 
 import { join } from "../deno_ral/path.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../deno_ral/fs.ts";
 import { isHttpUrl } from "./url.ts";
 import { GitHubContext } from "./github-types.ts";
 import { gitBranchExists } from "./git.ts";
@@ -119,7 +119,7 @@ function siteUrl(
   // check for CNAME file
   const cname = join(dir, "CNAME");
   if (existsSync(cname)) {
-    const url = Deno.readTextFileSync(cname).trim();
+    const url = readTextFileSync(cname).trim();
     if (isHttpUrl(url)) {
       return url;
     } else {

@@ -17,6 +17,7 @@ import { FAILSAFE_SCHEMA, loadAll, Type } from "yaml";
 
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
+import { readTextFileSync } from "../deno_ral/fs.ts";
 
 // Keeps every scalar as written and, like pandoc, accepts any tag (!!int,
 // !custom, ...) by keeping the untagged value
@@ -113,7 +114,7 @@ export async function renderToCSLJSON(
       // the first YAML document, either a references: map or a bare array.
       // json: true lets a duplicate key win last instead of throwing here;
       // pandoc itself rejects duplicate keys when it reads the bibliography.
-      const firstDoc = loadAll(Deno.readTextFileSync(absBiblioPath), null, {
+      const firstDoc = loadAll(readTextFileSync(absBiblioPath), null, {
         schema: kBibliographyYamlSchema,
         json: true,
       })?.[0];

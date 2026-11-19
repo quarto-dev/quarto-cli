@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readFileSync } from "../deno_ral/fs.ts";
 import { extname } from "../deno_ral/path.ts";
 import PngImage, { isPng } from "./png.ts";
 import { isJpeg, jpegSize } from "./jpeg.ts";
@@ -14,7 +14,7 @@ import { isJpeg, jpegSize } from "./jpeg.ts";
 export function imageSize(path: string) {
   if (path !== undefined) {
     if (existsSync(path, { isFile: true })) {
-      const imageData = Deno.readFileSync(path);
+      const imageData = readFileSync(path);
       try {
         if (isPng(imageData)) {
           const png = new PngImage(imageData);
