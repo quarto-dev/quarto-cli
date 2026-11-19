@@ -504,3 +504,9 @@ PR 37 Task 6 Step 2 repeats the exercise after the flip.
 - The focused test command printed `ok | 0 passed | 0 failed | 5 ignored (1s)`.
   All five tests have `ignore: isWindows`, so this is not evidence that they exercised the changes.
   A temporary Deno runtime smoke check instead created and copied a file, then read the copy through both qualified-path functions; it printed `copyTo and qualified-path sync/async reads passed` and cleaned up its scratch directory.
+
+### Task 4: Error predicates (executor, 2026-11-19)
+
+- Steps 1-7: replaced all 13 enumerated `Deno.errors` checks in the seven files with `isNotFound`, `isConnectionError` or `isAddrInUse`; the `DOMException` exclusion in `maybeDisplaySocketError` remains.
+- Step 8: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` printed nothing.
+  `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 after formatting the seven files.

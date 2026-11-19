@@ -27,6 +27,7 @@ import {
   safeRemoveSync,
   statSync,
 } from "../deno_ral/fs.ts";
+import { isNotFound } from "../deno_ral/errors.ts";
 
 import * as ld from "./lodash.ts";
 
@@ -206,7 +207,7 @@ export function resolvePathGlobs(
         // directory listing and stat (TOCTOU race). This is expected during
         // preview when the IDE or other processes modify the project
         // directory concurrently.
-        if (!(e instanceof Deno.errors.NotFound)) {
+        if (!isNotFound(e)) {
           throw e;
         }
       }

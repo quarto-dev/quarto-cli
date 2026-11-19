@@ -5,6 +5,7 @@
  */
 import { join } from "../../deno_ral/path.ts";
 import { existsSync, readDirSync } from "../../deno_ral/fs.ts";
+import { isNotFound } from "../../deno_ral/errors.ts";
 
 import * as colors from "fmt/colors";
 
@@ -104,7 +105,7 @@ export function jupyterUnactivatedEnvMessage(
           }
         }
       } catch (err) {
-        if (!(err instanceof Deno.errors.NotFound)) {
+        if (!isNotFound(err)) {
           throw err;
         }
       }

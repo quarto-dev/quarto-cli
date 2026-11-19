@@ -13,6 +13,7 @@ import {
   walkSync,
   writeTextFileSync,
 } from "../deno_ral/fs.ts";
+import { isNotFound } from "../deno_ral/errors.ts";
 import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
@@ -85,7 +86,7 @@ function fontDirFingerprint(dir: string): string | undefined {
       }
     }
   } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
+    if (isNotFound(e)) {
       return `${dir}\t<missing>`;
     }
     return undefined;
