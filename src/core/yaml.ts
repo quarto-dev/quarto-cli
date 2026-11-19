@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readFileSync, readTextFileSync } from "../deno_ral/fs.ts";
 import { extname } from "../deno_ral/path.ts";
 
 import { lines, matchAll, normalizeNewlines } from "./text.ts";
@@ -55,7 +55,7 @@ export function isYamlPath(file: string) {
 export function readYaml(file: string) {
   if (existsSync(file)) {
     const decoder = new TextDecoder("utf-8");
-    const yml = Deno.readFileSync(file);
+    const yml = readFileSync(file);
     const result = parseWithNiceErrors(decoder.decode(yml));
     try {
       JSON.stringify(result);
@@ -202,7 +202,7 @@ export async function readAndValidateYamlFromMarkdown(
 export async function readYamlFromMarkdownFile(
   file: string,
 ): Promise<{ [key: string]: unknown }> {
-  const markdown = Deno.readTextFileSync(file);
+  const markdown = readTextFileSync(file);
   const result = await readAndValidateYamlFromMarkdown(markdown);
   return result;
 }

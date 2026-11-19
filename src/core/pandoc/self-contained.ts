@@ -11,6 +11,7 @@ import { parseHtml } from "../deno-dom.ts";
 import { Element, HTMLDocument } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { esbuildCompile } from "../esbuild.ts";
 import { asDataUrl } from "../data-url.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 const bundleModules = async (dom: HTMLDocument, workingDir: string) => {
   const modules = dom.querySelectorAll("script[type='module']");
@@ -20,7 +21,7 @@ const bundleModules = async (dom: HTMLDocument, workingDir: string) => {
       const srcName = join(workingDir, src);
       const srcDir = dirname(srcName);
       const jsSource = await esbuildCompile(
-        Deno.readTextFileSync(srcName),
+        readTextFileSync(srcName),
         srcDir,
         [],
         "esm",
@@ -47,7 +48,7 @@ export const pandocIngestSelfContainedContent = async (
   );
 
   // The raw html contents
-  const contents = Deno.readTextFileSync(file);
+  const contents = readTextFileSync(file);
   const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
   const dom = await parseHtml(contents);
   await bundleModules(dom, workingDir);

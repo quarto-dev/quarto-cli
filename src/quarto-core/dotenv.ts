@@ -10,7 +10,7 @@ import { join } from "../deno_ral/path.ts";
 import { safeExistsSync } from "../core/path.ts";
 import { isEqual } from "../core/lodash.ts";
 import { globalTempContext } from "../core/temp.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, writeTextFileSync } from "../deno_ral/fs.ts";
 import { activeProfiles, kQuartoProfile } from "./profile.ts";
 
 const kQuartoEnv = "_environment";
@@ -77,7 +77,7 @@ export async function dotenvSetVariables(projectDir: string) {
     const definedEnvTempPath = globalTempContext().createFile({
       suffix: ".yml",
     });
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       definedEnvTempPath,
       stringify(dotenvVariablesDefined),
     );

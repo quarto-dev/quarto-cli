@@ -49,6 +49,7 @@ import { info, warning } from "../../deno_ral/log.ts";
 import { FormatDependency } from "../../config/types.ts";
 import { mappedDiff } from "../mapped-text.ts";
 import { escape } from "../../core/lodash.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 const mermaidHandler: LanguageHandler = {
   ...baseHandler,
@@ -122,7 +123,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
     const selector = "pre.mermaid svg";
     const resources: [string, string][] = [[
       "mermaid.min.js",
-      Deno.readTextFileSync(
+      readTextFileSync(
         formatResourcePath("html", join("mermaid", "mermaid.min.js")),
       ),
     ]];
@@ -333,7 +334,8 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
 
           // LaTeX-based formats also require external tooling
           if (isLatexOutput(handlerContext.options.format.pandoc)) {
-            warning += " and requires external tooling (rsvg-convert or Inkscape)";
+            warning +=
+              " and requires external tooling (rsvg-convert or Inkscape)";
           }
 
           warning += ". Consider using mermaid-format: png if issues occur.";
@@ -345,7 +347,7 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
             "mermaid-figure-",
             ".svg",
           );
-        Deno.writeTextFileSync(fullName, svg.value);
+        writeTextFileSync(fullName, svg.value);
 
         const {
           widthInInches,

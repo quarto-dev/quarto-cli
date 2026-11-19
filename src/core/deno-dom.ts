@@ -10,6 +10,7 @@ import { HTMLDocument, initParser } from "deno_dom/deno-dom-wasm-noinit.ts";
 import { register } from "deno_dom/src/parser.ts";
 import { DOMParser } from "deno_dom/src/dom/dom-parser.ts";
 import { makeTimedFunctionAsync } from "./performance/function-times.ts";
+import { writeTextFile } from "../deno_ral/fs.ts";
 
 export async function getDomParser() {
   await initDenoDom();
@@ -39,7 +40,7 @@ export async function writeDomToHtmlFile(
   const output = doctype
     ? doctype + "\n" + doc.documentElement.outerHTML
     : doc.documentElement.outerHTML;
-  await Deno.writeTextFile(path, output);
+  await writeTextFile(path, output);
 }
 
 // We are combining a number of scripts from

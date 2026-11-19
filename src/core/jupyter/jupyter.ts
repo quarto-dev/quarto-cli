@@ -6,7 +6,13 @@
 
 // deno-lint-ignore-file camelcase
 
-import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  readTextFileSync,
+  walkSync,
+  writeFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 import * as colors from "fmt/colors";
 import { decodeBase64 as base64decode } from "encoding/base64";
@@ -593,12 +599,12 @@ export async function jupyterKernelspecFromMarkdown(
 export function jupyterKernelspecFromFile(
   file: string,
 ): Promise<[JupyterKernelspec, Metadata]> {
-  const markdown = Deno.readTextFileSync(file);
+  const markdown = readTextFileSync(file);
   return jupyterKernelspecFromMarkdown(markdown);
 }
 
 export function jupyterFromFile(input: string): JupyterNotebook {
-  const nbContents = Deno.readTextFileSync(input);
+  const nbContents = readTextFileSync(input);
   return jupyterFromJSON(nbContents);
 }
 
@@ -1040,9 +1046,9 @@ export function mdFromContentCell(
           // base 64 decode if its not svg
           if (!imageText.trimStart().startsWith("<svg")) {
             const imageData = base64decode(imageText.replaceAll("\n", ""));
-            Deno.writeFileSync(outputFile, imageData);
+            writeFileSync(outputFile, imageData);
           } else {
-            Deno.writeTextFileSync(outputFile, imageText);
+            writeTextFileSync(outputFile, imageText);
           }
           // replace it in source
           for (let i = 0; i < source.length; i++) {
@@ -2051,9 +2057,9 @@ function mdImageOutput(
         height = Math.round(png.height / 2);
       }
     }
-    Deno.writeFileSync(outputFile, imageData);
+    writeFileSync(outputFile, imageData);
   } else {
-    Deno.writeTextFileSync(outputFile, imageText);
+    writeTextFileSync(outputFile, imageText);
   }
 
   const kFigOptions = [

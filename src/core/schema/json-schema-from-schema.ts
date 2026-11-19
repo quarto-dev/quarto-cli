@@ -14,6 +14,7 @@ import {
   JsonObject,
   SchemaSchema,
 } from "../../resources/types/schema-schema-types.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 // https://json-schema.org/draft/2020-12/json-schema-core#name-json-schema-documents
 type JsonSchema = JsonObject | boolean;
@@ -164,7 +165,7 @@ export const generateJsonSchemasFromSchemas = async (resourcePath: string) => {
     "$defs": defs,
   };
 
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     `${resourcePath}/schema/json-schemas.json`,
     JSON.stringify(schema, null, 2),
   );

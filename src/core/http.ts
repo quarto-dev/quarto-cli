@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readFileSync, statSync } from "../deno_ral/fs.ts";
 import { basename, extname, join, normalize, posix } from "../deno_ral/path.ts";
 import { error, info } from "../deno_ral/log.ts";
 
@@ -44,7 +44,7 @@ export function httpFileRequestHandler(
     if (!fileResponse) {
       fileResponse = {
         contentType: contentType(filePath),
-        body: Deno.readFileSync(filePath),
+        body: readFileSync(filePath),
       };
     }
 
@@ -126,7 +126,7 @@ export function httpFileRequestHandler(
       if (fsPath.indexOf(baseDir) !== 0) {
         fsPath = baseDir;
       }
-      const fileInfo = existsSync(fsPath) ? Deno.statSync(fsPath) : undefined;
+      const fileInfo = existsSync(fsPath) ? statSync(fsPath) : undefined;
       if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, options.defaultFile || "index.html");
       }

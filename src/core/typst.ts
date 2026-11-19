@@ -6,7 +6,13 @@
 
 import { error, info } from "../deno_ral/log.ts";
 import { basename, DELIMITER, join, relative } from "../deno_ral/path.ts";
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  statSync,
+  walkSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 import * as colors from "fmt/colors";
 
 import { satisfies } from "semver/mod.ts";
@@ -72,7 +78,7 @@ function fontDirFingerprint(dir: string): string | undefined {
     for (const entry of walkSync(dir, { includeDirs: false })) {
       const rel = relative(dir, entry.path);
       try {
-        const stat = Deno.statSync(entry.path);
+        const stat = statSync(entry.path);
         lines.push(`${rel}\t${stat.size}\t${stat.mtime?.getTime() ?? ""}`);
       } catch {
         lines.push(`${rel}\t<unstatable>`);
@@ -125,7 +131,7 @@ export async function getAvailableTypstFonts(
         projectDir,
         "typst/available-fonts.json",
       );
-      const cacheContent = Deno.readTextFileSync(cachePath);
+      const cacheContent = readTextFileSync(cachePath);
       const cached = JSON.parse(cacheContent) as {
         fontPathsHash: string;
         fonts: string[];
@@ -168,7 +174,7 @@ export async function getAvailableTypstFonts(
         projectDir,
         "typst/available-fonts.json",
       );
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         cachePath,
         JSON.stringify({ fontPathsHash: cacheKey, fonts }),
       );

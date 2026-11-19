@@ -76,7 +76,11 @@ import {
   resolve,
 } from "../../deno_ral/path.ts";
 import { figuresDir, inputFilesDir } from "../render.ts";
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  writeFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { mappedStringFromFile } from "../mapped-text.ts";
 import { error } from "../../deno_ral/log.ts";
 import { withCriClient } from "../cri/cri.ts";
@@ -138,10 +142,10 @@ function makeHandlerContext(
       const dirName = context.options.temp.createDir();
       // create temporary resources
       for (const [name, content] of nonEmptyHtmlResources) {
-        Deno.writeTextFileSync(join(dirName, name), content);
+        writeTextFileSync(join(dirName, name), content);
       }
       const fileName = join(dirName, "index.html");
-      Deno.writeTextFileSync(fileName, content);
+      writeTextFileSync(fileName, content);
       const url = `file://${fileName}`;
 
       return await withCriClient(async (client) => {
@@ -172,10 +176,10 @@ function makeHandlerContext(
 
       // create temporary resources
       for (const [name, content] of nonEmptyHtmlResources) {
-        Deno.writeTextFileSync(join(dirName, name), content);
+        writeTextFileSync(join(dirName, name), content);
       }
       const fileName = join(dirName, "index.html");
-      Deno.writeTextFileSync(fileName, content);
+      writeTextFileSync(fileName, content);
       const url = `file://${fileName}`;
 
       const { elements, images } = await withCriClient(async (client) => {
@@ -198,7 +202,7 @@ function makeHandlerContext(
         const { sourceName, fullName } = context
           .uniqueFigureName(prefix, ".png");
         sourceNames.push(sourceName);
-        Deno.writeFileSync(fullName, images[i]);
+        writeFileSync(fullName, images[i]);
       }
 
       return {
@@ -290,7 +294,7 @@ function makeHandlerContext(
     },
     addInclude(content: string, where: PandocIncludeType) {
       const fileName = tempContext.createFile();
-      Deno.writeTextFileSync(fileName, content);
+      writeTextFileSync(fileName, content);
       if (results.includes[where] === undefined) {
         results.includes[where] = [fileName];
       } else {

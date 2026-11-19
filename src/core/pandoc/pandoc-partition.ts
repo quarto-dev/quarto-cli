@@ -8,9 +8,10 @@ import { PandocAttr, PartitionedMarkdown } from "./types.ts";
 import { lines } from "../text.ts";
 import { partitionYamlFrontMatter, readYamlFromMarkdown } from "../yaml.ts";
 import { pandocAttrParseText } from "./pandoc-attr.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 export function firstHeadingFromMarkdownFile(file: string): string | undefined {
-  return firstHeadingFromMarkdown(Deno.readTextFileSync(file));
+  return firstHeadingFromMarkdown(readTextFileSync(file));
 }
 
 export function firstHeadingFromMarkdown(markdown: string): string | undefined {
@@ -138,7 +139,7 @@ export function markdownWithExtractedHeading(markdown: string) {
 }
 
 export function languagesInMarkdownFile(file: string) {
-  return languagesInMarkdown(Deno.readTextFileSync(file));
+  return languagesInMarkdown(readTextFileSync(file));
 }
 
 export function languagesWithClasses(

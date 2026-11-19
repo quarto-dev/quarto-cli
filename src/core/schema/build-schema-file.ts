@@ -38,6 +38,7 @@ import { generateTypesFromSchemas } from "./types-from-schema.ts";
 import { generateJsonSchemasFromSchemas } from "./json-schema-from-schema.ts";
 import { InternalError } from "../lib/error.ts";
 import { generateZodTypesFromSchemas } from "./zod-types-from-schema.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -85,7 +86,7 @@ export async function buildIntelligenceResources() {
   const yamlResourcesPath = resourcePath(
     "/editor/tools/yaml/yaml-intelligence-resources.json",
   );
-  Deno.writeTextFileSync(yamlResourcesPath, yamlResources);
+  writeTextFileSync(yamlResourcesPath, yamlResources);
 
   // we also need to write the schema definitions to a file
   // it doesn't go on yaml-intelligence-resources.json because
@@ -96,7 +97,7 @@ export async function buildIntelligenceResources() {
   const definitionsPath = resourcePath(
     "editor/tools/yaml/all-schema-definitions.json",
   );
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     definitionsPath,
     JSON.stringify(definitions),
   );

@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../deno_ral/fs.ts";
 import { extname, join } from "../deno_ral/path.ts";
 import { info } from "../deno_ral/log.ts";
 import * as colors from "fmt/colors";
@@ -38,7 +38,7 @@ export const quartoConfig = {
     }
     const versionPath = join(getenv("QUARTO_SHARE_PATH"), "version");
     if (existsSync(versionPath)) {
-      return Deno.readTextFileSync(versionPath);
+      return readTextFileSync(versionPath);
     } else {
       return kLocalDevelopment;
     }

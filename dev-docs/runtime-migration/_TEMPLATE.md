@@ -48,25 +48,16 @@ Checkable statements (counts, commands that must pass, behaviours).
 
 ### Task 1: <component>
 **Files:** ...
-- [ ] **Step 1: Write the failing test** (full test code)
-- [ ] **Step 2: Run it and see it fail** (`exact command`, expected output)
-- [ ] **Step 3: Implement** (full code)
-- [ ] **Step 4: Run the tests** (`exact command`, expected output)
-- [ ] **Step 5: Commit** (`git add ...; git commit -m "..."`)
-(repeat per task; 2–5 minute steps)
+\- [ ] **Step 1: Write the failing test** (full test code) - [ ] **Step 2: Run it and see it fail** (`exact command`, expected output) - [ ] **Step 3: Implement** (full code) - [ ] **Step 4: Run the tests** (`exact command`, expected output) - [ ] **Step 5: Commit** (`git add ...; git commit -m "..."`) (repeat per task; 2–5 minute steps)
 
 ## Verification
-Commands to run before opening the PR, with expected results:
-- unit tests added by this plan
-- the existing tests that cover the touched code
-- the ratchet: `quarto run --dev tools/check-runtime-boundary.ts` (after PR 02)
-- a manual render where relevant: `package/dist/bin/quarto render <doc>`
+Commands to run before opening the PR, with expected results: - unit tests added by this plan - the existing tests that cover the touched code - the ratchet: `quarto run --dev tools/check-runtime-boundary.ts` (after PR 02) - a manual render where relevant: `package/dist/bin/quarto render <doc>`
 
 ## Review checklist
-What the reviewer verifies, as a checklist. Every plan ends it with these code-quality items (README "How to execute a plan" has the commands):
-- [ ] No new helper duplicates an existing one (`tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts`, `src/`); a helper needed by two new test files lives in one shared file.
-- [ ] No code outside `src/deno_ral/` reaches `Deno` indirectly (through `globalThis`, `self` or `window`, by destructuring, or through an alias such as `const d = Deno`) to stay out of the ratchet count; a needed `Deno.` access is written as such and the baseline increase is accepted.
-- [ ] Comments in `src/` and `tests/` state the current reason only: no plan or PR numbers ("until PR 25"), no description of what a later PR will change.
+What the reviewer verifies, as a checklist.
+Every plan ends it with these code-quality items (README "How to execute a plan" has the commands): - [ ] No new helper duplicates an existing one (`tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts`, `src/`); a helper needed by two new test files lives in one shared file.
+\- [ ] No code outside `src/deno_ral/` reaches `Deno` indirectly (through `globalThis`, `self` or `window`, by destructuring, or through an alias such as `const d = Deno`) to stay out of the ratchet count; a needed `Deno.` access is written as such and the baseline increase is accepted.
+\- [ ] Comments in `src/` and `tests/` state the current reason only: no plan or PR numbers ("until PR 25"), no description of what a later PR will change.
 
 ## Risks and rollback
 What can break, how it shows up, how to revert.
@@ -86,8 +77,11 @@ Repository conventions that plans must respect (`.claude/CLAUDE.md` and `.claude
 - New files carry `Copyright (C) 2026 Posit Software, PBC`.
 - Unit tests live in `tests/unit/` (runtime-layer tests under the existing `tests/unit/ral/`), use `unitTest` from `tests/test.ts` and assertions from `tests/asserts.ts` (added by PR 02), and run with `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/<file>.test.ts`.
   The ratchet (PR 02) has a `tests` scope: tests written by PRs 09 and later use `deno_ral` `fs`/`temp`/`process`, never raw `Deno.*`.
-- Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09 before 10; 22 depends on PR 04 (Phase 0). 02c lands before any other count-changing PR.
-- A PR that adds an equivalent `deno_ral` replacement for a `Deno.*` API adds its exact keys (e.g. `readTextFileSync`) to `kRalDenoReplacements` in `tools/check-runtime-boundary.ts` in the same change, which turns later increases of that API into errors; a PR that adds a std seam may add a `kStdSuggestions` entry (a suggestion never makes a finding an error). Any increase that is not an error still fails the PR run while the count exceeds the PR's own baseline (`--update-baseline --accept-increase`), so a plan that raises a count runs that step in the PR. Under `kBrowserSharedPaths` (`src/core/lib/`, which the browser-side YAML intelligence imports and which therefore cannot import `deno_ral`) a covered API is only a warning.
+- Landing order inside Phase 1: 02 → 02b → 08 → 22 → 10–13 → 14, with 09 before 10; 22 depends on PR 04 (Phase 0).
+  02c lands before any other count-changing PR.
+- A PR that adds an equivalent `deno_ral` replacement for a `Deno.*` API adds its exact keys (e.g. `readTextFileSync`) to `kRalDenoReplacements` in `tools/check-runtime-boundary.ts` in the same change, which turns later increases of that API into errors; a PR that adds a std seam may add a `kStdSuggestions` entry (a suggestion never makes a finding an error).
+  Any increase that is not an error still fails the PR run while the count exceeds the PR's own baseline (`--update-baseline --accept-increase`), so a plan that raises a count runs that step in the PR.
+  Under `kBrowserSharedPaths` (`src/core/lib/`, which the browser-side YAML intelligence imports and which therefore cannot import `deno_ral`) a covered API is only a warning.
   A conflict in a codemod PR is resolved by resetting the file to `main` and re-running the codemod, never by hand (the codemod is idempotent, PR 09); a conflict on a shared file (`tools/runtime-boundary-baseline.json`, `deno.lock`, the shim, the `deno-ral.md` table, a changelog) follows README ground rule 8.
 - Commands in the plans write the Linux path `package/dist/bin/tools/x86_64/deno`; on Apple Silicon it is `tools/aarch64/deno`, on Windows `tools\x86_64\deno.exe`.
 - Size is by file count (S < 10, M 10–40, L > 40 files); a plan that is large by volume but small by files says so next to the letter.
@@ -138,6 +132,7 @@ export interface FsFile {
   readonly readable: ReadableStream<Uint8Array>;
   readonly writable: WritableStream<Uint8Array>;
   read(p: Uint8Array): Promise<number | null>;
+  readSync(p: Uint8Array): number | null;
   write(p: Uint8Array): Promise<number>;
   writeSync(p: Uint8Array): number;
   close(): void;
