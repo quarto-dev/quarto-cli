@@ -6,6 +6,7 @@
 
 import * as ld from "./lodash.ts";
 
+import { isAddrInUse } from "../deno_ral/errors.ts";
 import { randomInt } from "./random.ts";
 import { sleep } from "./wait.ts";
 
@@ -128,7 +129,7 @@ export function isPortAvailableSync(options: IListenerOptions): boolean {
     listener.close();
     return true;
   } catch (error) {
-    if (error instanceof Deno.errors.AddrInUse) {
+    if (isAddrInUse(error)) {
       return false;
     }
     throw error;

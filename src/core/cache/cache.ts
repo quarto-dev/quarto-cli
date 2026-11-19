@@ -15,6 +15,7 @@ import {
   writeFileSync,
   writeTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { isNotFound } from "../../deno_ral/errors.ts";
 import { join } from "../../deno_ral/path.ts";
 import { v8Branch } from "../../deno_ral/platform.ts";
 import { md5HashBytes } from "../hash.ts";
@@ -190,7 +191,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     try {
       return getter(result);
     } catch (e) {
-      if (!(e instanceof Deno.errors.NotFound)) {
+      if (!isNotFound(e)) {
         throw e;
       }
       console.warn(

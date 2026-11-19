@@ -29,6 +29,7 @@ import {
   utimeSync,
   walkSync,
 } from "../deno_ral/fs.ts";
+import { isNotFound } from "../deno_ral/errors.ts";
 
 import { isWindows } from "../deno_ral/platform.ts";
 
@@ -241,7 +242,7 @@ function ensureValidCopySync(
   try {
     destStat = lstatSync(dest);
   } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
+    if (isNotFound(err)) {
       return;
     }
     throw err;
