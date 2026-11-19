@@ -13,6 +13,7 @@ import {
 } from "../deno_ral/path.ts";
 
 import {
+  copyFileSync as fsCopyFileSync,
   CopyOptions,
   ensureDirSync,
   existsSync,
@@ -156,7 +157,7 @@ function copyFileSync(
   if (existsSync(dest)) {
     safeRemoveSync(dest);
   }
-  Deno.copyFileSync(src, dest);
+  fsCopyFileSync(src, dest);
 
   if (options.preserveTimestamps) {
     const statInfo = statSync(src);

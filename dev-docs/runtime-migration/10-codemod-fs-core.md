@@ -59,7 +59,8 @@ Files in scope that need attention beyond the codemod (all verified):
 | `src/core/qualified-path.ts` | exports its own `readTextFile(t, options?: Deno.ReadFileOptions)` and `readTextFileSync(t)` (lines 69-77) wrapping `Deno.readTextFile*` → two collisions; fix by alias import and drop the unused `options` parameter. |
 | `src/core/http.ts` | `Deno.errors.NotFound` at 64 and the six-way `instanceof` chain at 230-235. |
 | `src/core/port.ts:131`, `src/core/cache/cache.ts:161`, `src/core/path.ts:189`, `src/core/jupyter/jupyter-shared.ts:107`, `src/core/typst.ts:82` | `Deno.errors.*` → predicates. |
-| `src/core/file.ts:22,53`, `src/core/download.ts:34`, `src/core/console.ts:174` (if PR 08 has not landed yet) | `Deno.open`/`Deno.openSync` → `open`/`openSync` by the codemod; the handles are used as `readable`, `writeSync`, `close`, and as a `Writer` for `writeAll` (`download.ts:48`), all on the `FsFile` interface. Review only. |
+| `src/core/file.ts:22,53`, `src/core/download.ts:34` | `Deno.open` → `open` by the codemod; the handles are used as `readable`, `writeSync`, `close`, and as a `Writer` for `writeAll` (`download.ts:48`), all on the `FsFile` interface. Review only. |
+| `src/core/console.ts:174` (if PR 08 has not landed yet) | The codemod rewrites `Deno.openSync`, but `readAllSync` requires a `ReaderSync` that the layer's `FsFile` does not implement. Hand-fix `writeFileToStdout` to `writeAllSync(Deno.stdout, readFileSync(file));`; do not add `readSync` to `FsFile`. |
 | `src/core/path.ts:53`, `src/core/copy.ts:179`, `src/core/resources.ts:179`, `src/core/jupyter/jupyter-shared.ts:86` | `Deno.readDirSync` loops; none depends on order; the layer now returns a sorted array. Review only. |
 | `src/core/temp.ts`, `src/core/temp-types.ts` | `Deno.MakeTempOptions` → `TempOptions` (codemod `temp` rule). `TempContext` is part of the `quarto` API (`src/core/api/types.ts:27`); `TempOptions` has the same three fields the API documents. |
 | `src/core/lib/errors.ts:33`, `src/core/lib/external/colors.ts:33-34` | `Deno.build.os`, `Deno.noColor`: not fs; `src/core/lib` is shared with browser bundles and must not import `deno_ral` (comment at `lib/errors.ts:27-29`). The codemod skips `src/core/lib` (PR 09 `kCodemodExclusions`), so the dry run never lists these files. Untouched (PR 19). |
@@ -167,7 +168,7 @@ git commit -m "core: codemod Deno fs/temp calls to deno_ral (mechanical)"
 
 ### Task 3: Fix the two collisions by hand
 
-**Files:** - Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`
+**Files:** - Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`, `src/core/console.ts`
 
 - [ ] **Step 1: `src/core/copy.ts`**
 
@@ -199,14 +200,24 @@ export function readTextFileSync(
 
 and add `import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync } from "../deno_ral/fs.ts";` to the imports.
 
-- [ ] **Step 3: Type-check and commit**
+- [ ] **Step 3: `src/core/console.ts`**
+
+Apply the coordinator ruling of 2026-11-19: replace the codemod's `openSync` import with `readFileSync`, drop the `io/read-all` import, and make `writeFileToStdout` a single call:
+
+```ts
+writeAllSync(Deno.stdout, readFileSync(file));
+```
+
+Do not add `readSync` to `FsFile`; remove the declaration and its `_TEMPLATE.md` addition made under the superseded ruling, leaving no net `FsFile` change.
+
+- [ ] **Step 4: Type-check and commit**
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/paths/qualified-path.test.ts unit/file-permissions.test.ts` Expected: `0 failed`.
 
 ```bash
-git add src/core/copy.ts src/core/qualified-path.ts
+git add src/core/copy.ts src/core/qualified-path.ts src/core/console.ts src/deno_ral/fs.ts dev-docs/runtime-migration/_TEMPLATE.md
 git commit -m "core: resolve codemod collisions in copy.ts and qualified-path.ts"
 ```
 
@@ -480,3 +491,16 @@ PR 37 Task 6 Step 2 repeats the exercise after the flip.
   The decision is recorded in README "Open decisions with an owner" for PR 10 and PR 27 and in the shared `FsFile` vocabulary; PR 10's replacement and baseline counts are unchanged.
 - Step 2, rerun: the same type-check command printed `Check quarto.ts` and exited 0.
   The Task 2 commit therefore includes `src/deno_ral/fs.ts`, README and `_TEMPLATE.md` alongside the 57 mechanical source files and this plan.
+- Superseding coordinator ruling, 2026-11-19: do not change `FsFile`; apply PR 08's `readFileSync` half of the `writeFileToStdout` rewrite in the Task 3 hand-fix commit instead.
+  The new README row replaces the earlier `readSync` decision because that method would have no consumer after PR 08 and would unnecessarily expand PR 27's descriptor-owner contract.
+  Task 3 removes the interface and template declarations again, leaving no net `FsFile` change.
+
+### Task 3: Collision and stdout hand fixes (executor, 2026-11-19)
+
+- `copy.ts` imports `copyFileSync as fsCopyFileSync` and calls it in the local helper; `qualified-path.ts` aliases both layer reads and drops the unused `options` parameter.
+- `console.ts` now uses `writeAllSync(Deno.stdout, readFileSync(file));`, with `readFileSync` imported from the layer and `io/read-all` removed.
+  The superseded `FsFile.readSync` declaration was removed from `src/deno_ral/fs.ts` and `_TEMPLATE.md`; `git diff upstream/main -- src/deno_ral/fs.ts` is empty.
+- Steps 3-4: `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 after the revised hand fix.
+- The focused test command printed `ok | 0 passed | 0 failed | 5 ignored (1s)`.
+  All five tests have `ignore: isWindows`, so this is not evidence that they exercised the changes.
+  A temporary Deno runtime smoke check instead created and copied a file, then read the copy through both qualified-path functions; it printed `copyTo and qualified-path sync/async reads passed` and cleaned up its scratch directory.
