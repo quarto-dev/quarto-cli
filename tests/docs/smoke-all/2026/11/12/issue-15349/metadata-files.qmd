@@ -1,0 +1,22 @@
+---
+title: "A metadata file overrides the per-language block of the front matter"
+toc: true
+lang: fr
+language:
+  fr:
+    toc-title-document: "Sommaire du document"
+metadata-files:
+  - _metadata-files-language.yml
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the metadata file</h2>']
+        - ['Sommaire du document']
+---
+
+## Section
+
+The front matter sets `toc-title-document` under `language: fr:`.
+The file in `metadata-files` sets `toc-title-document` as a plain key under `language`.
+Quarto merges the metadata file after the front matter, so its value must win.
