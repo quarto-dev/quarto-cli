@@ -170,7 +170,7 @@ git commit -m "core: codemod Deno fs/temp calls to deno_ral (mechanical)"
 
 **Files:** - Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`, `src/core/console.ts`
 
-- [ ] **Step 1: `src/core/copy.ts`**
+- [x] **Step 1: `src/core/copy.ts`**
 
 The codemod added an import from `../deno_ral/fs.ts` (merged into the existing one at lines 17-23, which already imports `existsSync`, `safeRemoveSync`, `getFileInfoType`, …) containing `lstatSync`, `statSync`, `utimeSync`, `readDirSync`, `readLinkSync`, `symlinkSync`, `type FileInfo` but not `copyFileSync`.
 Add `copyFileSync as fsCopyFileSync` to that import and change line 152:
@@ -181,7 +181,7 @@ Add `copyFileSync as fsCopyFileSync` to that import and change line 152:
 
 Leave the comment at line 28 as it is (comment lines are PR 25's cleanup; the acceptance greps exclude them).
 
-- [ ] **Step 2: `src/core/qualified-path.ts`**
+- [x] **Step 2: `src/core/qualified-path.ts`**
 
 Confirm nothing passes `options` to the exported `readTextFile`: `grep -rn 'qualified-path.ts' src tests --include=*.ts` shows no importer of these two functions outside the file (verified 2026-10-14; if an importer exists, keep the parameter name but type it as `{ signal?: AbortSignal }` and ignore it).
 Then replace lines 69-77 with:
@@ -200,7 +200,7 @@ export function readTextFileSync(
 
 and add `import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync } from "../deno_ral/fs.ts";` to the imports.
 
-- [ ] **Step 3: `src/core/console.ts`**
+- [x] **Step 3: `src/core/console.ts`**
 
 Apply the coordinator ruling of 2026-11-19: replace the codemod's `openSync` import with `readFileSync`, drop the `io/read-all` import, and make `writeFileToStdout` a single call:
 
@@ -210,7 +210,7 @@ writeAllSync(Deno.stdout, readFileSync(file));
 
 Do not add `readSync` to `FsFile`; remove the declaration and its `_TEMPLATE.md` addition made under the superseded ruling, leaving no net `FsFile` change.
 
-- [ ] **Step 4: Type-check and commit**
+- [x] **Step 4: Type-check and commit**
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
@@ -225,7 +225,7 @@ git commit -m "core: resolve codemod collisions in copy.ts and qualified-path.ts
 
 **Files:** - Modify: `src/core/http.ts`, `src/core/port.ts`, `src/core/cache/cache.ts`, `src/core/path.ts`, `src/core/jupyter/jupyter-shared.ts`, `src/core/typst.ts`, `src/core/copy.ts`
 
-- [ ] **Step 1: `src/core/http.ts`**
+- [x] **Step 1: `src/core/http.ts`**
 
 Add `import { isConnectionError, isNotFound } from "../deno_ral/errors.ts";`.
 Line 64: `} else if (isNotFound(e)) {`.
@@ -243,37 +243,37 @@ export function maybeDisplaySocketError(e: unknown) {
 }
 ```
 
-- [ ] **Step 2: `src/core/port.ts`**
+- [x] **Step 2: `src/core/port.ts`**
 
 Add `import { isAddrInUse } from "../deno_ral/errors.ts";`.
 Line 131: `if (isAddrInUse(error)) {`.
 
-- [ ] **Step 3: `src/core/cache/cache.ts`**
+- [x] **Step 3: `src/core/cache/cache.ts`**
 
 Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
 Line 161: `if (!isNotFound(e)) {`.
 
-- [ ] **Step 4: `src/core/path.ts`**
+- [x] **Step 4: `src/core/path.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 189: `if (!isNotFound(e)) {`.
 
-- [ ] **Step 5: `src/core/jupyter/jupyter-shared.ts`**
+- [x] **Step 5: `src/core/jupyter/jupyter-shared.ts`**
 
 Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
 Line 107: `if (!isNotFound(err)) {`.
 
-- [ ] **Step 6: `src/core/typst.ts`**
+- [x] **Step 6: `src/core/typst.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 82: `if (isNotFound(e)) {`.
 
-- [ ] **Step 7: `src/core/copy.ts`**
+- [x] **Step 7: `src/core/copy.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 236: `if (isNotFound(err)) {`.
 
-- [ ] **Step 8: Verify and commit**
+- [x] **Step 8: Verify and commit**
 
 Run: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` Expected: empty.
 
@@ -286,19 +286,19 @@ git commit -m "core: Deno.errors instanceof checks through deno_ral/errors predi
 
 ### Task 5: Tests, ratchet, commit
 
-- [ ] **Step 1: Unit tests that exercise `src/core`**
+- [x] **Step 1: Unit tests that exercise `src/core`**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/core/ -name '*.test.ts') $(find unit/paths/ -name '*.test.ts') unit/path.test.ts $(find unit/ral/ -name '*.test.ts') unit/dotenv-config.test.ts unit/environment.test.ts unit/sass-cache.test.ts unit/exec-process-stdin.test.ts unit/render/cleanup.test.ts unit/file-permissions.test.ts $(find unit/config/ -name '*.test.ts') unit/typst-fonts.test.ts unit/dart-sass.test.ts $(find unit/jupyter/ -name '*.test.ts') $(find unit/mapped-strings/ -name '*.test.ts') $(find unit/break-quarto-md/ -name '*.test.ts') $(find unit/schema-validation/ -name '*.test.ts') unit/text.test.ts unit/markdown-pipeline.test.ts unit/pandoc.test.ts unit/pandoc-formats.test.ts unit/pandoc-partition.test.ts unit/chrome-launch.test.ts unit/preview-brand-cache.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 2: Smoke tests that go through the touched code (render pipeline, freezer, caches, http server, temp dirs)**
+- [x] **Step 2: Smoke tests that go through the touched code (render pipeline, freezer, caches, http server, temp dirs)**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-minimal.test.ts smoke/render/render-output-dir.test.ts smoke/project/project-simple.test.ts smoke/project/project-prepost.test.ts smoke/site/render-site.test.ts smoke/jupyter/cache.test.ts $(find smoke/logging/ -name '*.test.ts') smoke/check/check.test.ts $(find smoke/run/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') smoke/extensions/install.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 3: Ratchet**
+- [x] **Step 3: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 170 (171 with PR 20b first) and no increase in any scope.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/runtime-boundary-baseline.json
@@ -510,3 +510,20 @@ PR 37 Task 6 Step 2 repeats the exercise after the flip.
 - Steps 1-7: replaced all 13 enumerated `Deno.errors` checks in the seven files with `isNotFound`, `isConnectionError` or `isAddrInUse`; the `DOMException` exclusion in `maybeDisplaySocketError` remains.
 - Step 8: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` printed nothing.
   `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 after formatting the seven files.
+
+### Task 5: Tests and ratchet (executor, 2026-11-20)
+
+- Steps 1-2: ran the plan's unit and smoke commands through `run-tests.ps1 --agent`, with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`.
+  Each `$(find <dir> -name '*.test.ts')` became `(Get-ChildItem <dir> -Recurse -Filter *.test.ts).FullName`; the explicit file lists were unchanged.
+  Step 1 printed `ok | 240 passed | 0 failed | 6 ignored (1m25s)`.
+  Step 2 printed `ok | 65 passed | 0 failed | 1 ignored (4m36s)`.
+- Step 3: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 821 (baseline 991)` during the update, then `src 821 (baseline 821)` and `OK: no count exceeds the baseline.`.
+  The other counts stayed at `src-js` 7 / 0, `resources` 12 / 1, `package/src` 241 / 3 and `tests` 774 / 176 (`Deno.*` calls / std-import files); `src.stdImportFiles` stayed at 49.
+  `git diff tools/runtime-boundary-baseline.json` showed only `src.denoCalls` falling from 991 to 821, exactly 170 lower, with no increase in any scope.
+- Deviation: the smoke run appended `**/*.quarto_ipynb` to `tests/docs/jupyter/cache-non-default/.gitignore`.
+  The fixture was restored to its original one-line content and is not part of the Task 5 diff; no source file changed in this task.
+- The existing Task 3 and Task 4 checkboxes are ticked with this update to match their completed execution logs and commits.
+- Step 4: stage only `tools/runtime-boundary-baseline.json` and this plan, with commit message `Lower runtime boundary baseline after core fs/temp codemod`.
+- Outstanding: Task 6 belongs to a fresh session.
+  Final verification still owes the acceptance grep, final type check, non-interactive HTML render, performance-report render and PDF-to-stdout render.
+  The interactive preview, branch push and PR creation remain maintainer steps; the post-merge `--reverse` demonstrations for `v1.10` and `v1.11` also remain.
