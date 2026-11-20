@@ -377,6 +377,20 @@ unitTest("check-runtime-boundary - denoReplacement exact keys only", async () =>
 });
 
 // deno-lint-ignore require-await
+unitTest("check-runtime-boundary - fs, temp and errors keys name their replacement in src and package/src", async () => {
+  assertEquals(denoReplacement("readTextFileSync", "src"), "readTextFileSync from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("realPathSync", "package/src"), "canonicalPathSync from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("FileInfo", "src"), "FileInfo from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("MakeTempOptions", "src"), "TempOptions from src/deno_ral/temp.ts");
+  assertEquals(denoReplacement("errors.NotFound", "src"), "isNotFound from src/deno_ral/errors.ts");
+  assertEquals(denoReplacement("errors.ConnectionReset", "src"), "isConnectionError from src/deno_ral/errors.ts");
+  for (const scope of ["tests", "resources", "src-js"]) {
+    assertEquals(denoReplacement("readTextFileSync", scope), undefined, scope);
+    assertEquals(denoReplacement("errors.NotFound", scope), undefined, scope);
+  }
+});
+
+// deno-lint-ignore require-await
 unitTest("check-runtime-boundary - diffChanges an uncovered increase is a finding without replacement", async () => {
   const changes: FileChange[] = [{
     path: "tests/unit/a.test.ts",

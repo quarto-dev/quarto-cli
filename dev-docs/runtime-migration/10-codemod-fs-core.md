@@ -313,7 +313,7 @@ A PR that adds one of these `Deno.*` uses in `src` or `package/src` then gets an
 
 **Files:** - Modify: `tools/check-runtime-boundary.ts`, `tests/unit/tools/check-runtime-boundary.test.ts`
 
-- [ ] **Step 1: Tests**
+- [x] **Step 1: Tests**
 
 In `tests/unit/tools/check-runtime-boundary.test.ts`, after the test "check-runtime-boundary - denoReplacement exact keys only", add:
 
@@ -335,7 +335,7 @@ unitTest("check-runtime-boundary - fs, temp and errors keys name their replaceme
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` Expected: `1 failed`, the new test, on its first `assertEquals` (`undefined` against the hint).
 
-- [ ] **Step 2: Keys**
+- [x] **Step 2: Keys**
 
 In `tools/check-runtime-boundary.ts`, after `kDenoRalImportScopes`, add:
 
@@ -391,7 +391,7 @@ and append to the `kRalDenoReplacements` object, after the `"build.arch"` entry:
 
 The `fs` and `temp` names are the member and type tables of the `fs` and `temp` rules in `tools/codemod-deno-ral.ts` (`kFsNames`, `RULES`).
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` Expected: `0 failed`.
 
@@ -524,6 +524,16 @@ PR 37 Task 6 Step 2 repeats the exercise after the flip.
   The fixture was restored to its original one-line content and is not part of the Task 5 diff; no source file changed in this task.
 - The existing Task 3 and Task 4 checkboxes are ticked with this update to match their completed execution logs and commits.
 - Step 4: stage only `tools/runtime-boundary-baseline.json` and this plan, with commit message `Lower runtime boundary baseline after core fs/temp codemod`.
-- Outstanding: Task 6 belongs to a fresh session.
+- Task 6 was deferred to a fresh session and is recorded below.
   Final verification still owes the acceptance grep, final type check, non-interactive HTML render, performance-report render and PDF-to-stdout render.
   The interactive preview, branch push and PR creation remain maintainer steps; the post-merge `--reverse` demonstrations for `v1.10` and `v1.11` also remain.
+
+### Task 6: Replacement hints in the ratchet (executor, 2026-11-20)
+
+- Step 1: added the specified `denoReplacement` test and ran `run-tests.ps1 --agent unit/tools/check-runtime-boundary.test.ts` with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`.
+  The new test failed on its first assertion, `undefined` against `readTextFileSync from src/deno_ral/fs.ts`; the tally was `43 passed | 1 failed`.
+- Step 2: added `ralReplacements`, limited its fs/temp/errors entries to `src` and `package/src`, and used the member/type names from `tools/codemod-deno-ral.ts`.
+  A whole-file `deno fmt` also reformatted unrelated lines; after saving the patch in the session scratch directory, only the two planned source hunks were kept. The final source diff is 57 insertions in two files with no unrelated formatting.
+- Step 3: the focused test passed with `44 passed | 0 failed` after the implementation and again after the diff cleanup.
+  `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.` with counts unchanged: `src` 821 / 49, `src-js` 7 / 0, `resources` 12 / 1, `package/src` 241 / 3 and `tests` 774 / 176 (`Deno.*` calls / std-import files).
+- Ruling: include this plan's Task 6 checkboxes and execution log in the Task 6 commit, matching Tasks 2 and 5, although the commit step lists only the two source files. This preserves the execution record; it adds no runtime change.
