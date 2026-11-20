@@ -14,7 +14,7 @@ _quarto:
           - '^#show raw\.where\(block: false\): set text\(weight: 600, size: 0\.85em, fill: rgb\("#664d03"\), \)$'
           - '^#show raw\.where\(block: false\): content => highlight\(fill: rgb\("#fff3cd"\), content\)$'
         # No monospace-block show rules (not configured)
-        - ['^#show raw\.where\(block: true\): set block\(fill:']
+        - ['^#show raw\.where\(block: true\): set block\(fill: rgb\(']
 ---
 
 Inline code like `hello()`{.python} and `x + y`{.r} should get brand monospace-inline styling

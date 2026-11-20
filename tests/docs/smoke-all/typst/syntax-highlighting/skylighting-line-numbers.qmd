@@ -14,7 +14,7 @@ _quarto:
           - '#Skylighting\(number: true'
           - "#KeywordTok"
           # Quarto override with proper block styling
-          - 'block\(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks\)'
+          - 'quarto-code-block\(fill: bgcolor, blocks\)'
         - ["```python"]
 ---
 
