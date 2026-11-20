@@ -113,7 +113,7 @@ import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync 
   ```
   prints nothing.
 - `quarto run --dev tools/check-runtime-boundary.ts` passes, with the `src` scope count exactly 170 lower than before (153 codemod replacements + 3 collision sites + 13 `Deno.errors` + 1 `Deno.ReadFileOptions`; 171 if PR 20b landed first and the codemod also rewrote `metrics.ts:65`).
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 - The tests in Verification pass.
 
 ## Plan
@@ -155,7 +155,7 @@ Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core 
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: files reformatted (long import lines wrapped); `git diff --stat | tail -1` shows only files under the three directories.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 (`FileInfo`'s eight fields cover what `src/core` reads: `isDirectory`, `isFile`, `isSymlink`, `size`, `atime`, `mtime`, `mode`; `getFileInfoType` takes the layer's `FileInfo` since PR 09.
 A check error about a missing `FileInfo` member means a caller reads a field the layer does not expose: stop and raise it on PR 09's vocabulary rather than casting.)
 
@@ -212,7 +212,7 @@ Do not add `readSync` to `FsFile`; remove the declaration and its `_TEMPLATE.md`
 
 - [x] **Step 4: Type-check and commit**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/paths/qualified-path.test.ts unit/file-permissions.test.ts` Expected: `0 failed`.
 
@@ -277,7 +277,7 @@ Line 236: `if (isNotFound(err)) {`.
 
 Run: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 ```bash
 git add src/core
@@ -408,7 +408,7 @@ git commit -m "Name the deno_ral fs, temp and errors replacements in the runtime
 - `unit/tools/check-runtime-boundary.test.ts` → `0 failed` (Task 6).
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The grep in Acceptance criteria → empty.
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
 - Manual: `package/dist/bin/quarto render tests/docs/test.qmd --to html` and `package/dist/bin/quarto preview tests/docs/test.qmd --no-browser` (Ctrl-C after it serves) both work; `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads package/dist/bin/quarto render tests/docs/test.qmd` still prints a file-read report (the `metrics.ts` hook kept working because the layer looks `Deno.readTextFileSync` up at call time).
 
 ## Review checklist
