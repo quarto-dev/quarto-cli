@@ -311,6 +311,26 @@ export function acceptIncrease(current: Baseline): Baseline {
  * `src-js` plain JavaScript, neither of which can. */
 const kDenoRalImportScopes: readonly string[] = ["src", "package/src", "tests"];
 
+/** The scopes of the fs, temp and errors keys. `tests` is left out: it keeps deliberate Deno.*
+ * fixtures whose increase a maintainer accepts, and a covered API is an error no acceptance clears. */
+const kRalLayerScopes: readonly string[] = ["src", "package/src"];
+
+/** One entry per Deno.<key>, naming the export of src/deno_ral/<module> to use instead: each of
+ * `names` under its own name, each key of `renamed` under its value. */
+function ralReplacements(
+  module: string,
+  names: readonly string[],
+  renamed: Record<string, string> = {},
+): Record<string, { hint: string; scopes: readonly string[] }> {
+  const entries = [...names.map((name) => [name, name]), ...Object.entries(renamed)];
+  return Object.fromEntries(
+    entries.map(([key, name]) => [
+      key,
+      { hint: `${name} from src/deno_ral/${module}`, scopes: kRalLayerScopes },
+    ]),
+  );
+}
+
 /** Keyed by exact API key. A PR that adds a deno_ral replacement adds its keys here. */
 export const kRalDenoReplacements: Readonly<
   Record<string, { hint: string; scopes?: readonly string[] }>
@@ -323,6 +343,29 @@ export const kRalDenoReplacements: Readonly<
     hint: "arch from src/deno_ral/platform.ts",
     scopes: kDenoRalImportScopes,
   },
+  ...ralReplacements("fs.ts", [
+    "readTextFileSync", "readTextFile", "readFileSync", "readFile",
+    "writeTextFileSync", "writeTextFile", "writeFileSync", "writeFile",
+    "statSync", "stat", "lstatSync", "lstat", "mkdirSync", "mkdir",
+    "removeSync", "remove", "renameSync", "rename", "copyFileSync", "copyFile",
+    "readDirSync", "readDir", "symlinkSync", "symlink", "readLinkSync",
+    "realPath", "chmodSync", "chmod", "utimeSync", "truncateSync",
+    "open", "openSync", "create", "FileInfo", "DirEntry", "FsFile",
+  ], { realPathSync: "canonicalPathSync" }),
+  ...ralReplacements("temp.ts", [
+    "makeTempDirSync", "makeTempDir", "makeTempFileSync", "makeTempFile",
+  ], { MakeTempOptions: "TempOptions" }),
+  ...ralReplacements("errors.ts", [], {
+    "errors.NotFound": "isNotFound",
+    "errors.AlreadyExists": "isAlreadyExists",
+    "errors.PermissionDenied": "isPermissionDenied",
+    "errors.AddrInUse": "isAddrInUse",
+    "errors.ConnectionRefused": "isConnectionRefused",
+    "errors.BrokenPipe": "isConnectionError",
+    "errors.NotConnected": "isConnectionError",
+    "errors.ConnectionAborted": "isConnectionError",
+    "errors.ConnectionReset": "isConnectionError",
+  }),
 };
 
 /** Keyed by stdModuleOf(). `module` is repository-relative. A suggestion only: never turns a finding into an error. */
