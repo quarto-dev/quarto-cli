@@ -2,6 +2,10 @@
 
 These apply to any work in this directory or on a PR listed in README "The sequence": executing, reviewing or amending a plan.
 
+Execute at most one plan task per session.
+Tick its checkboxes, fold its execution-log updates into the task commit, run the post-commit review, and stop at that task boundary.
+A fresh session resumes with the continuation prompt in README "How to execute a plan".
+
 Before you finish, bring these docs in line with what changed:
 
 1. README "The sequence": set the PR's row to `in progress` when its execution starts, and to `merged` once the PR is merged (README "How to execute a plan").
