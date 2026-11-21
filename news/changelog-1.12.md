@@ -48,6 +48,7 @@ All changes included in 1.12:
 ### `pdf`
 
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics. Their body is now upright, like definitions, examples and exercises. (author: @mcanouil)
+- ([#15299](https://github.com/quarto-dev/quarto-cli/issues/15299)): Fix several footnotes inside one callout all being printed at the bottom of the page with the number of the callout's last footnote.
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's LaTeX template following Pandoc 3.13 support:
   - Table captions are set with the `caption` package, with a 6pt gap to the table.
   - Footnotes in long tables are placed after the table by Pandoc, and no longer rely on `footnotehyper`.
