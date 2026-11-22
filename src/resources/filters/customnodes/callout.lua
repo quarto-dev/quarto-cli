@@ -311,7 +311,7 @@ function _callout_main()
         { "icon_color", pandoc.RawInline("typst", icon_color) },
         { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
         { "body_background_color", pandoc.RawInline("typst", body_background_color)},
-        { "kind", callout.type },
+        { "kind", callout.type or "none" },
         { "appearance", callout.appearance_raw }
       })
 
@@ -338,7 +338,7 @@ function _callout_main()
       { "icon_color", pandoc.RawInline("typst", icon_color) },
       { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
       { "body_background_color", pandoc.RawInline("typst", body_background_color)},
-      { "kind", callout.type },
+      { "kind", callout.type or "none" },
       { "appearance", callout.appearance_raw }
     })
 
