@@ -294,7 +294,10 @@ const annotationHelperDependencies: [string, string[]][] = [
   ["quarto-annote-link", []],
   ["quarto-circled-number", []],
   ["quarto-annote-color", []],
-  ["quarto-code-filename", []],
+  [
+    "quarto-code-filename",
+    ["quarto-code-block-style", "quarto-code-block-style-resolve"],
+  ],
   ["quarto-code-annotation", ["quarto-annote-link", "quarto-circled-number"]],
   ["quarto-annotation-item", ["quarto-annote-link", "quarto-circled-number"]],
 ];

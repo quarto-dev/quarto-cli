@@ -9,7 +9,7 @@ _quarto:
       ensureTypstFileRegexMatches:
         -
           - 'quarto-code-filename\("example\.py"'
-          - 'text\(size: 0\.85em, weight: "bold", fill: luma\(30\)\)\[#filename\]'
+          - 'text\(size: 0\.85em, weight: "bold", fill: style\.label\)\[#filename\]'
         - []
 ---
 

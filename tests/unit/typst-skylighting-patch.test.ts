@@ -29,6 +29,21 @@ const skylightingFn =
    block(fill: bgcolor, blocks)
 }`;
 
+function assertDefinedInOrder(content: string, names: string[]) {
+  const positions = names.map((name) =>
+    content.search(new RegExp(`^#let ${name}(?=[\\s(=])`, "m"))
+  );
+  positions.forEach((position, i) => {
+    assert(position !== -1, `${names[i]} is not defined`);
+    if (i > 0) {
+      assert(
+        positions[i - 1] < position,
+        `${names[i - 1]} must come before ${names[i]}`,
+      );
+    }
+  });
+}
+
 unitTest("typst-skylighting-patch - applyPatch reports a miss", async () => {
   const miss = applyPatch("abc", "xyz", "q");
   assertEquals(miss.applied, false);
@@ -87,7 +102,7 @@ unitTest("typst-skylighting-patch - helpers: all missing", async () => {
     usingDocument,
     definitionsSource,
   );
-  assertEquals(result.injected.length, 6);
+  assertEquals(result.injected.length, 9);
   assert(
     result.content.indexOf("#let quarto-code-filename(") <
       result.content.indexOf("#let Skylighting("),
@@ -157,18 +172,25 @@ unitTest(
       "quarto-code-block",
     ];
     assertEquals(result.injected, expected);
-    const positions = expected.map((name) =>
-      result.content.search(new RegExp(`^#let ${name}(?=[\\s(=])`, "m"))
-    );
-    positions.forEach((position, i) => {
-      assert(position !== -1, `${expected[i]} is not defined`);
-      if (i > 0) {
-        assert(
-          positions[i - 1] < position,
-          `${expected[i - 1]} must come before ${expected[i]}`,
-        );
-      }
-    });
+    assertDefinedInOrder(result.content, expected);
+  },
+);
+
+unitTest(
+  "typst-skylighting-patch - helpers: a filename alone brings the code block style",
+  async () => {
+    const content = `#show: doc => doc
+#quarto-code-filename("a.py")[x]
+`;
+    const result = injectMissingAnnotationHelpers(content, definitionsSource);
+    const expected = [
+      "quarto-code-block-style-defaults",
+      "quarto-code-block-style-resolve",
+      "quarto-code-block-style",
+      "quarto-code-filename",
+    ];
+    assertEquals(result.injected, expected);
+    assertDefinedInOrder(result.content, expected);
   },
 );
 
