@@ -67,7 +67,7 @@ All changes included in 1.12:
   - Horizontal rules are full-width, using Typst 0.15's native `divider`. A Typst binary set with `QUARTO_TYPST` must be 0.15 or later.
   - In a tight definition list, a one-paragraph definition now sits on the same line as its term.
   - Bibliographies apply the hanging indent and entry spacing of the CSL style, which were dropped before.
-- ([#15414](https://github.com/quarto-dev/quarto-cli/issues/15414)): Pass the callout `kind` and `appearance` as named arguments to the Typst `callout()` function. Templates and extensions that redefine `callout()` must accept them, for example with `..args`.
+- ([#15414](https://github.com/quarto-dev/quarto-cli/issues/15414)): Add the callout `kind` and `appearance` as named arguments to the Typst `callout()` function. Templates and extensions that redefine `callout()` must accept them, for example with `..args`. (author: @mcanouil)
 
 ## Projects
 
