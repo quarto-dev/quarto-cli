@@ -1,6 +1,6 @@
 ---
-main_commit: 405161424
-analyzed_date: 2026-10-27
+main_commit: 46e617020
+analyzed_date: 2026-11-22
 key_files:
   - src/format/typst/format-typst.ts
   - src/command/render/filters.ts
@@ -62,7 +62,38 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 - `quarto-code-annotation` is the native-mode renderer. The Skylighting patch contains its own per-line copy of the same layout. Change both together.
 - With `.number-lines`, annotated rows use `width: 100% - annote-ln-width` so the circle stays on the code line.
 - The default code fill is a `set block(fill: ...)` rule, so a brand or user `set block(fill: ...)` wins.
-- `quarto-code-block` draws every code block, from the patched `Skylighting` function and from the native raw block rule. It reads the inset, radius and outline from the `quarto-code-block-style` state, so a template or a filter that frames code blocks itself can change them with `quarto-code-block-style.update(...)` for part of the document.
+- `quarto-code-block` draws every code block, from the patched `Skylighting` function and from the native raw block rule.
+- `quarto-code-filename` draws the frame and the filename bar. The code block inside the frame draws no outline and no radius, so the frame shows one border.
+- Typst closures see only the bindings above them. The style helpers come first in the file, and `quarto-annote-color` comes before `quarto-circled-number`.
+
+## Code block style (`quarto-code-block-style`)
+
+The `quarto-code-block-style` state holds the style of code blocks and of the filename bar.
+A template or a filter changes it with `quarto-code-block-style.update(s => s + (key: value))`.
+The key names match the `code-window-theme` state of the quarto-code-window extension, where the two overlap.
+
+| Key | Default | Effect |
+| --- | --- | --- |
+| `inset` | `8pt` | Inset of the code block. |
+| `radius` | `2pt` | Radius of the code block and of the filename frame. |
+| `stroke` | `0.5pt + luma(128)` | Outline of the code block and of the filename frame. Any Typst stroke value is accepted, also a dictionary with one value for each side. |
+| `fill` | `auto` | Background of the code block. |
+| `surface` | `luma(220)` | Background of the filename bar. |
+| `label` | `luma(30)` | Colour of the filename text. |
+| `title-inset` | `(x: 8pt, y: 4pt)` | Inset of the filename bar. |
+
+The fill of a code block comes from the first of these that is not `auto`:
+
+1. The `fill` key of the state. A colour or `none` (no background) also removes the set rule fill of the raw block inside.
+2. The `fill` argument of `quarto-code-block`. The patched `Skylighting` function gives `bgcolor`, which is the highlight style background or the brand `monospace-block.background-color`.
+3. The `set block(fill: ...)` rules. For native code blocks, the default rule gives `luma(230)`.
+
+`quarto-code-block-style-resolve` merges the state on `quarto-code-block-style-defaults`.
+Thus a state that replaces the full dictionary keeps the defaults for the keys that it does not set.
+An unknown key stops the compile with `quarto-code-block-style: unknown key "<key>". Known keys: ...`.
+
+On the Skylighting path, `quarto-circled-number` gets `bg: bgcolor`.
+The circle colour contrasts with the `fill` key when it is set, and with `bgcolor` when it is not.
 
 ## Known limits
 
@@ -75,5 +106,6 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 
 ## Tests
 
-`tests/docs/smoke-all/typst/code-annotations/`, `tests/docs/smoke-all/typst/code-filename/`, and `tests/unit/typst-skylighting-patch.test.ts`.
+`tests/docs/smoke-all/typst/code-annotations/`, `tests/docs/smoke-all/typst/code-filename/`, `tests/docs/smoke-all/typst/code-block-style/`, and `tests/unit/typst-skylighting-patch.test.ts`.
+The `code-block-style/` documents update the state in a raw Typst block, then count the drawn elements with `show` rules and `assert`. A wrong count stops the compile.
 The knitr cell documents need a working R graphics device.
