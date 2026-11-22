@@ -1,0 +1,32 @@
+---
+title: Code block style, no fill on the skylighting path
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template sets `fill: none` in `quarto-code-block-style`.
+The code block must have no background, so no block is drawn with the default fill.
+
+```{=typst}
+#quarto-code-block-style.update(s => s + (fill: none))
+#show block.where(fill: luma(230)): it => { counter("cbs-default-native").step(); it }
+#show block.where(fill: rgb("#f1f3f5")): it => { counter("cbs-default-skylighting").step(); it }
+#show block.where(stroke: 0.5pt + luma(128)): it => { if it.fill == none { counter("cbs-none").step() }; it }
+```
+
+```python
+x = 1
+```
+
+```{=typst}
+#context {
+  assert.eq(counter("cbs-default-native").final().first(), 0, message: "a code block kept the native default fill")
+  assert.eq(counter("cbs-default-skylighting").final().first(), 0, message: "a code block kept the highlight style fill")
+  assert.eq(counter("cbs-none").final().first(), 1, message: "expected 1 code block with no fill")
+}
+```

@@ -150,14 +150,25 @@ unitTest(
 #Skylighting(([x],));
 `;
     const result = injectMissingAnnotationHelpers(content, definitionsSource);
-    assertEquals(result.injected, [
+    const expected = [
+      "quarto-code-block-style-defaults",
+      "quarto-code-block-style-resolve",
       "quarto-code-block-style",
       "quarto-code-block",
-    ]);
-    assert(
-      result.content.indexOf("#let quarto-code-block-style =") <
-        result.content.indexOf("#let quarto-code-block("),
+    ];
+    assertEquals(result.injected, expected);
+    const positions = expected.map((name) =>
+      result.content.search(new RegExp(`^#let ${name}(?=[\\s(=])`, "m"))
     );
+    positions.forEach((position, i) => {
+      assert(position !== -1, `${expected[i]} is not defined`);
+      if (i > 0) {
+        assert(
+          positions[i - 1] < position,
+          `${expected[i - 1]} must come before ${expected[i]}`,
+        );
+      }
+    });
   },
 );
 
@@ -168,7 +179,10 @@ unitTest(
 #quarto-code-block-style.update(style => style)
 `;
     const result = injectMissingAnnotationHelpers(content, definitionsSource);
-    assertEquals(result.injected, ["quarto-code-block-style"]);
+    assertEquals(result.injected, [
+      "quarto-code-block-style-defaults",
+      "quarto-code-block-style",
+    ]);
   },
 );
 

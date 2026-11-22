@@ -1,0 +1,30 @@
+---
+title: Code block style, state replaced instead of merged
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template replaces the whole state with a dictionary that has only `fill`.
+The missing keys must fall back to their defaults.
+
+```{=typst}
+#quarto-code-block-style.update((fill: rgb("#fafafa")))
+#show block.where(fill: rgb("#fafafa")): it => {
+  assert.eq(it.radius, 2pt, message: "radius must fall back to its default")
+  counter("cbs-fill").step()
+  it
+}
+```
+
+```python
+x = 1
+```
+
+```{=typst}
+#context assert.eq(counter("cbs-fill").final().first(), 1, message: "expected 1 code block with the fill from quarto-code-block-style")
+```

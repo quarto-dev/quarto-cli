@@ -136,20 +136,51 @@ $endif$
   }
 }
 
-// Inset, radius and outline of code blocks. A template or a filter that frames
-// code blocks itself can change them for part of the document with
-// quarto-code-block-style.update(...).
-#let quarto-code-block-style = state("quarto-code-block-style", (inset: 8pt, radius: 2pt, stroke: 0.5pt + luma(128)))
+// Style of code blocks and of the filename bar. A template or a filter that
+// frames code blocks itself can change it for part of the document with
+// quarto-code-block-style.update(s => s + (key: value)).
+// fill: auto keeps the highlight style or brand background (Skylighting) and
+// the set rules (native code blocks); none gives no background.
+#let quarto-code-block-style-defaults = (
+  inset: 8pt,
+  radius: 2pt,
+  stroke: 0.5pt + luma(128),
+  fill: auto,
+  surface: luma(220),
+  label: luma(30),
+  title-inset: (x: 8pt, y: 4pt),
+)
+
+#let quarto-code-block-style = state("quarto-code-block-style", quarto-code-block-style-defaults)
+
+// Merge a code block style over the defaults. Stops the compile on a key
+// that the defaults do not have.
+#let quarto-code-block-style-resolve(style) = {
+  for key in style.keys() {
+    if key not in quarto-code-block-style-defaults {
+      panic("quarto-code-block-style: unknown key \"" + key + "\". Known keys: "
+        + quarto-code-block-style-defaults.keys().join(", ") + ".")
+    }
+  }
+  quarto-code-block-style-defaults + style
+}
 
 // Draw a code block with the current code block style.
-// With fill: auto, the block takes its fill from the set rules.
+// The style fill comes first, then the fill argument; with both auto, the
+// block takes its fill from the set rules.
+// A style fill also clears the set rule fill of the raw block inside.
 #let quarto-code-block(fill: auto, body) = context {
-  let style = quarto-code-block-style.get()
+  let style = quarto-code-block-style-resolve(quarto-code-block-style.get())
   let args = (width: 100%, inset: style.inset, radius: style.radius, stroke: style.stroke)
-  if fill != auto {
+  let content = body
+  if style.fill != auto {
+    args.insert("fill", style.fill)
+    content = [#set block(fill: none)
+      #body]
+  } else if fill != auto {
     args.insert("fill", fill)
   }
-  block(..args, body)
+  block(..args, content)
 }
 
 // Style native raw code blocks with default inset and radius

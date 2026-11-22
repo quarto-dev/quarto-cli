@@ -284,8 +284,13 @@ async function pandocVersion(): Promise<string> {
 }
 
 const annotationHelperDependencies: [string, string[]][] = [
-  ["quarto-code-block-style", []],
-  ["quarto-code-block", ["quarto-code-block-style"]],
+  ["quarto-code-block-style-defaults", []],
+  ["quarto-code-block-style-resolve", ["quarto-code-block-style-defaults"]],
+  ["quarto-code-block-style", ["quarto-code-block-style-defaults"]],
+  [
+    "quarto-code-block",
+    ["quarto-code-block-style", "quarto-code-block-style-resolve"],
+  ],
   ["quarto-annote-link", []],
   ["quarto-circled-number", []],
   ["quarto-annote-color", []],
@@ -335,11 +340,18 @@ export function injectMissingAnnotationHelpers(
   const isUsed = (name: string) =>
     new RegExp(`(?<!#let )\\b${name}[(.]`).test(content);
 
+  const dependenciesOf = new Map(annotationHelperDependencies);
   const needed = new Set<string>();
-  for (const [name, dependencies] of annotationHelperDependencies) {
+  const addWithDependencies = (name: string) => {
+    if (needed.has(name)) {
+      return;
+    }
+    needed.add(name);
+    dependenciesOf.get(name)?.forEach(addWithDependencies);
+  };
+  for (const [name] of annotationHelperDependencies) {
     if (isUsed(name)) {
-      needed.add(name);
-      dependencies.forEach((dependency) => needed.add(dependency));
+      addWithDependencies(name);
     }
   }
 

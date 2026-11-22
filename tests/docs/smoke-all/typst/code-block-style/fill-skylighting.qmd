@@ -1,0 +1,31 @@
+---
+title: Code block style, fill on the Skylighting path
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template sets `fill` in `quarto-code-block-style`.
+Both highlighted code blocks must use that fill instead of the highlight style background.
+The probe counts the blocks that Typst draws with the fill, and the compile fails when the count is wrong.
+
+```{=typst}
+#quarto-code-block-style.update(s => s + (fill: rgb("#fafafa")))
+#show block.where(fill: rgb("#fafafa")): it => { counter("cbs-fill").step(); it }
+```
+
+```python
+x = 1
+```
+
+```r
+y <- 2
+```
+
+```{=typst}
+#context assert.eq(counter("cbs-fill").final().first(), 2, message: "expected 2 code blocks with the fill from quarto-code-block-style")
+```

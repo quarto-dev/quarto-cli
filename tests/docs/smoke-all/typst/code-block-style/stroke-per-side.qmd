@@ -1,0 +1,33 @@
+---
+title: Code block style, per-side stroke
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template sets a per-side `stroke` in `quarto-code-block-style`: a 3pt blue top rule and no other side.
+
+```{=typst}
+#quarto-code-block-style.update(s => s + (stroke: (top: 3pt + blue, rest: none)))
+#show block: it => {
+  let s = it.stroke
+  if type(s) == dictionary and s.at("top", default: none) != none and s.top.paint == blue {
+    assert.eq(s.top.thickness, 3pt, message: "top rule thickness")
+    assert.eq(s.at("left", default: none), none, message: "left side must have no stroke")
+    counter("cbs-top").step()
+  }
+  it
+}
+```
+
+```python
+x = 1
+```
+
+```{=typst}
+#context assert.eq(counter("cbs-top").final().first(), 1, message: "expected 1 code block with a blue top rule")
+```
