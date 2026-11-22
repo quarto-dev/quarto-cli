@@ -80,7 +80,7 @@ const definitionsSource = Deno.readTextFileSync(
 
 const usingDocument =
   `#let Skylighting(fill: none, number: false, start: 1, cell-id: "", annotations: (:), sourcelines) = {
-  quarto-annote-link(lbl)[#quarto-circled-number(1, color: quarto-annote-color(bgcolor))]
+  quarto-annote-link(lbl)[#quarto-circled-number(1, bg: bgcolor)]
 }
 #quarto-code-filename("a.py")[
 #Skylighting(([x],));

@@ -189,12 +189,12 @@ const annotatedLineRendering =
          let lbl = cell-id + "-annote-" + str(annote-num)
          if str(annote-num) not in seen-annotes {
            seen-annotes.insert(str(annote-num), true)
-           blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] #label(lbl + "-back")] + EndLine()
+           blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, bg: bgcolor)] #label(lbl + "-back")] + EndLine()
          } else {
-           blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))]] + EndLine()
+           blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, bg: bgcolor)]] + EndLine()
          }
        } else {
-         blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-circled-number(annote-num, color: quarto-annote-color(bgcolor))] + EndLine()
+         blocks = blocks + box(width: 100% - annote-ln-width)[#ln #h(1fr) #quarto-circled-number(annote-num, bg: bgcolor)] + EndLine()
        }
      } else {
        blocks = blocks + ln + EndLine()
@@ -292,8 +292,15 @@ const annotationHelperDependencies: [string, string[]][] = [
     ["quarto-code-block-style", "quarto-code-block-style-resolve"],
   ],
   ["quarto-annote-link", []],
-  ["quarto-circled-number", []],
   ["quarto-annote-color", []],
+  [
+    "quarto-circled-number",
+    [
+      "quarto-code-block-style",
+      "quarto-code-block-style-resolve",
+      "quarto-annote-color",
+    ],
+  ],
   [
     "quarto-code-filename",
     ["quarto-code-block-style", "quarto-code-block-style-resolve"],

@@ -1,0 +1,35 @@
+---
+title: Code block style, dark fill with annotations
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template sets a dark `fill` in `quarto-code-block-style`.
+The annotation circles on the code lines must be light, so they stay visible on the dark background.
+The circles in the list below the block keep the text colour.
+
+```{=typst}
+#quarto-code-block-style.update(s => s + (fill: rgb("#101010")))
+#show circle: it => {
+  if type(it.stroke) == stroke and it.stroke.paint == luma(200) { counter("cbs-light").step() }
+  it
+}
+```
+
+```python
+x = 1 # <1>
+y = 2 # <2>
+```
+
+1. First.
+2. Second.
+
+```{=typst}
+#context assert.eq(counter("cbs-light").final().first(), 2, message: "expected 2 light annotation circles on the dark code block")
+```

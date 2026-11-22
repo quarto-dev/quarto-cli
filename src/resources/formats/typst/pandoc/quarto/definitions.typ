@@ -81,23 +81,6 @@ $endif$
 }
 
 // Code annotation support
-#let quarto-circled-number(n, color: none) = context {
-  let c = if color != none { color } else { text.fill }
-  // A zero-height box lets the circle overflow instead of making its row taller.
-  // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
-  // The equation wrapper carries the text alternative.
-  box(height: 0pt, baseline: 0.55em, move(dy: -0.63em, math.equation(alt: "Annotation " + str(n), block: false, circle(
-    radius: 0.55em,
-    stroke: 0.5pt + c,
-  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))
-}
-
-// Link to `target` only if that label exists in the document; otherwise
-// render `body` unlinked. Keeps annotation rendering resilient when the
-// counterpart (annotation item or code line) is missing.
-#let quarto-annote-link(target, body) = context {
-  if query(label(target)).len() > 0 { link(label(target), body) } else { body }
-}
 
 // Derive a contrasting annotation colour from a background fill.
 // Light backgrounds get dark circles; dark backgrounds get light circles.
@@ -113,6 +96,34 @@ $endif$
   } else {
     luma(60)
   }
+}
+
+// A circled annotation number. color wins; otherwise, with bg set, the colour
+// contrasts with the code block fill (the style fill, else bg); otherwise
+// the circle takes the text colour.
+#let quarto-circled-number(n, color: none, bg: auto) = context {
+  let c = if color != none {
+    color
+  } else if bg != auto {
+    let style = quarto-code-block-style-resolve(quarto-code-block-style.get())
+    quarto-annote-color(if style.fill != auto { style.fill } else { bg })
+  } else {
+    text.fill
+  }
+  // A zero-height box lets the circle overflow instead of making its row taller.
+  // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
+  // The equation wrapper carries the text alternative.
+  box(height: 0pt, baseline: 0.55em, move(dy: -0.63em, math.equation(alt: "Annotation " + str(n), block: false, circle(
+    radius: 0.55em,
+    stroke: 0.5pt + c,
+  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))
+}
+
+// Link to `target` only if that label exists in the document; otherwise
+// render `body` unlinked. Keeps annotation rendering resilient when the
+// counterpart (annotation item or code line) is missing.
+#let quarto-annote-link(target, body) = context {
+  if query(label(target)).len() > 0 { link(label(target), body) } else { body }
 }
 
 // Frame a code block with a filename bar, styled by quarto-code-block-style.
