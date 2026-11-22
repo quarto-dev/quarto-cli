@@ -58,6 +58,7 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 ## Rendering helpers (`definitions.typ`)
 
 - `quarto-circled-number` draws the circle. It sits inside a `math.equation` that carries the text alternative "Annotation N", because `box`, `text` and `link` do not accept `alt`. The circle sits in a zero-height box, so it overflows its row and adds no height. That box needs `baseline: 0.55em` with a `move(dy: -0.63em)`, which centres the circle on the cap height of the text. With the default baseline, a zero-height box still raises the top of its line by about 0.8pt, and the second annotated row ends up taller than a plain row.
+- `quarto-code-annotation` draws its circles inside the raw block, where the text is smaller (0.8em). It reads `text.size` outside the block and gives it to `quarto-circled-number` as `size`, so all circles have the same size as the circles of the annotation list.
 - `quarto-annote-link` links only when the target label exists, so a missing list degrades to an unlinked circle.
 - `quarto-code-annotation` is the native-mode renderer. The Skylighting patch contains its own per-line copy of the same layout. Change both together.
 - With `.number-lines`, annotated rows use `width: 100% - annote-ln-width` so the circle stays on the code line.
@@ -94,6 +95,8 @@ An unknown key stops the compile with `quarto-code-block-style: unknown key "<ke
 
 On the Skylighting path, `quarto-circled-number` gets `bg: bgcolor`.
 The circle colour contrasts with the `fill` key when it is set, and with `bgcolor` when it is not.
+On the native path, the circles follow the colour of the code text.
+A template that sets a dark `fill` must also set a light code text colour, for example with `show raw.where(block: true): set text(fill: ...)`. The circles then follow that colour.
 
 ## Known limits
 
