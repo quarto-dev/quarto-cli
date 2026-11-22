@@ -100,8 +100,9 @@ $endif$
 
 // A circled annotation number. color wins; otherwise, with bg set, the colour
 // contrasts with the code block fill (the style fill, else bg); otherwise
-// the circle takes the text colour.
-#let quarto-circled-number(n, color: none, bg: auto) = context {
+// the circle takes the text colour. size sets the text size that the circle
+// scales with; auto uses the current text size.
+#let quarto-circled-number(n, color: none, bg: auto, size: auto) = context {
   let c = if color != none {
     color
   } else if bg != auto {
@@ -113,10 +114,11 @@ $endif$
   // A zero-height box lets the circle overflow instead of making its row taller.
   // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
   // The equation wrapper carries the text alternative.
-  box(height: 0pt, baseline: 0.55em, move(dy: -0.63em, math.equation(alt: "Annotation " + str(n), block: false, circle(
+  let circled = box(height: 0pt, baseline: 0.55em, move(dy: -0.63em, math.equation(alt: "Annotation " + str(n), block: false, circle(
     radius: 0.55em,
     stroke: 0.5pt + c,
   )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))
+  if size != auto { text(size: size, circled) } else { circled }
 }
 
 // Link to `target` only if that label exists in the document; otherwise
@@ -151,7 +153,11 @@ $endif$
   ]
 }
 
-#let quarto-code-annotation(annotations, cell-id: "", color: none, body) = {
+// Native code annotations. The circles are drawn inside the raw block, where
+// the text is smaller, so they take the text size from outside the block to
+// match the circles of the annotation list. They follow the code text colour.
+#let quarto-code-annotation(annotations, cell-id: "", color: none, body) = context {
+  let size = text.size
   // Build a set of first-line positions per annotation number so that
   // back-labels are only emitted once (avoiding duplicate labels when
   // one annotation spans multiple lines).
@@ -170,12 +176,12 @@ $endif$
         let lbl = cell-id + "-annote-" + str(annote-num)
         let is-first = first-lines.at(str(annote-num), default: none) == str(it.number)
         if is-first {
-          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color)] #label(lbl + "-back")]
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color, size: size)] #label(lbl + "-back")]
         } else {
-          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color)]]
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color, size: size)]]
         }
       } else {
-        box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color)]
+        box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color, size: size)]
       }
     } else {
       it
