@@ -1,0 +1,44 @@
+---
+title: Callout kind and appearance
+format: typst
+keep-typ: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - - 'kind:\s+"warning"\s*,\s*appearance:\s+"default"'
+          - 'kind:\s+"tip"\s*,\s*appearance:\s+"minimal"'
+          - 'kind:\s+"important"\s*,\s*appearance:\s+"simple"'
+          - 'kind:\s+"note"\s*,\s*appearance:\s+"minimal"'
+          - 'kind:\s+"none"\s*,\s*appearance:\s+"simple"'
+        - []
+      ensurePdfRegexMatches:
+        - ['Note 1']
+        - []
+      noErrors: default
+---
+
+::: {.callout-warning}
+
+## Default title
+
+Body.
+:::
+
+::: {.callout-tip appearance="minimal"}
+Body.
+:::
+
+::: {.callout-important appearance="simple"}
+Body.
+:::
+
+::: {#nte-x .callout-note appearance="minimal"}
+Body.
+:::
+
+See @nte-x.
+
+::: {.callout}
+Body.
+:::

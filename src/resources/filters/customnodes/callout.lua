@@ -100,6 +100,7 @@ function _callout_main()
       end
   
       local appearance = nameForCalloutStyle(appearanceRaw);
+      local appearance_raw = appearance
       if appearance == "minimal" then
         icon = false
         appearance = "simple"
@@ -115,6 +116,7 @@ function _callout_main()
         collapse = tbl.collapse,
         content = content,
         appearance = appearance,
+        appearance_raw = appearance_raw,
         icon = icon,
         type = t,
         attr = tbl.attr or pandoc.Attr(),
@@ -308,7 +310,9 @@ function _callout_main()
         { "background_color", pandoc.RawInline("typst", background_color) },
         { "icon_color", pandoc.RawInline("typst", icon_color) },
         { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
-        { "body_background_color", pandoc.RawInline("typst", body_background_color)}
+        { "body_background_color", pandoc.RawInline("typst", body_background_color)},
+        { "kind", callout.type },
+        { "appearance", callout.appearance_raw }
       })
 
       -- Wrap in #note() for margin placement if needed
@@ -333,7 +337,9 @@ function _callout_main()
       { "background_color", pandoc.RawInline("typst", background_color) },
       { "icon_color", pandoc.RawInline("typst", icon_color) },
       { "icon", pandoc.RawInline("typst", callout.icon == false and "none" or ("" .. icon .. "()"))},
-      { "body_background_color", pandoc.RawInline("typst", body_background_color)}
+      { "body_background_color", pandoc.RawInline("typst", body_background_color)},
+      { "kind", callout.type },
+      { "appearance", callout.appearance_raw }
     })
 
     -- For crossref callouts in margin, wrap the entire figure in #note()
