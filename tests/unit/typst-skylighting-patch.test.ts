@@ -148,10 +148,10 @@ unitTest(
       definitionsSource,
     );
     assertEquals(result.injected, ["quarto-code-filename"]);
-    assert(
-      result.content.indexOf("#let quarto-code-filename(filename, body) = {") <
-        result.content.indexOf("#let ext-native-filename"),
-    );
+    assertDefinedInOrder(result.content, [
+      "quarto-code-filename",
+      "ext-native-filename",
+    ]);
   },
 );
 
