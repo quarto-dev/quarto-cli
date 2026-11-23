@@ -3,8 +3,10 @@
 These apply to any work in this directory or on a PR listed in README "The sequence": executing, reviewing or amending a plan.
 
 Execute at most one plan task per session.
-Tick its checkboxes, fold its execution-log updates into the task commit, run the post-commit review, and stop at that task boundary.
+Tick its checkboxes, fold its execution-log updates into the task commit (a task with no commit step still commits the plan file), run the post-commit review, and stop at that task boundary.
+A file a later task reads (a baseline, a captured output) is kept somewhere that survives the session, not `/tmp`, and the execution log names it.
 A fresh session resumes with the continuation prompt in README "How to execute a plan".
+After the last task, the coordinator's wrap-up session runs the plan's Verification, its review checklist and the whole-branch checks of "How to execute a plan", then hands the branch to the maintainer.
 
 Before you finish, bring these docs in line with what changed:
 
