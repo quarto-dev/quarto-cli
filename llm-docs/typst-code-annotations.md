@@ -58,6 +58,7 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 ## Rendering helpers (`definitions.typ`)
 
 - `quarto-circled-number` draws the circle. It sits inside a `math.equation` that carries the text alternative "Annotation N", because `box`, `text` and `link` do not accept `alt`. The circle sits in a zero-height box, so it overflows its row and adds no height. That box needs `baseline: 0.55em` with a `move(dy: -0.63em)`, which centres the circle on the cap height of the text. With the default baseline, a zero-height box still raises the top of its line by about 0.8pt, and the second annotated row ends up taller than a plain row.
+- `quarto-circled-number` resets the `set block` rule before it draws the circle. A template or an extension can wrap code blocks in a broad `set block` rule, for example with `width: 100%` and an inset. Without the reset, that rule reaches the blocks inside the circle, and the circle drops off its code line onto a new line.
 - `quarto-code-annotation` draws its circles inside the raw block, where the text is smaller (0.8em). It reads `text.size` outside the block and gives it to `quarto-circled-number` as `size`, so all circles have the same size as the circles of the annotation list.
 - `quarto-annote-link` links only when the target label exists, so a missing list degrades to an unlinked circle.
 - `quarto-code-annotation` is the native-mode renderer. The Skylighting patch contains its own per-line copy of the same layout. Change both together.

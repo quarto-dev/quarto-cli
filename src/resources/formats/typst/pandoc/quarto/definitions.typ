@@ -111,6 +111,10 @@ $endif$
   } else {
     text.fill
   }
+  // A template or an extension can wrap code blocks in a broad set block rule.
+  // Without this reset, that rule reaches the blocks inside the circle and
+  // pushes the circle off its code line.
+  set block(width: auto, height: auto, inset: 0pt, outset: 0pt, radius: 0pt, stroke: none, fill: none, spacing: 0pt)
   // A zero-height box lets the circle overflow instead of making its row taller.
   // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
   // The equation wrapper carries the text alternative.
