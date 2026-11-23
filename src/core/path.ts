@@ -184,7 +184,13 @@ export function resolvePathGlobs(
         for (
           const file of expandGlobSync(
             glob,
-            { root, exclude, includeDirs: true, extended: true, globstar: true },
+            {
+              root,
+              exclude,
+              includeDirs: true,
+              extended: true,
+              globstar: true,
+            },
           )
         ) {
           expanded.push(file.path);

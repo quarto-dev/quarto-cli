@@ -333,7 +333,8 @@ mermaid.initialize(${JSON.stringify(mermaidOpts)});
 
           // LaTeX-based formats also require external tooling
           if (isLatexOutput(handlerContext.options.format.pandoc)) {
-            warning += " and requires external tooling (rsvg-convert or Inkscape)";
+            warning +=
+              " and requires external tooling (rsvg-convert or Inkscape)";
           }
 
           warning += ". Consider using mermaid-format: png if issues occur.";
