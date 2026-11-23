@@ -416,13 +416,13 @@ git commit -m "Name the deno_ral fs, temp and errors replacements in the runtime
 
 ## Review checklist
 
-- [ ] `git diff` under `src/core` contains, apart from the hand-edited files, only `Deno.x` → `x`, `Deno.MakeTempOptions` → `TempOptions`, `Deno.FileInfo` → `FileInfo`, and import lines (`git diff -U0 src/core | grep '^[-+]' | grep -v '^[-+][-+]' | grep -v 'deno_ral/\(fs\|temp\|errors\)\.ts' | grep -vE 'Deno\.|FileInfo|TempOptions|^[+-]\s*$|^[+-]\s*(import|\}|[a-zA-Z]+,|type [A-Za-z]+,)' ` prints nothing surprising).
-- [ ] `monkey-patch.ts` is byte-identical to `main`; `metrics.ts` too unless PR 20b landed first.
-- [ ] No comment line changed (comments are PR 25's).
-- [ ] `copy.ts` still calls the real `copyFileSync` of the layer at line 152 (not its own recursive helper).
-- [ ] The `http.ts` predicate rewrite keeps the `DOMException` exclusion.
-- [ ] No `src/core/lib/**` file imports `deno_ral` (those files are bundled for the browser).
-- [ ] Baseline only decreased.
+- [x] `git diff` under `src/core` contains, apart from the hand-edited files, only `Deno.x` → `x`, `Deno.MakeTempOptions` → `TempOptions`, `Deno.FileInfo` → `FileInfo`, and import lines (`git diff -U0 src/core | grep '^[-+]' | grep -v '^[-+][-+]' | grep -v 'deno_ral/\(fs\|temp\|errors\)\.ts' | grep -vE 'Deno\.|FileInfo|TempOptions|^[+-]\s*$|^[+-]\s*(import|\}|[a-zA-Z]+,|type [A-Za-z]+,)' ` prints nothing surprising).
+- [x] `monkey-patch.ts` is byte-identical to `main`; `metrics.ts` too unless PR 20b landed first.
+- [x] No comment line changed (comments are PR 25's).
+- [x] `copy.ts` still calls the real `copyFileSync` of the layer at line 152 (not its own recursive helper).
+- [x] The `http.ts` predicate rewrite keeps the `DOMException` exclusion.
+- [x] No `src/core/lib/**` file imports `deno_ral` (those files are bundled for the browser).
+- [x] Baseline only decreased.
 
 ## Risks and rollback
 
@@ -546,3 +546,28 @@ PR 37 Task 6 Step 2 repeats the exercise after the flip.
   The four connection-error hints say that `isConnectionError` matches all five classes and to add a predicate in `errors.ts` when checking only one.
   Exempting type-position `Deno.errors.*` uses from the predicate hint was declined: the only one is `InputWalkError`, which is in the baseline and which PR 12 rewrites to `Error & {…}`.
   The updated tests failed first (old `realPathSync` hint text; a replacement attached to `src/resources/tools/ast-diagram/main.ts`), then passed with `44 passed | 0 failed`; `tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.`. `_TEMPLATE.md` names the renamed constant.
+
+### Wrap-up (coordinator, 2026-11-23, branch at `82c24ea84`, `upstream/main` at `1f794efd4`)
+
+- Base: `upstream/main` is one commit ahead (`1f794efd4`, CI timing data); `git diff --stat HEAD...upstream/main` touches only `tests/timing-for-ci.txt`.
+- Acceptance criteria:
+  - AST dry run printed `Summary: 205 files scanned, 0 would be rewritten, 0 replacements, 0 with collisions, 2 skipped`.
+  - The comment-filtered `rg` printed nothing (exit 1).
+  - `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.`; `git diff upstream/main -- tools/runtime-boundary-baseline.json` shows only `denoCalls` 991 → 821.
+  - `deno check ... quarto.ts` from `src/` exited 0.
+- Task 5 tests, rerun with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`, plus `unit/tools/check-runtime-boundary.test.ts`:
+  - Unit: `ok | 284 passed | 0 failed | 6 ignored (5m14s)`.
+  - Smoke: `FAILED | 59 passed | 6 failed | 1 ignored (14m33s)`. The six are the four R freeze renders in `render-freeze.test.ts` and `run-r-script` / `run-r-script-stdout-stderr`. Cause is the local test environment, not this branch: `tests/.rvenv/bin` was re-created on 2026-11-23 16:01 without `Rscript.exe`, and `run-tests.ps1` points `QUARTO_R` there, so each fails with `Failed to spawn '...\tests\.rvenv\bin\Rscript': File not found`. Stable Quarto 1.12.3 fails the same way with that `QUARTO_R`; the dev build renders an R chunk and runs an R script with the system R (exit 0). Task 5's run of 2026-11-20 predates the re-creation and passed 65/65.
+  - The smoke run appended `**/*.quarto_ipynb` to `tests/docs/jupyter/cache-non-default/.gitignore` again; restored.
+- Manual: `render tests/docs/test.qmd --to html` exit 0; `render --to pdf --output -` exit 0 with `%PDF-` bytes on stdout (12054 bytes).
+  `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads` prints the report header with an empty `{}`. Same on `main`: `metricsObject` in `src/core/performance/metrics.ts` (unchanged here) captures `fileReads` while it is still `undefined`, and `captureFileReads()` reassigns only the variable. The layer still looks `Deno.readTextFileSync` up at call time (`src/deno_ral/fs.ts:295`), so the hook would see the reads.
+- Review checklist (ticked above):
+  - The non-mechanical `src/core` lines are the planned `console.ts` rewrite and the `deno fmt` commit `5efdc0ca6`.
+  - `monkey-patch.ts` and `metrics.ts`: `git diff --quiet upstream/main` on both.
+  - No comment line changed (`82c24ea84` restores the `deno-init-tree-sitter.ts` header that `deno fmt` reindented).
+  - `copy.ts` calls the layer's copy as `fsCopyFileSync(src, dest)`, now at line 161.
+  - `http.ts` keeps `!(e instanceof DOMException)`.
+  - `src/core/lib` imports `deno_ral` only in `level-one-headings.ts` (`path.ts`), already on `main`.
+  - Baseline only decreased.
+- Whole-branch checks from README "How to execute a plan" (indirect `Deno`, PR numbers in comments, new test helpers): all three printed nothing.
+- Remaining maintainer steps: interactive `quarto preview`, push to `upstream`, PR creation; after merge, the `--reverse` backport demonstration in "Follow-up after merge".
