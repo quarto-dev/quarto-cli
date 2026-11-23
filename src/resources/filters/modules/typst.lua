@@ -5,6 +5,11 @@
 -- this module is exposed as quarto.format.typst
 
 local function _main()
+  local function as_typst_string(str)
+    local escaped = str:gsub("\\", "\\\\"):gsub("\"", "\\\"")
+    return "\"" .. escaped .. "\""
+  end
+
   local function typst_function_call(name, params, keep_scaffold)
     local result = pandoc.Blocks({})
     result:insert(pandoc.RawInline("typst", "#" .. name .. "("))
@@ -12,7 +17,7 @@ local function _main()
       if type(v) == "number" then
         result:insert(pandoc.RawInline("typst", tostring(v)))
       elseif type(v) == "string" then
-        result:insert(pandoc.RawInline("typst", "\"" .. v .. "\""))
+        result:insert(pandoc.RawInline("typst", as_typst_string(v)))
       elseif type(v) == "boolean" then
         result:insert(pandoc.RawInline("typst", v and "true" or "false"))
       elseif v.t == "RawInline" or v.t == "RawBlock" then

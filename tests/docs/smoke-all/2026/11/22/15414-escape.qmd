@@ -1,0 +1,18 @@
+---
+title: Callout type with quote and backslash
+format:
+  typst:
+    keep-typ: true
+filters:
+  - 15414-escape.lua
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['kind:\s*"say\\"hi\\\\there"']
+        - []
+      noErrors: true
+---
+
+A callout built with `quarto.Callout()` can carry any type string.
+Quarto must escape the quote and the backslash in the Typst string that it passes as `kind`.
