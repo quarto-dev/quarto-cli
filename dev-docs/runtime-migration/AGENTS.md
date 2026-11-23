@@ -7,7 +7,8 @@ Tick its checkboxes, fold its execution-log updates into the task commit (a task
 Keep any file a later task reads (a baseline, captured output) somewhere that survives the session, not `/tmp`, and record its path in the execution log.
 Later tasks read it from that logged path, even if their commands name another one.
 A fresh session resumes with the continuation prompt in README "How to execute a plan".
-After the last task, or at the first maintainer-only step (a push, `gh pr create`) if one comes earlier, the coordinator's wrap-up session runs the plan's Verification, its review checklist and the whole-branch checks of "How to execute a plan", then hands the branch to the maintainer.
+After the last task's executor steps and before `gh pr create`, the coordinator's wrap-up session runs the plan's Verification, its review checklist and the whole-branch checks of "How to execute a plan", then hands the branch to the maintainer.
+An earlier maintainer-only step (a push, `gh workflow run`) is a handoff: the maintainer runs it and execution resumes at the next task.
 
 Before you finish, bring these docs in line with what changed:
 
