@@ -351,7 +351,12 @@ export const kRalDenoReplacements: Readonly<
     "readDirSync", "readDir", "symlinkSync", "symlink", "readLinkSync",
     "realPath", "chmodSync", "chmod", "utimeSync", "truncateSync",
     "open", "openSync", "create", "FileInfo", "DirEntry", "FsFile",
-  ], { realPathSync: "canonicalPathSync" }),
+  ]),
+  realPathSync: {
+    hint: "canonicalPathSync from src/deno_ral/fs.ts (resolves symlinks, throws when the path does not exist), " +
+      "or normalizePath from src/core/path.ts (what the patched Deno.realPathSync does)",
+    scopes: kRalLayerScopes,
+  },
   ...ralReplacements("temp.ts", [
     "makeTempDirSync", "makeTempDir", "makeTempFileSync", "makeTempFile",
   ], { MakeTempOptions: "TempOptions" }),
@@ -361,11 +366,17 @@ export const kRalDenoReplacements: Readonly<
     "errors.PermissionDenied": "isPermissionDenied",
     "errors.AddrInUse": "isAddrInUse",
     "errors.ConnectionRefused": "isConnectionRefused",
-    "errors.BrokenPipe": "isConnectionError",
-    "errors.NotConnected": "isConnectionError",
-    "errors.ConnectionAborted": "isConnectionError",
-    "errors.ConnectionReset": "isConnectionError",
   }),
+  ...Object.fromEntries(
+    ["BrokenPipe", "NotConnected", "ConnectionAborted", "ConnectionReset"].map((name) => [
+      `errors.${name}`,
+      {
+        hint: "isConnectionError from src/deno_ral/errors.ts (matches all five connection errors; " +
+          "a check for one class only adds its own predicate there)",
+        scopes: kRalLayerScopes,
+      },
+    ]),
+  ),
 };
 
 /** Keyed by stdModuleOf(). `module` is repository-relative. A suggestion only: never turns a finding into an error. */
@@ -378,12 +389,14 @@ export const kStdSuggestions: Readonly<
   "assert": { module: "tests/asserts.ts", scopes: ["tests"] },
 };
 
-/** Code that also runs in the browser (the YAML intelligence web worker imports it), so it cannot
- * import src/deno_ral/: a covered API there is only ever a warning. */
-const kBrowserSharedPaths: readonly string[] = ["src/core/lib/"];
+/** Code in a counted scope that cannot import src/deno_ral/, so a covered API there is only ever a
+ * warning: src/core/lib also runs in the browser (the YAML intelligence web worker imports it);
+ * src/resources/tools holds standalone scripts run without the import map (ast-diagram) or in the
+ * browser (ast-tracing). */
+const kNoRalImportPaths: readonly string[] = ["src/core/lib/", "src/resources/tools/"];
 
-const isBrowserShared = (path: string) =>
-  kBrowserSharedPaths.some((prefix) => path.startsWith(prefix));
+const cannotImportRal = (path: string) =>
+  kNoRalImportPaths.some((prefix) => path.startsWith(prefix));
 
 export function denoReplacement(api: string, scope: string): string | undefined {
   const entry = Object.hasOwn(kRalDenoReplacements, api)
@@ -488,7 +501,7 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
           };
           const line = firstAddedLine(e.change, "Deno." + api);
           if (line !== undefined) finding.line = line;
-          const replacement = isBrowserShared(e.change.path)
+          const replacement = cannotImportRal(e.change.path)
             ? undefined
             : denoReplacement(api, scope);
           if (replacement !== undefined) finding.replacement = replacement;

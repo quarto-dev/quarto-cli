@@ -379,11 +379,22 @@ unitTest("check-runtime-boundary - denoReplacement exact keys only", async () =>
 // deno-lint-ignore require-await
 unitTest("check-runtime-boundary - fs, temp and errors keys name their replacement in src and package/src", async () => {
   assertEquals(denoReplacement("readTextFileSync", "src"), "readTextFileSync from src/deno_ral/fs.ts");
-  assertEquals(denoReplacement("realPathSync", "package/src"), "canonicalPathSync from src/deno_ral/fs.ts");
+  assertEquals(
+    denoReplacement("realPathSync", "package/src"),
+    "canonicalPathSync from src/deno_ral/fs.ts (resolves symlinks, throws when the path does not exist), " +
+      `or normalizePath from src/core/path.ts (what the patched ${DENO}realPathSync does)`,
+  );
   assertEquals(denoReplacement("FileInfo", "src"), "FileInfo from src/deno_ral/fs.ts");
   assertEquals(denoReplacement("MakeTempOptions", "src"), "TempOptions from src/deno_ral/temp.ts");
   assertEquals(denoReplacement("errors.NotFound", "src"), "isNotFound from src/deno_ral/errors.ts");
-  assertEquals(denoReplacement("errors.ConnectionReset", "src"), "isConnectionError from src/deno_ral/errors.ts");
+  for (const key of ["errors.BrokenPipe", "errors.NotConnected", "errors.ConnectionAborted", "errors.ConnectionReset"]) {
+    assertEquals(
+      denoReplacement(key, "src"),
+      "isConnectionError from src/deno_ral/errors.ts (matches all five connection errors; " +
+        "a check for one class only adds its own predicate there)",
+      key,
+    );
+  }
   for (const scope of ["tests", "resources", "src-js"]) {
     assertEquals(denoReplacement("readTextFileSync", scope), undefined, scope);
     assertEquals(denoReplacement("errors.NotFound", scope), undefined, scope);
@@ -807,18 +818,20 @@ unitTest("check-runtime-boundary - PR mode: an increase the PR's baseline alread
 });
 
 // deno-lint-ignore require-await
-unitTest("check-runtime-boundary - a covered API in browser-shared code is a warning, not an error", async () => {
+unitTest("check-runtime-boundary - a covered API in code that cannot import deno_ral is a warning, not an error", async () => {
   const report = diffChanges([
     { path: "src/core/lib/errors.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
+    { path: "src/resources/tools/ast-diagram/main.ts", before: "", after: `await ${DENO}readTextFile(f);\n`, addedLines: [1] },
     { path: "src/core/other.ts", before: "", after: `export const o = ${DENO}build.os;\n`, addedLines: [1] },
   ]);
   const byFile = Object.fromEntries(report.findings.map((f) => [f.file, f]));
   assertEquals(byFile["src/core/lib/errors.ts"].replacement, undefined);
+  assertEquals(byFile["src/resources/tools/ast-diagram/main.ts"].replacement, undefined);
   assertEquals(byFile["src/core/other.ts"].replacement, kRalDenoReplacements["build.os"].hint);
 
-  const rendered = renderDelta(report, { "src": { denoCalls: 996, stdImportFiles: 49 } }, { "src": { denoCalls: 994, stdImportFiles: 49 } });
+  const rendered = renderDelta(report, { "src": { denoCalls: 997, stdImportFiles: 49 } }, { "src": { denoCalls: 994, stdImportFiles: 49 } });
   assertEquals(rendered.errors.map((e) => e.file), ["src/core/other.ts"]);
-  assertEquals(rendered.warnings.map((w) => w.file), ["src/core/lib/errors.ts"]);
+  assertEquals(rendered.warnings.map((w) => w.file).sort(), ["src/core/lib/errors.ts", "src/resources/tools/ast-diagram/main.ts"]);
 });
 
 // deno-lint-ignore require-await
