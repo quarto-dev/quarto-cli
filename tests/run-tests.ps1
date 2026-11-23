@@ -246,16 +246,39 @@ $DENO_ARGS += $TESTS_TO_RUN
 # Point Quarto at the R of the rig project in tests/ (rproj.toml): the
 # .rvenv wrapper sets the locked R version and package library itself, so
 # every R process a test starts gets them, whatever its working directory.
-$QUARTO_RVENV_BIN = Join-Path $QUARTO_ROOT "tests" ".rvenv" "bin"
-If (Test-Path $QUARTO_RVENV_BIN) {
-  $OLD_QUARTO_R = $Env:QUARTO_R
-  $Env:QUARTO_R = $QUARTO_RVENV_BIN
-  $quarto_r_set = $true
-  if ($VERBOSE_MODE) {
-    Write-Host "> Using R from " -NoNewline; Write-Host "$($Env:QUARTO_R)" -ForegroundColor Blue;
+$QUARTO_RVENV = Join-Path $QUARTO_ROOT "tests" ".rvenv"
+$QUARTO_RVENV_BIN = Join-Path $QUARTO_RVENV "bin"
+$QUARTO_R_ENV = @{}
+If ((Test-Path (Join-Path $QUARTO_RVENV_BIN "Rscript.exe")) -or (Test-Path (Join-Path $QUARTO_RVENV_BIN "Rscript"))) {
+  $QUARTO_R_ENV.QUARTO_R = $QUARTO_RVENV_BIN
+} elseif (Test-Path $QUARTO_RVENV_BIN) {
+  # Endpoint security software can quarantine the wrapper executables rig
+  # builds for each project. Do what the wrapper does instead: set the
+  # project's library variables and use the R recorded in rvenv.cfg.
+  $R_BINARY_LINE = Select-String -Path (Join-Path $QUARTO_RVENV "rvenv.cfg") -Pattern '^\s*r-binary\s*=\s*(.+?)\s*$' -ErrorAction SilentlyContinue | Select-Object -First 1
+  If ($R_BINARY_LINE) {
+    $QUARTO_R_ENV = @{
+      QUARTO_R       = Split-Path $R_BINARY_LINE.Matches[0].Groups[1].Value
+      RVENV          = $QUARTO_RVENV
+      R_LIBS_USER    = Join-Path $QUARTO_RVENV "lib"
+      R_LIBS         = $null
+      R_LIBS_SITE    = "/nonexistent/rvenv-no-site"
+      R_REPOSITORIES = Join-Path $QUARTO_RVENV "etc" "repositories"
+    }
+    Write-Host "> No Rscript.exe in $QUARTO_RVENV_BIN (removed by antivirus?), using R from $($QUARTO_R_ENV.QUARTO_R) with the project library" -ForegroundColor Yellow
+  } else {
+    Write-Host "> No Rscript.exe in $QUARTO_RVENV_BIN and no r-binary in rvenv.cfg, using R from QUARTO_R, R_HOME or PATH" -ForegroundColor Yellow
   }
 } elseif ($VERBOSE_MODE) {
   Write-Host "> No rig project environment at $QUARTO_RVENV_BIN, using R from QUARTO_R, R_HOME or PATH"
+}
+$OLD_QUARTO_R_ENV = @{}
+foreach ($name in $QUARTO_R_ENV.Keys) {
+  $OLD_QUARTO_R_ENV[$name] = [Environment]::GetEnvironmentVariable($name)
+  [Environment]::SetEnvironmentVariable($name, $QUARTO_R_ENV[$name])
+}
+if ($VERBOSE_MODE -and $QUARTO_R_ENV.QUARTO_R) {
+  Write-Host "> Using R from " -NoNewline; Write-Host "$($Env:QUARTO_R)" -ForegroundColor Blue;
 }
 
 # Activate python virtualenv
@@ -293,10 +316,10 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 
 # Add Coverage handling
 
-If ($quarto_r_set) {
-  $Env:QUARTO_R = $OLD_QUARTO_R
-  Remove-Variable quarto_r_set, OLD_QUARTO_R
+foreach ($name in $OLD_QUARTO_R_ENV.Keys) {
+  [Environment]::SetEnvironmentVariable($name, $OLD_QUARTO_R_ENV[$name])
 }
+Remove-Variable QUARTO_R_ENV, OLD_QUARTO_R_ENV
 
 If($quarto_venv_activated) {
   if ($VERBOSE_MODE) {
