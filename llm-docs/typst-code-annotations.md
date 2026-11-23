@@ -66,7 +66,7 @@ A fenced echo block (`{{python}}`) gets one extra line, because the filter write
 - The default code fill is a `set block(fill: ...)` rule, so a brand or user `set block(fill: ...)` wins.
 - `quarto-code-block` draws every code block, from the patched `Skylighting` function and from the native raw block rule.
 - `quarto-code-filename` draws the frame and the filename bar. The code block inside the frame draws no outline and no radius, so the frame shows one border.
-- Typst closures see only the bindings above them. The style helpers come first in the file, and `quarto-annote-color` comes before `quarto-circled-number`.
+- Typst closures see only the bindings above them. The style helpers come first in the file, `quarto-color-is-dark` comes before `quarto-code-block-style-resolve`, and `quarto-annote-color` comes before `quarto-circled-number`.
 
 ## Code block style (`quarto-code-block-style`)
 
@@ -78,10 +78,10 @@ The key names match the `code-window-theme` state of the quarto-code-window exte
 | --- | --- | --- |
 | `inset` | `8pt` | Inset of the code block. |
 | `radius` | `2pt` | Radius of the code block and of the filename frame. |
-| `stroke` | `0.5pt + luma(128)` | Outline of the code block and of the filename frame. Any Typst stroke value is accepted, also a dictionary with one value for each side. |
+| `stroke` | `auto` | Outline of the code block and of the filename frame. `auto` gives `0.5pt + luma(128)` on a light page and `0.5pt + luma(100)` on a dark page. Any Typst stroke value is accepted, also a dictionary with one value for each side. |
 | `fill` | `auto` | Background of the code block. |
-| `surface` | `luma(220)` | Background of the filename bar. |
-| `label` | `luma(30)` | Colour of the filename text. |
+| `surface` | `auto` | Background of the filename bar. `auto` gives `luma(220)` on a light page and `luma(55)` on a dark page. |
+| `label` | `auto` | Colour of the filename text. `auto` gives `luma(30)` on a light page and `luma(225)` on a dark page. |
 | `title-inset` | `(x: 8pt, y: 4pt)` | Inset of the filename bar. |
 
 The fill of a code block comes from the first of these that is not `auto`:
@@ -91,6 +91,9 @@ The fill of a code block comes from the first of these that is not `auto`:
 3. The `set block(fill: ...)` rules. For native code blocks, the default rule gives `luma(230)`.
 
 `quarto-code-block-style-resolve` merges the state on `quarto-code-block-style-defaults`.
+It then replaces an `auto` stroke, surface or label with the colour for the page.
+The page is dark when `page.fill` is a colour with a BT.709 relative luminance under 0.5, the same test as `quarto-annote-color` (`quarto-color-is-dark`).
+The page fill is read in context, so the resolve function must be called in context.
 Thus a state that replaces the full dictionary keeps the defaults for the keys that it does not set.
 An unknown key stops the compile with `quarto-code-block-style: unknown key "<key>". Known keys: ...`.
 

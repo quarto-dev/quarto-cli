@@ -285,14 +285,18 @@ async function pandocVersion(): Promise<string> {
 
 const annotationHelperDependencies: [string, string[]][] = [
   ["quarto-code-block-style-defaults", []],
-  ["quarto-code-block-style-resolve", ["quarto-code-block-style-defaults"]],
+  ["quarto-color-is-dark", []],
+  [
+    "quarto-code-block-style-resolve",
+    ["quarto-code-block-style-defaults", "quarto-color-is-dark"],
+  ],
   ["quarto-code-block-style", ["quarto-code-block-style-defaults"]],
   [
     "quarto-code-block",
     ["quarto-code-block-style", "quarto-code-block-style-resolve"],
   ],
   ["quarto-annote-link", []],
-  ["quarto-annote-color", []],
+  ["quarto-annote-color", ["quarto-color-is-dark"]],
   [
     "quarto-circled-number",
     [

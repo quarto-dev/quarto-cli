@@ -38,20 +38,30 @@ $endif$
 // quarto-code-block-style.update(s => s + (key: value)).
 // fill: auto keeps the highlight style or brand background (Skylighting) and
 // the set rules (native code blocks); none gives no background.
+// stroke, surface and label: auto take colours that suit the page fill.
 #let quarto-code-block-style-defaults = (
   inset: 8pt,
   radius: 2pt,
-  stroke: 0.5pt + luma(128),
+  stroke: auto,
   fill: auto,
-  surface: luma(220),
-  label: luma(30),
+  surface: auto,
+  label: auto,
   title-inset: (x: 8pt, y: 4pt),
 )
 
+// True when a colour is dark, by its ITU-R BT.709 relative luminance.
+// Anything that is not a colour, such as none or a gradient, counts as light.
+#let quarto-color-is-dark(c) = {
+  if type(c) != color { return false }
+  let (r, g, b) = rgb(c).components(alpha: false).map(v => v / 100%)
+  0.2126 * r + 0.7152 * g + 0.0722 * b < 0.5
+}
+
 #let quarto-code-block-style = state("quarto-code-block-style", quarto-code-block-style-defaults)
 
-// Merge a code block style over the defaults. Stops the compile on a key
-// that the defaults do not have.
+// Merge a code block style over the defaults, and replace an auto stroke,
+// surface or label with the colour for the page fill. Stops the compile on a
+// key that the defaults do not have. Reads the page fill, so call it in context.
 #let quarto-code-block-style-resolve(style) = {
   for key in style.keys() {
     if key not in quarto-code-block-style-defaults {
@@ -59,7 +69,16 @@ $endif$
         + quarto-code-block-style-defaults.keys().join(", ") + ".")
     }
   }
-  quarto-code-block-style-defaults + style
+  let resolved = quarto-code-block-style-defaults + style
+  let page-colors = if quarto-color-is-dark(page.fill) {
+    (stroke: 0.5pt + luma(100), surface: luma(55), label: luma(225))
+  } else {
+    (stroke: 0.5pt + luma(128), surface: luma(220), label: luma(30))
+  }
+  for (key, value) in page-colors {
+    if resolved.at(key) == auto { resolved.insert(key, value) }
+  }
+  resolved
 }
 
 // Draw a code block with the current code block style.
@@ -85,17 +104,7 @@ $endif$
 // Derive a contrasting annotation colour from a background fill.
 // Light backgrounds get dark circles; dark backgrounds get light circles.
 #let quarto-annote-color(bg) = {
-  if type(bg) == color {
-    let comps = bg.components(alpha: false)
-    let lum = if comps.len() == 1 {
-      comps.at(0) / 100%
-    } else {
-      0.2126 * comps.at(0) / 100% + 0.7152 * comps.at(1) / 100% + 0.0722 * comps.at(2) / 100%
-    }
-    if lum < 0.5 { luma(200) } else { luma(60) }
-  } else {
-    luma(60)
-  }
+  if quarto-color-is-dark(bg) { luma(200) } else { luma(60) }
 }
 
 // A circled annotation number. color wins; otherwise, with bg set, the colour

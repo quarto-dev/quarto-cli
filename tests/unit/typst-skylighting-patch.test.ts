@@ -102,7 +102,7 @@ unitTest("typst-skylighting-patch - helpers: all missing", async () => {
     usingDocument,
     definitionsSource,
   );
-  assertEquals(result.injected.length, 9);
+  assertEquals(result.injected.length, 10);
   assert(
     result.content.indexOf("#let quarto-code-filename(") <
       result.content.indexOf("#let Skylighting("),
@@ -167,6 +167,7 @@ unitTest(
     const result = injectMissingAnnotationHelpers(content, definitionsSource);
     const expected = [
       "quarto-code-block-style-defaults",
+      "quarto-color-is-dark",
       "quarto-code-block-style-resolve",
       "quarto-code-block-style",
       "quarto-code-block",
@@ -185,6 +186,7 @@ unitTest(
     const result = injectMissingAnnotationHelpers(content, definitionsSource);
     const expected = [
       "quarto-code-block-style-defaults",
+      "quarto-color-is-dark",
       "quarto-code-block-style-resolve",
       "quarto-code-block-style",
       "quarto-code-filename",
