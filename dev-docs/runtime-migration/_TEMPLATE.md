@@ -53,6 +53,7 @@ Checkable statements (counts, commands that must pass, behaviours).
 - [ ] **Step 3: Implement** (full code)
 - [ ] **Step 4: Run the tests** (`exact command`, expected output)
 - [ ] **Step 5: Commit** (`git add ...; git commit -m "..."`)
+
 (repeat per task; 2–5 minute steps)
 
 ## Verification

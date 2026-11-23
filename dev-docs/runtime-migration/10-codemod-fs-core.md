@@ -129,7 +129,7 @@ PRs 10–13 are independent (disjoint directories) but every one of them edits `
 
 - [x] **Step 1: Dry run**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run > /tmp/codemod-core.txt; tail -3 /tmp/codemod-core.txt` Expected: the last line is `Summary: 205 files scanned, 56 would be rewritten, 153 replacements, 2 with collisions, 2 skipped` (measured on `b86f98d`; a few more replacements are possible if `main` gained `Deno.*` sites since, and `1 skipped` with 154 replacements if PR 20b landed first); `git status --short src` is empty.
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run > /tmp/codemod-core.txt; tail -3 /tmp/codemod-core.txt` Expected: the last line is `Summary: 205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped` (measured on `cda410214`; a few more replacements are possible if `main` gained `Deno.*` sites since, and `1 skipped` with 154 replacements if PR 20b landed first); `git status --short src` is empty.
 
 - [x] **Step 2: Review the report**
 
@@ -149,13 +149,13 @@ Run: `grep -c '→' /tmp/codemod-core.txt` and skim `grep '→' /tmp/codemod-cor
 
 - [x] **Step 1: Rewrite**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1` Expected: `Summary: 205 files scanned, 56 rewritten, 153 replacements, 2 with collisions, 2 skipped` (the same numbers as the dry run).
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1` Expected: `Summary: 205 files scanned, 57 rewritten, 153 replacements, 2 with collisions, 2 skipped` (the same numbers as the dry run).
 
 - [x] **Step 2: Format and type-check**
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: files reformatted (long import lines wrapped); `git diff --stat | tail -1` shows only files under the three directories.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors, except one while PR 08 is not on `main`: `src/core/console.ts`, `readAllSync(df)` (TS2345, `FsFile` is not a `ReaderSync`; README "Open decisions" row for PR 10 Task 2 `console.ts`). Task 3 Step 3 removes it and Task 3 Step 4 requires a clean check; any other error is a failure.
 (`FileInfo`'s eight fields cover what `src/core` reads: `isDirectory`, `isFile`, `isSymlink`, `size`, `atime`, `mtime`, `mode`; `getFileInfoType` takes the layer's `FileInfo` since PR 09.
 A check error about a missing `FileInfo` member means a caller reads a field the layer does not expose: stop and raise it on PR 09's vocabulary rather than casting.)
 
