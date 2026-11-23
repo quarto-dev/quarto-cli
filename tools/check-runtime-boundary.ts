@@ -315,8 +315,7 @@ const kDenoRalImportScopes: readonly string[] = ["src", "package/src", "tests"];
  * fixtures whose increase a maintainer accepts, and a covered API is an error no acceptance clears. */
 const kRalLayerScopes: readonly string[] = ["src", "package/src"];
 
-/** One entry per Deno.<key>, naming the export of src/deno_ral/<module> to use instead: each of
- * `names` under its own name, each key of `renamed` under its value. */
+/** Builds `kRalDenoReplacements` entries pointing to `src/deno_ral/<module>` for `kRalLayerScopes`. */
 function ralReplacements(
   module: string,
   names: readonly string[],
@@ -372,7 +371,7 @@ export const kRalDenoReplacements: Readonly<
       `errors.${name}`,
       {
         hint: "isConnectionError from src/deno_ral/errors.ts (matches all five connection errors; " +
-          "a check for one class only adds its own predicate there)",
+          "add a predicate to errors.ts if you need to check only one)",
         scopes: kRalLayerScopes,
       },
     ]),

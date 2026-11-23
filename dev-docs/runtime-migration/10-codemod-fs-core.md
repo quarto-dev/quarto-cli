@@ -166,9 +166,10 @@ git add src/core src/quarto-core src/config
 git commit -m "core: codemod Deno fs/temp calls to deno_ral (mechanical)"
 ```
 
-### Task 3: Fix the two collisions by hand
+### Task 3: Fix the two collisions and `console.ts` by hand
 
-**Files:** - Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`, `src/core/console.ts`
+**Files:**
+- Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`, `src/core/console.ts`
 
 - [x] **Step 1: `src/core/copy.ts`**
 
@@ -223,7 +224,8 @@ git commit -m "core: resolve codemod collisions in copy.ts and qualified-path.ts
 
 ### Task 4: `Deno.errors` → predicates in `src/core`
 
-**Files:** - Modify: `src/core/http.ts`, `src/core/port.ts`, `src/core/cache/cache.ts`, `src/core/path.ts`, `src/core/jupyter/jupyter-shared.ts`, `src/core/typst.ts`, `src/core/copy.ts`
+**Files:**
+- Modify: `src/core/http.ts`, `src/core/port.ts`, `src/core/cache/cache.ts`, `src/core/path.ts`, `src/core/jupyter/jupyter-shared.ts`, `src/core/typst.ts`, `src/core/copy.ts`
 
 - [x] **Step 1: `src/core/http.ts`**
 
@@ -311,7 +313,8 @@ Added at step 0 (README "Open decisions", the `kRalDenoReplacements` row and the
 A PR that adds one of these `Deno.*` uses in `src` or `package/src` then gets an error naming the layer function, instead of the "no replacement yet" warning.
 `tests` is left out: it keeps deliberate `Deno.*` fixtures whose increase the maintainer accepts, and a covered API is an error that no acceptance clears.
 
-**Files:** - Modify: `tools/check-runtime-boundary.ts`, `tests/unit/tools/check-runtime-boundary.test.ts`
+**Files:**
+- Modify: `tools/check-runtime-boundary.ts`, `tests/unit/tools/check-runtime-boundary.test.ts`
 
 - [x] **Step 1: Tests**
 
@@ -540,6 +543,6 @@ PR 37 Task 6 Step 2 repeats the exercise after the flip.
 - Review follow-up (2026-11-23): three hint fixes; Step 1's code block above stays as executed.
   `kBrowserSharedPaths` became `kNoRalImportPaths` and gained `src/resources/tools/`: `ast-diagram/main.ts` runs through `deno run` without the import map (`src/command/dev-call/make-ast-diagram/cmd.ts:23-29`), and the PR 09 codemod and PR 08 already skip it. So a covered API there is a warning, not an error naming a layer it cannot import. PR 25 still owns moving the file out of the counts.
   The `realPathSync` hint also names `normalizePath` from `src/core/path.ts`, because the monkey patch makes a new `Deno.realPathSync` call behave that way, while `canonicalPathSync` resolves symlinks and throws on a missing path.
-  The four connection-error hints say that `isConnectionError` matches all five classes, and that a single-class check adds its own predicate.
-  A type-position `Deno.errors.*` use still gets the predicate hint. This was declined: the only one is `InputWalkError`, which is in the baseline and which PR 12 rewrites to `Error & {…}`.
+  The four connection-error hints say that `isConnectionError` matches all five classes and to add a predicate in `errors.ts` when checking only one.
+  Exempting type-position `Deno.errors.*` uses from the predicate hint was declined: the only one is `InputWalkError`, which is in the baseline and which PR 12 rewrites to `Error & {…}`.
   The updated tests failed first (old `realPathSync` hint text; a replacement attached to `src/resources/tools/ast-diagram/main.ts`), then passed with `44 passed | 0 failed`; `tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.`. `_TEMPLATE.md` names the renamed constant.

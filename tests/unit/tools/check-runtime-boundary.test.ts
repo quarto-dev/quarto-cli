@@ -391,7 +391,7 @@ unitTest("check-runtime-boundary - fs, temp and errors keys name their replaceme
     assertEquals(
       denoReplacement(key, "src"),
       "isConnectionError from src/deno_ral/errors.ts (matches all five connection errors; " +
-        "a check for one class only adds its own predicate there)",
+        "add a predicate to errors.ts if you need to check only one)",
       key,
     );
   }
