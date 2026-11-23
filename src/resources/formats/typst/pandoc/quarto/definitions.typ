@@ -38,7 +38,8 @@ $endif$
 // quarto-code-block-style.update(s => s + (key: value)).
 // fill: auto keeps the highlight style or brand background (Skylighting) and
 // the set rules (native code blocks); none gives no background.
-// stroke, surface and label: auto take colours that suit the page fill.
+// stroke, surface and label: auto take colours that suit the code block fill,
+// or the page fill when the code block has no fill.
 #let quarto-code-block-style-defaults = (
   inset: 8pt,
   radius: 2pt,
@@ -60,9 +61,10 @@ $endif$
 #let quarto-code-block-style = state("quarto-code-block-style", quarto-code-block-style-defaults)
 
 // Merge a code block style over the defaults, and replace an auto stroke,
-// surface or label with the colour for the page fill. Stops the compile on a
-// key that the defaults do not have. Reads the page fill, so call it in context.
-#let quarto-code-block-style-resolve(style) = {
+// surface or label with the colour for the background bg, or for the page fill
+// when bg is not a colour. Stops the compile on a key that the defaults do not
+// have. Reads the page fill, so call it in context.
+#let quarto-code-block-style-resolve(style, bg: auto) = {
   for key in style.keys() {
     if key not in quarto-code-block-style-defaults {
       panic("quarto-code-block-style: unknown key \"" + key + "\". Known keys: "
@@ -70,12 +72,13 @@ $endif$
     }
   }
   let resolved = quarto-code-block-style-defaults + style
-  let page-colors = if quarto-color-is-dark(page.fill) {
+  let background = if type(bg) == color { bg } else { page.fill }
+  let chrome-colors = if quarto-color-is-dark(background) {
     (stroke: 0.5pt + luma(100), surface: luma(55), label: luma(225))
   } else {
     (stroke: 0.5pt + luma(128), surface: luma(220), label: luma(30))
   }
-  for (key, value) in page-colors {
+  for (key, value) in chrome-colors {
     if resolved.at(key) == auto { resolved.insert(key, value) }
   }
   resolved
@@ -85,8 +88,14 @@ $endif$
 // The style fill comes first, then the fill argument; with both auto, the
 // block takes its fill from the set rules.
 // A style fill also clears the set rule fill of the raw block inside.
+// The drawn fill goes in a quarto-code-fill metadata, so that a filename frame
+// around the block can match its bar to it.
 #let quarto-code-block(fill: auto, body) = context {
-  let style = quarto-code-block-style-resolve(quarto-code-block-style.get())
+  let state-style = quarto-code-block-style.get()
+  let block-fill = quarto-code-block-style-resolve(state-style).fill
+  if block-fill == auto { block-fill = fill }
+  if block-fill == auto { block-fill = block.fill }
+  let style = quarto-code-block-style-resolve(state-style, bg: block-fill)
   let args = (width: 100%, inset: style.inset, radius: style.radius, stroke: style.stroke)
   let content = body
   if style.fill != auto {
@@ -96,6 +105,7 @@ $endif$
   } else if fill != auto {
     args.insert("fill", fill)
   }
+  [#metadata(block-fill) <quarto-code-fill>]
   block(..args, content)
 }
 
@@ -145,7 +155,14 @@ $endif$
 // The code block inside draws no outline of its own, so the frame shows one.
 #let quarto-code-filename(filename, body) = context {
   let previous = quarto-code-block-style.get()
-  let style = quarto-code-block-style-resolve(previous)
+  // The bar matches the fill of the first code block inside this frame,
+  // found between here and the end marker of the frame.
+  let frame-end = query(selector(<quarto-code-filename-end>).after(here()))
+  let body-fills = if frame-end.len() > 0 {
+    query(selector(<quarto-code-fill>).after(here()).before(frame-end.first().location()))
+  } else { () }
+  let body-fill = if body-fills.len() > 0 { body-fills.first().value } else { auto }
+  let style = quarto-code-block-style-resolve(previous, bg: body-fill)
   // Long names would be clipped: allow breaks after separators (but not after the
   // last dot, which keeps the extension attached) first, and
   // inside runs of more than 30 characters without a separator
@@ -163,6 +180,7 @@ $endif$
     #quarto-code-block-style.update(s => s + (stroke: none, radius: 0pt))
     #body
     #quarto-code-block-style.update(previous)
+    #metadata(none) <quarto-code-filename-end>
   ]
 }
 

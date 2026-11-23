@@ -1,0 +1,37 @@
+---
+title: Code block style, filename bar on a light page with a dark code block
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+The page keeps its light background, and the brand gives code blocks a dark background.
+The style keeps `stroke`, `surface` and `label` at `auto`, so the filename bar, its label and the frame must take the colours that match the code block fill.
+
+```{=typst}
+#show "example.py": it => context {
+  if text.fill == luma(225) { counter("cbs-label").step() }
+  it
+}
+#show block: it => {
+  if it.fill == luma(55) { counter("cbs-surface").step() }
+  if type(it.stroke) == stroke and it.stroke.paint == luma(100) { counter("cbs-frame").step() }
+  it
+}
+```
+
+```{.python filename="example.py"}
+x = 1
+```
+
+```{=typst}
+#context {
+  assert.eq(counter("cbs-surface").final().first(), 1, message: "expected 1 filename bar with the surface for the code block fill")
+  assert.eq(counter("cbs-label").final().first(), 1, message: "expected the filename in the label colour for the code block fill")
+  assert.eq(counter("cbs-frame").final().first(), 1, message: "expected the frame in the stroke for the code block fill")
+}
+```
