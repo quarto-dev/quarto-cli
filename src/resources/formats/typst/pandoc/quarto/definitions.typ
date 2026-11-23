@@ -92,7 +92,7 @@ $endif$
 // around the block can match its bar to it.
 #let quarto-code-block(fill: auto, body) = context {
   let state-style = quarto-code-block-style.get()
-  let block-fill = quarto-code-block-style-resolve(state-style).fill
+  let block-fill = state-style.at("fill", default: auto)
   if block-fill == auto { block-fill = fill }
   if block-fill == auto { block-fill = block.fill }
   let style = quarto-code-block-style-resolve(state-style, bg: block-fill)

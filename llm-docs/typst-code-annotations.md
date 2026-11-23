@@ -91,7 +91,9 @@ The fill of a code block comes from the first of these that is not `auto`:
 3. The `set block(fill: ...)` rules. For native code blocks, the default rule gives `luma(230)`.
 
 `quarto-code-block-style-resolve` merges the state on `quarto-code-block-style-defaults`.
-It then replaces an `auto` stroke, surface or label with the colour for a background.
+Thus a state that replaces the full dictionary keeps the defaults for the keys that it does not set.
+An unknown key stops the compile with `quarto-code-block-style: unknown key "<key>". Known keys: ...`.
+After the merge, it replaces an `auto` stroke, surface or label with the colour for a background.
 That background is the `bg` argument when it is a colour, and `page.fill` otherwise.
 A background is dark when its BT.709 relative luminance is under 0.5, the same test as `quarto-annote-color` (`quarto-color-is-dark`).
 The page fill is read in context, so the resolve function must be called in context.
@@ -101,8 +103,6 @@ It also puts that fill in a `<quarto-code-fill>` metadata before the block.
 `quarto-code-filename` puts a `<quarto-code-filename-end>` metadata after its body.
 It queries the first `<quarto-code-fill>` between its own position and that end marker, and gives it as `bg`, so the bar, label and frame match the code block that they frame.
 A code block with no fill, or a frame with no code block, falls back to the page fill.
-Thus a state that replaces the full dictionary keeps the defaults for the keys that it does not set.
-An unknown key stops the compile with `quarto-code-block-style: unknown key "<key>". Known keys: ...`.
 
 On the Skylighting path, `quarto-circled-number` gets `bg: bgcolor`.
 The circle colour contrasts with the `fill` key when it is set, and with `bgcolor` when it is not.
