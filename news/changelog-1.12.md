@@ -58,7 +58,7 @@ All changes included in 1.12:
   - Horizontal rules are full-width, using Typst 0.15's native `divider`. A Typst binary set with `QUARTO_TYPST` must be 0.15 or later.
   - In a tight definition list, a one-paragraph definition now sits on the same line as its term.
   - Bibliographies apply the hanging indent and entry spacing of the CSL style, which were dropped before.
-- ([#14170](https://github.com/quarto-dev/quarto-cli/pull/14170)): Add support for code annotations and filename features in Typst output. Typst renders annotations in the gutter, and `hover` and `select` fall back to that style. Typst code blocks now have a thin outline. (author: @mcanouil)
+- ([#14170](https://github.com/quarto-dev/quarto-cli/pull/14170)): Add support for code annotations and filename features in Typst output. Typst renders annotations in the gutter, and `hover` and `select` fall back to that style. Typst code blocks now have a thin outline, and the outline and filename bar take light or dark colours to match the code block. (author: @mcanouil)
 
 ## Projects
 
