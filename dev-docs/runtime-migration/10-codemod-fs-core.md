@@ -416,12 +416,12 @@ git commit -m "Name the deno_ral fs, temp and errors replacements in the runtime
 
 ## Review checklist
 
-- [x] `git diff` under `src/core` contains, apart from the hand-edited files, only `Deno.x` → `x`, `Deno.MakeTempOptions` → `TempOptions`, `Deno.FileInfo` → `FileInfo`, and import lines (`git diff -U0 src/core | grep '^[-+]' | grep -v '^[-+][-+]' | grep -v 'deno_ral/\(fs\|temp\|errors\)\.ts' | grep -vE 'Deno\.|FileInfo|TempOptions|^[+-]\s*$|^[+-]\s*(import|\}|[a-zA-Z]+,|type [A-Za-z]+,)' ` prints nothing surprising).
+- [x] `git diff` under `src/core` contains, apart from the hand-edited files and the `deno fmt` commit's reflow, only `Deno.x` → `x`, `Deno.MakeTempOptions` → `TempOptions`, `Deno.FileInfo` → `FileInfo`, and import lines (`git diff -U0 main...HEAD -- src/core | grep '^[-+]' | grep -v '^[-+][-+]' | grep -v 'deno_ral/\(fs\|temp\|errors\)\.ts' | grep -vE 'Deno\.|FileInfo|TempOptions|^[+-]\s*$|^[+-]\s*(import|\}|[a-zA-Z]+,|type [A-Za-z]+,)' ` prints nothing surprising).
 - [x] `monkey-patch.ts` is byte-identical to `main`; `metrics.ts` too unless PR 20b landed first.
 - [x] No comment line changed (comments are PR 25's).
 - [x] `copy.ts` still calls the real `copyFileSync` of the layer at line 152 (not its own recursive helper).
 - [x] The `http.ts` predicate rewrite keeps the `DOMException` exclusion.
-- [x] No `src/core/lib/**` file imports `deno_ral` (those files are bundled for the browser).
+- [x] This PR adds no `deno_ral` import under `src/core/lib/**` (those files are bundled for the browser).
 - [x] Baseline only decreased.
 
 ## Risks and rollback
