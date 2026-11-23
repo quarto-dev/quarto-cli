@@ -14,8 +14,9 @@ A template or an extension can wrap code blocks in a broad `set block` rule.
 The annotation circle must stay on its code line, so an annotated code block has the same height as the same code block without annotations.
 
 ```{=typst}
+#let heights = state("cbs-heights", ())
 #show block.where(stroke: 0.5pt + luma(128)): it => {
-  context [#metadata(measure(it, width: 400pt).height) <cbs-height>]
+  context { let h = measure(it, width: 400pt).height; heights.update(all => all + (h,)) }
   it
 }
 #[
@@ -40,8 +41,8 @@ y = 2
 
 ```{=typst}
 #context {
-  let heights = query(<cbs-height>).map(m => m.value)
-  assert.eq(heights.len(), 2, message: "expected 2 code blocks")
-  assert(calc.abs(heights.at(1) - heights.at(0)) < 0.5pt, message: "a broad set block rule moved the annotation circle off its code line")
+  let all = heights.final()
+  assert.eq(all.len(), 2, message: "expected 2 code blocks")
+  assert(calc.abs(all.at(1) - all.at(0)) < 0.5pt, message: "a broad set block rule moved the annotation circle off its code line")
 }
 ```
