@@ -5,7 +5,7 @@
 
 **Goal:** Move every plain filesystem and temp-file call in `src/core`, `src/quarto-core` and `src/config` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the two reported collisions by hand, and replace the 13 `instanceof Deno.errors.X` checks in `src/core` with the `deno_ral/errors.ts` predicates.
 **Phase:** 1.
-**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below).
+**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands before PR 08 and PR 22 (landing order below).
 **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/10-codemod-fs-core`.
 **Suggested executor:** Sonnet.
@@ -72,7 +72,7 @@ Out: comment lines that mention `Deno.*` (`src/core/copy.ts:28,145` and the othe
 
 ### Landing order and conflict protocol
 
-Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10).
+Phase 1 lands 10–13, then 14, before PR 08 and PR 22 (decided 2026-11-17, README "Open decisions", the landing-order row for PRs 10–13 and 14; it replaced the order 08 → 22 → 10–13 → 14 of review finding S10).
 PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
 Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
 
@@ -119,7 +119,7 @@ import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync 
 ## Plan
 
 Assumes PR 09 landed (`tools/codemod-deno-ral.ts`, `src/deno_ral/{fs,temp,errors}.ts`, `getFileInfoType` retyped) and PR 02's ratchet exists.
-In the prescribed order PR 08 has landed (so `src/core/console.ts` no longer opens files); if it has not, `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync`, and both orders end in the same place.
+In the decided order PR 08 has not landed, so `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync` (hand-fixed afterwards; README "Open decisions", the row for PR 10 Task 2 `console.ts`); had PR 08 landed first, `src/core/console.ts` would no longer open files, and both orders end in the same place.
 
 ### Task 1: Dry run and review
 
