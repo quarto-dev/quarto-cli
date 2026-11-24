@@ -444,10 +444,10 @@ const sum = (counts: Record<string, number>) =>
 
 function firstAddedLine(
   change: FileChange,
-  needle: string,
+  matches: (line: string) => boolean,
 ): number | undefined {
   const lines = (change.after ?? "").split("\n");
-  return change.addedLines.find((n) => lines[n - 1]?.includes(needle));
+  return change.addedLines.find((n) => matches(lines[n - 1] ?? ""));
 }
 
 export function diffChanges(changes: FileChange[]): DeltaReport {
@@ -484,11 +484,19 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
       for (const api of apis) {
         const own = (e: typeof inScope[number]) =>
           (e.after.deno[api] ?? 0) - (e.before.deno[api] ?? 0);
-        if (inScope.reduce((n, e) => n + own(e), 0) <= 0) {
-          continue;
-        }
+        const net = (es: typeof inScope) => es.reduce((n, e) => n + own(e), 0);
+        // An error nets only against code that can import deno_ral: a call added where it cannot
+        // neither blocks a call moved between regular files nor hides one moved out into them.
+        const netAll = net(inScope);
+        const netRal = net(inScope.filter((e) => !cannotImportRal(e.change.path)));
         for (const e of inScope) {
           if (own(e) <= 0) {
+            continue;
+          }
+          const replacement = cannotImportRal(e.change.path)
+            ? undefined
+            : denoReplacement(api, scope);
+          if ((replacement !== undefined ? netRal : netAll) <= 0) {
             continue;
           }
           const finding: Finding = {
@@ -498,11 +506,8 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
             name: api,
             delta: own(e),
           };
-          const line = firstAddedLine(e.change, "Deno." + api);
+          const line = firstAddedLine(e.change, (text) => (countText(text).deno[api] ?? 0) > 0);
           if (line !== undefined) finding.line = line;
-          const replacement = cannotImportRal(e.change.path)
-            ? undefined
-            : denoReplacement(api, scope);
           if (replacement !== undefined) finding.replacement = replacement;
           findings.push(finding);
         }
@@ -523,7 +528,7 @@ export function diffChanges(changes: FileChange[]): DeltaReport {
           name,
           delta: 1,
         };
-        const line = firstAddedLine(e.change, name);
+        const line = firstAddedLine(e.change, (text) => text.includes(name));
         if (line !== undefined) finding.line = line;
         const suggestion = stdSuggestion(name, scope);
         if (suggestion !== undefined) finding.suggestion = suggestion;
