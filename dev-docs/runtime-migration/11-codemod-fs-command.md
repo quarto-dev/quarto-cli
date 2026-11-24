@@ -222,11 +222,11 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 
 ## Review checklist
 
-- [ ] `git diff` under `src/command` contains, apart from the two hand-edited files, only `Deno.x` → `x` rewrites and import lines.
-- [ ] `pull-git-subtree/cmd.ts` keeps its local `stat` variable; the call goes to `fsStat`.
-- [ ] `pandoc.ts` keeps the `throw err` for non-NotFound errors in the font cache check.
-- [ ] `brand.ts:706` spread still compiles (array).
-- [ ] No file under `src/command` gained a `Deno.*` call; the baseline only decreased.
+- [x] `git diff` under `src/command` contains, apart from the two hand-edited files, only `Deno.x` → `x` rewrites and import lines.
+- [x] `pull-git-subtree/cmd.ts` keeps its local `stat` variable; the call goes to `fsStat`.
+- [x] `pandoc.ts` keeps the `throw err` for non-NotFound errors in the font cache check.
+- [x] `brand.ts:706` spread still compiles (array).
+- [x] No file under `src/command` gained a `Deno.*` call; the baseline only decreased.
 
 ## Risks and rollback
 
@@ -343,3 +343,22 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 - Step 5: stage only `tools/runtime-boundary-baseline.json` and this tracked plan, excluding `.claude/docs/*` and `.pi-loop.json.lock`, with commit message `Lower runtime boundary baseline after command fs/temp codemod`.
 - Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations and the dot-reporter limitation on naming ignored tests described above. There were no test failures, quarantines, selection changes or Julia/environment interventions.
 - Outstanding: the coordinator owns final Verification and the review checklist, including the Windows manual `create` / `render` / `inspect` sequence and README/HANDOFF updates; the maintainer owns the eventual push and PR creation.
+
+### Coordinator wrap-up at `ab9707bdb`
+
+- Base: the branch forks `upstream/main` at `7a77d06e9`. `upstream/main` is one commit ahead at `1ddc36ab2` ("Fix runtime boundary errors on calls moved between source files"), which changes only the delta reporting of `tools/check-runtime-boundary.ts` (`diffChanges`, `firstAddedLine`) and adds a README row for PR 05; counts are unchanged. `git merge-tree --write-tree HEAD upstream/main` merges cleanly. Task 4's unit and smoke runs (`.claude/docs/task4-unit.log`, `.claude/docs/task4-smoke.log`) were not repeated.
+- Verification, ratchet: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` exited 0 with `src 670 (baseline 670)`, every other scope at its baseline, and `OK: no count exceeds the baseline.`
+- Verification, AST dry run: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run` exited 0 and printed only `Summary: 107 files scanned, 0 would be rewritten, 0 replacements, 0 with collisions, 0 skipped`; `git status --short src` stayed empty.
+- Verification, text check: the comment-filtered `rg` of Acceptance criteria printed nothing (filter stage exit 1). The JSDoc `Deno.realPathSync` comment it filters now sits at `call/axe/cmd.ts:191` (the added import block moved it from 184).
+- Verification, type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0.
+- Whole-branch checks of README "How to execute a plan", run against `7a77d06e9...HEAD`: the indirect-`Deno` scan, the `PR [0-9]` comment scan and the new-test-function scan all printed nothing. Outside `src/command` the branch changes only this plan, README, HANDOFF and `tools/runtime-boundary-baseline.json`.
+- Windows manual check: in the new directory `%TEMP%\pr11-wrapup-e3a188c4`, the worktree's `package\dist\bin\quarto.cmd` by absolute path ran `create project default demo --no-prompt --no-open`, `render demo` and `inspect demo`, each exiting 0. `demo\demo.html` exists; inspect wrote nothing to stderr and its stdout parsed as JSON with keys `quarto, dir, engines, config, files, fileInformation, extensions`.
+- Review checklist, with the evidence for each tick:
+  - Mechanical diff: per file, every removed line with `Deno.<fs/temp API>` replaced by `<API>` matches an added line, except `pull-git-subtree/cmd.ts` (`stat(…)` → `fsStat(…)`) and `pandoc.ts` (`instanceof Deno.errors.NotFound` → `isNotFound(err)`). Every other leftover is an import line. Comparing import bindings before and after in all 44 changed files: 91 bindings added, all from `deno_ral/fs.ts`, `temp.ts` or `errors.ts` and each named after an API rewritten in that file (or `stat as fsStat` / `isNotFound`). No binding was removed or moved to another module, and no unrelated formatter reflow is present.
+  - `pull-git-subtree/cmd.ts:92-93`: `const stat = await fsStat(prefixPath); prefixExists = stat.isDirectory;`, with `import { stat as fsStat } from "../../../deno_ral/fs.ts";`.
+  - `pandoc.ts:1655-1662`: `await lstat(...)` is caught and `if (!isNotFound(err)) { throw err; }` returns `false` only for NotFound. The layer's `lstat` returns `toFileInfo(await Deno.lstat(path))` and lets Deno's error through unchanged, and `isNotFound` matches Deno's `NotFound` or code `ENOENT` (also on `cause`), so the predicate behaves as the `instanceof` did.
+  - The spread, now at `brand.ts:716` (`[...readDirSync(subdir)]`), spreads the `DirEntry[]` that the layer's `readDirSync` returns (`Array.from(...).sort(byName)`), and the type check passes. `findBrandExtension` (`brand.ts:81-120`) walks the sorted `_extensions/` children, checking each child before its sorted nested entries, as Spec and Risks describe.
+  - Per-file `Deno.` token counts in the 44 changed files fell from 239 to 88 (−151), and no file gained one. The baseline diff changes only `src.denoCalls` 821 → 670.
+- Citation drift for later plans: PR 25 cites `src/command/call/axe/cmd.ts:184,217,413,417` (Context table and Task 5); on this branch those comment lines are 191, 224, 420 and 424. The lines' text is unchanged, so PR 25's step 0 re-grep finds them and no open-decisions row is needed.
+- README: the PR 11 row of "The sequence" stays `in progress` until the PR merges. HANDOFF step 5 now says the wrap-up is done and the branch waits for the maintainer.
+- Pending for the PR description (needs the open PR): CI on Linux and macOS for the unit and smoke selections of Task 4 (run locally on Windows only); the runtime-boundary workflow's delta report against the PR base, which by then includes `1ddc36ab2`; and README ground rules 7–8: regenerate from fresh `main`, re-check the 151 delta if `main` moves, and merge the same day. The push and `gh pr create` are maintainer actions.
