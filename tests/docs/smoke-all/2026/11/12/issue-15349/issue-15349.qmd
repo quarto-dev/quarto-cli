@@ -1,0 +1,20 @@
+---
+title: "The document language overrides the per-language file of an extension"
+format: langfile-html
+toc: true
+lang: fr
+language:
+  toc-title-document: "Contents from the document"
+_quarto:
+  tests:
+    langfile-html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the document</h2>']
+        - ['Sommaire de l extension', 'Contents from the extension']
+---
+
+## Section
+
+The `langfile` extension has a `_language-fr.yml` file next to its `_language.yml` file.
+The document sets `toc-title-document` under `language`, with `lang: fr`.
+The value of the document must replace the value of the French file of the extension.

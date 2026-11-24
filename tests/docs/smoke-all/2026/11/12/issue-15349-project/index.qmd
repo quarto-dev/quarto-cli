@@ -1,0 +1,18 @@
+---
+title: "The document language overrides the per-language file of the project"
+toc: true
+language:
+  toc-title-document: "Contents from the document"
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        - ['<h2 id="toc-title">Contents from the document</h2>']
+        - ['Sommaire du projet', 'Contents from the project']
+---
+
+## Section
+
+The project sets `lang: fr` and `language: custom.yml`, and has a `custom-fr.yml` file next to `custom.yml`.
+The document sets `toc-title-document` under `language`.
+The value of the document must replace the value of the French file of the project.

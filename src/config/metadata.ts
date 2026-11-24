@@ -12,6 +12,7 @@ import { error } from "../deno_ral/log.ts";
 
 import { readAndValidateYamlFromFile } from "../core/schema/validated-yaml.ts";
 import { mergeArrayCustomizer } from "../core/config.ts";
+import { mergeLanguages } from "../core/language.ts";
 import { Schema } from "../core/lib/yaml-schema/types.ts";
 
 import {
@@ -44,7 +45,7 @@ import {
   kTblColwidths,
   kVariant,
 } from "./constants.ts";
-import { Format, Metadata } from "./types.ts";
+import { Format, FormatLanguage, Metadata } from "./types.ts";
 import { kGfmCommonmarkVariant } from "../format/markdown/format-markdown-consts.ts";
 import { kJupyterEngine, kKnitrEngine } from "../execute/types.ts";
 
@@ -283,12 +284,29 @@ export function mergeFormatMetadata<T>(
       } else if (kBooleanDisableArrays.includes(key)) {
         return mergeDisablableArray(objValue, srcValue);
       } else {
-        return undefined;
+        return mergeLanguageCustomizer(objValue, srcValue, key);
       }
     },
     config,
     ...configs,
   );
+}
+
+export function mergeLanguageCustomizer(
+  objValue: unknown,
+  srcValue: unknown,
+  key: string,
+) {
+  if (
+    key === kLanguageDefaults && ld.isPlainObject(objValue) &&
+    ld.isPlainObject(srcValue)
+  ) {
+    return mergeLanguages(
+      objValue as FormatLanguage,
+      srcValue as FormatLanguage,
+    );
+  }
+  return undefined;
 }
 
 export function mergeProjectMetadata<T>(
@@ -306,7 +324,7 @@ export function mergeProjectMetadata<T>(
       ) {
         return srcValue;
       } else {
-        return undefined;
+        return mergeLanguageCustomizer(objValue, srcValue, key);
       }
     },
     config,
