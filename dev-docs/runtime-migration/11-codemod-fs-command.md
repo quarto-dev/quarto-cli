@@ -113,11 +113,11 @@ README ground rule 7 applies: this PR is generated from fresh `main` the day it 
 PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
 
 
-- [ ] **Step 1: Dry run**
+- [x] **Step 1: Dry run**
 
 From the worktree root, run `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > .claude/docs/codemod-command.txt && tail -1 .claude/docs/codemod-command.txt`. On Windows, use `package/dist/bin/quarto.cmd` for `quarto`. Record the report's worktree-relative path in the execution log. Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`; `git status --short src` is empty.
 
-- [ ] **Step 2: Review the report**
+- [x] **Step 2: Review the report**
 
 Run: `grep 'collision:' .claude/docs/codemod-command.txt` Expected exactly:
 ```
@@ -249,3 +249,45 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 - Windows with Deno 2.9.8: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run` printed `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`. The only collision was `pull-git-subtree/cmd.ts:91` (`stat`). No source edits. `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` passed at `src` 821 / baseline 821. The expected drop is 149 + 2 = 151 (821 → 670 if the base does not move); Task 4 measures it after the edits. Task 1 still runs and records its own dry run.
 - The type-check commands now include the README's `--allow-import` correction. All named test paths exist. Windows preflight of the relative `create` / `render` / `inspect` sequence created `demo.html` and returned valid JSON on the untouched base; wrap-up reruns it after migration.
 - Code-block audit: no new helper, indirect Deno access or PR-number code comment. The two hand edits use the shipped `stat` and `isNotFound` exports; keep the non-NotFound rethrow. Reviewed the sorted `readDir`/`readDirSync` contract in `fs.ts` and the array spread in `brand.ts`; verification remains in Tasks 2–4.
+
+### Task 1 — dry run and review
+
+- Step 1: `mkdir -p .claude/docs && package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > .claude/docs/codemod-command.txt && tail -1 .claude/docs/codemod-command.txt` printed:
+
+  ```text
+  Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped
+  ```
+
+  The durable report is `.claude/docs/codemod-command.txt`; it is ignored and is not part of the task commit. `git status --short src` printed nothing, confirming that the dry run left `src` unchanged. The only command adaptation was the plan's Windows `.cmd` launcher.
+- Step 2: `grep 'collision:' .claude/docs/codemod-command.txt` printed exactly the anticipated collision and no other collision:
+
+  ```text
+  src/command/dev-call/pull-git-subtree/cmd.ts:91: collision: local binding 'stat' conflicts with deno_ral/fs.ts; left as Deno.*
+  ```
+
+  `grep '→' .claude/docs/codemod-command.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` printed the complete replacement-name inventory:
+
+  ```text
+       42  writeTextFileSync
+       38  readTextFileSync
+       21  statSync
+       14  readDirSync
+        5  copyFileSync
+        4  readFileSync
+        3  renameSync
+        3  remove
+        3  mkdirSync
+        3  makeTempDirSync
+        2  writeTextFile
+        2  removeSync
+        2  readDir
+        2  copyFile
+        1  writeFile
+        1  readTextFile
+        1  readFile
+        1  lstat
+        1  chmodSync
+  ```
+
+  Every target is in the `fs` or `temp` rule table. No codemod was applied and no source or baseline file changed.
+- Outstanding: Task 2 applies the codemod, Task 3 makes the two specified hand edits, and Task 4 runs tests and updates the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
