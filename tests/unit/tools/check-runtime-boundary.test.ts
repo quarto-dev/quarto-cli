@@ -835,6 +835,43 @@ unitTest("check-runtime-boundary - a covered API in code that cannot import deno
 });
 
 // deno-lint-ignore require-await
+unitTest("check-runtime-boundary - a moved covered call is not an error when only code that cannot import deno_ral adds the API", async () => {
+  const read = `await ${DENO}readTextFile(f);\n`;
+  const report = diffChanges([
+    { path: "src/core/a.ts", before: read, after: "", addedLines: [] },
+    { path: "src/core/b.ts", before: null, after: read, addedLines: [1] },
+    { path: "src/resources/tools/ast-diagram/main.ts", before: "", after: read, addedLines: [1] },
+  ]);
+  assertEquals(report.findings.map((f) => [f.file, f.replacement]), [
+    ["src/resources/tools/ast-diagram/main.ts", undefined],
+  ]);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - a covered call moved out of code that cannot import deno_ral is an error", async () => {
+  const read = `await ${DENO}readTextFile(f);\n`;
+  const report = diffChanges([
+    { path: "src/resources/tools/ast-diagram/main.ts", before: read, after: "", addedLines: [] },
+    { path: "src/core/b.ts", before: null, after: `${read}${DENO}cwd();\n`, addedLines: [1, 2] },
+  ]);
+  const byName = Object.fromEntries(report.findings.map((f) => [f.name, f]));
+  assertEquals(Object.keys(byName).sort(), ["cwd", "readTextFile"]);
+  assertEquals(byName["readTextFile"].replacement, kRalDenoReplacements["readTextFile"].hint);
+});
+
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - diffChanges attributes a finding to the line with that exact API", async () => {
+  const report = diffChanges([{
+    path: "src/core/a.ts",
+    before: "",
+    after: `${DENO}readTextFileSync(f);\nawait ${DENO}readTextFile(f);\n`,
+    addedLines: [1, 2],
+  }]);
+  const byName = Object.fromEntries(report.findings.map((f) => [f.name, f.line]));
+  assertEquals(byName, { readTextFileSync: 1, readTextFile: 2 });
+});
+
+// deno-lint-ignore require-await
 unitTest("check-runtime-boundary - a covered API is only an error where deno_ral can be imported", async () => {
   const hint = kRalDenoReplacements["build.os"].hint;
   for (const scope of ["src", "package/src", "tests"]) {
