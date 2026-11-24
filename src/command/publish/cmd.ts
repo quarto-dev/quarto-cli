@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2026 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, statSync } from "../../deno_ral/fs.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { Select } from "cliffy/prompt/select.ts";
@@ -329,7 +329,7 @@ async function createPublishOptions(
   if (provider && provider.resolveProjectPath) {
     const resolvedPath = provider.resolveProjectPath(path);
     try {
-      if (Deno.statSync(resolvedPath).isDirectory) {
+      if (statSync(resolvedPath).isDirectory) {
         path = resolvedPath;
       }
     } catch (_e) {
@@ -340,7 +340,7 @@ async function createPublishOptions(
   // check for directory (either website or single-file project)
   const project = (await projectContext(path, nbContext)) ||
     (await singleFileProjectContext(path, nbContext));
-  if (Deno.statSync(path).isDirectory) {
+  if (statSync(path).isDirectory) {
     if (projectIsWebsite(project)) {
       input = project;
     } else if (

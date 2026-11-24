@@ -12,7 +12,11 @@ import { rBinaryPath, resourcePath } from "../../../../core/resources.ts";
 import SemVer from "semver/mod.ts";
 import { extname, join } from "../../../../deno_ral/path.ts";
 import { info, warning } from "../../../../deno_ral/log.ts";
-import { ensureDirSync, existsSync } from "../../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+} from "../../../../deno_ral/fs.ts";
 import {
   EnvironmentConfiguration,
   PythonConfiguration,
@@ -284,7 +288,7 @@ const jupyterLabVersion = (
       return false;
     }
 
-    const contents = Deno.readTextFileSync(join(context.dir, env));
+    const contents = readTextFileSync(join(context.dir, env));
     return contents.match(matcher);
   });
   return hasJL4;
@@ -462,7 +466,7 @@ async function binderFileOperations(
         // as well as to start the port proxying that permits vscode to work
         const resDir = resourcePath("use/binder/");
         for (const file of ["vscode.svg", "jupyter_notebook_config.py"]) {
-          const textContents = Deno.readTextFileSync(join(resDir, file));
+          const textContents = readTextFileSync(join(resDir, file));
           await writeFile(join(traitletsDir, file), textContents);
         }
       },

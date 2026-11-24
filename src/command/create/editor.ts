@@ -14,7 +14,7 @@ import {
 } from "../../core/platform.ts";
 
 import { basename, dirname, join } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, statSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 import { isMac, isWindows } from "../../deno_ral/platform.ts";
 import {
   enforcer,
@@ -99,7 +99,7 @@ function vscodeEditorInfo(): EditorInfo {
     name: "vscode",
     open: (path: string, createResult: CreateResult) => {
       const artifactPath = createResult.path;
-      const cwd = Deno.statSync(artifactPath).isDirectory
+      const cwd = statSync(artifactPath).isDirectory
         ? artifactPath
         : dirname(artifactPath);
 
@@ -156,7 +156,7 @@ function positronEditorInfo(): EditorInfo {
     name: "positron",
     open: (path: string, createResult: CreateResult) => {
       const artifactPath = createResult.path;
-      const cwd = Deno.statSync(artifactPath).isDirectory
+      const cwd = statSync(artifactPath).isDirectory
         ? artifactPath
         : dirname(artifactPath);
 
@@ -215,14 +215,14 @@ function rstudioEditorInfo(): EditorInfo {
       return async () => {
         const artifactPath = createResult.path;
         // The directory that the artifact is in
-        const cwd = Deno.statSync(artifactPath).isDirectory
+        const cwd = statSync(artifactPath).isDirectory
           ? artifactPath
           : dirname(artifactPath);
 
         // Write an rproj file for RStudio and open that
         const artifactName = basename(artifactPath);
         const rProjPath = join(cwd, `${artifactName}.Rproj`);
-        Deno.writeTextFileSync(rProjPath, kRProjContents);
+        writeTextFileSync(rProjPath, kRProjContents);
 
         const callCmd = path.endsWith(".app") && isMac
           ? ["open", "-na", path, "--args", rProjPath]

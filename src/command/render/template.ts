@@ -21,7 +21,12 @@ import { copyTo } from "../../core/copy.ts";
 import { PandocOptions, RenderFlags } from "./types.ts";
 import * as ld from "../../core/lodash.ts";
 import { isHtmlDocOutput, isRevealjsOutput } from "../../config/format.ts";
-import { expandGlobSync } from "../../deno_ral/fs.ts";
+import {
+  chmodSync,
+  expandGlobSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { normalizePath } from "../../core/path.ts";
 import { isGlob } from "../../core/lib/glob.ts";
 import { ProjectContext } from "../../project/types.ts";
@@ -112,7 +117,7 @@ export async function stageTemplate(
         copyTo(context.template, targetFile);
         // Ensure that file is writable
         if (!isWindows) {
-          Deno.chmodSync(targetFile, 0o666);
+          chmodSync(targetFile, 0o666);
         }
       }
 
@@ -203,14 +208,14 @@ function applyTemplatePatches(
 
   // Apply any patches
   if (patches.length) {
-    let templateContents = Deno.readTextFileSync(template);
+    let templateContents = readTextFileSync(template);
     patches.forEach((patch) => {
       templateContents = templateContents.replace(
         patch.searchValue,
         patch.contents,
       );
     });
-    Deno.writeTextFileSync(template, templateContents);
+    writeTextFileSync(template, templateContents);
   }
 }
 

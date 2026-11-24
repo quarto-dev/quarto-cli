@@ -3,7 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../deno_ral/fs.ts";
 
 import { readYaml, readYamlFromString } from "../../core/yaml.ts";
 
@@ -340,7 +340,7 @@ export async function parseRenderFlags(args: string[]) {
         if (arg) {
           if (existsSync(arg)) {
             const metadata =
-              (await readYamlFromString(Deno.readTextFileSync(arg))) as Record<
+              (await readYamlFromString(readTextFileSync(arg))) as Record<
                 string,
                 unknown
               >;

@@ -11,7 +11,17 @@ import {
 import { info } from "../../../deno_ral/log.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
-import { ensureDir, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
+import {
+  copyFile,
+  copyFileSync,
+  ensureDir,
+  ensureDirSync,
+  existsSync,
+  readDirSync,
+  remove,
+  removeSync,
+  statSync,
+} from "../../../deno_ral/fs.ts";
 import { TempContext } from "../../../core/temp-types.ts";
 import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";
@@ -83,7 +93,7 @@ function findBrandExtension(stagedDir: string): BrandExtensionInfo {
 
   try {
     // Check direct children: _extensions/extension-name/
-    for (const entry of Deno.readDirSync(extensionsDir)) {
+    for (const entry of readDirSync(extensionsDir)) {
       if (!entry.isDirectory) continue;
 
       const extPath = join(extensionsDir, entry.name);
@@ -93,7 +103,7 @@ function findBrandExtension(stagedDir: string): BrandExtensionInfo {
       }
 
       // Check nested: _extensions/org/extension-name/
-      for (const nested of Deno.readDirSync(extPath)) {
+      for (const nested of readDirSync(extPath)) {
         if (!nested.isDirectory) continue;
         const nestedPath = join(extPath, nested.name);
         const nestedCheck = checkForBrandExtension(nestedPath);
@@ -349,7 +359,7 @@ async function useBrand(
   // For brand extensions, the brand file is renamed to _brand.yml
   const sourceFiles = new Set(
     filesToCopy
-      .filter((f) => !Deno.statSync(f).isDirectory)
+      .filter((f) => !statSync(f).isDirectory)
       .map((f) => {
         // If this is the brand file, it will become _brand.yml
         if (f === brandFilePath) {
@@ -374,7 +384,7 @@ async function useBrand(
   let removed: string[] = [];
 
   for (const fileToCopy of filesToCopy) {
-    const isDir = Deno.statSync(fileToCopy).isDirectory;
+    const isDir = statSync(fileToCopy).isDirectory;
     if (isDir) {
       continue;
     }
@@ -399,7 +409,7 @@ async function useBrand(
         await ensureDir(targetDir);
 
         // Copy the file into place
-        await Deno.copyFile(fileToCopy, targetPath);
+        await copyFile(fileToCopy, targetPath);
       },
     };
 
@@ -470,7 +480,7 @@ async function useBrand(
   if (extraFiles.length > 0) {
     const removeExtras = async () => {
       for (const file of extraFiles) {
-        await Deno.remove(join(brandDir, file));
+        await remove(join(brandDir, file));
       }
       // Clean up empty directories
       cleanupEmptyDirs(brandDir);
@@ -552,7 +562,7 @@ async function stageBrand(
 
     // Couldn't find a source sub dir, see if there is only a single
     // subfolder and if so use that
-    const dirEntries = Deno.readDirSync(archiveDir);
+    const dirEntries = readDirSync(archiveDir);
     let count = 0;
     let name;
     let hasFiles = false;
@@ -578,7 +588,7 @@ async function stageBrand(
       );
     }
 
-    if (Deno.statSync(source.resolvedTarget).isDirectory) {
+    if (statSync(source.resolvedTarget).isDirectory) {
       // copy the contents of the directory, filtered by quartoignore
       return source.resolvedTarget;
     } else {
@@ -587,7 +597,7 @@ async function stageBrand(
       const targetFile = join(workingDir, basename(source.resolvedTarget));
 
       // Copy the zip to the working dir
-      Deno.copyFileSync(
+      copyFileSync(
         source.resolvedTarget,
         targetFile,
       );
@@ -663,7 +673,7 @@ async function unzipInPlace(zipFile: string) {
       }
 
       // Remove the tar ball itself
-      await Deno.remove(zipFile);
+      await remove(zipFile);
 
       return Promise.resolve();
     },
@@ -679,7 +689,7 @@ function findExtraFiles(
 
   function walkDir(dir: string, baseRel: string = "") {
     if (!existsSync(dir)) return;
-    for (const entry of Deno.readDirSync(dir)) {
+    for (const entry of readDirSync(dir)) {
       // Use join() for cross-platform path separator compatibility
       // This matches the behavior of relative() used to build sourceFiles
       const rel = baseRel ? join(baseRel, entry.name) : entry.name;
@@ -698,14 +708,14 @@ function findExtraFiles(
 // Clean up empty directories after file removal
 function cleanupEmptyDirs(dir: string) {
   if (!existsSync(dir)) return;
-  for (const entry of Deno.readDirSync(dir)) {
+  for (const entry of readDirSync(dir)) {
     if (entry.isDirectory) {
       const subdir = join(dir, entry.name);
       cleanupEmptyDirs(subdir);
       // Check if now empty
-      const contents = [...Deno.readDirSync(subdir)];
+      const contents = [...readDirSync(subdir)];
       if (contents.length === 0) {
-        Deno.removeSync(subdir);
+        removeSync(subdir);
       }
     }
   }

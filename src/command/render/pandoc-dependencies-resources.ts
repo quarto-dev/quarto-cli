@@ -17,7 +17,7 @@ import {
   appendDependencies,
   FormatResourceDependency,
 } from "./pandoc-dependencies.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFile } from "../../deno_ral/fs.ts";
 
 export interface Resource {
   file: string;
@@ -59,7 +59,7 @@ export async function processFormatResources(
   // Read the dependency file
   const resources: string[] = [];
   const supporting: string[] = [];
-  const dependencyJsonStream = await Deno.readTextFile(dependenciesFile);
+  const dependencyJsonStream = await readTextFile(dependenciesFile);
   for (const jsonBlob of lines(dependencyJsonStream)) {
     if (jsonBlob) {
       // Read the dependency and process format resources

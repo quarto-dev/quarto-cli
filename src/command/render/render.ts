@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 
@@ -165,7 +170,7 @@ export async function renderPandoc(
       if (includes) {
         const append = location === "include-after-body";
         for (const include of includes) {
-          const includeMd = Deno.readTextFileSync(include);
+          const includeMd = readTextFileSync(include);
           if (append) {
             markdownInput = `${markdownInput}\n\n${includeMd}`;
           } else {
@@ -573,7 +578,7 @@ async function runHtmlPostprocessors(
       const outputFile = isAbsolute(options.output)
         ? options.output
         : join(dirname(options.source), options.output);
-      const htmlInput = Deno.readTextFileSync(outputFile);
+      const htmlInput = readTextFileSync(outputFile);
       const doctypeMatch = htmlInput.match(/^<!DOCTYPE.*?>/);
       const doc = await parseHtml(htmlInput);
       for (let i = 0; i < htmlPostprocessors.length; i++) {
@@ -601,7 +606,7 @@ async function runHtmlPostprocessors(
 
       const htmlOutput = (doctypeMatch ? doctypeMatch[0] + "\n" : "") +
         doc.documentElement?.outerHTML!;
-      Deno.writeTextFileSync(outputFile, htmlOutput);
+      writeTextFileSync(outputFile, htmlOutput);
     });
   }
   return postProcessResult;

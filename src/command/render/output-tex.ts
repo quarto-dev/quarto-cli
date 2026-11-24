@@ -5,7 +5,11 @@
  */
 
 import { dirname, join, normalize, relative } from "../../deno_ral/path.ts";
-import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  renameSync,
+  safeRemoveSync,
+} from "../../deno_ral/fs.ts";
 
 import { writeFileToStdout } from "../../core/console.ts";
 import { dirAndStem, expandPath } from "../../core/path.ts";
@@ -118,7 +122,7 @@ export function texToPdfOutputRecipe(
           // ensure the target directory exists
           ensureDirSync(dirname(outputPdf));
 
-          Deno.renameSync(pdfOutput, outputPdf);
+          renameSync(pdfOutput, outputPdf);
         }
       }
 

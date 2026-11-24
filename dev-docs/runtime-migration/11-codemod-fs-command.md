@@ -131,18 +131,18 @@ Commit the tracked plan with Task 1's checkboxes and execution log, not the repo
 
 ### Task 2: Apply the codemod
 
-- [ ] **Step 1: Rewrite**
+- [x] **Step 1: Rewrite**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command | tail -1` Expected: `Summary: 107 files scanned, 43 rewritten, 149 replacements, 1 with collisions, 0 skipped`.
 
-- [ ] **Step 2: Format and type-check**
+- [x] **Step 2: Format and type-check**
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: `git diff --stat | tail -1` lists only files under `src/command`.
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 A `FileInfo` member error would mean a caller reads a field the layer's `FileInfo` lacks (`src/command` reads `isFile`, `isDirectory`, `mtime`, `size`): stop and raise it on PR 09's vocabulary rather than casting.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/command
@@ -291,3 +291,17 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 
   Every target is in the `fs` or `temp` rule table. No codemod was applied and no source or baseline file changed.
 - Outstanding: Task 2 applies the codemod, Task 3 makes the two specified hand edits, and Task 4 runs tests and updates the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
+
+### Task 2 — apply the codemod
+
+- Step 1: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command | tail -1` printed the expected summary:
+
+  ```text
+  Summary: 107 files scanned, 43 rewritten, 149 replacements, 1 with collisions, 0 skipped
+  ```
+
+  The 43 changed paths are all under `src/command`; the `stat` collision remains for Task 3. Before formatting, `git diff --stat | tail -1` printed `43 files changed, 192 insertions(+), 199 deletions(-)`, and `git diff --check` printed nothing.
+- Step 2: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` printed 22 changed paths and `Checked 43 files`. Whole-file formatting expanded the diff to `43 files changed, 724 insertions(+), 601 deletions(-)`, including unrelated code reflows and import-specifier reordering. Following PR 10's formatter-collateral ruling, the pre-format codemod diff was restored and only the formatter's 19 `deno_ral/fs.ts` import declarations were retained. The cleaned diff printed `43 files changed, 287 insertions(+), 173 deletions(-)`; the lines added beyond the raw codemod diff were only fs import lines. `git diff --name-only | rg -v '^src/command/'` and `git diff --check` both printed nothing.
+- Step 2 type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0. There was no `FileInfo` member error.
+- Step 3: stage the 43 mechanical source files and this plan only, using the prescribed commit message `command: codemod Deno fs/temp calls to deno_ral (mechanical)`. The dry-run report, formatter scratch files and `.pi-loop.json.lock` are excluded.
+- Outstanding: Task 3 resolves the `stat` collision and replaces the `Deno.errors.NotFound` predicate; Task 4 runs the unit/smoke tests and manual capabilities check, then lowers the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.

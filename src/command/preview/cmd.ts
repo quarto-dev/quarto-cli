@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, statSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 
 import * as colors from "fmt/colors";
@@ -55,6 +55,7 @@ import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
 import { withInputWalkErrorFraming } from "../command-utils.ts";
+import { makeTempDirSync } from "../../deno_ral/temp.ts";
 
 export const previewCommand = new Command()
   .name("preview")
@@ -276,7 +277,7 @@ export const previewCommand = new Command()
     let touchPath: string | undefined;
     let projectTarget: string | ProjectContext = file;
     let project: ProjectContext | undefined;
-    if (Deno.statSync(file).isFile) {
+    if (statSync(file).isFile) {
       // get project and preview format
       const nbContext = notebookContext();
       project = (await projectContext(dirname(file), nbContext)) ||
@@ -312,7 +313,7 @@ export const previewCommand = new Command()
               host: options.host,
               browser: options.browser,
               projectDir: project?.dir,
-              tempDir: Deno.makeTempDirSync(),
+              tempDir: makeTempDirSync(),
               format,
               pandocArgs: args,
               watchInputs: options.watchInputs!,
@@ -331,7 +332,7 @@ export const previewCommand = new Command()
               format: format,
               browser: options.browser,
               projectDir: project?.dir,
-              tempDir: Deno.makeTempDirSync(),
+              tempDir: makeTempDirSync(),
             });
             exitWithCleanup(result.code);
             throw new Error(); // unreachable
@@ -395,7 +396,7 @@ export const previewCommand = new Command()
     }
 
     // see if we are serving a project or a file
-    if (Deno.statSync(file).isDirectory) {
+    if (statSync(file).isDirectory) {
       // project preview
       const renderOptions = {
         services: renderServices(notebookContext()),

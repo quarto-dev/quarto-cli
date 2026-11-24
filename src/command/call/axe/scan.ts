@@ -26,6 +26,7 @@ import { connectCdp, launchChrome } from "../../../core/cri/launch.ts";
 import cdp from "../../../core/cri/deno-cri/index.js";
 import { AxeScanConfig, AxeViewport } from "./config.ts";
 import { AxeMode, AxePage } from "./discover.ts";
+import { readTextFileSync, writeTextFileSync } from "../../../deno_ral/fs.ts";
 
 /** Status of a single scanned cell. Anything but "ok" fails closed. */
 export type AxeCellStatus =
@@ -749,7 +750,7 @@ export async function runAxeScan(
   cellsDir: string,
   onCell?: (cell: AxeCell) => void,
 ): Promise<AxeScanResult> {
-  const axeSource = Deno.readTextFileSync(vendoredAxePath());
+  const axeSource = readTextFileSync(vendoredAxePath());
   const slugs = pageSlugs(pages.map((page) => page.path));
 
   await client.send("Runtime.enable");
@@ -771,7 +772,7 @@ export async function runAxeScan(
           url,
         );
         axeVersion = axeVersion ?? cell.result?.testEngine?.version;
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           join(
             cellsDir,
             `${cellName(slugs.get(page.path)!, viewport.label, mode)}.json`,

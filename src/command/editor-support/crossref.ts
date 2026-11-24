@@ -18,6 +18,11 @@ import {
   resourcePath,
 } from "../../core/resources.ts";
 import { globalTempContext } from "../../core/temp.ts";
+import {
+  readFileSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 function parseCrossrefFlags(options: any, args: string[]): {
   input?: string;
@@ -76,7 +81,7 @@ const makeCrossrefCommand = () => {
       const flags = parseCrossrefFlags(options, args);
       const getInput = async () => {
         if (flags.input) {
-          return Deno.readTextFileSync(flags.input);
+          return readTextFileSync(flags.input);
         } else {
           // read input
           const stdinContent = await readAll(Deno.stdin);
@@ -146,9 +151,9 @@ const makeCrossrefCommand = () => {
       const outputFile = getOutputFile();
       if (outputFile === "stdout") {
         // write back the index
-        Deno.stdout.writeSync(Deno.readFileSync(indexFile));
+        Deno.stdout.writeSync(readFileSync(indexFile));
       } else {
-        Deno.writeTextFileSync(outputFile, Deno.readTextFileSync(indexFile));
+        writeTextFileSync(outputFile, readTextFileSync(indexFile));
       }
     });
 };

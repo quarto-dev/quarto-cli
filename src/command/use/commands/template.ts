@@ -11,7 +11,16 @@ import {
 import { info } from "../../../deno_ral/log.ts";
 import { Confirm, Input } from "cliffy/prompt/mod.ts";
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
-import { ensureDir, ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
+import {
+  copyFile,
+  copyFileSync,
+  ensureDir,
+  ensureDirSync,
+  existsSync,
+  readDirSync,
+  remove,
+  statSync,
+} from "../../../deno_ral/fs.ts";
 import { TempContext } from "../../../core/temp-types.ts";
 import { downloadWithProgress } from "../../../core/download.ts";
 import { withSpinner } from "../../../core/console.ts";
@@ -110,7 +119,7 @@ async function useTemplate(
 
     const copyActions: Array<{ file: string; copy: () => Promise<void> }> = [];
     for (const fileToCopy of filesToCopy) {
-      const isDir = Deno.statSync(fileToCopy).isDirectory;
+      const isDir = statSync(fileToCopy).isDirectory;
       const rel = relative(stagedDir, fileToCopy);
       if (!isDir) {
         // Compute the paths
@@ -128,7 +137,7 @@ async function useTemplate(
             await ensureDir(targetDir);
 
             // Copy the file into place
-            await Deno.copyFile(fileToCopy, target);
+            await copyFile(fileToCopy, target);
           },
         };
 
@@ -231,7 +240,7 @@ async function stageTemplate(
 
     // Couldn't find a source sub dir, see if there is only a single
     // subfolder and if so use that
-    const dirEntries = Deno.readDirSync(archiveDir);
+    const dirEntries = readDirSync(archiveDir);
     let count = 0;
     let name;
     let hasFiles = false;
@@ -257,7 +266,7 @@ async function stageTemplate(
       );
     }
 
-    if (Deno.statSync(source.resolvedTarget).isDirectory) {
+    if (statSync(source.resolvedTarget).isDirectory) {
       // copy the contents of the directory, filtered by quartoignore
       return source.resolvedTarget;
     } else {
@@ -266,7 +275,7 @@ async function stageTemplate(
       const targetFile = join(workingDir, basename(source.resolvedTarget));
 
       // Copy the zip to the working dir
-      Deno.copyFileSync(
+      copyFileSync(
         source.resolvedTarget,
         targetFile,
       );
@@ -362,7 +371,7 @@ async function unzipInPlace(zipFile: string) {
       }
 
       // Remove the tar ball itself
-      await Deno.remove(zipFile);
+      await remove(zipFile);
 
       return Promise.resolve();
     },
@@ -370,7 +379,7 @@ async function unzipInPlace(zipFile: string) {
 }
 
 function directoryEmpty(path: string) {
-  const dirContents = Deno.readDirSync(path);
+  const dirContents = readDirSync(path);
   for (const _content of dirContents) {
     return false;
   }

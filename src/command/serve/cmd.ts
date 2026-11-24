@@ -20,6 +20,7 @@ import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { RenderServices } from "../render/types.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { exitWithCleanup } from "../../core/cleanup.ts";
+import { makeTempDirSync } from "../../deno_ral/temp.ts";
 
 export const serveCommand = new Command()
   .name("serve")
@@ -85,7 +86,7 @@ export const serveCommand = new Command()
       host,
       browser: options.browser,
       projectDir: context?.dir,
-      tempDir: Deno.makeTempDirSync(),
+      tempDir: makeTempDirSync(),
     });
 
     if (!result.success) {

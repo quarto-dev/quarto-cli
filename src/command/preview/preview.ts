@@ -12,7 +12,7 @@ import {
   join,
   relative,
 } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readFile, statSync } from "../../deno_ral/fs.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -910,7 +910,7 @@ function htmlFileRequestHandlerOptions(
         if (renderFormat.formatPreviewFile) {
           file = renderFormat.formatPreviewFile(file, renderFormat);
         }
-        const fileContents = await Deno.readFile(file);
+        const fileContents = await readFile(file);
         return devserver.injectClient(req, fileContents, inputFile);
       } else if (isTextContent(file)) {
         return previewTextContent(
@@ -927,8 +927,8 @@ function htmlFileRequestHandlerOptions(
 
 function fileRequiresRender(inputFile: string, outputFile: string) {
   if (safeExistsSync(outputFile)) {
-    return (Deno.statSync(inputFile).mtime?.valueOf() || 0) >
-      (Deno.statSync(outputFile).mtime?.valueOf() || 0);
+    return (statSync(inputFile).mtime?.valueOf() || 0) >
+      (statSync(outputFile).mtime?.valueOf() || 0);
   } else {
     return true;
   }

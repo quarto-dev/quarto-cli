@@ -5,7 +5,13 @@
  */
 
 import { dirname, join } from "../../../deno_ral/path.ts";
-import { existsSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  mkdirSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 
 import { PdfEngine } from "../../../config/types.ts";
 import { LatexmkOptions } from "./types.ts";
@@ -45,7 +51,7 @@ export async function generatePdf(mkOptions: LatexmkOptions): Promise<string> {
 
   // Ensure that working directory exists
   if (!existsSync(workingDir)) {
-    Deno.mkdirSync(workingDir);
+    mkdirSync(workingDir);
   } else {
     // Clean the working directory of any leftover artifacts
     cleanup(workingDir, stem);
@@ -181,7 +187,7 @@ async function initialCompileLatex(
     if (success) {
       // See whether there are warnings about hyphenation
       // See (https://github.com/rstudio/tinytex/commit/0f2007426f730a6ed9d45369233c1349a69ddd29)
-      const logText = Deno.readTextFileSync(response.log);
+      const logText = readTextFileSync(response.log);
       const missingHyphenationPackages = findMissingHyphenationFiles(logText);
       if (missingHyphenationPackages.length > 0) {
         // try to install them, unless auto install is opted out
@@ -274,7 +280,7 @@ async function initialCompileLatex(
 function displayError(title: string, log: string, result: ProcessResult) {
   if (existsSync(log)) {
     // There is a log file, so read that and try to find the error
-    const logText = Deno.readTextFileSync(log);
+    const logText = readTextFileSync(log);
     writeError(
       title,
       findLatexError(logText, result.stderr),
@@ -331,7 +337,7 @@ async function makeIndexIntermediates(
         return Promise.reject();
       } else if (indexLogExists) {
         // The command succeeded, but there is an indexing error in the lgo
-        const logText = Deno.readTextFileSync(response.log);
+        const logText = readTextFileSync(response.log);
         const error = findIndexError(logText);
         if (error) {
           writeError(
@@ -378,7 +384,7 @@ async function makeBibliographyIntermediates(
     const auxBibFullPath = join(cwd, auxBibPath);
 
     if (existsSync(auxBibFullPath)) {
-      const auxFileData = Deno.readTextFileSync(auxBibFullPath);
+      const auxFileData = readTextFileSync(auxBibFullPath);
 
       const requiresProcessing = bibCommand === "biber"
         ? true
@@ -409,7 +415,7 @@ async function makeBibliographyIntermediates(
             );
 
             // Rewrite the corrected file
-            Deno.writeTextFileSync(auxBibFullPath, fixedAuxFileData);
+            writeTextFileSync(auxBibFullPath, fixedAuxFileData);
           }
         }
 
@@ -430,7 +436,7 @@ async function makeBibliographyIntermediates(
           const log = join(dirname(auxBibFullPath), `${stem}.blg`);
 
           if (existsSync(log)) {
-            const logOutput = Deno.readTextFileSync(log);
+            const logOutput = readTextFileSync(log);
             if (logOutput.match(/ open style file /)) {
               if (
                 await findAndInstallPackages(
@@ -466,7 +472,7 @@ async function findAndInstallPackages(
 ) {
   if (existsSync(logFile)) {
     // Read the log file itself
-    const logText = Deno.readTextFileSync(logFile);
+    const logText = readTextFileSync(logFile);
 
     const searchTerms = findMissingFontsAndPackages(logText, dirname(logFile));
     // Packages known by name (no tlmgr file search needed)

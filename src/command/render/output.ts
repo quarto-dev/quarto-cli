@@ -47,6 +47,7 @@ import {
   typstPdfOutputRecipe,
   useTypstPdfOutputRecipe,
 } from "./output-typst.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 // render commands imply the --output argument for pandoc and the final
 // output file to create for the user, but we need a 'recipe' to go from
@@ -158,9 +159,9 @@ export function outputRecipe(
           const outputFile = isAbsolute(recipe.output)
             ? recipe.output
             : join(dirname(context.target.input), recipe.output);
-          const output = Deno.readTextFileSync(outputFile);
+          const output = readTextFileSync(outputFile);
           const outputMd = partitionYamlFrontMatter(
-            Deno.readTextFileSync(outputFile),
+            readTextFileSync(outputFile),
           );
           // remove _quarto metadata
           //
@@ -173,7 +174,7 @@ export function outputRecipe(
           const yamlString = `---\n${stringifyYaml(yaml)}---\n`;
 
           const markdown = outputMd?.markdown || output;
-          Deno.writeTextFileSync(
+          writeTextFileSync(
             outputFile,
             yamlString + "\n\n" + markdown,
           );

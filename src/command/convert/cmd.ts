@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { info } from "../../deno_ral/log.ts";
 
@@ -76,6 +76,6 @@ export const convertCommand = new Command()
         stem + (srcFormat === kMarkdownFormat ? ".ipynb" : ".qmd"),
       );
     }
-    Deno.writeTextFileSync(output, converted);
+    writeTextFileSync(output, converted);
     info(`Converted to ${output}`);
   });

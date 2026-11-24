@@ -38,7 +38,12 @@ import { kSassBundles } from "../../config/types.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { assert } from "testing/asserts";
-import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import {
+  readFileSync,
+  readTextFileSync,
+  safeModeFromFile,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
 // The output target for a sass bundle
@@ -209,7 +214,7 @@ export async function resolveSassBundles(
       // it can happen that processing generate an empty css file (e.g quarto-html deps with Quarto CSS variables)
       // in that case, no need to insert the cssPath in the dependency
       if (!cssPath) continue;
-      if (Deno.readTextFileSync(cssPath).length === 0) {
+      if (readTextFileSync(cssPath).length === 0) {
         continue;
       }
 
@@ -227,7 +232,7 @@ export async function resolveSassBundles(
 
       // Find any imported stylesheets or url references
       // (These could come from user scss that is merged into our theme, for example)
-      const css = Deno.readTextFileSync(cssPath);
+      const css = readTextFileSync(cssPath);
       const toDependencies = (paths: string[]) => {
         return paths.map((path) => {
           return {
@@ -251,7 +256,7 @@ export async function resolveSassBundles(
         let targetName = target.name;
         if (target.attribs["append-hash"] === "true") {
           const hashFragment = `-${await md5HashBytes(
-            Deno.readFileSync(cssPath),
+            readFileSync(cssPath),
           )}`;
           let extension = "";
           if (target.name.endsWith(".min.css")) {
@@ -463,7 +468,7 @@ async function resolveQuartoSyntaxHighlighting(
           existingDependency.stylesheets = existingDependency.stylesheets ||
             [];
 
-          const hash = await md5HashBytes(Deno.readFileSync(highlightCssPath));
+          const hash = await md5HashBytes(readFileSync(highlightCssPath));
           existingDependency.stylesheets.push({
             name: cssFileName + `-${hash}.css`,
             path: highlightCssPath,
@@ -600,7 +605,7 @@ async function processCssIntoExtras(
   const { temp } = project;
   extras.html = extras.html || {};
 
-  const css = Deno.readTextFileSync(cssPath);
+  const css = readTextFileSync(cssPath);
 
   // Extract dark sentinel value
   const hasDarkSentinel = cssHasDarkModeSentinel(css);
@@ -635,7 +640,7 @@ async function processCssIntoExtras(
       } else {
         const hash = await md5HashBytes(new TextEncoder().encode(cleanedCss));
         newCssPath = temp.createFile({ suffix: `-${hash}.css` });
-        Deno.writeTextFileSync(newCssPath, cleanedCss, {
+        writeTextFileSync(newCssPath, cleanedCss, {
           mode: safeModeFromFile(cssPath),
         });
       }

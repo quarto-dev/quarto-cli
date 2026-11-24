@@ -12,6 +12,7 @@ import {
 } from "../../core/lib/yaml-validation/state.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
 import { inspectConfig } from "../../inspect/inspect.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export const inspectCommand = new Command()
   .name("inspect")
@@ -62,7 +63,7 @@ export const inspectCommand = new Command()
           new TextEncoder().encode(outputJson + "\n"),
         );
       } else {
-        Deno.writeTextFileSync(output, outputJson + "\n");
+        writeTextFileSync(output, outputJson + "\n");
       }
     },
   );

@@ -34,6 +34,7 @@ import { quartoMainFilter, resolveFilters } from "./filters.ts";
 import { buildQuartoTemplateVariables } from "./quarto-template-variables.ts";
 import { mergeConfigs } from "../../core/config.ts";
 import { TempContext } from "../../core/temp.ts";
+import { writeTextFile } from "../../deno_ral/fs.ts";
 
 export async function generateDefaults(
   options: PandocOptions,
@@ -118,7 +119,7 @@ export async function writeDefaultsFile(
   const defaultsFile = temp.createFile(
     { prefix: "quarto-defaults", suffix: ".yml" },
   );
-  await Deno.writeTextFile(defaultsFile, defaultsStr);
+  await writeTextFile(defaultsFile, defaultsStr);
   return defaultsFile;
 }
 

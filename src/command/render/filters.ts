@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, statSync } from "../../deno_ral/fs.ts";
 
 import {
   kBibliography,
@@ -880,7 +880,7 @@ async function resolveFilterExtension(
     if (pathToResolve) {
       // The filter string points to an executable file which exists
       if (
-        existsSync(pathToResolve) && !Deno.statSync(pathToResolve).isDirectory
+        existsSync(pathToResolve) && !statSync(pathToResolve).isDirectory
       ) {
         return filter;
       }
