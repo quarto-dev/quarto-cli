@@ -51,7 +51,7 @@ Files that need attention beyond the codemod (verified):
 | `src/command/render/pandoc.ts:1645-1648` | `await Deno.lstat(...)` (rewritten) followed by `if (!(err instanceof Deno.errors.NotFound))` → `isNotFound(err)`. |
 | `src/command/capabilities/capabilities.ts:75` | `for await (const dirEntry of Deno.readDir(themesPath))` builds the `themes` array in `quarto capabilities` output; it becomes sorted. No test covers the order (grep for `capabilities` under `tests/` finds none); the manual check below prints it. |
 | `src/command/call/build-ts-extension/cmd.ts:118` | `Deno.readDir(srcDir)` lists `.ts` entry files; order now sorted (was filesystem order). `tests/smoke/build-ts-extension/` covers the command. |
-| `src/command/use/commands/brand.ts:86,96` | `findBrandExtension` returns the first brand extension found under `_extensions/*` and `_extensions/*/*`. With two brand extensions in one source, the pick now follows a sorted traversal instead of the OS's unspecified directory order: the source root first, then each `_extensions/` child in sorted order, checking the child itself and then its sorted nested entries before the next child (so `_extensions/a-org/z-brand` wins over `_extensions/b-brand`), so it becomes the same on every platform; a source with one brand extension is unaffected. Accepted as is, like the two rows above. |
+| `src/command/use/commands/brand.ts:86,96` | `findBrandExtension` returns the first brand extension it finds. It checks the source root first, then visits `_extensions/` children in sorted order, checking each child before its sorted nested directories. For example, `_extensions/a-org/z-brand` is checked before `_extensions/b-brand`. |
 | `src/command/render/output-typst.ts:162,167`, `render/project.ts:661`, `render/freeze.ts:186,191,250`, `use/commands/template.ts:234,373`, `use/commands/brand.ts:555,682,701,706`, `extension`-like scans | `Deno.readDirSync` loops that copy, count or test for emptiness; order-independent. `brand.ts:706` spreads the result (`[...Deno.readDirSync(subdir)]`), which keeps working on an array. Review only. |
 | `src/command/render/pandoc.ts:262` | `args: Deno.CommandOptions` — PR 08's concern (becomes `SpawnOptions`); not touched here. |
 | `src/command/render/latexmk/quarto-latexmk.ts` | standalone `tinitex` entry, deleted by PR 39 (decision 9). It has no fs/temp call, so the codemod does not change it; its `Deno.args` is not this PR's (PR 08 leaves it for PR 39). |
@@ -218,7 +218,7 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The AST dry run and the `rg` in Acceptance criteria → as stated.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- Manual (coordinator at wrap-up, per W29): change into a new temporary directory and use the configured worktree's Quarto CLI by absolute path (`quarto.cmd` on Windows). Run `quarto create project default demo --no-prompt --no-open`, `quarto render demo` and `quarto inspect demo`. Check each exit code; render creates `demo.html` and inspect prints valid JSON. Use the relative project name rather than an absolute target path.
+- Manual (coordinator at wrap-up, per W29): in Bash (Git Bash on Windows), set `QUARTO_CLI` to the absolute path to the configured worktree's `package/dist/bin/quarto` (`quarto.cmd` on Windows). Change into a new temporary directory, then run `"$QUARTO_CLI" create project default demo --no-prompt --no-open`, `"$QUARTO_CLI" render demo` and `"$QUARTO_CLI" inspect demo`. Pass the relative project name `demo`, not an absolute path. Each command should exit 0; render should create `demo/demo.html`, and inspect should print valid JSON.
 
 ## Review checklist
 
@@ -232,7 +232,7 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 
 - `quarto capabilities` lists themes in sorted order now; a consumer relying on filesystem order (none known: the VS Code extension sorts client-side) would see a different order.
 - `build-ts-extension` now bundles entry files in sorted order; the bundle content is unchanged, only the discovery order in log output.
-- `quarto use brand` on a source holding two brand extensions now installs the first found by a sorted traversal (each `_extensions/` child in sorted order, the child itself before its sorted nested entries); before, the OS directory order decided, so the pick could differ between platforms.
+- `quarto use brand` may select a different extension when a source contains more than one: it now uses the sorted search order above instead of the filesystem's directory order. A source with one brand extension is unaffected.
 - `deno fmt` may reflow unrelated lines; revert unrelated hunks if a diff becomes hard to review.
 - Rollback: revert the three implementation commits; the layer stays.
 
@@ -292,7 +292,6 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
   ```
 
   Every target is in the `fs` or `temp` rule table. No codemod was applied and no source or baseline file changed.
-- Outstanding: Task 2 applies the codemod, Task 3 makes the two specified hand edits, and Task 4 runs tests and updates the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
 
 ### Task 2 — apply the codemod
 
@@ -303,18 +302,16 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
   ```
 
   The 43 changed paths are all under `src/command`; the `stat` collision remains for Task 3. Before formatting, `git diff --stat | tail -1` printed `43 files changed, 192 insertions(+), 199 deletions(-)`, and `git diff --check` printed nothing.
-- Step 2: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` printed 22 changed paths and `Checked 43 files`. Whole-file formatting expanded the diff to `43 files changed, 724 insertions(+), 601 deletions(-)`, including unrelated code reflows and import-specifier reordering. Following PR 10's formatter-collateral ruling, the pre-format codemod diff was restored and only the formatter's 19 `deno_ral/fs.ts` import declarations were retained. The cleaned diff printed `43 files changed, 287 insertions(+), 173 deletions(-)`; the lines added beyond the raw codemod diff were only fs import lines. `git diff --name-only | rg -v '^src/command/'` and `git diff --check` both printed nothing.
+- Step 2: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` printed 22 changed paths and `Checked 43 files`. Whole-file formatting expanded the diff to `43 files changed, 724 insertions(+), 601 deletions(-)`, including unrelated code reflows and import-specifier reordering. As in PR 10, the executor reverted unrelated formatting and kept only the formatter's changes to 19 `deno_ral/fs.ts` import declarations. The cleaned diff printed `43 files changed, 287 insertions(+), 173 deletions(-)`; the lines added beyond the raw codemod diff were only fs import lines. `git diff --name-only | rg -v '^src/command/'` and `git diff --check` both printed nothing.
 - Step 2 type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0. There was no `FileInfo` member error.
-- Step 3: stage the 43 mechanical source files and this plan only, using the prescribed commit message `command: codemod Deno fs/temp calls to deno_ral (mechanical)`. The dry-run report, formatter scratch files and `.pi-loop.json.lock` are excluded.
-- Outstanding: Task 3 resolves the `stat` collision and replaces the `Deno.errors.NotFound` predicate; Task 4 runs the unit/smoke tests and manual capabilities check, then lowers the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
+- Step 3: commit `24fd56e3d` contains only the 43 source files changed by the codemod and this plan. The dry-run report, formatter scratch files and `.pi-loop.json.lock` were not committed.
 
 ### Task 3 — fix the collision and the `Deno.errors` site
 
 - Steps 1–2: added `import { stat as fsStat } from "../../../deno_ral/fs.ts";` to `pull-git-subtree/cmd.ts` and changed only the blocked call to `const stat = await fsStat(prefixPath);`, preserving the local `stat` binding. Added `import { isNotFound } from "../../deno_ral/errors.ts";` to `pandoc.ts` and replaced the predicate with `if (!isNotFound(err)) {`, preserving `throw err` for non-NotFound errors. No existing fs import was present in `pull-git-subtree/cmd.ts`, so the prescribed standalone import was added. There were no other deviations.
 - Step 3 residue check: `rg -n 'Deno\.errors|Deno\.stat\(' src/command -g '*.ts'` printed nothing and exited 1 (no matches), as expected.
 - Step 3 type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0.
-- `git diff --check` printed nothing. Step 3 stages only the two source files and this plan, using the prescribed commit message `command: resolve stat collision and use isNotFound in pandoc font cache`; the dry-run report and `.pi-loop.json.lock` remain excluded.
-- Outstanding: Task 4 runs the unit/smoke tests and manual capabilities check, then lowers the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
+- `git diff --check` printed nothing. Commit `67a8f3d95` contains only the two source files and this plan.
 
 ### Task 4 — tests, ratchet and commit
 
@@ -340,9 +337,8 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 
   `python3` resolved in Git Bash, so the virtualenv fallback was not needed.
 - Step 4: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` passed. The update measured `src` at 670 against baseline 821; validation then measured 670 against 670 and printed `OK: no count exceeds the baseline.` The `src` baseline therefore decreased by exactly 151 (`821 → 670`). The other before/after counts were unchanged: `src-js` 7/7 Deno calls and 0/0 std-import files, `resources` 12/12 and 1/1, `package/src` 241/241 and 3/3, `tests` 774/774 and 176/176; `src` std-import files stayed 49/49. No scope increased.
-- Step 5: stage only `tools/runtime-boundary-baseline.json` and this tracked plan, excluding `.claude/docs/*` and `.pi-loop.json.lock`, with commit message `Lower runtime boundary baseline after command fs/temp codemod`.
+- Step 5: commit `ab9707bdb` contains only `tools/runtime-boundary-baseline.json` and this plan.
 - Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations and the dot-reporter limitation on naming ignored tests described above. There were no test failures, quarantines, selection changes or Julia/environment interventions.
-- Outstanding: the coordinator owns final Verification and the review checklist, including the Windows manual `create` / `render` / `inspect` sequence and README/HANDOFF updates; the maintainer owns the eventual push and PR creation.
 
 ### Coordinator wrap-up at `ab9707bdb`
 
@@ -356,10 +352,12 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 - Review checklist, with the evidence for each tick:
   - Mechanical diff: per file, every removed line with `Deno.<fs/temp API>` replaced by `<API>` matches an added line, except `pull-git-subtree/cmd.ts` (`stat(…)` → `fsStat(…)`) and `pandoc.ts` (`instanceof Deno.errors.NotFound` → `isNotFound(err)`). Every other leftover is an import line. Comparing import bindings before and after in all 44 changed files: 91 bindings added, all from `deno_ral/fs.ts`, `temp.ts` or `errors.ts` and each named after an API rewritten in that file (or `stat as fsStat` / `isNotFound`). No binding was removed or moved to another module, and no unrelated formatter reflow is present.
   - `pull-git-subtree/cmd.ts:92-93`: `const stat = await fsStat(prefixPath); prefixExists = stat.isDirectory;`, with `import { stat as fsStat } from "../../../deno_ral/fs.ts";`.
-  - `pandoc.ts:1655-1662`: `await lstat(...)` is caught and `if (!isNotFound(err)) { throw err; }` returns `false` only for NotFound. The layer's `lstat` returns `toFileInfo(await Deno.lstat(path))` and lets Deno's error through unchanged, and `isNotFound` matches Deno's `NotFound` or code `ENOENT` (also on `cause`), so the predicate behaves as the `instanceof` did.
+  - `pandoc.ts:1655-1662`: the layer's `lstat` passes Deno's errors through unchanged. The font-cache check still returns `false` for Deno's `NotFound`. `isNotFound` also recognizes `ENOENT` on the error or its cause. The check rethrows errors that `isNotFound` does not recognize.
   - The spread, now at `brand.ts:716` (`[...readDirSync(subdir)]`), spreads the `DirEntry[]` that the layer's `readDirSync` returns (`Array.from(...).sort(byName)`), and the type check passes. `findBrandExtension` (`brand.ts:81-120`) walks the sorted `_extensions/` children, checking each child before its sorted nested entries, as Spec and Risks describe.
   - Per-file `Deno.` token counts in the 44 changed files fell from 239 to 88 (−151), and no file gained one. The baseline diff changes only `src.denoCalls` 821 → 670.
 - Citation drift for later plans: PR 25 cites `src/command/call/axe/cmd.ts:184,217,413,417` (Context table and Task 5); on this branch those comment lines are 191, 224, 420 and 424. The lines' text is unchanged, so PR 25's step 0 re-grep finds them and no open-decisions row is needed.
-- README: the PR 11 row of "The sequence" stays `in progress` until the PR merges. HANDOFF step 5 now says the wrap-up is done and the branch waits for the maintainer.
+- The PR 11 row in the README's sequence stays `in progress` until the PR merges. HANDOFF step 5 records what the maintainer needs to do next.
 - Before the push (maintainer, README ground rule 7): `upstream/main` has moved past the fork point (`1ddc36ab2`, then `3ebc79fdd` "Bump FluentUI in quarto-preview webui", which touches no file under `src/command`). Regenerate the branch from fresh `main` (re-run the `fs,temp` codemod on `src/command`, re-apply the `pull-git-subtree` and `pandoc.ts` hand edits, regenerate the baseline) and re-check that `src` still drops by 151, then push, open the PR and merge the same day. The push and `gh pr create` are maintainer actions.
-- Pending for the PR description (needs the open PR): PR CI runs `test-smokes-parallel.yml` on its default runners, Ubuntu and Windows (`test-smokes.yml` default `["ubuntu-latest", "windows-latest"]`; macOS is reserved for scheduled built-version runs), so it adds Linux coverage of Task 4's unit and smoke selections; the runtime-boundary workflow's delta report against the PR base. macOS is not covered by PR CI, and this plan does not require it.
+- Checks to list as pending in the PR description:
+  - `test-smokes-parallel.yml` on Ubuntu and Windows. macOS runs are part of scheduled built-version testing; this plan does not require them.
+  - The runtime-boundary workflow's delta report against the PR base.

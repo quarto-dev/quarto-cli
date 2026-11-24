@@ -119,7 +119,6 @@ async function autoDetectEntryPoint(
     Deno.exit(1);
   }
 
-  // Find .ts files in src/
   const tsFiles: string[] = [];
   for await (const entry of readDir(srcDir)) {
     if (entry.isFile && entry.name.endsWith(".ts")) {

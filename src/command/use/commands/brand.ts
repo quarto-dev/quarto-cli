@@ -76,23 +76,21 @@ function checkForBrandExtension(dir: string): BrandExtensionInfo {
   return { isBrandExtension: false };
 }
 
-// Search for a brand extension in the staged directory
-// Searches: root, _extensions/*, _extensions/*/*
+// Return the first brand extension found. Check the staged root first, then
+// visit _extensions/* in sorted order. Check each child before its sorted
+// nested directories (_extensions/*/*).
 function findBrandExtension(stagedDir: string): BrandExtensionInfo {
-  // First check the root directory
   const rootCheck = checkForBrandExtension(stagedDir);
   if (rootCheck.isBrandExtension) {
     return rootCheck;
   }
 
-  // Check _extensions directory
   const extensionsDir = join(stagedDir, "_extensions");
   if (!existsSync(extensionsDir)) {
     return { isBrandExtension: false };
   }
 
   try {
-    // Check direct children: _extensions/extension-name/
     for (const entry of readDirSync(extensionsDir)) {
       if (!entry.isDirectory) continue;
 
@@ -102,7 +100,6 @@ function findBrandExtension(stagedDir: string): BrandExtensionInfo {
         return check;
       }
 
-      // Check nested: _extensions/org/extension-name/
       for (const nested of readDirSync(extPath)) {
         if (!nested.isDirectory) continue;
         const nestedPath = join(extPath, nested.name);
