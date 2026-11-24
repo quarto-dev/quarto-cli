@@ -317,7 +317,9 @@ $DENO_EXIT_CODE = $LASTEXITCODE
 # Add Coverage handling
 
 foreach ($name in $OLD_QUARTO_R_ENV.Keys) {
-  [Environment]::SetEnvironmentVariable($name, $OLD_QUARTO_R_ENV[$name])
+  # Set-Item removes the variable when the saved value is $null;
+  # SetEnvironmentVariable would leave it defined as an empty string.
+  Set-Item -Path "Env:$name" -Value $OLD_QUARTO_R_ENV[$name]
 }
 Remove-Variable QUARTO_R_ENV, OLD_QUARTO_R_ENV
 
