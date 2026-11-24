@@ -359,5 +359,6 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 - The PR 11 row in the README's sequence stays `in progress` until the PR merges. HANDOFF step 5 records what the maintainer needs to do next.
 - Before the push (maintainer, README ground rule 7): `upstream/main` has moved past the fork point (`1ddc36ab2`, then `3ebc79fdd` "Bump FluentUI in quarto-preview webui", which touches no file under `src/command`). Regenerate the branch from fresh `main` (re-run the `fs,temp` codemod on `src/command`, re-apply the `pull-git-subtree` and `pandoc.ts` hand edits, regenerate the baseline) and re-check that `src` still drops by 151, then push, open the PR and merge the same day. The push and `gh pr create` are maintainer actions.
 - Checks to list as pending in the PR description:
-  - `test-smokes-parallel.yml` on Ubuntu and Windows. macOS runs are part of scheduled built-version testing; this plan does not require them.
+  - `test-smokes-parallel.yml` on Ubuntu and Windows. macOS runs of Task 4's unit and smoke selections are part of scheduled built-version testing; this plan does not require them.
+  - `test-quarto-latexmk.yml` on Windows, macOS and Ubuntu: it compiles `tinitex` from `src/command/render/latexmk/quarto-latexmk.ts`, which imports the changed `pdf.ts`, and runs `tinitex --help`.
   - The runtime-boundary workflow's delta report against the PR base.
