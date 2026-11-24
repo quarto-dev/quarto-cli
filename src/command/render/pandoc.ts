@@ -13,6 +13,7 @@ import {
 } from "../../deno_ral/path.ts";
 
 import { error, info, warning } from "../../deno_ral/log.ts";
+import { isNotFound } from "../../deno_ral/errors.ts";
 
 import {
   copyFileSync,
@@ -1655,7 +1656,7 @@ async function resolveExtras(
           await lstat(join(font_cache, path));
           return true;
         } catch (err) {
-          if (!(err instanceof Deno.errors.NotFound)) {
+          if (!isNotFound(err)) {
             throw err;
           }
           return false;

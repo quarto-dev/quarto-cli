@@ -155,7 +155,7 @@ git commit -m "command: codemod Deno fs/temp calls to deno_ral (mechanical)"
 **Files:**
 - Modify: `src/command/dev-call/pull-git-subtree/cmd.ts`, `src/command/render/pandoc.ts`
 
-- [ ] **Step 1: `src/command/dev-call/pull-git-subtree/cmd.ts`**
+- [x] **Step 1: `src/command/dev-call/pull-git-subtree/cmd.ts`**
 
 The file now imports nothing from `deno_ral/fs.ts` for `stat` (blocked).
 Add `import { stat as fsStat } from "../../../deno_ral/fs.ts";` (merge into the existing `deno_ral/fs.ts` import if the codemod created one for `existsSync`/other names) and change line 91:
@@ -164,7 +164,7 @@ Add `import { stat as fsStat } from "../../../deno_ral/fs.ts";` (merge into the 
     const stat = await fsStat(prefixPath);
 ```
 
-- [ ] **Step 2: `src/command/render/pandoc.ts`**
+- [x] **Step 2: `src/command/render/pandoc.ts`**
 
 Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
 Replace line 1648:
@@ -175,7 +175,7 @@ Replace line 1648:
 
 (Line 1645 is already `await lstat(join(font_cache, path));` after the codemod.)
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 Run: `rg -n 'Deno\.errors|Deno\.stat\(' src/command -g '*.ts'` Expected: empty.
 
@@ -307,3 +307,11 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 - Step 2 type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0. There was no `FileInfo` member error.
 - Step 3: stage the 43 mechanical source files and this plan only, using the prescribed commit message `command: codemod Deno fs/temp calls to deno_ral (mechanical)`. The dry-run report, formatter scratch files and `.pi-loop.json.lock` are excluded.
 - Outstanding: Task 3 resolves the `stat` collision and replaces the `Deno.errors.NotFound` predicate; Task 4 runs the unit/smoke tests and manual capabilities check, then lowers the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
+
+### Task 3 — fix the collision and the `Deno.errors` site
+
+- Steps 1–2: added `import { stat as fsStat } from "../../../deno_ral/fs.ts";` to `pull-git-subtree/cmd.ts` and changed only the blocked call to `const stat = await fsStat(prefixPath);`, preserving the local `stat` binding. Added `import { isNotFound } from "../../deno_ral/errors.ts";` to `pandoc.ts` and replaced the predicate with `if (!isNotFound(err)) {`, preserving `throw err` for non-NotFound errors. No existing fs import was present in `pull-git-subtree/cmd.ts`, so the prescribed standalone import was added. There were no other deviations.
+- Step 3 residue check: `rg -n 'Deno\.errors|Deno\.stat\(' src/command -g '*.ts'` printed nothing and exited 1 (no matches), as expected.
+- Step 3 type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0.
+- `git diff --check` printed nothing. Step 3 stages only the two source files and this plan, using the prescribed commit message `command: resolve stat collision and use isNotFound in pandoc font cache`; the dry-run report and `.pi-loop.json.lock` remain excluded.
+- Outstanding: Task 4 runs the unit/smoke tests and manual capabilities check, then lowers the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
