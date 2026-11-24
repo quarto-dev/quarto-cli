@@ -9,6 +9,7 @@ import { dirname, join } from "../deno_ral/path.ts";
 import * as ld from "./lodash.ts";
 import { lines } from "./text.ts";
 import { InternalError } from "./lib/error.ts";
+import { readTextFileSync, statSync } from "../deno_ral/fs.ts";
 
 export type EjsData = {
   [key: string]: unknown;
@@ -51,12 +52,12 @@ function compileTemplate(
   cache = true,
 ) {
   // Check the current file modified time
-  const mtime = Deno.statSync(file).mtime?.getTime() || Number.MAX_VALUE;
+  const mtime = statSync(file).mtime?.getTime() || Number.MAX_VALUE;
 
   const compile = () => {
     const template =
       `<% const partial = (file, data) => print(include(file, data)); %>
-    ${Deno.readTextFileSync(file)}`;
+    ${readTextFileSync(file)}`;
 
     return ld.template(template, {
       imports: {

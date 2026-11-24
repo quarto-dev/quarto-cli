@@ -7,7 +7,15 @@
  */
 
 import { assert } from "testing/asserts";
-import { ensureDirSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  readFileSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
+import { isNotFound } from "../../deno_ral/errors.ts";
 import { join } from "../../deno_ral/path.ts";
 import { v8Branch } from "../../deno_ral/platform.ts";
 import { md5HashBytes } from "../hash.ts";
@@ -120,7 +128,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
   async addBuffer(key: string[], value: Uint8Array): Promise<void> {
     assert(this.index);
     const hash = await md5HashBytes(value);
-    Deno.writeFileSync(join(this.storeDir, hash), value);
+    writeFileSync(join(this.storeDir, hash), value);
     const index = this.index;
     const result = await kvOp(this.indexFile, () =>
       index.set(key, {
@@ -134,7 +142,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     assert(this.index);
     const buffer = new TextEncoder().encode(value);
     const hash = await md5HashBytes(buffer);
-    Deno.writeTextFileSync(join(this.storeDir, hash), value);
+    writeTextFileSync(join(this.storeDir, hash), value);
     const index = this.index;
     const result = await kvOp(this.indexFile, () =>
       index.set(key, {
@@ -183,7 +191,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     try {
       return getter(result);
     } catch (e) {
-      if (!(e instanceof Deno.errors.NotFound)) {
+      if (!isNotFound(e)) {
         throw e;
       }
       console.warn(
@@ -213,7 +221,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     return this._getAs(key, (result) => {
       assert(result.type === "buffer", "Expected buffer");
       const { hash } = result as DiskCacheEntry;
-      return Deno.readFileSync(join(this.storeDir, hash));
+      return readFileSync(join(this.storeDir, hash));
     });
   }
 
@@ -221,7 +229,7 @@ class ProjectCacheImpl implements Cloneable<ProjectCacheImpl> {
     return this._getAs(key, (result) => {
       assert(result.type === "string", "Expected string");
       const { hash } = result as DiskCacheEntry;
-      return Deno.readTextFileSync(join(this.storeDir, hash));
+      return readTextFileSync(join(this.storeDir, hash));
     });
   }
 

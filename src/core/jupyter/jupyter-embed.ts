@@ -68,6 +68,7 @@ import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../log.ts";
 import * as ld from "../lodash.ts";
 import { texSafeFilename } from "../tex.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -199,7 +200,7 @@ export async function ensureNotebookContext(
     logProgress(`[${++count}/${uniqueRenders.length}] ${nb.name}`);
 
     // See if we can get a nice title
-    const partitioned = partitionMarkdown(Deno.readTextFileSync(nb.path));
+    const partitioned = partitionMarkdown(readTextFileSync(nb.path));
     let notebookMeta: NotebookMetadata | undefined;
     const filename = basename(nb.path);
     if (partitioned.yaml && partitioned.yaml.title) {

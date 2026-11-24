@@ -17,7 +17,7 @@ itself run.
 
 */
 
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import { ensureDirSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import {
   fmtSource,
@@ -454,7 +454,7 @@ export async function generateZodTypesFromSchemas(resourcePath: string) {
     "types",
     "zod",
   ));
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     schemaSchemaSourcePath,
     zodTypes,
   );

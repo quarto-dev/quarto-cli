@@ -6,7 +6,12 @@
 
 import { error, info } from "../deno_ral/log.ts";
 import { join } from "../deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 import { md5HashSync } from "./hash.ts";
 
@@ -46,9 +51,9 @@ export function createDevConfig(
     dartsass,
     esbuild,
     typst,
-    script: md5HashSync(Deno.readTextFileSync(scriptPath)),
+    script: md5HashSync(readTextFileSync(scriptPath)),
     importMap: md5HashSync(
-      Deno.readTextFileSync(
+      readTextFileSync(
         join(srcDir, "import_map.json"),
       ),
     ),
@@ -58,7 +63,7 @@ export function createDevConfig(
 export function writeDevConfig(config: DevConfig, binPath: string) {
   const configPath = join(binPath, "..", "config");
   ensureDirSync(configPath);
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     join(configPath, kDevConfig),
     JSON.stringify(config, undefined, 2),
   );
@@ -68,7 +73,7 @@ export function readInstalledDevConfig(): DevConfig | null {
   const binPath = quartoConfig.binPath();
   const configPath = join(binPath, "..", "config", kDevConfig);
   if (existsSync(configPath)) {
-    return JSON.parse(Deno.readTextFileSync(configPath)) as DevConfig;
+    return JSON.parse(readTextFileSync(configPath)) as DevConfig;
   } else {
     return null;
   }
@@ -81,7 +86,7 @@ export function readSourceDevConfig(): DevConfig {
     rootDir,
     "configuration",
   );
-  const configurationScriptSrc = Deno.readTextFileSync(configurationScript);
+  const configurationScriptSrc = readTextFileSync(configurationScript);
   const readConfig = (key: string) => {
     const regex = new RegExp(`${key}=(\\S+)`);
     const match = configurationScriptSrc.match(regex);

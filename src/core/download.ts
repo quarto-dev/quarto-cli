@@ -7,6 +7,7 @@
 import { writeAll } from "io/write-all";
 import { progressBar } from "./console.ts";
 import { withRetry } from "./retry.ts";
+import { open } from "../deno_ral/fs.ts";
 
 export interface DownloadError extends Error {
   statusCode: number;
@@ -31,7 +32,7 @@ export async function downloadWithProgress(
 
     // Write the data to a file
     if (response.status === 200 && response.body) {
-      const pkgFile = await Deno.open(
+      const pkgFile = await open(
         toFile,
         { create: true, write: true, truncate: true },
       );

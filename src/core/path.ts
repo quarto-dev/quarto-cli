@@ -20,7 +20,14 @@ import { warning } from "../deno_ral/log.ts";
 
 export { safeRemoveSync } from "../deno_ral/fs.ts";
 
-import { existsSync, expandGlobSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  expandGlobSync,
+  readDirSync,
+  safeRemoveSync,
+  statSync,
+} from "../deno_ral/fs.ts";
+import { isNotFound } from "../deno_ral/errors.ts";
 
 import * as ld from "./lodash.ts";
 
@@ -58,7 +65,7 @@ export function safeRemoveIfExists(file: string) {
 export function removeIfEmptyDir(dir: string): boolean {
   if (existsSync(dir)) {
     let empty = true;
-    for (const _entry of Deno.readDirSync(dir)) {
+    for (const _entry of readDirSync(dir)) {
       empty = false;
       break;
     }
@@ -82,8 +89,8 @@ export function isModifiedAfter(file: string, otherFile: string) {
   }
 
   // stat
-  const fileInfo = Deno.statSync(file);
-  const otherfileInfo = Deno.statSync(otherFile);
+  const fileInfo = statSync(file);
+  const otherfileInfo = statSync(otherFile);
 
   // if there is no mtime for either then return true
   if (fileInfo.mtime === null || otherfileInfo.mtime === null) {
@@ -184,7 +191,13 @@ export function resolvePathGlobs(
         for (
           const file of expandGlobSync(
             glob,
-            { root, exclude, includeDirs: true, extended: true, globstar: true },
+            {
+              root,
+              exclude,
+              includeDirs: true,
+              extended: true,
+              globstar: true,
+            },
           )
         ) {
           expanded.push(file.path);
@@ -194,7 +207,7 @@ export function resolvePathGlobs(
         // directory listing and stat (TOCTOU race). This is expected during
         // preview when the IDE or other processes modify the project
         // directory concurrently.
-        if (!(e instanceof Deno.errors.NotFound)) {
+        if (!isNotFound(e)) {
           throw e;
         }
       }
@@ -277,7 +290,7 @@ export function resolveGlobs(
         // literal relative reference to any directory means everything in the dir
         const fullPath = join(root, glob);
         try {
-          if (Deno.statSync(fullPath).isDirectory) {
+          if (statSync(fullPath).isDirectory) {
             glob = glob + "/**/*";
           }
         } catch {

@@ -11,6 +11,8 @@ import { normalizePath, safeRemoveSync } from "../path.ts";
 import { execProcess } from "../process.ts";
 import { pandocBinaryPath } from "../resources.ts";
 import { RunHandler, RunHandlerOptions } from "./types.ts";
+import { makeTempFileSync } from "../../deno_ral/temp.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export const luaRunHandler: RunHandler = {
   canHandle: (script: string) => {
@@ -66,14 +68,14 @@ export async function runLua(args: string[]) {
   args = args.filter((arg) => {
     if (!tempScript && isLuaScript(arg)) {
       const script = normalizePath(arg);
-      tempScript = Deno.makeTempFileSync({
+      tempScript = makeTempFileSync({
         dir: dirname(script),
         prefix: ".run-",
         suffix: ".lua",
       });
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         tempScript,
-        Deno.readTextFileSync(script) + `\n
+        readTextFileSync(script) + `\n
 local meta = {}
 meta.__index =
   function(_, key)

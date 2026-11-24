@@ -6,7 +6,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../deno_ral/fs.ts";
 import { asMappedString } from "../mapped-text.ts";
 import { Schema } from "../lib/yaml-schema/types.ts";
 import { relative } from "../../deno_ral/path.ts";
@@ -33,7 +33,7 @@ export async function readAndValidateYamlFromFile(
     shortFileName = relative(Deno.cwd(), shortFileName);
   }
 
-  let fileContents = Deno.readTextFileSync(file).trimEnd();
+  let fileContents = readTextFileSync(file).trimEnd();
   if ((fileContents.trim().length === 0) && defaultContents) {
     fileContents = defaultContents;
   }

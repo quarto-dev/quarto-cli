@@ -10,6 +10,7 @@ import { architectureToolsPath } from "./resources.ts";
 import { TempContext } from "./temp-types.ts";
 import { createTempContext } from "./temp.ts";
 import { nullDevice } from "./platform.ts";
+import { readTextFileSync } from "../deno_ral/fs.ts";
 
 type ESBuildAnalysisImport = {
   path: string;
@@ -53,7 +54,7 @@ export async function esbuildAnalyze(
       workingDir,
     );
     const result = JSON.parse(
-      Deno.readTextFileSync(tempName),
+      readTextFileSync(tempName),
     ) as ESBuildAnalysis;
     assert(Object.entries(result.outputs).length === 1);
     result.outputs = {

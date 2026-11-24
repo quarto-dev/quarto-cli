@@ -4,7 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  expandGlobSync,
+  readTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { extname, join, normalize } from "../../deno_ral/path.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { execProcess } from "../process.ts";
@@ -113,7 +117,7 @@ function initDenoCache() {
     if (!existsSync(file2)) {
       return true;
     }
-    return Deno.readTextFileSync(file1) !== Deno.readTextFileSync(file2);
+    return readTextFileSync(file1) !== readTextFileSync(file2);
   };
   const fileList = ["deno_std.lock", "import_map.json", "run_import_map.json"];
   if (

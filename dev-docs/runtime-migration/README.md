@@ -27,7 +27,8 @@ This README is the execution index.
 1. Every PR lands on `main` one at a time and ships on Deno until PR 33.
    The full existing test suite is the gate; from PR 26 a real-Node job runs the layer's unit tests per PR with a known-failures list that may only shrink; PR 32 makes the bucketed Node matrix required.
 2. Application code never calls `Deno.*` and never imports the standard library directly, except the runtime-neutral import-map seams the std boundary rule allow-lists (`async`, `crypto`, `datetime`, `streams`, `io/*`, `log` other than `log/file-handler`, `fmt/printf`, `dotenv/stringify`; the rule is in `02-runtime-boundary-check.md`, the module inventory behind it in `22-std-import-seams.md`); everything else imports `src/deno_ral/`.
-   PR 02 adds a CI ratchet with five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`) whose counts can only go down. PR runs count only the PR's own increase (PR 02c); main keeps the absolute baseline.
+   PR 02 adds a CI ratchet with five scopes (`src`, `src-js`, `resources`, `package/src`, `tests`) whose counts can only go down.
+   PR runs count only the PR's own increase (PR 02c); main keeps the absolute baseline.
 3. Runtime-shaped APIs (process, HTTP, TCP, watch, key-value, errors) get Quarto's own interface.
    Plain filesystem and environment calls keep Deno's names so the codemods are mechanical and reversible (`--reverse`).
 4. No synchronous network calls in any interface.
@@ -47,10 +48,14 @@ This README is the execution index.
 
 ## Decisions and conventions
 
-Initial decisions: 2026-10-15 (`REVIEW-2026-10-15.md` section 6). The corrections below supersede their release assumptions after the early 1.11 stable release.
+Initial decisions: 2026-10-15 (`REVIEW-2026-10-15.md` section 6).
+The corrections below supersede their release assumptions after the early 1.11 stable release.
 Later executors apply the open-decisions rows at step 0; historical assessments and unexecuted plans retain their original text.
 
-- Releases (corrected 2026-11-03): 1.11.9 shipped on Deno 2.9.8 without the Phase 1 codemods or the script notice. 1.12 targets the boundary work on Deno and the `quarto run` deprecation notice (PR 00c); Phase 1 codemods land before the `v1.12` branch is cut. 1.13 targets Node (PRs 33–36); PR 37 targets 1.14. Preserve one stable release of warning before changing script runtimes.
+- Releases (corrected 2026-11-03): 1.11.9 shipped on Deno 2.9.8 without the Phase 1 codemods or the script notice.
+  1.12 targets the boundary work on Deno and the `quarto run` deprecation notice (PR 00c); Phase 1 codemods land before the `v1.12` branch is cut.
+  1.13 targets Node (PRs 33–36); PR 37 targets 1.14.
+  Preserve one stable release of warning before changing script runtimes.
   Backports to `v1.11` and older use the codemod's `--reverse` mode where the target still calls `Deno.*` directly (step added to `dev-docs/checklist-backport-a-pr.md` by PR 09, rewritten by PR 37 after the flip).
 - Pre-flip Deno protection (triage A3): from PR 32 a pull request runs `deno-sanity` plus the nightly `deno-nightly`; PR 33 merges only with one green `deno-nightly` and `parity: OK` on its branch (PR 32, "Deno in CI after PR 32").
   Rollout and rollback after the flip (triage A4): one full prerelease soak, revert by default for a P1 in the layer, the runtime switches for user-side script/extension breakage only, the last stable Deno release (target 1.12) as the way back (PR 33, "Risks and rollback"; apply the release correction below).
@@ -58,21 +63,25 @@ Later executors apply the open-decisions rows at step 0; historical assessments 
   The `--reverse` backport demo (triage cross-cutting row 2) is owed after PR 10 merges (PR 10, "Follow-up after merge").
 - Pins: Deno `v2.9.8` (PR 00a, merged as #15186; 2.9.8 is the minimum secure version), Node `v26.12.0` or newer 26.x, CI on Node 26, `@cliffy/*` 1.3.1 (PR 06), `@b-fuze/deno-dom` 0.1.56 on WASM with a `parseHtml`-time gate of at most 2× the native plugin (PRs 05, 20), `ws` 8.22 (PR 29), `web-tree-sitter` 0.20.2 (PR 20b).
   Fact-checked 2026-10-16 against nodejs.org/dist, nodejs/Release `schedule.json`, `BUILDING.md` at v26.12.0, the v26.x API docs, Deno's `Releases.md`, jsr and the npm registry (triage "cross-cutting" row 1).
-- Lockfile target: PR 00b commits `deno.lock` and uses `--frozen` in configure, CI, the dev launchers and the bundle; every import-map edit regenerates and commits the lock. The lockfile half landed with #15259: `deno.lock` is committed, configure, the dev launchers, `quarto-bld` and the bundle run frozen, and the update procedure is `QUARTO_UPDATE_DENO_LOCK=1 ./configure.sh` (Windows: `set QUARTO_UPDATE_DENO_LOCK=1`, then `configure.cmd`) with the regenerated lock committed alongside the import-map edit (there is no `update-lock.sh`; see the 00b overlap row below).
+- Lockfile target: PR 00b commits `deno.lock` and uses `--frozen` in configure, CI, the dev launchers and the bundle; every import-map edit regenerates and commits the lock.
+  The lockfile half landed with #15259: `deno.lock` is committed, configure, the dev launchers, `quarto-bld` and the bundle run frozen, and the update procedure is `QUARTO_UPDATE_DENO_LOCK=1 ./configure.sh` (Windows: `set QUARTO_UPDATE_DENO_LOCK=1`, then `configure.cmd`) with the regenerated lock committed alongside the import-map edit (there is no `update-lock.sh`; see the 00b overlap row below).
   The bundle gate (cold `DENO_DIR`, `--cached-only`, external-specifier grep, five renders, three OSes) still runs from the PR 00b remainder.
 - Posit Connect keeps a cookie jar (tough-cookie, PR 04).
   Puppeteer launch helpers and the `chromium` tool are deleted, not ported (PR 07).
 - `tinitex` is rewritten in Rust as a separate project; PR 39 only removes the `deno compile` build.
-- Julia engine: ported upstream (milestone J); no in-tree edit. PR 32 may land before the subtree pull with a Julia-only parity allowlist; the pull empties that allowlist.
+- Julia engine: ported upstream (milestone J); no in-tree edit.
+  PR 32 may land before the subtree pull with a Julia-only parity allowlist; the pull empties that allowlist.
   The Node port exists: Gordon Woodhull's fork, branch [`q2/node-port`](https://github.com/gordonwoodhull/quarto-julia-engine/tree/q2/node-port) of `PumasAI/quarto-julia-engine` — use that fork until the subtree pull.
-  The upstream PR was waiting for quarto-cli #14936 to ship in a stable Quarto 1 release ([PR #15133 comment](https://github.com/quarto-dev/quarto-cli/pull/15133#issuecomment-6300211258), 2026-10-21). Quarto 1.11.9 now satisfies that release condition; recheck upstream progress before the subtree pull.
+  The upstream PR was waiting for quarto-cli #14936 to ship in a stable Quarto 1 release ([PR #15133 comment](https://github.com/quarto-dev/quarto-cli/pull/15133#issuecomment-6300211258), 2026-10-21).
+  Quarto 1.11.9 now satisfies that release condition; recheck upstream progress before the subtree pull.
 - Test runner: `node:test` or Vitest, decided by Spike V before PR 31 executes.
 - Node bundle and tooling: `tools/node-bundle/dist/quarto.mjs`; all Node tooling and the shim are `.mjs`; the root `package.json` has no `"type": "module"`; dev bundles are `package/dist/bin/quarto-dev.mjs` and `quarto-bld.mjs`; dist keeps `bin/quarto.js` plus a `bin/package.json` with `"type": "module"`.
 - Node flags set by the launchers (PR 33): `--enable-experimental-regexp-engine
   --max-old-space-size=8192 --stack-trace-limit=100 --use-system-ca
   --use-env-proxy --disable-warning=MODULE_TYPELESS_PACKAGE_JSON`.
 - Environment contract (PR 33/34): `QUARTO_NODE`, `QUARTO_NODE_OPTIONS`, `QUARTO_NODE_VERSION`; `NODE_OPTIONS`/`NODE_PATH` are saved into `QUARTO_SAVED_*` for Quarto's own process and restored for children; `QUARTO_DENO*` are ignored or translated with a one-time warning and `QUARTO_DENO` is never aliased to the Node binary; `QUARTO_RUN_RUNTIME=deno` or the project key `script-runtime` selects the Deno tool for `.ts` scripts (PR 35); `QUARTO_RUN_DENO_NOTICE=0` silences the notice (PR 00c, 35).
-- Store names after PR 18: project cache `index`, Sass cache `sass-index`; the backend picks the file (`<name>.kv` for PR 18's `Deno.openKv` backend; `<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on) so Quarto versions on different backends never share a file (PRs 18, 30). Quarto 1.11 shipped the earlier KV wrapper and isolation fixes, not PR 18's interface.
+- Store names after PR 18: project cache `index`, Sass cache `sass-index`; the backend picks the file (`<name>.kv` for PR 18's `Deno.openKv` backend; `<name>.json` for PR 30's JSON backend, the only one on both runtimes from PR 30 on) so Quarto versions on different backends never share a file (PRs 18, 30).
+  Quarto 1.11 shipped the earlier KV wrapper and isolation fixes, not PR 18's interface.
   Until PR 30, Deno KV stores also stay per V8 release branch, in a `v8-<v8Branch>` directory (`src/deno_ral/platform.ts`, #15180), because a Deno with a newer V8 writes values an older one cannot read.
 - `src/deno_ral/` keeps its name.
   `src/core/puppeteer.ts` keeps its name.
@@ -116,7 +125,9 @@ The original month estimates from `00-assessment.md` section 7 are retained belo
 | Flip shipped in a prerelease | PR 33 merged, first 1.13 prerelease on Node | September 2027; 1.13 | `v1.13` branch cut: _date to confirm_ |
 | Deno removed | PR 37 merged | 1.14 | after the 1.13 soak and stable release |
 
-PR 00c's old "Starting with Quarto 1.12" text must become "Starting with Quarto 1.13" when executed. Apply the release correction row below to its tests, migration page and changelog, and to PRs 33–37. Revisit these targets if the confirmed cut dates cannot accommodate the gates.
+PR 00c's old "Starting with Quarto 1.12" text must become "Starting with Quarto 1.13" when executed.
+Apply the release correction row below to its tests, migration page and changelog, and to PRs 33–37.
+Revisit these targets if the confirmed cut dates cannot accommodate the gates.
 
 ### Open decisions with an owner (besides A9–A11 above)
 
@@ -171,6 +182,8 @@ The rows below are the ones that still need a named person or an external answer
 | PR 08 Task 4 step 6, Task 5 and the baseline delta (PR 09 is on `main`) | The plan's "If PR 09 has already landed" branch now applies: `src/core/console.ts` and `src/command/editor-support/crossref.ts:149` import `readFileSync` from `src/deno_ral/fs.ts` instead of writing `Deno.readFileSync` (`08-ral-process.md:1335-1340`, `:1412`). The `src` baseline then drops by 135, not 133 (`:271`, `:1758`): the `Deno.openSync` of `console.ts:174` and the `Deno.readFileSync` of `crossref.ts:149` go too. If PRs 10 and 11 landed first, both lines already read `openSync`/`readFileSync` and the delta is 133 again. Also: `package/src/common/configure.ts` has its `Deno.run` at line 172, not 171 | PR 08 executor | PR 08 step 0 |
 | PR 08, plan code blocks (step 0 audit) | Nine code comments name a later PR and must state the current reason only: `08-ral-process.md:166`, `:177`, `:207`, `:313`, `:468`, `:592`, `:756`, `:899`, `:1014` (`// TODO(PR 28)`). `:361` tests `"Deno" in globalThis` in `childScript`: the ratchet does not count it, but the step 0 rule asks for a ruling; state the accepted form. Check `childScript` against `childCmd` in `tests/unit/exec-process-utf8-chunks.test.ts:26-31` before adding a second child-script helper | PR 08 executor | PR 08 step 0 |
 | PR 10 (audit of 2026-11-16) | The dry run on `main` reports `205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped`: 57 files, not 56 (`src/core/bibliography.ts:116` gained a `Deno.readTextFileSync`; `src/core/cache/cache.ts` lost its `Deno.removeSync` to `safeRemoveSync` in #15180). The `src` delta stays 170. Moved lines: `src/core/path.ts:189` is 197 and `:53` is 61; `src/core/cache/cache.ts:161` is 186. If PR 08 landed first and took `readFileSync` from the layer, expect 56 files, 152 replacements and a delta of 169 | PR 10 executor | PR 10 step 0 |
+| PR 10 Task 6 (step 0 of 2026-11-19, applies the `kRalDenoReplacements` row) | Task 6, added to the plan at step 0, adds the `fs`, `temp` and `errors` keys (decided 2026-11-19: the `Deno.errors.*` keys too, since PR 09 shipped `errors.ts` and PR 10 converts the first `instanceof` sites). The keys apply to `src` and `package/src` only. A covered API is an error that `--accept-increase` cannot clear: `renderDelta` reports it before checking acceptance. `tests` keeps deliberate `Deno.*` fixtures (`tests/unit/kv-damage-fixtures.ts`, `tests/unit/ral/safe-remove-dir.test.ts`) whose increase the maintainer accepts. Layer PRs that add keys later (08, 14) choose their scopes with the same rule | coordinator | PR 10 step 0 |
+| PR 10 Task 2, `src/core/console.ts` (from PR 10 Task 2 step 2, 2026-11-19), and PR 08 Task 4 step 6 | **Decided 2026-11-19:** `FsFile` gets no `readSync`. With PR 08 not landed, the codemod turns `writeFileToStdout`'s `Deno.openSync` into `openSync`, and `readAllSync(df)` fails `deno check` (TS2345: `FsFile` is not a `ReaderSync`). That call is the only `ReaderSync` consumer in `src`, and PR 08 step 6 already replaces the whole body with a `readFileSync` read, so a `readSync` in the contract would bind PR 27's `NodeFsFile` (descriptor-owner rule, `EBADF` after close) and a contract test to a method with no consumer once PR 08 lands. PR 10 instead applies the read half of PR 08 step 6 by hand, after the codemod and in the hand-fix commit: the body becomes `writeAllSync(Deno.stdout, readFileSync(file));`, with `readFileSync` imported from `../deno_ral/fs.ts` (replacing the codemod's `openSync` import) and the `io/read-all` import dropped. `Deno.stdout` and `writeAllSync` stay for PR 08. The codemod audit counts (57 files, 153 replacements) are unchanged; the plan's `console.ts:174` row moves from "Review only" to the hand fixes, and the executor re-reads the `src` boundary delta from `--update-baseline` rather than assuming it. Verification: the `deno check ... quarto.ts` command passes, and a `--to pdf --output -` render (the `writeFileToStdout` callers in `output.ts`, `output-tex.ts`, `output-typst.ts`) writes the PDF bytes to stdout. PR 08 step 6 then only replaces `writeAllSync(Deno.stdout, …)` with `writeStdoutSync(…)` and drops the `io/write-all` import; its "lines 8-9" and "173-178" citations are re-derived at its step 0. PR 27: no `FsFile` change | coordinator | PR 10 (resume Task 2), PR 08 step 0 |
 | PR 11 (audit of 2026-11-16) | Counts hold on `main` (`107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`, delta 151). If PR 08 landed first and took `readFileSync` from the layer at `crossref.ts:149`, expect 148 replacements and a delta of 150 | PR 11 executor | PR 11 step 0 |
 | PR 12 (audit of 2026-11-16) | The dry run on `main` reports 159 replacements, not 158 (`src/project/project-shared.ts` gained `parse(Deno.readTextFileSync(brandPath))` in #15101), so the `src` delta is 163, not 162. Moved lines: `src/project/project-context.ts:652,967-969,1072` are 733, 1055-1057, 1160; `website-listing-feed.ts:521` is 532; `format-html-shared.ts:133` is 163; `project-shared.ts:482,592` are 483, 615 | PR 12 executor | PR 12 step 0 |
 | PR 13 (audit of 2026-11-16) | Counts hold on `main` (`172, 35, 122, 1, 0`, delta 123). Drop `src/publish/common/bundle.ts:106-108` from "Modify (hand)" (`13-codemod-fs-rest.md:105`): the plan leaves that commented block to PR 25 everywhere else. `src/extension/extension.ts:683` is 685. The manual check `cd $(mktemp -d) && package/dist/bin/quarto add …` (`:232`) uses a relative path after `cd`: call the dev build by absolute path | PR 13 executor | PR 13 step 0 |
@@ -254,7 +267,8 @@ Step 0 also audits the plan's code blocks, because the executor transcribes them
 Fix each hit in the plan, and record it in the execution log, before Task 1:
 
 - Every function the plan's code defines (`rg -n 'function \w+' <plan>`) is searched for in `tests/utils.ts`, `tests/verify.ts`, `tests/unit/**/utils.ts` and `src/`; an existing helper is reused, and a helper two new test files need lives in one shared file.
-- No code outside `src/deno_ral/` reaches `Deno` indirectly to stay out of the ratchet count: through `globalThis`, `self` or `window`, by destructuring, or through an alias (`const d = Deno`) (`rg -nP '\bglobalThis\b|\bDeno\b(?!\??\.)' <plan>`; `typeof Deno` and prose hits are fine). A `Deno.` access the code needs is written as such and the baseline increase is accepted.
+- No code outside `src/deno_ral/` reaches `Deno` indirectly to stay out of the ratchet count: through `globalThis`, `self` or `window`, by destructuring, or through an alias (`const d = Deno`) (`rg -nP '\bglobalThis\b|\bDeno\b(?!\??\.)' <plan>`; `typeof Deno` and prose hits are fine).
+  A `Deno.` access the code needs is written as such and the baseline increase is accepted.
 - Comments inside code blocks state the current reason only: no plan or PR numbers, no description of what a later PR will change (`rg -n '(//|\*).*\bPR [0-9]' <plan>`; a hit in a shell or YAML block that is not a code comment is fine).
 
 After each task's commit, the reviewer runs a reuse and simplification pass over the task's diff, on top of the plan's own review checklist: the plan checks behaviour, this pass checks the three points above on the code as committed.
@@ -329,7 +343,7 @@ Every PR that changes a count lands after 02c; preparing it earlier is fine.
 | 39 | [39-remove-quarto-latexmk-compile.md](39-remove-quarto-latexmk-compile.md) | Remove the `tinitex` `deno compile` build and the standalone entry (Rust rewrite replaces it); before PR 25, whose zero needs the files gone | 02 | Sonnet | S | planned |
 | 09 | [09-ral-fs-and-temp-layer.md](09-ral-fs-and-temp-layer.md) | `deno_ral/fs.ts`, `temp.ts`, `errors.ts` API (`canonicalPathSync`, retyped `FileInfo`), unit tests, and the idempotent ts-morph codemod with `--reverse` (#15223) | 02 | Opus | M | merged |
 | 22 | [22-std-import-seams.md](22-std-import-seams.md) | `colors.ts`, `flags.ts`, base64 seams; table of std modules with internal `Deno.*` and their owner (PR 20b) | 08 | Sonnet | S | planned |
-| 10 | [10-codemod-fs-core.md](10-codemod-fs-core.md) | Run the fs/temp codemod on `src/core`, `src/quarto-core`, `src/config` (56 files) | 09 | Sonnet | L | planned |
+| 10 | [10-codemod-fs-core.md](10-codemod-fs-core.md) | Run the fs/temp codemod on `src/core`, `src/quarto-core`, `src/config` (57 files) | 09 | Sonnet | L | in progress |
 | 11 | [11-codemod-fs-command.md](11-codemod-fs-command.md) | Codemod on `src/command` (43 files) | 09 | Sonnet | L | planned |
 | 12 | [12-codemod-fs-project-format.md](12-codemod-fs-project-format.md) | Codemod on `src/project`, `src/format` (51 files) | 09 | Sonnet | L | planned |
 | 13 | [13-codemod-fs-rest.md](13-codemod-fs-rest.md) | Codemod on `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, TS under `src/resources` (35 files) | 09 | Sonnet | M | planned |
@@ -404,8 +418,11 @@ Every PR that changes a count lands after 02c; preparing it earlier is fine.
 ```
 
 Edges that cross phases: 05 → 20 (timing baseline); 20b → 26, 27, 33 (shim members, tree-sitter in the bundle); 14b → 28, 29, 32 (the end-to-end gates); 02b → 31, 35 (type-only imports); 00b → 33 (bundle gate); 00c → 35 (notice); S2 → 33 and 37 (`QUARTO_RUNTIME`); J → 32 (allowlist; soft, see row 32); 39 → 25 (zero needs the `deno compile` files gone) and 37.
-Additional prerequisites discovered after planning: 00a → 01; #15259 reconciliation → 00b; harness leak repair (row HL) → 15 and 23. The split-UTF-8 decoding fix that PR 08 waited for is merged (#15346). The sequence rows and open-decisions table govern these prerequisites alongside the original graph.
-Decided 2026-11-17, not redrawn above: 10–13 then 14 need only 09 and no longer wait for 08 and 22; 39 needs only 02; 22 no longer waits for 04; 17 and 19 Tasks 1–3 no longer wait for 14b and 08; 07 splits into 07a (after 00b) and 07b (after 03–06); 20b Tasks 1–5 need only 02 and 09. The sequence rows govern.
+Additional prerequisites discovered after planning: 00a → 01; #15259 reconciliation → 00b; harness leak repair (row HL) → 15 and 23.
+The split-UTF-8 decoding fix that PR 08 waited for is merged (#15346).
+The sequence rows and open-decisions table govern these prerequisites alongside the original graph.
+Decided 2026-11-17, not redrawn above: 10–13 then 14 need only 09 and no longer wait for 08 and 22; 39 needs only 02; 22 no longer waits for 04; 17 and 19 Tasks 1–3 no longer wait for 14b and 08; 07 splits into 07a (after 00b) and 07b (after 03–06); 20b Tasks 1–5 need only 02 and 09.
+The sequence rows govern.
 Every remaining `Deno.*` or Deno CLI use after Phase 1 has an owner and a gate in PR 25's runtime residue table.
 
 ## Progress metric

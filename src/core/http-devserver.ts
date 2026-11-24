@@ -15,6 +15,7 @@ import { LogEventsHandler } from "./log.ts";
 import { resourcePath } from "./resources.ts";
 import { isRStudioPreview, isRStudioServer } from "./platform.ts";
 import { kTextHtml } from "./mime.ts";
+import { readFile } from "../deno_ral/fs.ts";
 
 export interface HttpDevServer {
   handle: (req: Request) => boolean;
@@ -123,7 +124,7 @@ export function httpDevServer(
       const url = new URL(req.url);
       if (url.pathname.endsWith(kQuartoPreviewJs)) {
         const path = resourcePath(join("preview", kQuartoPreviewJs));
-        const contents = await Deno.readFile(path);
+        const contents = await readFile(path);
         return httpContentResponse(contents, "text/javascript");
       } else {
         try {

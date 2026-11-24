@@ -5,7 +5,7 @@
  */
 
 import { isAbsolute, join } from "../../deno_ral/path.ts";
-import { existsSync, expandGlobSync } from "../../deno_ral/fs.ts";
+import { existsSync, expandGlobSync, statSync } from "../../deno_ral/fs.ts";
 
 import { isWindows } from "../../deno_ral/platform.ts";
 import { execProcess } from "../process.ts";
@@ -145,7 +145,7 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
       })
     ) {
       // check if this is an executable binary
-      const file = Deno.statSync(path.path);
+      const file = statSync(path.path);
       if (!(file.isFile && file.mode && (file.mode & S_IXUSR))) {
         continue;
       }
@@ -175,7 +175,7 @@ async function getQuartoJupyterCapabilities() {
     }
     if (existsSync(quartoJupyter)) {
       let quartoJupyterBin: string | undefined = quartoJupyter;
-      if (Deno.statSync(quartoJupyter).isDirectory) {
+      if (statSync(quartoJupyter).isDirectory) {
         debug(
           `QUARTO_PYTHON '${quartoJupyter}' is a directory, looking for python binary`,
         );

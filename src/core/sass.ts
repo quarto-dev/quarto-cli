@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 
 import { quartoCacheDir } from "./appdirs.ts";
@@ -150,7 +155,7 @@ export async function compileSass(
   if (saveScssPrefix) {
     // Save the SCSS before compilation
     const counterValue = counter++;
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       `${saveScssPrefix}-${counterValue}.scss`,
       scssInput,
     );
@@ -170,7 +175,7 @@ export async function compileSass(
 
   if (saveScssPrefix) {
     // The compilation succeeded, we can update the file with additional info
-    const partialOutput = Deno.readTextFileSync(result);
+    const partialOutput = readTextFileSync(result);
     // now we attempt to find the SCSS variables in the output
     // and inject them back in the SCSS file so that our debug tooling can use them.
     const scssToWrite = [scssInput];
@@ -184,7 +189,7 @@ export async function compileSass(
       `// quarto-scss-analysis-annotation ${JSON.stringify(annotation)}`,
     );
     scssInput = scssToWrite.join("\n");
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       `${saveScssPrefix}-${counter - 1}.scss`,
       scssInput,
     );
@@ -243,7 +248,7 @@ export function mergeLayers(...layers: SassLayer[]): SassLayer {
 }
 
 export function sassLayer(path: string): SassLayer {
-  if (Deno.statSync(path).isFile) {
+  if (statSync(path).isFile) {
     return sassLayerFile(path);
   } else {
     return sassLayerDir(
@@ -261,7 +266,7 @@ export function sassLayer(path: string): SassLayer {
 
 export function sassLayerFile(theme: string): SassLayer {
   // It is not a built in theme, so read the theme file and parse it.
-  const rawContents = Deno.readTextFileSync(theme);
+  const rawContents = readTextFileSync(theme);
 
   return sassLayerStr(rawContents, theme);
 }
@@ -331,7 +336,7 @@ export function sassLayerDir(
     if (path) {
       path = join(dir, path);
       if (existsSync(path)) {
-        return Deno.readTextFileSync(path);
+        return readTextFileSync(path);
       } else {
         return "";
       }
@@ -391,7 +396,7 @@ export async function compileWithCache(
       console.warn(
         "The resulting CSS file will not have SCSS color variables exported as CSS.",
       );
-      Deno.writeTextFileSync("_quarto_internal_scss_error.scss", input);
+      writeTextFileSync("_quarto_internal_scss_error.scss", input);
       console.warn(
         "This is likely a Quarto bug.\nPlease consider reporting it at https://github.com/quarto-dev/quarto-cli,\nalong with the _quarto_internal_scss_error.scss file that can be found in the current working directory.",
       );
@@ -436,14 +441,14 @@ export async function compileWithCache(
 
 // Clean sourceMappingUrl from css after saas compilation
 export function cleanSourceMappingUrl(cssPath: string): void {
-  const cleaned = Deno.readTextFileSync(cssPath).replaceAll(
+  const cleaned = readTextFileSync(cssPath).replaceAll(
     kSourceMappingRegexes[0],
     "",
   ).replaceAll(
     kSourceMappingRegexes[1],
     "",
   );
-  Deno.writeTextFileSync(cssPath, cleaned.trim(), {
+  writeTextFileSync(cssPath, cleaned.trim(), {
     mode: safeModeFromFile(cssPath),
   });
 }

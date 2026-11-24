@@ -12,6 +12,7 @@ import { contentType } from "./mime.ts";
 import { pathWithForwardSlashes } from "./path.ts";
 import { formatResourcePath } from "./resources.ts";
 import { normalizeNewlines } from "./text.ts";
+import { readFileSync, readTextFileSync } from "../deno_ral/fs.ts";
 
 const kPdfJsDefaultFile = "compressed.tracemonkey-pldi-09.pdf";
 const kPdfJsViewerToolbarButtonSelector = `.toolbarButton,
@@ -64,7 +65,7 @@ export function pdfJsFileHandler(
 
     // tweak viewer.js to point to our pdf and force the sidebar off
     if (file === previewPath("web", "viewer.js")) {
-      let viewerJs = Deno.readTextFileSync(file)
+      let viewerJs = readTextFileSync(file)
         .replace(
           kPdfJsDefaultFile,
           basename(pdfFile()),
@@ -82,7 +83,7 @@ export function pdfJsFileHandler(
         body: new TextEncoder().encode(viewerJs),
       };
     } else if (file == previewPath("web", "viewer.css")) {
-      const viewerCss = normalizeNewlines(Deno.readTextFileSync(file))
+      const viewerCss = normalizeNewlines(readTextFileSync(file))
         .replace(
           kPdfJsViewerToolbarButtonSelector,
           kPdfJsViewerToolbarButtonSelector + "\n  z-index: 199;",
@@ -101,7 +102,7 @@ export function pdfJsFileHandler(
     } else if (file === previewPath("build", "pdf.worker.js")) {
       const filePathHash = "quarto-preview-pdf-" +
         await md5HashAsync(pdfFile());
-      const workerJs = Deno.readTextFileSync(file).replace(
+      const workerJs = readTextFileSync(file).replace(
         /(key: "fingerprint",\s+get: function get\(\) {\s+)(var hash;)/,
         `$1return "${filePathHash}"; $2`,
       );
@@ -113,7 +114,7 @@ export function pdfJsFileHandler(
     else if (file === previewPath("web", basename(pdfFile()))) {
       return {
         contentType: contentType(file),
-        body: Deno.readFileSync(pdfFile()),
+        body: readFileSync(pdfFile()),
       };
     }
   };

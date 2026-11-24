@@ -8,6 +8,7 @@ import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kTextHtml, kTextMarkdown } from "../mime.ts";
 import { isDisplayData } from "./display-data.ts";
 import { JupyterNotebook, JupyterOutputDisplayData } from "./types.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export function removeAndPreserveHtml(
   nb: JupyterNotebook,
@@ -65,7 +66,7 @@ export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
   const outputPath = isAbsolute(options.output)
     ? options.output
     : join(dirname(options.target.input), options.output);
-  let output = Deno.readTextFileSync(outputPath);
+  let output = readTextFileSync(outputPath);
 
   // substitute
   output = restorePreservedHtml(
@@ -74,7 +75,7 @@ export function postProcessRestorePreservedHtml(options: PostProcessOptions) {
   );
 
   // re-write the output
-  Deno.writeTextFileSync(outputPath, output);
+  writeTextFileSync(outputPath, output);
 }
 
 interface PostProcessOptions {

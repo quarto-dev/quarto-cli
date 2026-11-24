@@ -16,6 +16,7 @@ import {
 
 import { rangedLines } from "../lib/ranged-text.ts";
 import { isBlockShortcode } from "../lib/parse-shortcode.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 export const standaloneInclude = async (
   handlerContext: LanguageCellHandlerContext,
@@ -47,7 +48,7 @@ export const standaloneInclude = async (
     let includeSrc;
     try {
       includeSrc = asMappedString(
-        Deno.readTextFileSync(path),
+        readTextFileSync(path),
         path,
       );
     } catch (_e) {

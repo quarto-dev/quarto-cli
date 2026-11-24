@@ -4,7 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { join } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readDirSync } from "../../deno_ral/fs.ts";
+import { isNotFound } from "../../deno_ral/errors.ts";
 
 import * as colors from "fmt/colors";
 
@@ -83,7 +84,7 @@ export function jupyterUnactivatedEnvMessage(
   caps: JupyterCapabilities,
   indent = "",
 ) {
-  for (const path of Deno.readDirSync(Deno.cwd())) {
+  for (const path of readDirSync(Deno.cwd())) {
     if (path.isDirectory) {
       const targetPath = join(Deno.cwd(), path.name);
       // We may encounter a directory for which we
@@ -104,7 +105,7 @@ export function jupyterUnactivatedEnvMessage(
           }
         }
       } catch (err) {
-        if (!(err instanceof Deno.errors.NotFound)) {
+        if (!isNotFound(err)) {
           throw err;
         }
       }

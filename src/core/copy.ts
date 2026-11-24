@@ -13,14 +13,23 @@ import {
 } from "../deno_ral/path.ts";
 
 import {
+  copyFileSync as fsCopyFileSync,
   CopyOptions,
   ensureDirSync,
   existsSync,
+  type FileInfo,
   getFileInfoType,
   isSubdir,
+  lstatSync,
+  readDirSync,
+  readLinkSync,
   safeRemoveSync,
+  statSync,
+  symlinkSync,
+  utimeSync,
   walkSync,
 } from "../deno_ral/fs.ts";
+import { isNotFound } from "../deno_ral/errors.ts";
 
 import { isWindows } from "../deno_ral/platform.ts";
 
@@ -44,7 +53,7 @@ export function copyTo(
     throw new Error("Source and destination cannot be the same.");
   }
 
-  const srcStat = Deno.lstatSync(src);
+  const srcStat = lstatSync(src);
 
   if (srcStat.isDirectory && isSubdir(src, dest)) {
     throw new Error(
@@ -122,8 +131,8 @@ export function copyFileIfNewer(srcFile: string, destFile: string) {
   // file info)
   try {
     if (existsSync(destFile)) {
-      const srcInfo = Deno.statSync(srcFile);
-      const destInfo = Deno.statSync(destFile);
+      const srcInfo = statSync(srcFile);
+      const destInfo = statSync(destFile);
       if (!srcInfo.mtime || !destInfo.mtime || destInfo.mtime < srcInfo.mtime) {
         doCopy();
       }
@@ -149,12 +158,12 @@ function copyFileSync(
   if (existsSync(dest)) {
     safeRemoveSync(dest);
   }
-  Deno.copyFileSync(src, dest);
+  fsCopyFileSync(src, dest);
 
   if (options.preserveTimestamps) {
-    const statInfo = Deno.statSync(src);
+    const statInfo = statSync(src);
     if (statInfo.atime && statInfo.mtime) {
-      Deno.utimeSync(dest, statInfo.atime, statInfo.mtime);
+      utimeSync(dest, statInfo.atime, statInfo.mtime);
     }
   }
 }
@@ -170,13 +179,13 @@ function copyDirSync(src: string, dest: string, options: CopyOptions): void {
   }
 
   if (options.preserveTimestamps) {
-    const srcStatInfo = Deno.statSync(src);
+    const srcStatInfo = statSync(src);
     if (srcStatInfo.atime && srcStatInfo.mtime) {
-      Deno.utimeSync(dest, srcStatInfo.atime, srcStatInfo.mtime);
+      utimeSync(dest, srcStatInfo.atime, srcStatInfo.mtime);
     }
   }
 
-  for (const entry of Deno.readDirSync(src)) {
+  for (const entry of readDirSync(src)) {
     const srcPath = join(src, entry.name);
     const destPath = join(dest, basename(srcPath as string));
     if (entry.isSymlink) {
@@ -199,20 +208,20 @@ function copySymlinkSync(
   if (existsSync(dest)) {
     safeRemoveSync(dest);
   }
-  const originSrcFilePath = Deno.readLinkSync(src);
-  const type = getFileInfoType(Deno.lstatSync(src));
+  const originSrcFilePath = readLinkSync(src);
+  const type = getFileInfoType(lstatSync(src));
   if (isWindows) {
-    Deno.symlinkSync(originSrcFilePath, dest, {
+    symlinkSync(originSrcFilePath, dest, {
       type: type === "dir" ? "dir" : "file",
     });
   } else {
-    Deno.symlinkSync(originSrcFilePath, dest);
+    symlinkSync(originSrcFilePath, dest);
   }
 
   if (options.preserveTimestamps) {
-    const statInfo = Deno.lstatSync(src);
+    const statInfo = lstatSync(src);
     if (statInfo.atime && statInfo.mtime) {
-      Deno.utimeSync(dest, statInfo.atime, statInfo.mtime);
+      utimeSync(dest, statInfo.atime, statInfo.mtime);
     }
   }
 }
@@ -228,12 +237,12 @@ function ensureValidCopySync(
   src: string,
   dest: string,
   options: InternalCopyOptions,
-): Deno.FileInfo | undefined {
-  let destStat: Deno.FileInfo;
+): FileInfo | undefined {
+  let destStat: FileInfo;
   try {
-    destStat = Deno.lstatSync(dest);
+    destStat = lstatSync(dest);
   } catch (err) {
-    if (err instanceof Deno.errors.NotFound) {
+    if (isNotFound(err)) {
       return;
     }
     throw err;

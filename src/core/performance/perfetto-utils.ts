@@ -6,6 +6,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 type PerfettoTraceEvent = {
   ph: "B" | "E" | "X" | "I" | "C" | "S" | "F";
   ts: number;
@@ -18,7 +19,7 @@ export function convertCombinedLuaProfileToCSV(
   profileName: string,
 ) {
   const combinedInformation = JSON.parse(
-    Deno.readTextFileSync(profileName),
+    readTextFileSync(profileName),
   );
 
   const lines: string[] = ["filter,name,time"];
@@ -29,7 +30,7 @@ export function convertCombinedLuaProfileToCSV(
       lines.push(`${cat},${fileName},${time}`);
     });
   });
-  Deno.writeTextFileSync(profileName, lines.join("\n"));
+  writeTextFileSync(profileName, lines.join("\n"));
 }
 
 export function appendToCombinedLuaProfile(
@@ -38,12 +39,12 @@ export function appendToCombinedLuaProfile(
   combinedInformationFile: string,
 ) {
   const individualTrace = JSON.parse(
-    Deno.readTextFileSync(individualTraceFile),
+    readTextFileSync(individualTraceFile),
   );
   let combinedInformation: Record<string, Record<string, number>> = {};
   try {
     combinedInformation = JSON.parse(
-      Deno.readTextFileSync(combinedInformationFile),
+      readTextFileSync(combinedInformationFile),
     );
   } catch (_) {
     // ignore
@@ -82,7 +83,7 @@ export function appendToCombinedLuaProfile(
     }
     combinedInformation[cat][inputFileName] = latestEEventByCat[cat] - start;
   });
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     combinedInformationFile,
     JSON.stringify(combinedInformation, null, 2),
   );

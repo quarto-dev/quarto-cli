@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../deno_ral/fs.ts";
 import { basename, dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kIpynbFilters } from "../../config/constants.ts";
 import { Format } from "../../config/types.ts";
@@ -48,7 +48,7 @@ export async function jupyterNotebookFiltered(
   file: string,
   filters?: string[],
 ) {
-  let json = Deno.readTextFileSync(file);
+  let json = readTextFileSync(file);
   if (filters && filters.length > 0) {
     // see if we can satisfy the request from the cache
     const cached = await filteredNotebookFromCache(file, filters);

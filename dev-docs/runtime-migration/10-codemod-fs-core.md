@@ -5,7 +5,7 @@
 
 **Goal:** Move every plain filesystem and temp-file call in `src/core`, `src/quarto-core` and `src/config` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the two reported collisions by hand, and replace the 13 `instanceof Deno.errors.X` checks in `src/core` with the `deno_ral/errors.ts` predicates.
 **Phase:** 1.
-**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below).
+**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands before PR 08 and PR 22 (landing order below).
 **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/10-codemod-fs-core`.
 **Suggested executor:** Sonnet.
@@ -59,7 +59,8 @@ Files in scope that need attention beyond the codemod (all verified):
 | `src/core/qualified-path.ts` | exports its own `readTextFile(t, options?: Deno.ReadFileOptions)` and `readTextFileSync(t)` (lines 69-77) wrapping `Deno.readTextFile*` → two collisions; fix by alias import and drop the unused `options` parameter. |
 | `src/core/http.ts` | `Deno.errors.NotFound` at 64 and the six-way `instanceof` chain at 230-235. |
 | `src/core/port.ts:131`, `src/core/cache/cache.ts:161`, `src/core/path.ts:189`, `src/core/jupyter/jupyter-shared.ts:107`, `src/core/typst.ts:82` | `Deno.errors.*` → predicates. |
-| `src/core/file.ts:22,53`, `src/core/download.ts:34`, `src/core/console.ts:174` (if PR 08 has not landed yet) | `Deno.open`/`Deno.openSync` → `open`/`openSync` by the codemod; the handles are used as `readable`, `writeSync`, `close`, and as a `Writer` for `writeAll` (`download.ts:48`), all on the `FsFile` interface. Review only. |
+| `src/core/file.ts:22,53`, `src/core/download.ts:34` | `Deno.open` → `open` by the codemod; the handles are used as `readable`, `writeSync`, `close`, and as a `Writer` for `writeAll` (`download.ts:48`), all on the `FsFile` interface. Review only. |
+| `src/core/console.ts:174` (if PR 08 has not landed yet) | The codemod rewrites `Deno.openSync`, but `readAllSync` requires a `ReaderSync` that the layer's `FsFile` does not implement. Hand-fix `writeFileToStdout` to `writeAllSync(Deno.stdout, readFileSync(file));`; do not add `readSync` to `FsFile`. |
 | `src/core/path.ts:53`, `src/core/copy.ts:179`, `src/core/resources.ts:179`, `src/core/jupyter/jupyter-shared.ts:86` | `Deno.readDirSync` loops; none depends on order; the layer now returns a sorted array. Review only. |
 | `src/core/temp.ts`, `src/core/temp-types.ts` | `Deno.MakeTempOptions` → `TempOptions` (codemod `temp` rule). `TempContext` is part of the `quarto` API (`src/core/api/types.ts:27`); `TempOptions` has the same three fields the API documents. |
 | `src/core/lib/errors.ts:33`, `src/core/lib/external/colors.ts:33-34` | `Deno.build.os`, `Deno.noColor`: not fs; `src/core/lib` is shared with browser bundles and must not import `deno_ral` (comment at `lib/errors.ts:27-29`). The codemod skips `src/core/lib` (PR 09 `kCodemodExclusions`), so the dry run never lists these files. Untouched (PR 19). |
@@ -71,7 +72,7 @@ Out: comment lines that mention `Deno.*` (`src/core/copy.ts:28,145` and the othe
 
 ### Landing order and conflict protocol
 
-Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10).
+Phase 1 lands 10–13, then 14, before PR 08 and PR 22 (decided 2026-11-17, README "Open decisions", the landing-order row for PRs 10–13 and 14; it replaced the order 08 → 22 → 10–13 → 14 of review finding S10).
 PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
 Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
 
@@ -112,13 +113,13 @@ import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync 
   ```
   prints nothing.
 - `quarto run --dev tools/check-runtime-boundary.ts` passes, with the `src` scope count exactly 170 lower than before (153 codemod replacements + 3 collision sites + 13 `Deno.errors` + 1 `Deno.ReadFileOptions`; 171 if PR 20b landed first and the codemod also rewrote `metrics.ts:65`).
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 - The tests in Verification pass.
 
 ## Plan
 
 Assumes PR 09 landed (`tools/codemod-deno-ral.ts`, `src/deno_ral/{fs,temp,errors}.ts`, `getFileInfoType` retyped) and PR 02's ratchet exists.
-In the prescribed order PR 08 has landed (so `src/core/console.ts` no longer opens files); if it has not, `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync`, and both orders end in the same place.
+In the decided order PR 08 has not landed, so `src/core/console.ts:174` still has `Deno.openSync`, which the codemod rewrites to `openSync` (hand-fixed afterwards; README "Open decisions", the row for PR 10 Task 2 `console.ts`); had PR 08 landed first, `src/core/console.ts` would no longer open files, and both orders end in the same place.
 
 ### Task 1: Dry run and review
 
@@ -126,11 +127,11 @@ README ground rule 7 applies: this PR is generated from fresh `main` the day it 
 PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
 
 
-- [ ] **Step 1: Dry run**
+- [x] **Step 1: Dry run**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run > /tmp/codemod-core.txt; tail -3 /tmp/codemod-core.txt` Expected: the last line is `Summary: 205 files scanned, 56 would be rewritten, 153 replacements, 2 with collisions, 2 skipped` (measured on `b86f98d`; a few more replacements are possible if `main` gained `Deno.*` sites since, and `1 skipped` with 154 replacements if PR 20b landed first); `git status --short src` is empty.
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run > /tmp/codemod-core.txt; tail -3 /tmp/codemod-core.txt` Expected: the last line is `Summary: 205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped` (measured on `cda410214`; a few more replacements are possible if `main` gained `Deno.*` sites since, and `1 skipped` with 154 replacements if PR 20b landed first); `git status --short src` is empty.
 
-- [ ] **Step 2: Review the report**
+- [x] **Step 2: Review the report**
 
 Run: `grep -E 'skipped|collision' /tmp/codemod-core.txt` Expected exactly:
 ```
@@ -146,31 +147,31 @@ Run: `grep -c '→' /tmp/codemod-core.txt` and skim `grep '→' /tmp/codemod-cor
 
 ### Task 2: Apply the codemod
 
-- [ ] **Step 1: Rewrite**
+- [x] **Step 1: Rewrite**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1` Expected: `Summary: 205 files scanned, 56 rewritten, 153 replacements, 2 with collisions, 2 skipped` (the same numbers as the dry run).
+Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1` Expected: `Summary: 205 files scanned, 57 rewritten, 153 replacements, 2 with collisions, 2 skipped` (the same numbers as the dry run).
 
-- [ ] **Step 2: Format and type-check**
+- [x] **Step 2: Format and type-check**
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: files reformatted (long import lines wrapped); `git diff --stat | tail -1` shows only files under the three directories.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors, except one while PR 08 is not on `main`: `src/core/console.ts`, `readAllSync(df)` (TS2345, `FsFile` is not a `ReaderSync`; README "Open decisions" row for PR 10 Task 2 `console.ts`). Task 3 Step 3 removes it and Task 3 Step 4 requires a clean check; any other error is a failure.
 (`FileInfo`'s eight fields cover what `src/core` reads: `isDirectory`, `isFile`, `isSymlink`, `size`, `atime`, `mtime`, `mode`; `getFileInfoType` takes the layer's `FileInfo` since PR 09.
 A check error about a missing `FileInfo` member means a caller reads a field the layer does not expose: stop and raise it on PR 09's vocabulary rather than casting.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/core src/quarto-core src/config
 git commit -m "core: codemod Deno fs/temp calls to deno_ral (mechanical)"
 ```
 
-### Task 3: Fix the two collisions by hand
+### Task 3: Fix the two collisions and `console.ts` by hand
 
 **Files:**
-- Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`
+- Modify: `src/core/copy.ts`, `src/core/qualified-path.ts`, `src/core/console.ts`
 
-- [ ] **Step 1: `src/core/copy.ts`**
+- [x] **Step 1: `src/core/copy.ts`**
 
 The codemod added an import from `../deno_ral/fs.ts` (merged into the existing one at lines 17-23, which already imports `existsSync`, `safeRemoveSync`, `getFileInfoType`, …) containing `lstatSync`, `statSync`, `utimeSync`, `readDirSync`, `readLinkSync`, `symlinkSync`, `type FileInfo` but not `copyFileSync`.
 Add `copyFileSync as fsCopyFileSync` to that import and change line 152:
@@ -181,7 +182,7 @@ Add `copyFileSync as fsCopyFileSync` to that import and change line 152:
 
 Leave the comment at line 28 as it is (comment lines are PR 25's cleanup; the acceptance greps exclude them).
 
-- [ ] **Step 2: `src/core/qualified-path.ts`**
+- [x] **Step 2: `src/core/qualified-path.ts`**
 
 Confirm nothing passes `options` to the exported `readTextFile`: `grep -rn 'qualified-path.ts' src tests --include=*.ts` shows no importer of these two functions outside the file (verified 2026-10-14; if an importer exists, keep the parameter name but type it as `{ signal?: AbortSignal }` and ignore it).
 Then replace lines 69-77 with:
@@ -200,14 +201,24 @@ export function readTextFileSync(
 
 and add `import { readTextFile as fsReadTextFile, readTextFileSync as fsReadTextFileSync } from "../deno_ral/fs.ts";` to the imports.
 
-- [ ] **Step 3: Type-check and commit**
+- [x] **Step 3: `src/core/console.ts`**
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Apply the coordinator ruling of 2026-11-19: replace the codemod's `openSync` import with `readFileSync`, drop the `io/read-all` import, and make `writeFileToStdout` a single call:
+
+```ts
+writeAllSync(Deno.stdout, readFileSync(file));
+```
+
+Do not add `readSync` to `FsFile`; remove the declaration and its `_TEMPLATE.md` addition made under the superseded ruling, leaving no net `FsFile` change.
+
+- [x] **Step 4: Type-check and commit**
+
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/paths/qualified-path.test.ts unit/file-permissions.test.ts` Expected: `0 failed`.
 
 ```bash
-git add src/core/copy.ts src/core/qualified-path.ts
+git add src/core/copy.ts src/core/qualified-path.ts src/core/console.ts src/deno_ral/fs.ts dev-docs/runtime-migration/_TEMPLATE.md
 git commit -m "core: resolve codemod collisions in copy.ts and qualified-path.ts"
 ```
 
@@ -216,7 +227,7 @@ git commit -m "core: resolve codemod collisions in copy.ts and qualified-path.ts
 **Files:**
 - Modify: `src/core/http.ts`, `src/core/port.ts`, `src/core/cache/cache.ts`, `src/core/path.ts`, `src/core/jupyter/jupyter-shared.ts`, `src/core/typst.ts`, `src/core/copy.ts`
 
-- [ ] **Step 1: `src/core/http.ts`**
+- [x] **Step 1: `src/core/http.ts`**
 
 Add `import { isConnectionError, isNotFound } from "../deno_ral/errors.ts";`.
 Line 64: `} else if (isNotFound(e)) {`.
@@ -234,41 +245,41 @@ export function maybeDisplaySocketError(e: unknown) {
 }
 ```
 
-- [ ] **Step 2: `src/core/port.ts`**
+- [x] **Step 2: `src/core/port.ts`**
 
 Add `import { isAddrInUse } from "../deno_ral/errors.ts";`.
 Line 131: `if (isAddrInUse(error)) {`.
 
-- [ ] **Step 3: `src/core/cache/cache.ts`**
+- [x] **Step 3: `src/core/cache/cache.ts`**
 
 Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
 Line 161: `if (!isNotFound(e)) {`.
 
-- [ ] **Step 4: `src/core/path.ts`**
+- [x] **Step 4: `src/core/path.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 189: `if (!isNotFound(e)) {`.
 
-- [ ] **Step 5: `src/core/jupyter/jupyter-shared.ts`**
+- [x] **Step 5: `src/core/jupyter/jupyter-shared.ts`**
 
 Add `import { isNotFound } from "../../deno_ral/errors.ts";`.
 Line 107: `if (!isNotFound(err)) {`.
 
-- [ ] **Step 6: `src/core/typst.ts`**
+- [x] **Step 6: `src/core/typst.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 82: `if (isNotFound(e)) {`.
 
-- [ ] **Step 7: `src/core/copy.ts`**
+- [x] **Step 7: `src/core/copy.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 236: `if (isNotFound(err)) {`.
 
-- [ ] **Step 8: Verify and commit**
+- [x] **Step 8: Verify and commit**
 
 Run: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 ```bash
 git add src/core
@@ -277,42 +288,141 @@ git commit -m "core: Deno.errors instanceof checks through deno_ral/errors predi
 
 ### Task 5: Tests, ratchet, commit
 
-- [ ] **Step 1: Unit tests that exercise `src/core`**
+- [x] **Step 1: Unit tests that exercise `src/core`**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/core/ -name '*.test.ts') $(find unit/paths/ -name '*.test.ts') unit/path.test.ts $(find unit/ral/ -name '*.test.ts') unit/dotenv-config.test.ts unit/environment.test.ts unit/sass-cache.test.ts unit/exec-process-stdin.test.ts unit/render/cleanup.test.ts unit/file-permissions.test.ts $(find unit/config/ -name '*.test.ts') unit/typst-fonts.test.ts unit/dart-sass.test.ts $(find unit/jupyter/ -name '*.test.ts') $(find unit/mapped-strings/ -name '*.test.ts') $(find unit/break-quarto-md/ -name '*.test.ts') $(find unit/schema-validation/ -name '*.test.ts') unit/text.test.ts unit/markdown-pipeline.test.ts unit/pandoc.test.ts unit/pandoc-formats.test.ts unit/pandoc-partition.test.ts unit/chrome-launch.test.ts unit/preview-brand-cache.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 2: Smoke tests that go through the touched code (render pipeline, freezer, caches, http server, temp dirs)**
+- [x] **Step 2: Smoke tests that go through the touched code (render pipeline, freezer, caches, http server, temp dirs)**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-minimal.test.ts smoke/render/render-output-dir.test.ts smoke/project/project-simple.test.ts smoke/project/project-prepost.test.ts smoke/site/render-site.test.ts smoke/jupyter/cache.test.ts $(find smoke/logging/ -name '*.test.ts') smoke/check/check.test.ts $(find smoke/run/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') smoke/extensions/install.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 3: Ratchet**
+- [x] **Step 3: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 170 (171 with PR 20b first) and no increase in any scope.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/runtime-boundary-baseline.json
 git commit -m "Lower runtime boundary baseline after core fs/temp codemod"
 ```
 
+### Task 6: Name the `fs`, `temp` and `errors` replacements in the ratchet
+
+Added at step 0 (README "Open decisions", the `kRalDenoReplacements` row and the PR 10 Task 6 row).
+A PR that adds one of these `Deno.*` uses in `src` or `package/src` then gets an error naming the layer function, instead of the "no replacement yet" warning.
+`tests` is left out: it keeps deliberate `Deno.*` fixtures whose increase the maintainer accepts, and a covered API is an error that no acceptance clears.
+
+**Files:**
+- Modify: `tools/check-runtime-boundary.ts`, `tests/unit/tools/check-runtime-boundary.test.ts`
+
+- [x] **Step 1: Tests**
+
+In `tests/unit/tools/check-runtime-boundary.test.ts`, after the test "check-runtime-boundary - denoReplacement exact keys only", add:
+
+```ts
+// deno-lint-ignore require-await
+unitTest("check-runtime-boundary - fs, temp and errors keys name their replacement in src and package/src", async () => {
+  assertEquals(denoReplacement("readTextFileSync", "src"), "readTextFileSync from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("realPathSync", "package/src"), "canonicalPathSync from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("FileInfo", "src"), "FileInfo from src/deno_ral/fs.ts");
+  assertEquals(denoReplacement("MakeTempOptions", "src"), "TempOptions from src/deno_ral/temp.ts");
+  assertEquals(denoReplacement("errors.NotFound", "src"), "isNotFound from src/deno_ral/errors.ts");
+  assertEquals(denoReplacement("errors.ConnectionReset", "src"), "isConnectionError from src/deno_ral/errors.ts");
+  for (const scope of ["tests", "resources", "src-js"]) {
+    assertEquals(denoReplacement("readTextFileSync", scope), undefined, scope);
+    assertEquals(denoReplacement("errors.NotFound", scope), undefined, scope);
+  }
+});
+```
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` Expected: `1 failed`, the new test, on its first `assertEquals` (`undefined` against the hint).
+
+- [x] **Step 2: Keys**
+
+In `tools/check-runtime-boundary.ts`, after `kDenoRalImportScopes`, add:
+
+```ts
+/** The scopes of the fs, temp and errors keys. `tests` is left out: it keeps deliberate Deno.*
+ * fixtures whose increase a maintainer accepts, and a covered API is an error no acceptance clears. */
+const kRalLayerScopes: readonly string[] = ["src", "package/src"];
+
+/** One entry per Deno.<key>, naming the export of src/deno_ral/<module> to use instead: each of
+ * `names` under its own name, each key of `renamed` under its value. */
+function ralReplacements(
+  module: string,
+  names: readonly string[],
+  renamed: Record<string, string> = {},
+): Record<string, { hint: string; scopes: readonly string[] }> {
+  const entries = [...names.map((name) => [name, name]), ...Object.entries(renamed)];
+  return Object.fromEntries(
+    entries.map(([key, name]) => [
+      key,
+      { hint: `${name} from src/deno_ral/${module}`, scopes: kRalLayerScopes },
+    ]),
+  );
+}
+```
+
+and append to the `kRalDenoReplacements` object, after the `"build.arch"` entry:
+
+```ts
+  ...ralReplacements("fs.ts", [
+    "readTextFileSync", "readTextFile", "readFileSync", "readFile",
+    "writeTextFileSync", "writeTextFile", "writeFileSync", "writeFile",
+    "statSync", "stat", "lstatSync", "lstat", "mkdirSync", "mkdir",
+    "removeSync", "remove", "renameSync", "rename", "copyFileSync", "copyFile",
+    "readDirSync", "readDir", "symlinkSync", "symlink", "readLinkSync",
+    "realPath", "chmodSync", "chmod", "utimeSync", "truncateSync",
+    "open", "openSync", "create", "FileInfo", "DirEntry", "FsFile",
+  ], { realPathSync: "canonicalPathSync" }),
+  ...ralReplacements("temp.ts", [
+    "makeTempDirSync", "makeTempDir", "makeTempFileSync", "makeTempFile",
+  ], { MakeTempOptions: "TempOptions" }),
+  ...ralReplacements("errors.ts", [], {
+    "errors.NotFound": "isNotFound",
+    "errors.AlreadyExists": "isAlreadyExists",
+    "errors.PermissionDenied": "isPermissionDenied",
+    "errors.AddrInUse": "isAddrInUse",
+    "errors.ConnectionRefused": "isConnectionRefused",
+    "errors.BrokenPipe": "isConnectionError",
+    "errors.NotConnected": "isConnectionError",
+    "errors.ConnectionAborted": "isConnectionError",
+    "errors.ConnectionReset": "isConnectionError",
+  }),
+```
+
+The `fs` and `temp` names are the member and type tables of the `fs` and `temp` rules in `tools/codemod-deno-ral.ts` (`kFsNames`, `RULES`).
+
+- [x] **Step 3: Verify and commit**
+
+Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/check-runtime-boundary.test.ts` Expected: `0 failed`.
+
+Run: `quarto run --dev tools/check-runtime-boundary.ts` Expected: passes, counts unchanged from Task 5 (`tools/` is not a scope, and the test edits add no `Deno.` text).
+
+```bash
+git add tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts
+git commit -m "Name the deno_ral fs, temp and errors replacements in the runtime boundary check"
+```
+
 ## Verification
 
 - The three unit/smoke commands of Task 5 → `0 failed`.
+- `unit/tools/check-runtime-boundary.test.ts` → `0 failed` (Task 6).
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The grep in Acceptance criteria → empty.
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
 - Manual: `package/dist/bin/quarto render tests/docs/test.qmd --to html` and `package/dist/bin/quarto preview tests/docs/test.qmd --no-browser` (Ctrl-C after it serves) both work; `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads package/dist/bin/quarto render tests/docs/test.qmd` still prints a file-read report (the `metrics.ts` hook kept working because the layer looks `Deno.readTextFileSync` up at call time).
 
 ## Review checklist
 
-- [ ] `git diff` under `src/core` contains, apart from the hand-edited files, only `Deno.x` → `x`, `Deno.MakeTempOptions` → `TempOptions`, `Deno.FileInfo` → `FileInfo`, and import lines (`git diff -U0 src/core | grep '^[-+]' | grep -v '^[-+][-+]' | grep -v 'deno_ral/\(fs\|temp\|errors\)\.ts' | grep -vE 'Deno\.|FileInfo|TempOptions|^[+-]\s*$|^[+-]\s*(import|\}|[a-zA-Z]+,|type [A-Za-z]+,)' ` prints nothing surprising).
-- [ ] `monkey-patch.ts` is byte-identical to `main`; `metrics.ts` too unless PR 20b landed first.
-- [ ] No comment line changed (comments are PR 25's).
-- [ ] `copy.ts` still calls the real `copyFileSync` of the layer at line 152 (not its own recursive helper).
-- [ ] The `http.ts` predicate rewrite keeps the `DOMException` exclusion.
-- [ ] No `src/core/lib/**` file imports `deno_ral` (those files are bundled for the browser).
-- [ ] Baseline only decreased.
+- [x] `git diff` under `src/core` contains, apart from the hand-edited files and the `deno fmt` commit's reflow, only `Deno.x` → `x`, `Deno.MakeTempOptions` → `TempOptions`, `Deno.FileInfo` → `FileInfo`, and import lines (`git diff -U0 main...HEAD -- src/core | grep '^[-+]' | grep -v '^[-+][-+]' | grep -v 'deno_ral/\(fs\|temp\|errors\)\.ts' | grep -vE 'Deno\.|FileInfo|TempOptions|^[+-]\s*$|^[+-]\s*(import|\}|[a-zA-Z]+,|type [A-Za-z]+,)' ` prints nothing surprising).
+- [x] `monkey-patch.ts` is byte-identical to `main`; `metrics.ts` too unless PR 20b landed first.
+- [x] No comment line changed (comments are PR 25's).
+- [x] `copy.ts` still calls the real `copyFileSync` of the layer at line 152 (not its own recursive helper).
+- [x] The `http.ts` predicate rewrite keeps the `DOMException` exclusion.
+- [x] This PR adds no `deno_ral` import under `src/core/lib/**` (those files are bundled for the browser).
+- [x] Baseline only decreased.
 
 ## Risks and rollback
 
@@ -333,3 +443,131 @@ One representative maintenance fix backported through `--reverse` (`TRIAGE-2026-
 Pick the first real fix to `main` that touches a call site this PR renamed (`git log --oneline main -- src/core/path.ts | head`), run the backport step PR 37 Task 6 Step 1 spells out (same commands before the flip; the codemod runs through `quarto run --dev` on Deno) against a scratch branch off `v1.10`, confirm `git apply -3` succeeds and the scratch branch type-checks with its own tooling, and record the commit used in the triage row and in `dev-docs/checklist-backport-a-pr.md` (PR 09 adds the step there).
 The error predicates of Task 4 have no 1:1 reverse: they are the manual part the review asked to keep explicit.
 PR 37 Task 6 Step 2 repeats the exercise after the flip.
+
+## Execution log
+
+### Step 0: plan refresh (coordinator, 2026-11-19, `main` at `cda410214`)
+
+- Dependencies: PR 09 (#15223) and PR 02 are merged.
+  Since the decision of 2026-11-17 (README "Open decisions", landing-order row), PR 10 lands before PRs 08 and 22: neither has landed, so `src/core/console.ts:174` still has `Deno.openSync` and the codemod rewrites it (the plan's other order).
+- Dry run on this branch: `Summary: 205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped`.
+  The skipped and collision lines are exactly the five of Task 1 Step 2.
+  This matches the README "PR 10 (audit of 2026-11-16)" row: 57 files, not 56; the `src` delta stays 170.
+- Cited lines, re-read on `cda410214`.
+  Same: `monkey-patch.ts:17`, `metrics.ts:23,65`, `copy.ts:28,60,138,145,152,179,203,231-232,236`, `qualified-path.ts:69-77`, `http.ts:64,228-240`, `port.ts:131`, `jupyter-shared.ts:86,107`, `typst.ts:82`, `file.ts:22,53`, `download.ts:34,48`, `console.ts:174`, `resources.ts:179`, `api/types.ts:27`, `lib/errors.ts:27,33`, `lib/external/colors.ts:33-34`, `quarto-core/dotenv.ts:80`.
+  Moved (content unchanged): `cache/cache.ts:161` is 186, `path.ts:53` is 61, `path.ts:189` is 197.
+  The existing `deno_ral/fs.ts` import of `copy.ts` spans lines 15-23.
+  Gone: none.
+- `Deno.errors` sites in the three directories (excluding `monkey-patch.ts`): 13, the ones Task 4 lists.
+  `Deno.ReadFileOptions`: 1 (`qualified-path.ts:69`).
+  The only importer of `qualified-path.ts` is `tests/unit/paths/qualified-path.test.ts`, which imports neither `readTextFile` nor `readTextFileSync`.
+- Type check: the command needs `--allow-import` (README row "Any plan that type-checks `src/quarto.ts`").
+  `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exits 0 on this branch before Task 1.
+- Every test file and directory the plan names exists.
+- Code-block audit: the plan's code defines `readTextFile`, `readTextFileSync` and `maybeDisplaySocketError`, which already exist and are rewritten; no indirect `Deno` access; no code comment names a PR.
+- Task 6 added (README rows `kRalDenoReplacements` and "PR 10 Task 6").
+  Its new helper `ralReplacements` has no equivalent in `tools/check-runtime-boundary.ts`; `same` in `tools/codemod-deno-ral.ts` builds the codemod's member table, and importing it would load ts-morph into the check.
+  A trial on this branch: the new test failed on its first `assertEquals` (`43 passed | 1 failed`), then passed with the keys (`44 passed | 0 failed`), and `tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.` (`src 991`).
+  The trial was reverted.
+- Follow-up after merge: per the README row "PRs 09, 10 and 37, backports", the `--reverse` demo must also cover `v1.11`, not only `v1.10`.
+
+### Task 1: Dry run and review (executor, 2026-11-19)
+
+- Step 1: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config --dry-run` wrote the report to the session scratch directory.
+  Its last line was `Summary: 205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped`, matching the step-0 count (57, not the older 56 in the step text).
+  `git status --short src` printed nothing.
+- Step 2: `grep -E 'skipped|collision' <report>` printed exactly the two expected skipped files and three expected collision sites: `monkey-patch.ts` (`Deno.realPathSync`, line 17), `metrics.ts` (`Deno.readTextFileSync`, line 23), `copy.ts:60` (`copyFileSync`), and `qualified-path.ts:69,73` (`readTextFile`, `readTextFileSync`).
+  No other collision or skip appeared.
+- Step 2: `grep -c '→' <report>` printed `153`.
+  The target histogram contained only fs/temp rule names: `readTextFileSync` 49, `writeTextFileSync` 33, `statSync` 20, `TempOptions` 7, `readFileSync` 7, `writeFileSync` 5, `readDirSync` 4, `makeTempFileSync` 4, `makeTempDirSync` 4, `lstatSync` 4, `utimeSync` 3, `open` 3, `writeTextFile` 2, `symlinkSync` 2, `FileInfo` 2, and `readLinkSync`, `readFile`, `openSync`, `mkdirSync` 1 each.
+
+### Task 2: Apply the codemod (executor, 2026-11-19)
+
+- Step 1: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/core --dir src/quarto-core --dir src/config | tail -1` printed `Summary: 205 files scanned, 57 rewritten, 153 replacements, 2 with collisions, 2 skipped`, matching the dry run and the step-0 count.
+- Step 2: `git diff --name-only -- src/core src/quarto-core src/config | xargs package/dist/bin/tools/x86_64/deno fmt` checked 57 files.
+  Scoping the file list to the three source directories kept the tracked plan's Task 1 evidence out of the formatter.
+  `git diff --stat -- src/core src/quarto-core src/config | tail -1` printed `57 files changed, 315 insertions(+), 196 deletions(-)`.
+- Step 2, initial type check: `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` failed at `src/core/console.ts:176` because `readAllSync(df)` requires `ReaderSync.readSync`, which the layer's `FsFile` interface did not declare.
+  Execution stopped before the Task 2 commit.
+- Ruling: add `readSync(p: Uint8Array): number | null` to `FsFile`, as authorized by the maintainer.
+  The declaration is type-only because the Deno implementation already returns `Deno.openSync`'s handle.
+  The decision is recorded in README "Open decisions with an owner" for PR 10 and PR 27 and in the shared `FsFile` vocabulary; PR 10's replacement and baseline counts are unchanged.
+- Step 2, rerun: the same type-check command printed `Check quarto.ts` and exited 0.
+  The Task 2 commit therefore includes `src/deno_ral/fs.ts`, README and `_TEMPLATE.md` alongside the 57 mechanical source files and this plan.
+- Superseding coordinator ruling, 2026-11-19: do not change `FsFile`; apply PR 08's `readFileSync` half of the `writeFileToStdout` rewrite in the Task 3 hand-fix commit instead.
+  The new README row replaces the earlier `readSync` decision because that method would have no consumer after PR 08 and would unnecessarily expand PR 27's descriptor-owner contract.
+  Task 3 removes the interface and template declarations again, leaving no net `FsFile` change.
+
+### Task 3: Collision and stdout hand fixes (executor, 2026-11-19)
+
+- `copy.ts` imports `copyFileSync as fsCopyFileSync` and calls it in the local helper; `qualified-path.ts` aliases both layer reads and drops the unused `options` parameter.
+- `console.ts` now uses `writeAllSync(Deno.stdout, readFileSync(file));`, with `readFileSync` imported from the layer and `io/read-all` removed.
+  The superseded `FsFile.readSync` declaration was removed from `src/deno_ral/fs.ts` and `_TEMPLATE.md`; `git diff upstream/main -- src/deno_ral/fs.ts` is empty.
+- Steps 3-4: `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 after the revised hand fix.
+- The focused test command printed `ok | 0 passed | 0 failed | 5 ignored (1s)`.
+  All five tests have `ignore: isWindows`, so this is not evidence that they exercised the changes.
+  A temporary Deno runtime smoke check instead created and copied a file, then read the copy through both qualified-path functions; it printed `copyTo and qualified-path sync/async reads passed` and cleaned up its scratch directory.
+
+### Task 4: Error predicates (executor, 2026-11-19)
+
+- Steps 1-7: replaced all 13 enumerated `Deno.errors` checks in the seven files with `isNotFound`, `isConnectionError` or `isAddrInUse`; the `DOMException` exclusion in `maybeDisplaySocketError` remains.
+- Step 8: `grep -rn 'Deno\.errors' src/core src/quarto-core src/config --include=*.ts` printed nothing.
+  `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 after formatting the seven files.
+
+### Task 5: Tests and ratchet (executor, 2026-11-20)
+
+- Steps 1-2: ran the plan's unit and smoke commands through `run-tests.ps1 --agent`, with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`.
+  Each `$(find <dir> -name '*.test.ts')` became `(Get-ChildItem <dir> -Recurse -Filter *.test.ts).FullName`; the explicit file lists were unchanged.
+  Step 1 printed `ok | 240 passed | 0 failed | 6 ignored (1m25s)`.
+  Step 2 printed `ok | 65 passed | 0 failed | 1 ignored (4m36s)`.
+- Step 3: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 821 (baseline 991)` during the update, then `src 821 (baseline 821)` and `OK: no count exceeds the baseline.`.
+  The other counts stayed at `src-js` 7 / 0, `resources` 12 / 1, `package/src` 241 / 3 and `tests` 774 / 176 (`Deno.*` calls / std-import files); `src.stdImportFiles` stayed at 49.
+  `git diff tools/runtime-boundary-baseline.json` showed only `src.denoCalls` falling from 991 to 821, exactly 170 lower, with no increase in any scope.
+- Deviation: the smoke run appended `**/*.quarto_ipynb` to `tests/docs/jupyter/cache-non-default/.gitignore`.
+  The fixture was restored to its original one-line content and is not part of the Task 5 diff; no source file changed in this task.
+- The existing Task 3 and Task 4 checkboxes are ticked with this update to match their completed execution logs and commits.
+- Step 4: stage only `tools/runtime-boundary-baseline.json` and this plan, with commit message `Lower runtime boundary baseline after core fs/temp codemod`.
+- Task 6 was deferred to a fresh session and is recorded below.
+  Final verification still owes the acceptance grep, final type check, non-interactive HTML render, performance-report render and PDF-to-stdout render.
+  The interactive preview, branch push and PR creation remain maintainer steps; the post-merge `--reverse` demonstrations for `v1.10` and `v1.11` also remain.
+
+### Task 6: Replacement hints in the ratchet (executor, 2026-11-20)
+
+- Step 1: added the specified `denoReplacement` test and ran `run-tests.ps1 --agent unit/tools/check-runtime-boundary.test.ts` with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`.
+  The new test failed on its first assertion, `undefined` against `readTextFileSync from src/deno_ral/fs.ts`; the tally was `43 passed | 1 failed`.
+- Step 2: added `ralReplacements`, limited its fs/temp/errors entries to `src` and `package/src`, and used the member/type names from `tools/codemod-deno-ral.ts`.
+  A whole-file `deno fmt` also reformatted unrelated lines; after saving the patch in the session scratch directory, only the two planned source hunks were kept. The final source diff is 57 insertions in two files with no unrelated formatting.
+- Step 3: the focused test passed with `44 passed | 0 failed` after the implementation and again after the diff cleanup.
+  `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.` with counts unchanged: `src` 821 / 49, `src-js` 7 / 0, `resources` 12 / 1, `package/src` 241 / 3 and `tests` 774 / 176 (`Deno.*` calls / std-import files).
+- Ruling: include this plan's Task 6 checkboxes and execution log in the Task 6 commit, matching Tasks 2 and 5, although the commit step lists only the two source files. This preserves the execution record; it adds no runtime change.
+- Review follow-up (2026-11-23): three hint fixes; Step 1's code block above stays as executed.
+  `kBrowserSharedPaths` became `kNoRalImportPaths` and gained `src/resources/tools/`: `ast-diagram/main.ts` runs through `deno run` without the import map (`src/command/dev-call/make-ast-diagram/cmd.ts:23-29`), and the PR 09 codemod and PR 08 already skip it. So a covered API there is a warning, not an error naming a layer it cannot import. PR 25 still owns moving the file out of the counts.
+  The `realPathSync` hint also names `normalizePath` from `src/core/path.ts`, because the monkey patch makes a new `Deno.realPathSync` call behave that way, while `canonicalPathSync` resolves symlinks and throws on a missing path.
+  The four connection-error hints say that `isConnectionError` matches all five classes and to add a predicate in `errors.ts` when checking only one.
+  Exempting type-position `Deno.errors.*` uses from the predicate hint was declined: the only one is `InputWalkError`, which is in the baseline and which PR 12 rewrites to `Error & {…}`.
+  The updated tests failed first (old `realPathSync` hint text; a replacement attached to `src/resources/tools/ast-diagram/main.ts`), then passed with `44 passed | 0 failed`; `tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.`. `_TEMPLATE.md` names the renamed constant.
+
+### Wrap-up (coordinator, 2026-11-23, branch at `82c24ea84`, `upstream/main` at `1f794efd4`)
+
+- Base: `upstream/main` is one commit ahead (`1f794efd4`, CI timing data); `git diff --stat HEAD...upstream/main` touches only `tests/timing-for-ci.txt`.
+- Acceptance criteria:
+  - AST dry run printed `Summary: 205 files scanned, 0 would be rewritten, 0 replacements, 0 with collisions, 2 skipped`.
+  - The comment-filtered `rg` printed nothing (exit 1).
+  - `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `OK: no count exceeds the baseline.`; `git diff upstream/main -- tools/runtime-boundary-baseline.json` shows only `denoCalls` 991 → 821.
+  - `deno check ... quarto.ts` from `src/` exited 0.
+- Task 5 tests, rerun with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`, plus `unit/tools/check-runtime-boundary.test.ts`:
+  - Unit: `ok | 284 passed | 0 failed | 6 ignored (5m14s)`.
+  - Smoke: `FAILED | 59 passed | 6 failed | 1 ignored (14m33s)`. The six are the four R freeze renders in `render-freeze.test.ts` and `run-r-script` / `run-r-script-stdout-stderr`. Cause is the local test environment, not this branch: `tests/.rvenv/bin` was re-created on 2026-11-23 16:01 without `Rscript.exe`, and `run-tests.ps1` points `QUARTO_R` there, so each fails with `Failed to spawn '...\tests\.rvenv\bin\Rscript': File not found`. Stable Quarto 1.12.3 fails the same way with that `QUARTO_R`; the dev build renders an R chunk and runs an R script with the system R (exit 0). Task 5's run of 2026-11-20 predates the re-creation and passed 65/65.
+  - The smoke run appended `**/*.quarto_ipynb` to `tests/docs/jupyter/cache-non-default/.gitignore` again; restored.
+- Manual: `render tests/docs/test.qmd --to html` exit 0; `render --to pdf --output -` exit 0 with `%PDF-` bytes on stdout (12054 bytes).
+  `QUARTO_REPORT_PERFORMANCE_METRICS=fileReads` prints the report header with an empty `{}`. Same on `main`: `metricsObject` in `src/core/performance/metrics.ts` (unchanged here) captures `fileReads` while it is still `undefined`, and `captureFileReads()` reassigns only the variable. The layer still looks `Deno.readTextFileSync` up at call time (`src/deno_ral/fs.ts:295`), so the hook would see the reads.
+- Review checklist (ticked above):
+  - The non-mechanical `src/core` lines are the planned `console.ts` rewrite and the `deno fmt` commit `5efdc0ca6`.
+  - `monkey-patch.ts` and `metrics.ts`: `git diff --quiet upstream/main` on both.
+  - No comment line changed (`82c24ea84` restores the `deno-init-tree-sitter.ts` header that `deno fmt` reindented).
+  - `copy.ts` calls the layer's copy as `fsCopyFileSync(src, dest)`, now at line 161.
+  - `http.ts` keeps `!(e instanceof DOMException)`.
+  - `src/core/lib` imports `deno_ral` only in `level-one-headings.ts` (`path.ts`), already on `main`.
+  - Baseline only decreased.
+- Whole-branch checks from README "How to execute a plan" (indirect `Deno`, PR numbers in comments, new test helpers): all three printed nothing.
+- Remaining maintainer steps: interactive `quarto preview`, push to `upstream`, PR creation; after merge, the `--reverse` backport demonstration in "Follow-up after merge".

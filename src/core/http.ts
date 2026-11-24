@@ -4,7 +4,8 @@
  * Copyright (C) 2020-2023 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readFileSync, statSync } from "../deno_ral/fs.ts";
+import { isConnectionError, isNotFound } from "../deno_ral/errors.ts";
 import { basename, extname, join, normalize, posix } from "../deno_ral/path.ts";
 import { error, info } from "../deno_ral/log.ts";
 
@@ -44,7 +45,7 @@ export function httpFileRequestHandler(
     if (!fileResponse) {
       fileResponse = {
         contentType: contentType(filePath),
-        body: Deno.readFileSync(filePath),
+        body: readFileSync(filePath),
       };
     }
 
@@ -61,7 +62,7 @@ export function httpFileRequestHandler(
       return Promise.resolve(
         new Response(encoder.encode("BadRequest"), { status: 400 }),
       );
-    } else if (e instanceof Deno.errors.NotFound) {
+    } else if (isNotFound(e)) {
       const url = normalizeURL(req.url);
       const handle404 = options.on404
         ? options.on404(url, req)
@@ -126,7 +127,7 @@ export function httpFileRequestHandler(
       if (fsPath.indexOf(baseDir) !== 0) {
         fsPath = baseDir;
       }
-      const fileInfo = existsSync(fsPath) ? Deno.statSync(fsPath) : undefined;
+      const fileInfo = existsSync(fsPath) ? statSync(fsPath) : undefined;
       if (fileInfo && fileInfo.isDirectory) {
         fsPath = join(fsPath, options.defaultFile || "index.html");
       }
@@ -227,12 +228,8 @@ export function isBrowserPreviewable(file?: string) {
 
 export function maybeDisplaySocketError(e: unknown) {
   if (
-    !(e instanceof Deno.errors.NotFound) &&
-    !(e instanceof Deno.errors.BrokenPipe) &&
-    !(e instanceof Deno.errors.NotConnected) &&
-    !(e instanceof Deno.errors.ConnectionAborted) &&
-    !(e instanceof Deno.errors.ConnectionReset) &&
-    !(e instanceof Deno.errors.ConnectionRefused) &&
+    !isNotFound(e) &&
+    !isConnectionError(e) &&
     !(e instanceof DOMException)
   ) {
     logError(e as Error);
