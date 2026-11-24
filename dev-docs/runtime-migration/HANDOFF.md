@@ -22,6 +22,7 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 ## State
 
 - The plans merged to `main` as #15133 on 2026-10-20.
+- Updated 2026-11-24: PR 10 merged as #15418 (`1c129ffe`). The core filesystem codemod and fs/temp/error replacement hints are on `main`. The `--reverse` backport demonstration for `v1.10` and `v1.11` is pending the first real maintenance fix to a migrated call site. See PR 10 "Follow-up after merge".
 - Updated 2026-11-03: Quarto 1.11.9 shipped stable on 2026-10-30 with Deno 2.9.8; `main` now targets 1.12. PR 00a (#15186) and the runtime behavior verification are complete. The boundary codemods and script deprecation notice did not ship in 1.11; apply the README release and backport corrections before executing a plan.
 - Updated 2026-11-16: PR 09 merged as #15223 on 2026-11-03 (`2a6d12a`): `src/deno_ral/fs.ts`, `temp.ts`, `errors.ts` and `tools/codemod-deno-ral.ts` are on `main`. The split-UTF-8 `execProcess` fix PR 08 waited for merged as #15346. An audit of every plan against `main` at `1d80652` added its corrections to the README open-decisions table.
 - Updated 2026-11-05: #15259 merged on 2026-11-03 and landed the lockfile half of PR 00b (committed frozen `deno.lock` in configure, the dev launchers, `quarto-bld` and the bundle). The PR 00b remainder is the `deno_std` download/lock scripts, the external-specifier and test-import checks, the `deno-cache` CI input and the three-OS bundle gate; the README overlap row carries the verified inventory.
@@ -82,8 +83,9 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. PR 02, 02c, 02d, 00a and 09 are merged. Next without an unmerged prerequisite: the 00b remainder, 00c, 01, 02b, 08 and 39 (see the open-decisions rows of the 2026-11-16 audit). On the Phase 0 path, #15259 landed the lockfile half of 00b; execute the 00b remainder per the README overlap row. 03–06 still wait for the full 00b gate, followed by 07.
-   Each plan names its branch, executor and verification commands.
+5. Continue the filesystem sequence with PR 11 (`src/command`), then PRs 12 and 13. PR 14 follows all four filesystem codemods, then PR 08 and PR 22. For PR 11, run `$continuing-runtime-migration start 11` from an up-to-date checkout and apply the README corrections at step 0. The post-merge dry run at `1c129ffe` is recorded in the README; PR 11 has not started.
+   On the Phase 0 path, #15259 landed the lockfile half of 00b. The remainder follows the README overlap row and gates 03–06, then 07.
+   See the README sequence for work that can proceed in parallel.
    For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check
    `local/multi-worktree-workflow.md` if it exists — it is a maintainer-local, untracked note.
 6. Keep the README status column current as PRs merge.
