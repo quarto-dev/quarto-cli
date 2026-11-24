@@ -188,24 +188,24 @@ git commit -m "command: resolve stat collision and use isNotFound in pandoc font
 
 ### Task 4: Tests, ratchet, commit
 
-- [ ] **Step 1: Unit tests that exercise `src/command`**
+- [x] **Step 1: Unit tests that exercise `src/command`**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/render/ -name '*.test.ts') $(find unit/latexmk/ -name '*.test.ts') unit/axe-config.test.ts unit/axe-artifacts.test.ts unit/axe-postrender.test.ts unit/axe-mode-discovery.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/chrome-launch.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts unit/print-call-r-diagnostics.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 2: Smoke tests for the commands whose files changed**
+- [x] **Step 2: Smoke tests for the commands whose files changed**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-docx.test.ts smoke/render/render-pdf.test.ts smoke/render/render-templates.test.ts smoke/render/render-output-dir.test.ts smoke/render/render-cli-metadata-file.test.ts $(find smoke/create/ -name '*.test.ts') $(find smoke/use/ -name '*.test.ts') $(find smoke/use-brand/ -name '*.test.ts') $(find smoke/inspect/ -name '*.test.ts') $(find smoke/check/ -name '*.test.ts') $(find smoke/build-ts-extension/ -name '*.test.ts') $(find smoke/typst-gather/ -name '*.test.ts') smoke/crossref/figures.test.ts $(find smoke/convert/ -name '*.test.ts') smoke/filters/editor-support.test.ts smoke/axe/axe-exit-codes.test.ts $(find smoke/run/ -name '*.test.ts') smoke/project/project-simple.test.ts` Expected: `0 failed`.
 (`render-pdf.test.ts` needs TinyTeX; if it is skipped for prerequisites, that is acceptable, note it in the PR.)
 
-- [ ] **Step 3: Manual check of the one order-sensitive output**
+- [x] **Step 3: Manual check of the one order-sensitive output**
 
 Run: `package/dist/bin/quarto capabilities | python3 -c "import json,sys; t=json.load(sys.stdin)['themes']; print(t[:5], t[1:] == sorted(t[1:]))"` Expected: `['default', 'cerulean', 'cosmo', 'cyborg', 'darkly'] True` (`"default"` is pushed first by `capabilities.ts:73`; the directory entries after it are now sorted).
 
-- [ ] **Step 4: Ratchet**
+- [x] **Step 4: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 151 and no increase in any scope.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/runtime-boundary-baseline.json
@@ -315,3 +315,31 @@ Review items closed here: counts (43 files / 149 replacements), the comment-matc
 - Step 3 type check: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0.
 - `git diff --check` printed nothing. Step 3 stages only the two source files and this plan, using the prescribed commit message `command: resolve stat collision and use isNotFound in pandoc font cache`; the dry-run report and `.pi-loop.json.lock` remain excluded.
 - Outstanding: Task 4 runs the unit/smoke tests and manual capabilities check, then lowers the ratchet baseline. The coordinator owns final Verification and the review checklist after Task 4, including the Windows manual `create` / `render` / `inspect` sequence; the maintainer owns the eventual push and PR creation.
+
+### Task 4 — tests, ratchet and commit
+
+- Previous attempt: four Julia renders in `smoke/crossref/figures.test.ts` failed from a local Julia runtime environment problem unrelated to this PR (PumasAI/quarto-julia-engine#18), resolved before this run. No Julia environment, Quarto runtime directory or test environment was changed in this run.
+- Step 1: the two `find` globs expanded to `unit/render/cleanup.test.ts`, `unit/render/filters-language.test.ts`, `unit/render/quarto-template-variables.test.ts`, `unit/latexmk/fmtutil-handler.test.ts` and `unit/latexmk/parse-error.test.ts`. With the worktree's `package/dist/bin` prepended to `PATH`, the Windows invocation was `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.ps1 --agent unit/render/cleanup.test.ts unit/render/filters-language.test.ts unit/render/quarto-template-variables.test.ts unit/latexmk/fmtutil-handler.test.ts unit/latexmk/parse-error.test.ts unit/axe-config.test.ts unit/axe-artifacts.test.ts unit/axe-postrender.test.ts unit/axe-mode-discovery.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/preview-external-links.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/chrome-launch.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts unit/print-call-r-diagnostics.test.ts`. Its full output, including the explicit expanded file list, is at `.claude/docs/task4-unit.log`; the tally was:
+
+  ```text
+  ok | 100 passed | 0 failed (53s)
+  ```
+
+- Step 2: with the same Windows test setup, `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.ps1 --agent smoke/render/render-html.test.ts smoke/render/render-freeze.test.ts smoke/render/render-docx.test.ts smoke/render/render-pdf.test.ts smoke/render/render-templates.test.ts smoke/render/render-output-dir.test.ts smoke/render/render-cli-metadata-file.test.ts smoke/create/create.test.ts smoke/use/brand.test.ts smoke/use/template.test.ts smoke/use/template-ai-config.test.ts smoke/inspect/inspect-cleanup.test.ts smoke/inspect/inspect-code-cells.test.ts smoke/inspect/inspect-extensions.test.ts smoke/inspect/inspect-include.test.ts smoke/inspect/inspect-project.test.ts smoke/inspect/inspect-recursive-include.test.ts smoke/inspect/inspect-standalone-rstudio.test.ts smoke/check/check.test.ts smoke/check/check-info-project.test.ts smoke/check/check-in-project.test.ts smoke/check/check-project-config-only.test.ts smoke/check/check-render-temp-in-project.test.ts smoke/check/check-versions-no-mismatch.test.ts smoke/build-ts-extension/build-ts-extension.test.ts smoke/typst-gather/typst-gather.test.ts smoke/crossref/figures.test.ts smoke/convert/convert-backticks.test.ts smoke/convert/convert-empty-frontmatter.test.ts smoke/convert/convert-issue-12042.test.ts smoke/convert/issue-12318.test.ts smoke/filters/editor-support.test.ts smoke/axe/axe-exit-codes.test.ts smoke/run/command-passthrough.test.ts smoke/run/run-script.test.ts smoke/run/stdlib-run-version.test.ts smoke/project/project-simple.test.ts` printed:
+
+  ```text
+  ok | 135 passed (26 steps) | 0 failed | 2 ignored (13 steps) (18m31s)
+  ```
+
+  The full selection and tally are at `.claude/docs/task4-smoke.log`. Every `find` glob was expanded explicitly; `smoke/use-brand/` had no matching `*.test.ts` files. `smoke/render/render-pdf.test.ts` ran and was neither skipped nor ignored for TinyTeX or any other prerequisite. The dot reporter emitted only ignored markers and the summary, not individual ignored names; the selected test definitions identify the two ignored tests as `stdlib-run-version` (`ignore: isWindows`) and `check-info-warns-when-symlinked-home-is-project-root` (ignored on Windows because creating directory symlinks needs Developer Mode or admin rights). The 13 ignored steps are the `> check writable` steps for all 13 project/extension templates in `smoke/create/create.test.ts`, each declared with `ignore: Deno.build.os === "windows"`.
+- Step 3: `package/dist/bin/quarto.cmd capabilities | python3 -c "import json,sys; t=json.load(sys.stdin)['themes']; print(t[:5], t[1:] == sorted(t[1:]))"` printed exactly:
+
+  ```text
+  ['default', 'cerulean', 'cosmo', 'cyborg', 'darkly'] True
+  ```
+
+  `python3` resolved in Git Bash, so the virtualenv fallback was not needed.
+- Step 4: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` passed. The update measured `src` at 670 against baseline 821; validation then measured 670 against 670 and printed `OK: no count exceeds the baseline.` The `src` baseline therefore decreased by exactly 151 (`821 → 670`). The other before/after counts were unchanged: `src-js` 7/7 Deno calls and 0/0 std-import files, `resources` 12/12 and 1/1, `package/src` 241/241 and 3/3, `tests` 774/774 and 176/176; `src` std-import files stayed 49/49. No scope increased.
+- Step 5: stage only `tools/runtime-boundary-baseline.json` and this tracked plan, excluding `.claude/docs/*` and `.pi-loop.json.lock`, with commit message `Lower runtime boundary baseline after command fs/temp codemod`.
+- Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations and the dot-reporter limitation on naming ignored tests described above. There were no test failures, quarantines, selection changes or Julia/environment interventions.
+- Outstanding: the coordinator owns final Verification and the review checklist, including the Windows manual `create` / `render` / `inspect` sequence and README/HANDOFF updates; the maintainer owns the eventual push and PR creation.
