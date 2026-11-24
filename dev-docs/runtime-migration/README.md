@@ -349,7 +349,7 @@ Every PR that changes a count lands after 02c; preparing it earlier is fine.
 | 12 | [12-codemod-fs-project-format.md](12-codemod-fs-project-format.md) | Codemod on `src/project`, `src/format` (51 files) | 09 | Sonnet | L | planned |
 | 13 | [13-codemod-fs-rest.md](13-codemod-fs-rest.md) | Codemod on `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, TS under `src/resources` (35 files) | 09 | Sonnet | M | planned |
 | 14 | [14-ral-env.md](14-ral-env.md) | `deno_ral/env.ts` and codemod of all `Deno.env` uses in `src/` (58 files) | 02, 09, 10–13 | Sonnet | L | planned |
-| HL | no plan; bead `quarto-cli-2328a` | Test harness leak repair: clear the 120 s timer of `unitTest` in `tests/test.ts`, close the leaked file, enable the Deno test sanitizers; standalone PR (decided 2026-11-17) | 02 | Sonnet | S | planned |
+| HL | no plan | Test harness leak repair: clear the 120 s timer of `unitTest` in `tests/test.ts`, close the leaked file, enable the Deno test sanitizers; standalone PR (decided 2026-11-17) | 02 | Sonnet | S | planned |
 | 14b | [14b-coverage-first.md](14b-coverage-first.md) | Tests before the rewrites: preview reload end-to-end (document and website project, three OSes), Jupyter daemon reuse, `inspect` through a pipe, process-group kill (POSIX) and `taskkill /T` tree kill (Windows) | 02, 08, 09 | Opus | S | planned |
 | 15 | [15-ral-net-async-ports.md](15-ral-net-async-ports.md) | `deno_ral/net.ts`; async port probing; Jupyter kernel transport; Shiny control server on localhost | 08, 09, 14b, HL | Opus | M | planned |
 | 16 | [16-ral-http.md](16-ral-http.md) | `deno_ral/http.ts` with `listening`; preview server, dev server, axe server on it | 15, 08, 14b | Opus | M | planned |
