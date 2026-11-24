@@ -222,7 +222,7 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 
 ## Review checklist
 
-- [x] `git diff` under `src/command` contains, apart from the two hand-edited files, only `Deno.x` → `x` rewrites and import lines.
+- [x] `git diff` under `src/command` contains, apart from the two hand-edited files and the rewritten `findBrandExtension` header comment in `brand.ts`, only `Deno.x` → `x` rewrites and import lines.
 - [x] `pull-git-subtree/cmd.ts` keeps its local `stat` variable; the call goes to `fsStat`.
 - [x] `pandoc.ts` keeps the `throw err` for non-NotFound errors in the font cache check.
 - [x] `brand.ts:706` spread still compiles (array).
