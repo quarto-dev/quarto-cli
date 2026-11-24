@@ -5,7 +5,7 @@
 
 **Goal:** Move every plain filesystem and temp-file call in `src/command` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the one reported collision by hand, and replace the single `instanceof Deno.errors.NotFound` in `src/command` with `isNotFound`.
 **Phase:** 1.
-**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below).
+**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet, already required by PR 09). Follows PR 10 and lands before PR 14, PR 08 and PR 22.
 **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/11-codemod-fs-command`.
 **Suggested executor:** Sonnet.
@@ -51,7 +51,7 @@ Files that need attention beyond the codemod (verified):
 | `src/command/render/pandoc.ts:1645-1648` | `await Deno.lstat(...)` (rewritten) followed by `if (!(err instanceof Deno.errors.NotFound))` → `isNotFound(err)`. |
 | `src/command/capabilities/capabilities.ts:75` | `for await (const dirEntry of Deno.readDir(themesPath))` builds the `themes` array in `quarto capabilities` output; it becomes sorted. No test covers the order (grep for `capabilities` under `tests/` finds none); the manual check below prints it. |
 | `src/command/call/build-ts-extension/cmd.ts:118` | `Deno.readDir(srcDir)` lists `.ts` entry files; order now sorted (was filesystem order). `tests/smoke/build-ts-extension/` covers the command. |
-| `src/command/render/output-typst.ts:162,167`, `render/project.ts:660`, `render/freeze.ts:186,191,250`, `use/commands/template.ts:234,373`, `use/commands/brand.ts:86,96,555,682,701,706`, `extension`-like scans | `Deno.readDirSync` loops that copy, count or test for emptiness; order-independent. `brand.ts:706` spreads the result (`[...Deno.readDirSync(subdir)]`), which keeps working on an array. Review only. |
+| `src/command/render/output-typst.ts:162,167`, `render/project.ts:661`, `render/freeze.ts:186,191,250`, `use/commands/template.ts:234,373`, `use/commands/brand.ts:86,96,555,682,701,706`, `extension`-like scans | `Deno.readDirSync` loops that copy, count or test for emptiness; order-independent. `brand.ts:706` spreads the result (`[...Deno.readDirSync(subdir)]`), which keeps working on an array. Review only. |
 | `src/command/render/pandoc.ts:262` | `args: Deno.CommandOptions` — PR 08's concern (becomes `SpawnOptions`); not touched here. |
 | `src/command/render/latexmk/quarto-latexmk.ts` | standalone `tinitex` entry, deleted by PR 39 (decision 9). It has no fs/temp call, so the codemod does not change it; its `Deno.args` is not this PR's (PR 08 leaves it for PR 39). |
 | `src/command/serve/cmd.ts:88`, `src/command/preview/cmd.ts:315,334` | `tempDir: Deno.makeTempDirSync()` → `makeTempDirSync()` (temp rule). Review only. |
@@ -63,11 +63,10 @@ Out: `Deno.exit`/`cwd`/`args`/`execPath`/stdio/`Command` (PR 08), `Deno.env` (PR
 
 ### Landing order and conflict protocol
 
-Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10).
-PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
-Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
+The README's 2026-11-17 decision puts PRs 10–13 first, then 14, then 08 and 22. Generate this codemod from fresh `upstream/main` and remeasure the baseline if it moves.
+If the base moves and a generated hunk conflicts, resolve it mechanically, never by hand-merging it:
 
-1. `git rebase origin/main`; for every conflicted file under this PR's directories, `git checkout origin/main -- <file>` (reset the file to `main`).
+1. Fetch and rebase onto `upstream/main`; for every conflicted file under this PR's directories, `git checkout upstream/main -- <file>` (reset the file to the new base).
 2. Re-run the codemod on exactly those files: `quarto run --dev tools/codemod-deno-ral.ts --rules <this PR's rules> --file <file> [--file <file>...]`.
 3. Re-apply this PR's hand edits for those files (each is listed with its exact code below), then `package/dist/bin/tools/x86_64/deno fmt <file>...`.
 4. `git add` the files and `git rebase --continue`; run the type check and the dry run of Task 1 again (it must report `0 replacements` for the PR's directories once the hand edits are back).
@@ -101,14 +100,12 @@ import { stat as fsStat } from "../../../deno_ral/fs.ts";
   ```
   prints nothing (`call/axe/cmd.ts:184` is a JSDoc line and is filtered).
 - `quarto run --dev tools/check-runtime-boundary.ts` passes, with the `src` scope count exactly 151 lower than before.
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 - The tests in Verification pass.
 
 ## Plan
 
-Assumes PR 09 landed.
-In the prescribed order PR 08 and PR 22 have landed (`pandoc.ts` already imports from `deno_ral/process.ts`; that import is unrelated to the `deno_ral/fs.ts` one the codemod adds).
-Independent of PR 10, 12, 13.
+PRs 02 and 09 have landed. This PR follows PR 10 (#15418); PRs 10–13 cover disjoint directories but update the same baseline. PR 08 and PR 22 are not prerequisites; leave `Deno.CommandOptions` and other process calls alone.
 
 ### Task 1: Dry run and review
 
@@ -118,17 +115,19 @@ PRs 10–13 are independent (disjoint directories) but every one of them edits `
 
 - [ ] **Step 1: Dry run**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > /tmp/codemod-command.txt; tail -1 /tmp/codemod-command.txt` Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
+From the worktree root, run `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > .claude/docs/codemod-command.txt && tail -1 .claude/docs/codemod-command.txt`. On Windows, use `package/dist/bin/quarto.cmd` for `quarto`. Record the report's worktree-relative path in the execution log. Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`; `git status --short src` is empty.
 
 - [ ] **Step 2: Review the report**
 
-Run: `grep -E 'skipped|collision' /tmp/codemod-command.txt` Expected exactly:
+Run: `grep 'collision:' .claude/docs/codemod-command.txt` Expected exactly:
 ```
 src/command/dev-call/pull-git-subtree/cmd.ts:91: collision: local binding 'stat' conflicts with deno_ral/fs.ts; left as Deno.*
 ```
 Any other collision line means a local name shadows a layer function; read that file and plan an alias import like Task 3 before continuing.
 
-Run: `grep '→' /tmp/codemod-command.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` Expected: only names from the `fs`/`temp` rule tables (`writeTextFileSync`, `readTextFileSync`, `statSync`, `readDirSync`, …).
+Run: `grep '→' .claude/docs/codemod-command.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` Expected: only names from the `fs`/`temp` rule tables (`writeTextFileSync`, `readTextFileSync`, `statSync`, `readDirSync`, …).
+
+Commit the tracked plan with Task 1's checkboxes and execution log, not the report. Run the post-commit review and stop at the task boundary.
 
 ### Task 2: Apply the codemod
 
@@ -140,7 +139,7 @@ Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/comma
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: `git diff --stat | tail -1` lists only files under `src/command`.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 A `FileInfo` member error would mean a caller reads a field the layer's `FileInfo` lacks (`src/command` reads `isFile`, `isDirectory`, `mtime`, `size`): stop and raise it on PR 09's vocabulary rather than casting.
 
 - [ ] **Step 3: Commit**
@@ -179,7 +178,7 @@ Replace line 1648:
 
 Run: `rg -n 'Deno\.errors|Deno\.stat\(' src/command -g '*.ts'` Expected: empty.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 ```bash
 git add src/command/dev-call/pull-git-subtree/cmd.ts src/command/render/pandoc.ts
@@ -217,8 +216,8 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 - Task 4 steps 1–2 → `0 failed`.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The AST dry run and the `rg` in Acceptance criteria → as stated.
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- Manual: `package/dist/bin/quarto create project default /tmp/qc-$$ --no-prompt --no-open && package/dist/bin/quarto render /tmp/qc-$$ && package/dist/bin/quarto inspect /tmp/qc-$$ | head -3` → renders and prints JSON (create/render/inspect all write and read files through the layer now).
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
+- Manual (coordinator at wrap-up, per W29): change into a new temporary directory and use the configured worktree's Quarto CLI by absolute path (`quarto.cmd` on Windows). Run `quarto create project default demo --no-prompt --no-open`, `quarto render demo` and `quarto inspect demo`. Check each exit code; render creates `demo.html` and inspect prints valid JSON. Use the relative project name rather than an absolute target path.
 
 ## Review checklist
 
@@ -233,10 +232,20 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 - `quarto capabilities` lists themes in sorted order now; a consumer relying on filesystem order (none known: the VS Code extension sorts client-side) would see a different order.
 - `build-ts-extension` now bundles entry files in sorted order; the bundle content is unchanged, only the discovery order in log output.
 - `deno fmt` may reflow unrelated lines; revert unrelated hunks if a diff becomes hard to review.
-- Rollback: `git revert` the three commits; the layer stays.
+- Rollback: revert the three implementation commits; the layer stays.
 
 ## Decisions needed
 
 None.
 Review items closed here: counts (43 files / 149 replacements), the comment-matching grep (AST dry run plus comment-filtered `rg`), the predicted `stat` collision, landing order and the reset-and-re-run protocol.
 `quarto-latexmk.ts` is no longer described as a sidecar this PR keeps working (decision 9).
+
+## Execution log
+
+### Step 0 — coordinator preflight at `7a77d06e9`
+
+- Prerequisites: README marks PRs 02, 09 and 10 merged. The layer (`fs.ts`, `temp.ts`, `errors.ts`), codemod and ratchet are on this base. Applied the dated landing order and the post-#15418 README corrections, not the old assumption that 08 and 22 had landed.
+- Citation audit (`rg -n` in `src/command`, compared with `b86f98d`): same at `call/axe/cmd.ts:184`, `dev-call/pull-git-subtree/cmd.ts:91`, `render/pandoc.ts:262,1645,1648`, `capabilities/capabilities.ts:73,75`, `call/build-ts-extension/cmd.ts:118`, `render/output-typst.ts:162,167`, `render/freeze.ts:186,191,250`, `use/commands/template.ts:234,373`, `use/commands/brand.ts:86,96,555,682,701,706`, `serve/cmd.ts:88`, and `preview/cmd.ts:315,334`. The `render/project.ts` read moved from 660 to 661. The standalone `quarto-latexmk.ts` still has `Deno.args` and no fs/temp rewrite. In W29, `11:217` points to the manual Verification example; it now uses a relative project name.
+- Windows with Deno 2.9.8: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run` printed `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`. The only collision was `pull-git-subtree/cmd.ts:91` (`stat`). No source edits. `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` passed at `src` 821 / baseline 821. The expected drop is 149 + 2 = 151 (821 → 670 if the base does not move); Task 4 measures it after the edits. Task 1 still runs and records its own dry run.
+- The type-check commands now include the README's `--allow-import` correction. All named test paths exist. Windows preflight of the relative `create` / `render` / `inspect` sequence created `demo.html` and returned valid JSON on the untouched base; wrap-up reruns it after migration.
+- Code-block audit: no new helper, indirect Deno access or PR-number code comment. The two hand edits use the shipped `stat` and `isNotFound` exports; keep the non-NotFound rethrow. Reviewed the sorted `readDir`/`readDirSync` contract in `fs.ts` and the array spread in `brand.ts`; verification remains in Tasks 2–4.
