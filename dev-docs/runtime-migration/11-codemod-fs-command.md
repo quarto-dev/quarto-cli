@@ -51,7 +51,8 @@ Files that need attention beyond the codemod (verified):
 | `src/command/render/pandoc.ts:1645-1648` | `await Deno.lstat(...)` (rewritten) followed by `if (!(err instanceof Deno.errors.NotFound))` → `isNotFound(err)`. |
 | `src/command/capabilities/capabilities.ts:75` | `for await (const dirEntry of Deno.readDir(themesPath))` builds the `themes` array in `quarto capabilities` output; it becomes sorted. No test covers the order (grep for `capabilities` under `tests/` finds none); the manual check below prints it. |
 | `src/command/call/build-ts-extension/cmd.ts:118` | `Deno.readDir(srcDir)` lists `.ts` entry files; order now sorted (was filesystem order). `tests/smoke/build-ts-extension/` covers the command. |
-| `src/command/render/output-typst.ts:162,167`, `render/project.ts:661`, `render/freeze.ts:186,191,250`, `use/commands/template.ts:234,373`, `use/commands/brand.ts:86,96,555,682,701,706`, `extension`-like scans | `Deno.readDirSync` loops that copy, count or test for emptiness; order-independent. `brand.ts:706` spreads the result (`[...Deno.readDirSync(subdir)]`), which keeps working on an array. Review only. |
+| `src/command/use/commands/brand.ts:86,96` | `findBrandExtension` returns the first brand extension found under `_extensions/*` and `_extensions/*/*`. With two brand extensions in one source, the pick now follows sorted name order instead of the OS's unspecified directory order, so it becomes the same on every platform; a source with one brand extension is unaffected. Accepted as is, like the two rows above. |
+| `src/command/render/output-typst.ts:162,167`, `render/project.ts:661`, `render/freeze.ts:186,191,250`, `use/commands/template.ts:234,373`, `use/commands/brand.ts:555,682,701,706`, `extension`-like scans | `Deno.readDirSync` loops that copy, count or test for emptiness; order-independent. `brand.ts:706` spreads the result (`[...Deno.readDirSync(subdir)]`), which keeps working on an array. Review only. |
 | `src/command/render/pandoc.ts:262` | `args: Deno.CommandOptions` — PR 08's concern (becomes `SpawnOptions`); not touched here. |
 | `src/command/render/latexmk/quarto-latexmk.ts` | standalone `tinitex` entry, deleted by PR 39 (decision 9). It has no fs/temp call, so the codemod does not change it; its `Deno.args` is not this PR's (PR 08 leaves it for PR 39). |
 | `src/command/serve/cmd.ts:88`, `src/command/preview/cmd.ts:315,334` | `tempDir: Deno.makeTempDirSync()` → `makeTempDirSync()` (temp rule). Review only. |
@@ -115,7 +116,7 @@ PRs 10–13 are independent (disjoint directories) but every one of them edits `
 
 - [x] **Step 1: Dry run**
 
-From the worktree root, run `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > .claude/docs/codemod-command.txt && tail -1 .claude/docs/codemod-command.txt`. On Windows, use `package/dist/bin/quarto.cmd` for `quarto`. Record the report's worktree-relative path in the execution log. Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`; `git status --short src` is empty.
+From the worktree root, run `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/command --dry-run > .claude/docs/codemod-command.txt && tail -1 .claude/docs/codemod-command.txt`. On Windows, run the task's commands in Git Bash (they use `tail`, `grep` and `awk`) with `package/dist/bin/quarto.cmd` for `quarto`. Record the report's worktree-relative path in the execution log. Expected: `Summary: 107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`; `git status --short src` is empty.
 
 - [x] **Step 2: Review the report**
 
@@ -231,6 +232,7 @@ git commit -m "Lower runtime boundary baseline after command fs/temp codemod"
 
 - `quarto capabilities` lists themes in sorted order now; a consumer relying on filesystem order (none known: the VS Code extension sorts client-side) would see a different order.
 - `build-ts-extension` now bundles entry files in sorted order; the bundle content is unchanged, only the discovery order in log output.
+- `quarto use brand` on a source holding two brand extensions now installs the first by sorted name; before, the OS directory order decided, so the pick could differ between platforms.
 - `deno fmt` may reflow unrelated lines; revert unrelated hunks if a diff becomes hard to review.
 - Rollback: revert the three implementation commits; the layer stays.
 
