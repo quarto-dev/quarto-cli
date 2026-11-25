@@ -5,13 +5,13 @@
 
 **Goal:** Move every plain filesystem and temp-file call in `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, `src/inspect` and `src/render` from `Deno.*` to `src/deno_ral/fs.ts` / `src/deno_ral/temp.ts` with the codemod, fix the one reported collision by hand, and record why the standalone TypeScript under `src/resources` and `src/webui` (`resources/tools/ast-diagram/main.ts`, `webui/quarto-preview/build.ts`) is left alone.
 **Phase:** 1.
-**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands after PR 08 and PR 22 (landing order below).
+**Depends on:** PR 09 (layer + codemod), PR 02 (ratchet); lands before PR 08 and PR 22 (README, decided 2026-11-17).
 **Unblocks:** PR 14 (the env codemod runs after the fs codemods), PR 25.
 **Branch:** `rt/13-codemod-fs-rest`.
 **Suggested executor:** Sonnet.
 Mechanical codemod plus one alias import; the review is about the diff and the exclusion list.
 **Size:** M.
-35 files rewritten by the codemod across seven directories (122 replacements, measured by a dry run of PR 09's codemod logic on `b86f98d`; 9 + 15 + 9 + 4 + 3 + 1 + 2 files use `Deno.*`); 1 edited by hand.
+35 files rewritten by the codemod across seven directories (122 replacements, measured by a dry run on `2d133a903`; 9 + 15 + 9 + 4 + 3 + 1 + 2 files use `Deno.*`); 1 edited by hand.
 **Ships on:** Deno; the existing test suite must stay green.
 
 ## Spec
@@ -63,14 +63,14 @@ Files in scope that need attention beyond the codemod (verified):
 
 | File | Why |
 |---|---|
-| `src/tools/impl/tinytex.ts:662` | `const realPath = await Deno.realPath(texLivePath);` — the local `realPath` binding collides with the layer's `realPath`; the tool reports it. Fix with an alias import. (`realPath` is the symlink-resolving async variant; the layer keeps that semantics.) |
+| `src/tools/impl/tinytex.ts:738` | `const realPath = await Deno.realPath(texLivePath);` — the local `realPath` binding collides with the layer's `realPath`; the tool reports it. Fix with an alias import. (`realPath` is the symlink-resolving async variant; the layer keeps that semantics.) |
 | `src/publish/common/bundle.ts:106-108` | a commented-out `Deno.openSync` block; left for PR 25's comment cleanup. Lines 114-115 (`Deno.open` twice, `src.readable.pipeThrough(...).pipeTo(dest.writable)`) are rewritten by the codemod; `FsFile` has `readable`/`writable`. |
 | `src/execute/ojs/extract-resources.ts:561` | a trailing comment `// Deno.readTextFileSync(thisResolvedImportPath);` after code on the same line; the AST codemod ignores it and the acceptance `rg` filters it explicitly; PR 25's comment cleanup removes it. |
-| `src/tools/tools.ts:387,413` | `Deno.symlink` → `symlink`, `Deno.lstat` → `lstat` (async variants added by PR 09). Review only. |
+| `src/tools/tools.ts:397,423` | `Deno.symlink` → `symlink`, `Deno.lstat` → `lstat` (async variants added by PR 09). Review only. |
 | `src/publish/common/account.ts:100` | `Deno.chmod(tokensPath, 0o600)` (not awaited) → `chmod(...)`. Review only; keep it un-awaited as today. |
-| `src/tools/impl/verapdf.ts:208,212`, `src/tools/impl/chrome-headless-shell.ts:122,128`, `src/extension/extension.ts:296,477,683`, `src/extension/install.ts:289`, `src/publish/gh-pages/gh-pages.ts:219` | `Deno.readDir`/`readDirSync` loops; extension discovery (`extension.ts`) now visits extension directories in sorted order, which only matters when two extensions declare the same id (last wins today, in filesystem order; now in name order). `tests/smoke/extensions/` covers discovery. Review only. |
+| `src/tools/impl/verapdf.ts:208,212`, `src/tools/impl/chrome-headless-shell.ts:122,128`, `src/extension/extension.ts:296,477,685`, `src/extension/install.ts:289`, `src/publish/gh-pages/gh-pages.ts:219` | `Deno.readDir`/`readDirSync` loops; extension discovery (`extension.ts`) now visits extension directories in sorted order, which only matters when two extensions declare the same id (last wins today, in filesystem order; now in name order). `tests/smoke/extensions/` covers discovery. Review only. |
 | `src/execute/jupyter/jupyter-kernel.ts:275`, `src/execute/rmd.ts:450` | `Deno.makeTempFileSync(...)` → `makeTempFileSync(...)` (temp rule). The surrounding `Deno.Conn`/`Deno.connect` (PR 15) and `Deno.env` (PR 14) stay. Review only. |
-| `src/preview/preview-text.ts:170`, `src/tools/tools.ts:139,207,235`, `src/tools/impl/chrome-headless-shell.ts:94`, `src/tools/impl/chrome-for-testing.ts:248` | `Deno.makeTemp*` → temp rule. Review only. |
+| `src/preview/preview-text.ts:170`, `src/tools/tools.ts:145,213,242`, `src/tools/impl/chrome-headless-shell.ts:94`, `src/tools/impl/chrome-for-testing.ts:248` | `Deno.makeTemp*` → temp rule. Review only. |
 
 ### Scope
 
@@ -79,13 +79,13 @@ Out: everything in the exclusion table; comment lines that mention `Deno.*` (PR 
 
 ### Landing order and conflict protocol
 
-Phase 1 lands in the order 08 → 22 → 10–13 → 14 (README, review finding S10).
+Phase 1 lands the filesystem codemods 10–13 first, then 14, then 08 and 22 (README, decided 2026-11-17).
 PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
 Conflicts in this PR are therefore expected and are resolved mechanically, never by hand-merging a codemodded hunk:
 
-1. `git rebase origin/main`; for every conflicted file under this PR's directories, `git checkout origin/main -- <file>` (reset the file to `main`).
+1. `git fetch upstream && git rebase upstream/main`; for every conflicted file under this PR's directories, `git checkout upstream/main -- <file>` (reset the file to `main`).
 2. Re-run the codemod on exactly those files: `quarto run --dev tools/codemod-deno-ral.ts --rules <this PR's rules> --file <file> [--file <file>...]`.
-3. Re-apply this PR's hand edits for those files (each is listed with its exact code below), then `package/dist/bin/tools/x86_64/deno fmt <file>...`.
+3. Re-apply this PR's hand edits for those files (each is listed with its exact code below), then `package/dist/bin/tools/x86_64/deno fmt <file>...`, leaving out the five files that are unformatted on `main` (see the README row for Task 2 Step 2).
 4. `git add` the files and `git rebase --continue`; run the type check and the dry run of Task 1 again (it must report `0 replacements` for the PR's directories once the hand edits are back).
 
 This works because PR 09's collision detection is symbol-based and reuses existing alias imports: a re-run over a partly migrated file finishes it and does not report the layer's own imports as collisions.
@@ -103,7 +103,7 @@ import { realPath as fsRealPath } from "../../deno_ral/fs.ts";
 ### Files
 
 - Modify (codemod): every `*.ts` under the seven directories that uses an fs/temp API (35 files)
-- Modify (hand): `src/tools/impl/tinytex.ts:662`, `src/publish/common/bundle.ts:106-108`
+- Modify (hand): `src/tools/impl/tinytex.ts:738` (`src/publish/common/bundle.ts:106-108` is a commented-out block left for PR 25)
 - Modify: `tools/runtime-boundary-baseline.json`, `.claude/rules/typescript/deno-ral.md`
 
 ### Acceptance criteria
@@ -118,13 +118,13 @@ import { realPath as fsRealPath } from "../../deno_ral/fs.ts";
   ```
   prints nothing (`bundle.ts:106-108` and `extract-resources.ts:561` are filtered).
 - `quarto run --dev tools/check-runtime-boundary.ts` passes, with the `src` scope count exactly 123 lower than before (122 codemod replacements + the `tinytex.ts` collision site).
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` passes.
 - The tests in Verification pass.
 
 ## Plan
 
 Assumes PR 09 landed.
-In the prescribed order PR 08 and PR 22 have landed; independent of PRs 10, 11, 12.
+PRs 09, 10 and 11 are merged; PR 08 and PR 22 have not landed. PR 12 (#15426) is open and edits only `src/project` and `src/format`; whichever of 12 and 13 merges second rebases and regenerates the baseline (Task 1 intro).
 
 ### Task 1: Dry run and review
 
@@ -134,20 +134,20 @@ PRs 10–13 are independent (disjoint directories) but every one of them edits `
 
 - [ ] **Step 1: Dry run**
 
-Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run > /tmp/codemod-rest.txt; tail -1 /tmp/codemod-rest.txt` Expected: `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
+Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run > .claude/docs/codemod-rest.txt; tail -1 .claude/docs/codemod-rest.txt` Expected: `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
 
 - [ ] **Step 2: Review the report**
 
-Run: `grep -E 'skipped|collision' /tmp/codemod-rest.txt` Expected exactly:
+Run: `grep -E 'skipped|collision' .claude/docs/codemod-rest.txt` Expected exactly:
 ```
-src/tools/impl/tinytex.ts:662: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*
+src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*
 ```
 
-Run: `grep '→' /tmp/codemod-rest.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` Expected: only `fs`/`temp` rule targets.
+Run: `grep '→' .claude/docs/codemod-rest.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` Expected: only `fs`/`temp` rule targets.
 
 - [ ] **Step 3: Confirm the exclusions are not in the walk**
 
-Run: `grep -c 'src/resources\|src/webui' /tmp/codemod-rest.txt` Expected: `0` (those directories were not passed; `src/resources/extension-subtrees` would be skipped by the tool anyway).
+Run: `grep -c 'src/resources\|src/webui' .claude/docs/codemod-rest.txt` Expected: `0` (those directories were not passed; `src/resources/extension-subtrees` would be skipped by the tool anyway).
 
 ### Task 2: Apply the codemod
 
@@ -159,7 +159,7 @@ Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execu
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: `git diff --stat | tail -1` lists only files under the seven directories.
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 - [ ] **Step 3: Commit**
 
@@ -175,7 +175,7 @@ git commit -m "execute/publish/tools/extension/preview/inspect/render: codemod D
 
 - [ ] **Step 1: `src/tools/impl/tinytex.ts`**
 
-Add `realPath as fsRealPath` to the file's `../../deno_ral/fs.ts` import (the codemod created or extended it for `writeTextFileSync`/`readTextFileSync`/… in the same file) and change line 662:
+Add `realPath as fsRealPath` to the file's `../../deno_ral/fs.ts` import (the codemod created or extended it for `writeTextFileSync`/`readTextFileSync`/… in the same file) and change the `const realPath = await Deno.realPath(texLivePath);` line (738 on `2d133a903`; the codemod's import line moves it):
 
 ```ts
     const realPath = await fsRealPath(texLivePath);
@@ -186,7 +186,7 @@ Add `realPath as fsRealPath` to the file's `../../deno_ral/fs.ts` import (the co
 Run: `rg -n 'Deno\.realPath\b' src/tools -g '*.ts'` Expected: empty.
 (`Deno.openSync` still appears in the `bundle.ts:106` comment; PR 25 removes it.)
 
-Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
+Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 ```bash
 git add src/tools/impl/tinytex.ts
@@ -228,8 +228,8 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 - Task 4 steps 1–2 → `0 failed`.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The AST dry run and the `rg` in Acceptance criteria → as stated.
-- `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- Manual: `package/dist/bin/quarto tools list` (tools code: reads/writes through the layer); with network, `cd $(mktemp -d) && package/dist/bin/quarto add quarto-ext/lightbox --no-prompt && package/dist/bin/quarto list extensions` (extension install + discovery through sorted `readDirSync`) → both succeed; `package/dist/bin/quarto preview tests/docs/test.qmd --no-browser` serves and exits on Ctrl-C.
+- `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
+- Manual: `package/dist/bin/quarto tools list` (tools code: reads/writes through the layer); with network, `q="$PWD/package/dist/bin/quarto"; cd "$(mktemp -d)" && "$q" add quarto-ext/lightbox --no-prompt && "$q" list extensions` (extension install + discovery through sorted `readDirSync`) → both succeed; `package/dist/bin/quarto preview tests/docs/test.qmd --no-browser` serves and exits on Ctrl-C.
 
 ## Review checklist
 
@@ -252,3 +252,16 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 None.
 (The exclusion list is a statement of fact about scripts that run without the import map, not a choice; PR 25 records `ast-diagram/main.ts` and `quarto-preview/build.ts` in the ratchet allow-list, PRs 33 and 35 port them.)
 Review items closed here: counts (35 files / 122 replacements), the comment-matching grep (AST dry run plus filtered `rg`, including the trailing comment at `extract-resources.ts:561`), the `realPath` collision, the contradiction with PR 25 on the two standalone scripts, landing order and the reset-and-re-run protocol.
+
+## Execution log
+
+### Step 0 — coordinator preflight at `2d133a903`
+
+- Prerequisites: README marks PRs 02, 09, 10 and 11 merged; the layer (`fs.ts`, `temp.ts`, `errors.ts`), the codemod and the ratchet are on this base. PRs 08 and 22 have not landed, as the dated landing order (2026-11-17) allows; the header, landing-order paragraph and Plan intro are corrected. PR 12 (#15426) is open on disjoint directories; it and this PR share only `tools/runtime-boundary-baseline.json` and README rows, so whichever merges second rebases and regenerates the baseline.
+- Citation audit (`git grep` on `2d133a903`, compared with `b86f98d`): same at `bundle.ts:106,114-115`, `extract-resources.ts:561`, `account.ts:100`, `verapdf.ts:208,212`, `chrome-headless-shell.ts:94,122,128`, `extension.ts:296,477`, `install.ts:289`, `gh-pages.ts:219`, `jupyter-kernel.ts:275`, `rmd.ts:450`, `preview-text.ts:170`, `chrome-for-testing.ts:248`, `make-ast-diagram/cmd.ts:29`, `previewjs.ts:14`, `check-usage.ts:1`. Moved: `tinytex.ts:662` → 738, `tools.ts:139,207,235` → 145,213,242, `tools.ts:387,413` → 397,423, `extension.ts:683` → 685 (README PR 13 audit row). None gone. Task 3 now names the `realPath` statement instead of a line number, since the codemod's import line shifts it.
+- Dry run (Windows, Deno 2.9.8): `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run` printed `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` and the single collision `src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*`. Targets: `readTextFileSync` 32, `writeTextFileSync` 22, `statSync` 21, `readDirSync` 7, `remove` 6, `readFileSync` 5, `makeTempDirSync` 5, `readTextFile` 4, `readFile` 3, `makeTempFileSync` 3, `copyFileSync` 3, `readDir` 2, `open` 2, and one each of `writeTextFile`, `writeFileSync`, `symlink`, `renameSync`, `lstat`, `chmodSync`, `chmod`. `git status --short src` printed nothing. `check-runtime-boundary.ts` printed `src 670 (baseline 670)` and `OK`; the expected drop is 122 + 1 = 123 (670 → 547 if the base does not move, 507 → 384 after PR 12).
+- Type check on the untouched base: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` from `src` exits 0. The three `deno check` commands gain `--allow-import` (README row "Any plan that type-checks `src/quarto.ts`").
+- Formatting: `deno fmt --check` on each of the 35 files at base reports 5 already unformatted: `src/execute/ojs/annotate-source.ts`, `src/publish/confluence/confluence.ts`, `src/tools/impl/chrome-for-testing.ts`, `src/tools/impl/chrome-headless-shell.ts` and `src/tools/impl/tinytex.ts`. Task 2 Step 2's whole-file `deno fmt` would add unrelated hunks to them, and Task 2 Step 3 stages seven directories; the README rows for PR 13 Task 2 Steps 2 and 3 amend both.
+- Code-block audit: `rg -n 'function \w+'` prints nothing; the indirect-`Deno` and `PR [0-9]` code-comment greps hit only prose. Other corrections: the report path moved from `/tmp` to `.claude/docs/codemod-rest.txt`; the conflict protocol uses `upstream/main` (README row from PR 12's review); `bundle.ts:106-108` leaves "Modify (hand)" and the manual `quarto add` check calls the dev build by absolute path (README PR 13 audit row).
+- Tests: every file named in Task 4 and `tests/docs/test.qmd` exist; the `find` directories hold 4 (`unit/tools`), 1 (`unit/extension`), 1 (`unit/jupyter`), 1 (`unit/confluence`), 8 (`unit/project`), 3 (`smoke/engine`), 4 (`smoke/jupyter`), 7 (`smoke/extensions`), 3 (`smoke/ojs`), 2 (`smoke/embed`), 2 (`smoke/env`) and 3 (`smoke/run`) test files. The `.cmd` launcher and PowerShell `run-tests.ps1` forms replace the POSIX ones at execution time.
+- Gate inputs: the only `Plan defect`/`Plan gap` bead that applies is the `--allow-import` one, already a README row; the Windows review rates this plan "Conventions" with E05 only (the `cd` path, covered); 8 commits touched the seven directories since `b86f98d`, all covered by the citation audit and the unchanged counts.
