@@ -9,7 +9,11 @@
  */
 
 import { join } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { quartoDataDir } from "../../core/appdirs.ts";
 import {
   findChromeExecutable,
@@ -91,7 +95,7 @@ export function chromeHeadlessShellExecutablePath(): string | undefined {
 
 /** Record the installed version as a plain text file. */
 export function noteInstalledVersion(dir: string, version: string): void {
-  Deno.writeTextFileSync(join(dir, kVersionFileName), version);
+  writeTextFileSync(join(dir, kVersionFileName), version);
 }
 
 /** Read the installed version. Returns undefined if not present. */
@@ -100,7 +104,7 @@ export function readInstalledVersion(dir: string): string | undefined {
   if (!existsSync(path)) {
     return undefined;
   }
-  const text = Deno.readTextFileSync(path).trim();
+  const text = readTextFileSync(path).trim();
   return text || undefined;
 }
 

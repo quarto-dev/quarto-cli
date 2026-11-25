@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, readDirSync, statSync, walkSync } from "../deno_ral/fs.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "../deno_ral/log.ts";
 import { isSubdir } from "../deno_ral/fs.ts";
@@ -292,8 +292,8 @@ export async function readSubtreeExtensions(
   const extensions: Extension[] = [];
 
   const topLevelDirs = safeExistsSync(subtreeDir) &&
-      Deno.statSync(subtreeDir).isDirectory
-    ? Deno.readDirSync(subtreeDir)
+      statSync(subtreeDir).isDirectory
+    ? readDirSync(subtreeDir)
     : [];
 
   for (const topLevelDir of topLevelDirs) {
@@ -452,7 +452,7 @@ function resolveExtensionPaths(
   input: string,
   config?: ProjectConfig,
 ) {
-  const inputDir = Deno.statSync(input).isDirectory ? input : dirname(input);
+  const inputDir = statSync(input).isDirectory ? input : dirname(input);
 
   return toInputRelativePaths(
     extensionProjectType(extension, config),
@@ -473,8 +473,8 @@ export async function readExtensions(
 ) {
   const extensions: Extension[] = [];
   const extensionDirs = safeExistsSync(extensionsDirectory) &&
-      Deno.statSync(extensionsDirectory).isDirectory
-    ? Deno.readDirSync(extensionsDirectory)
+      statSync(extensionsDirectory).isDirectory
+    ? readDirSync(extensionsDirectory)
     : [];
   for (const extensionDir of extensionDirs) {
     if (extensionDir.isDirectory) {
@@ -546,7 +546,7 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
   const extensionsDirPath = (path: string) => {
     const extPath = join(path, kExtensionDir);
     try {
-      if (Deno.statSync(extPath).isDirectory) {
+      if (statSync(extPath).isDirectory) {
         return extPath;
       } else {
         return undefined;
@@ -557,7 +557,7 @@ export function inputExtensionDirs(input?: string, projectDir?: string) {
   };
 
   const inputDirName = (inputOrDir: string) => {
-    if (Deno.statSync(inputOrDir).isDirectory) {
+    if (statSync(inputOrDir).isDirectory) {
       return inputOrDir;
     } else {
       return dirname(inputOrDir);
@@ -636,7 +636,7 @@ export function discoverExtensionPath(
   };
 
   const findLocalExtensionDir = () => {
-    const sourceDir = Deno.statSync(input).isDirectory ? input : dirname(input);
+    const sourceDir = statSync(input).isDirectory ? input : dirname(input);
     const sourceDirAbs = normalizePath(sourceDir);
 
     if (projectDir && isSubdir(projectDir, sourceDirAbs)) {
@@ -682,7 +682,7 @@ export function discoverExtensionPath(
   // check for built-in subtree extensions (pattern: extension-subtrees/*/\_extensions/name)
   const subtreePath = builtinSubtreeExtensions();
   if (safeExistsSync(subtreePath)) {
-    for (const topLevelDir of Deno.readDirSync(subtreePath)) {
+    for (const topLevelDir of readDirSync(subtreePath)) {
       if (!topLevelDir.isDirectory) continue;
       const subtreeExtDir = join(subtreePath, topLevelDir.name, kExtensionDir);
       if (safeExistsSync(subtreeExtDir)) {

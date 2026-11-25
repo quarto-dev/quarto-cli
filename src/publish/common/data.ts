@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 
 import { quartoDataDir } from "../../core/appdirs.ts";
@@ -39,7 +44,7 @@ export async function readAccountsPublishedTo(
   const publishRecordsFile = publishRecordsPath();
   if (existsSync(publishRecordsFile)) {
     const records = JSON.parse(
-      Deno.readTextFileSync(publishRecordsFile),
+      readTextFileSync(publishRecordsFile),
     ) as PublishRecords;
     if (records[source] && records[source][provider.name]) {
       // see if we can associate registered accounts w/ the publish target accounts
@@ -72,7 +77,7 @@ export function writePublishRecord(
   const publishRecordsFile = publishRecordsPath();
   const publishRecords =
     (existsSync(publishRecordsFile)
-      ? JSON.parse(Deno.readTextFileSync(publishRecordsFile))
+      ? JSON.parse(readTextFileSync(publishRecordsFile))
       : {}) as PublishRecords;
   if (!publishRecords[source]) {
     publishRecords[source] = {
@@ -86,7 +91,7 @@ export function writePublishRecord(
   if (!publishRecords[source][provider].includes(publishedTo)) {
     publishRecords[source][provider].push(publishedTo);
   }
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     publishRecordsFile,
     JSON.stringify(publishRecords, undefined, 2),
   );

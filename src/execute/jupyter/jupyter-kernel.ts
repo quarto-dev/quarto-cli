@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { error, info, warning } from "../../deno_ral/log.ts";
 
@@ -24,6 +30,7 @@ import {
 
 import { ExecuteOptions } from "../types.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { makeTempFileSync } from "../../deno_ral/temp.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
@@ -272,8 +279,8 @@ async function writeKernelCommand(
   // This is disappointing, but something is deeply wrong with Deno.Conn:
   // https://github.com/quarto-dev/quarto-cli/issues/7737#issuecomment-1830665357
   if (messageBytes.length > 1024) {
-    const tempFile = Deno.makeTempFileSync();
-    Deno.writeFileSync(tempFile, messageBytes);
+    const tempFile = makeTempFileSync();
+    writeFileSync(tempFile, messageBytes);
     const msg = kernelCommand("file", secret, { file: tempFile }) + "\n";
     messageBytes = new TextEncoder().encode(msg);
   }
@@ -329,7 +336,7 @@ function kernelLogFile() {
   const logsDir = quarto.path.dataDir("logs");
   const kernelLog = join(logsDir, "jupyter-kernel.log");
   if (!existsSync(kernelLog)) {
-    Deno.writeTextFileSync(kernelLog, "");
+    writeTextFileSync(kernelLog, "");
   }
   return kernelLog;
 }
@@ -341,7 +348,7 @@ function readKernelTransportFile(
   if (existsSync(transportFile)) {
     if (type === "tcp") {
       try {
-        const transport = JSON.parse(Deno.readTextFileSync(transportFile));
+        const transport = JSON.parse(readTextFileSync(transportFile));
         if (transport.port && transport.secret) {
           return {
             ...transport,

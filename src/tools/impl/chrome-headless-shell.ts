@@ -9,7 +9,7 @@
  */
 
 import { join } from "../../deno_ral/path.ts";
-import { existsSync, safeMoveSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import { existsSync, readDirSync, safeMoveSync, safeRemoveSync } from "../../deno_ral/fs.ts";
 import {
   InstallableTool,
   InstallContext,
@@ -32,6 +32,7 @@ import {
   readInstalledVersion,
 } from "./chrome-headless-shell-paths.ts";
 import { chromiumInstallable } from "./chromium.ts";
+import { makeTempDirSync } from "../../deno_ral/temp.ts";
 
 
 // -- InstallableTool methods --
@@ -91,7 +92,7 @@ async function latestRelease(): Promise<RemotePackageInfo> {
 
 async function preparePackage(ctx: InstallContext): Promise<PackageInfo> {
   const release = await latestRelease();
-  const workingDir = Deno.makeTempDirSync({ prefix: "quarto-chrome-hs-" });
+  const workingDir = makeTempDirSync({ prefix: "quarto-chrome-hs-" });
 
   const binaryName = chromeHeadlessShellBinaryName();
 
@@ -119,13 +120,13 @@ async function install(pkg: PackageInfo, _ctx: InstallContext): Promise<void> {
 
   // Clear existing contents
   if (existsSync(installDir)) {
-    for (const entry of Deno.readDirSync(installDir)) {
+    for (const entry of readDirSync(installDir)) {
       safeRemoveSync(join(installDir, entry.name), { recursive: true });
     }
   }
 
   // Move extracted contents into install directory
-  for (const entry of Deno.readDirSync(pkg.filePath)) {
+  for (const entry of readDirSync(pkg.filePath)) {
     safeMoveSync(join(pkg.filePath, entry.name), join(installDir, entry.name));
   }
 

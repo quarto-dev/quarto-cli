@@ -5,7 +5,7 @@
  */
 import { debug, warning } from "../../deno_ral/log.ts";
 
-import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import { chmodSync, existsSync, readTextFile, readTextFileSync, remove, safeRemoveSync, statSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../deno_ral/path.ts";
 
 import { expandPath, which } from "../../core/path.ts";
@@ -129,7 +129,7 @@ async function installedVersion() {
   if (installDir) {
     const versionFile = join(installDir, kVersionFileName);
     if (existsSync(versionFile)) {
-      return await Deno.readTextFile(versionFile);
+      return await readTextFile(versionFile);
     } else {
       return undefined;
     }
@@ -142,7 +142,7 @@ function noteInstalledVersion(version: string) {
   const installDir = tinyTexInstallDir();
   if (installDir) {
     const versionFile = join(installDir, kVersionFileName);
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       versionFile,
       version,
     );
@@ -255,10 +255,10 @@ async function install(
               if (file.isFile) {
                 const relativePath = relative(from, file.path);
                 const destPath = join(installDir, relativePath);
-                const srcStat = Deno.statSync(file.path);
-                const destStat = Deno.statSync(destPath);
+                const srcStat = statSync(file.path);
+                const destStat = statSync(destPath);
                 if (srcStat.mode !== null && srcStat.mode !== destStat.mode) {
-                  Deno.chmodSync(destPath, srcStat.mode);
+                  chmodSync(destPath, srcStat.mode);
                 }
               }
             }
@@ -500,7 +500,7 @@ async function uninstall(context: InstallContext) {
       // Remove the directory
       const installDir = tinyTexInstallDir();
       if (installDir) {
-        await Deno.remove(installDir, { recursive: true });
+        await remove(installDir, { recursive: true });
       } else {
         context.error("Couldn't find install directory");
         return Promise.reject();
@@ -720,7 +720,7 @@ async function isTinyTex() {
     // Format config contains references to tinytex
     const cnfFile = join(root, "texmf-dist/web2c/fmtutil.cnf");
     if (existsSync(cnfFile)) {
-      const cnfText = Deno.readTextFileSync(cnfFile);
+      const cnfText = readTextFileSync(cnfFile);
       const match = cnfText.match(/\W[.]?TinyTeX\W/);
       if (match) {
         return true;

@@ -25,6 +25,7 @@ import { throwUnableToPublish } from "../common/errors.ts";
 import { Input } from "cliffy/prompt/input.ts";
 import { assert } from "testing/asserts";
 import { Secret } from "cliffy/prompt/secret.ts";
+import { statSync } from "../../deno_ral/fs.ts";
 
 export const kHuggingFace = "huggingface";
 const kHuggingFaceDescription = "Hugging Face Spaces";
@@ -89,7 +90,7 @@ async function publish(
   _target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
   // convert input to dir if necessary
-  input = Deno.statSync(input).isDirectory ? input : dirname(input);
+  input = statSync(input).isDirectory ? input : dirname(input);
 
   // check if git version is new enough
   const version = await gitVersion();

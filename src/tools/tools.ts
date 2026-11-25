@@ -24,10 +24,18 @@ import { verapdfInstallable } from "./impl/verapdf.ts";
 import { downloadWithProgress } from "../core/download.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { isWSL } from "../core/platform.ts";
-import { ensureDirSync, existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  lstat,
+  remove,
+  safeRemoveSync,
+  symlink,
+} from "../deno_ral/fs.ts";
 import { join } from "../deno_ral/path.ts";
 import { expandPath, suggestUserBinPaths } from "../core/path.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { makeTempDirSync } from "../deno_ral/temp.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -142,7 +150,7 @@ export async function installTool(
   if (tool) {
     if (checkToolRequirement(name)) {
       // Create a working directory for the installer to use
-      const workingDir = Deno.makeTempDirSync();
+      const workingDir = makeTempDirSync();
       try {
         // The context for the installers
         const context = installContext(workingDir, updatePath);
@@ -210,7 +218,7 @@ export async function uninstallTool(name: string, updatePath?: boolean) {
   if (tool) {
     const installed = await tool.installed();
     if (installed) {
-      const workingDir = Deno.makeTempDirSync();
+      const workingDir = makeTempDirSync();
       const context = installContext(workingDir, updatePath);
 
       // Emit initial message
@@ -239,7 +247,7 @@ export async function updateTool(name: string, known?: ToolSummaryData) {
   const tool = installableTool(name);
 
   if (tool && summary && summary.installed) {
-    const workingDir = Deno.makeTempDirSync();
+    const workingDir = makeTempDirSync();
     const context = installContext(workingDir);
     try {
       context.info(
@@ -391,10 +399,10 @@ export async function createToolSymlink(
     try {
       // Remove existing symlink if present
       if (existsSync(symlinkPath)) {
-        await Deno.remove(symlinkPath);
+        await remove(symlinkPath);
       }
       // Create new symlink
-      await Deno.symlink(binaryPath, symlinkPath);
+      await symlink(binaryPath, symlinkPath);
       return true;
     } catch {
       // Try next path
@@ -420,9 +428,9 @@ export async function removeToolSymlink(symlinkName: string): Promise<void> {
   for (const binPath of binPaths) {
     const symlinkPath = join(expandPath(binPath), symlinkName);
     try {
-      const stat = await Deno.lstat(symlinkPath);
+      const stat = await lstat(symlinkPath);
       if (stat.isSymlink) {
-        await Deno.remove(symlinkPath);
+        await remove(symlinkPath);
       }
     } catch {
       // Symlink doesn't exist, continue

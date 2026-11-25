@@ -7,6 +7,7 @@ import { basename, dirname } from "../deno_ral/path.ts";
 import { removeIfEmptyDir } from "../core/path.ts";
 import { kBuiltInExtOrg, kExtensionDir } from "./constants.ts";
 import { Extension } from "./types.ts";
+import { remove } from "../deno_ral/fs.ts";
 
 export async function removeExtension(extension: Extension) {
   // You can't remove quarto extensions
@@ -17,7 +18,7 @@ export async function removeExtension(extension: Extension) {
   }
 
   // Delete the extension
-  await Deno.remove(extension.path, { recursive: true });
+  await remove(extension.path, { recursive: true });
 
   // Remove the container directory, if empty
   const extensionDir = dirname(extension.path);

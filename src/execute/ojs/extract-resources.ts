@@ -34,7 +34,12 @@ import { stripColor } from "../../core/lib/external/colors.ts";
 import { lines } from "../../core/lib/text.ts";
 import { InternalError } from "../../core/lib/error.ts";
 import { kRenderServicesLifetime } from "../../config/constants.ts";
-import { safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  readFileSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -307,7 +312,7 @@ async function resolveImport(
   const createdResources: ResourceDescription[] = [];
   if (!file.endsWith(".ts") && !file.endsWith(".tsx")) {
     try {
-      source = Deno.readTextFileSync(file);
+      source = readTextFileSync(file);
     } catch (_e) {
       error(`OJS dependency ${file} (from ${referent}) not found.`);
       throw new Error();
@@ -382,7 +387,7 @@ async function resolveImport(
       }
 
       const badFile = fromFileUrl(m[1]);
-      const badContents = Deno.readTextFileSync(badFile);
+      const badContents = readTextFileSync(badFile);
       if (!badContents.startsWith("/** @jsxImportSource quarto-tsx */")) {
         console.log(`
 File ${colors.red(badFile)} must start with
@@ -495,7 +500,7 @@ quarto will only generate javascript files in ${
   }
 
   const transformedSource = fixedSource;
-  Deno.writeTextFileSync(localFile, transformedSource);
+  writeTextFileSync(localFile, transformedSource);
   createdResources.push({
     pathType: "relative",
     resourceType: "import",
@@ -504,7 +509,7 @@ quarto will only generate javascript files in ${
     importPath: `./${relative(resolve(mdDir), localFile)}`,
   });
 
-  source = Deno.readTextFileSync(localFile);
+  source = readTextFileSync(localFile);
   return { source, createdResources };
 }
 
@@ -634,7 +639,7 @@ export async function extractResourceDescriptionsFromOJSChunk(
   for (const importFile of result) {
     if (importFile.filename.endsWith(".ojs")) {
       try {
-        const ast = parseModule(Deno.readTextFileSync(importFile.filename));
+        const ast = parseModule(readTextFileSync(importFile.filename));
         for (const attachment of literalFileAttachments(ast)) {
           fileAttachments.push({
             filename: attachment,
@@ -767,7 +772,7 @@ export async function makeSelfContainedResources(
         // FIXME is this one also wrong?
         f.importPath,
         asDataURL(
-          Deno.readTextFileSync(f.filename),
+          readTextFileSync(f.filename),
           "application/ojs-javascript",
         ),
       ],
@@ -780,7 +785,7 @@ export async function makeSelfContainedResources(
         return [
           f.filename,
           asDataURL(
-            Deno.readFileSync(resolvedFileName).buffer,
+            readFileSync(resolvedFileName).buffer,
             mimeType,
           ),
         ];

@@ -7,6 +7,7 @@
 import { join, relative } from "../deno_ral/path.ts";
 import { resourcePath } from "../core/resources.ts";
 import { jatsStaticResources } from "./preview-text.ts";
+import { readFile } from "../deno_ral/fs.ts";
 
 export const staticResource = async (
   baseDir: string,
@@ -20,7 +21,7 @@ export const staticResource = async (
   if (resource) {
     const dir = resource.dir ? join("preview", resource.dir) : "preview";
     const path = resourcePath(join(dir, filename));
-    const contents = await Deno.readFile(path);
+    const contents = await readFile(path);
     return {
       ...resource,
       contents,

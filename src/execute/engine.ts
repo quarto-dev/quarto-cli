@@ -42,6 +42,7 @@ import { engineProjectContext } from "../project/engine-project-context.ts";
 import { getQuartoAPI } from "../core/api/index.ts";
 import { satisfies } from "semver/mod.ts";
 import { quartoConfig } from "../core/quarto.ts";
+import { readTextFileSync } from "../deno_ral/fs.ts";
 
 const kEngines: Map<string, ExecutionEngineDiscovery> = new Map();
 
@@ -336,7 +337,7 @@ export async function fileExecutionEngine(
     try {
       return markdownExecutionEngine(
         project,
-        markdown ? markdown.value : Deno.readTextFileSync(file),
+        markdown ? markdown.value : readTextFileSync(file),
         engines,
         flags,
       );

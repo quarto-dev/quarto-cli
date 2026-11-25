@@ -42,6 +42,7 @@ import {
   writeStoredTokens,
 } from "./api/index.ts";
 import { Account, PositConnectCloudToken, Revision } from "./api/types.ts";
+import { readFile } from "../../deno_ral/fs.ts";
 
 export const kPositConnectCloud = "posit-connect-cloud";
 const kPositConnectCloudDescription = "Posit Connect Cloud";
@@ -494,7 +495,7 @@ async function publish(
         publishFiles,
         tempContext,
       );
-      const bundleBytes = await Deno.readFile(bundlePath);
+      const bundleBytes = await readFile(bundlePath);
       publishDebug(
         `Bundle: ${publishFiles.files.length} files, ${bundleBytes.length} bytes compressed`,
       );

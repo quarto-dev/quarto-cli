@@ -97,6 +97,7 @@ import { logError, trace } from "./confluence-logger.ts";
 import { md5HashBytes } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
 import { info } from "../../deno_ral/log.ts";
+import { readFile, readTextFileSync } from "../../deno_ral/fs.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
@@ -202,7 +203,7 @@ const resolveTarget = async (
 };
 
 const loadDocument = (baseDirectory: string, rootFile: string): ContentBody => {
-  const documentValue = Deno.readTextFileSync(join(baseDirectory, rootFile));
+  const documentValue = readTextFileSync(join(baseDirectory, rootFile));
 
   const body: ContentBody = wrapBodyForConfluence(documentValue);
 
@@ -346,7 +347,7 @@ async function publish(
       );
 
       try {
-        fileBuffer = await Deno.readFile(path);
+        fileBuffer = await readFile(path);
         fileHash = await md5HashBytes(fileBuffer);
       } catch (error) {
         logError(`${path} not found`, error);

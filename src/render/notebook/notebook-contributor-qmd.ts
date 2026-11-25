@@ -33,7 +33,7 @@ import { error } from "../../deno_ral/log.ts";
 import { Format } from "../../config/types.ts";
 import { ipynbTitleTemplatePath } from "../../format/ipynb/format-ipynb.ts";
 import { projectScratchPath } from "../../project/project-scratch.ts";
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import { copyFileSync, ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 
@@ -50,7 +50,7 @@ function cache(output: NotebookOutput, project?: ProjectContext) {
     // copy the embed into the scratch directory
     const path = cachePath(output.path, project);
     ensureDirSync(dirname(path));
-    Deno.copyFileSync(output.path, path);
+    copyFileSync(output.path, path);
   }
 }
 

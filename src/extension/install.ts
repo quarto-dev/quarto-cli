@@ -4,7 +4,15 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readDirSync,
+  remove,
+  renameSync,
+  safeRemoveSync,
+  statSync,
+} from "../deno_ral/fs.ts";
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { basename, dirname, join, relative } from "../deno_ral/path.ts";
@@ -224,7 +232,7 @@ async function stageExtension(
         "local resolved extension should always have a string target.",
       );
     }
-    if (Deno.statSync(source.resolvedTarget).isDirectory) {
+    if (statSync(source.resolvedTarget).isDirectory) {
       // Copy the extension dir only
       const srcDir = extensionDir(source.resolvedTarget);
       if (srcDir) {
@@ -261,7 +269,7 @@ async function unzipAndStage(
       }
 
       // Remove the tar ball itself
-      await Deno.remove(zipFile);
+      await remove(zipFile);
 
       return Promise.resolve();
     },
@@ -286,7 +294,7 @@ async function unzipAndStage(
     if (safeExistsSync(join(archiveDir, kExtensionDir))) {
       return archiveDir;
     } else {
-      const dirEntries = Deno.readDirSync(archiveDir);
+      const dirEntries = readDirSync(archiveDir);
       let count = 0;
       let name;
       for (const dirEntry of dirEntries) {
@@ -612,7 +620,7 @@ export async function completeInstallation(
 
         // Ensure the parent directory exists
         ensureDirSync(dirname(installPath));
-        Deno.renameSync(stagingPath, installPath);
+        renameSync(stagingPath, installPath);
       });
     } finally {
       // Clean up the staging directory
@@ -630,7 +638,7 @@ const extensionDir = (path: string) => {
   } else {
     // Otherwise, add _extensions to this and use that
     const extDir = join(path, kExtensionDir);
-    if (existsSync(extDir) && Deno.statSync(extDir).isDirectory) {
+    if (existsSync(extDir) && statSync(extDir).isDirectory) {
       return extDir;
     } else {
       return path;

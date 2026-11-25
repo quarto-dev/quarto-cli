@@ -151,17 +151,17 @@ Run: `grep -c 'src/resources\|src/webui' .claude/docs/codemod-rest.txt` Expected
 
 ### Task 2: Apply the codemod
 
-- [ ] **Step 1: Rewrite**
+- [x] **Step 1: Rewrite**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render | tail -1` Expected: `Summary: 172 files scanned, 35 rewritten, 122 replacements, 1 with collisions, 0 skipped`.
 
-- [ ] **Step 2: Format and type-check**
+- [x] **Step 2: Format and type-check**
 
 Run: `git diff --shortstat`, then `git diff --name-only -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render | rg -v '^src/(execute/ojs/annotate-source|publish/confluence/confluence|tools/impl/chrome-for-testing|tools/impl/chrome-headless-shell|tools/impl/tinytex)\.ts$' | xargs package/dist/bin/tools/x86_64/deno fmt`, then `git diff --shortstat` again. Expected: 30 files formatted; the five left out are unformatted on `main` (README row for this step), so formatting them would add hunks unrelated to the codemod. `git diff --name-only` still lists exactly 35 files, all under the seven directories, and each file's diff holds only its import line and the `Deno.x` → `x` rewrites (wrap a rewritten call by hand only when it exceeds the line width).
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git status --short -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render   # only the 35 modified files, no untracked file
@@ -298,3 +298,11 @@ PR 12 changed only `src/project` and `src/format`, so no file under this PR's se
 - Ratchet on the clean base: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 507 (baseline 507)` and `OK: no count exceeds the baseline.` The expected Task 4 result is `src` 507 → 384 (122 codemod replacements + the `tinytex.ts` collision site = 123).
 - Type check on the clean base: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` from `src` exits 0.
 - "PRs 13 and 14, what PRs 10–12 found": items (1)–(3) are already in this plan (report path, the five unformatted files left out of `deno fmt`, staging by path). Item (4), the "Pending checks" list, belongs to the PR description at wrap-up. Item (5), the changelog entry for sorted directory listings that PR 13 owes, is Task 4 Step 4, added in review of this refresh; its five call sites were checked on this base (`capabilities.ts:76`, `brand.ts:97`, `format-html-shared.ts:164`, `manuscript-meca.ts:431` import the sorted helpers, and `extension.ts` does after Task 2).
+
+### Task 2: Apply the codemod
+
+- Steps 1–2, restored diff: the 35 files already carried the earlier session's codemod and scoped-format output after the rebase, so neither the codemod nor the formatter was run again. The Step 1 `Summary:` line was not captured for this diff. `git diff --shortstat` printed `35 files changed, 254 insertions(+), 145 deletions(-)` before and after validation. `git diff --name-only -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render > .claude/docs/pr13-task2-current-paths.txt && cmp .claude/docs/pr13-task2-current-paths.txt .claude/docs/pr13-task2-paths.txt` was silent, confirming the exact 35-path list. `git diff --binary -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render | cmp - .claude/docs/pr13-task2-pre-rebase.patch` was also silent, confirming a byte-identical restored diff.
+- Step 2, diff review: filtering the five already-unformatted paths out of `git diff --name-only` left 30 files. `git diff --unified=0` over all seven directories showed only import changes, `Deno.x` → `x` rewrites and line wrapping of rewritten calls; the same command over `src/execute/ojs/annotate-source.ts`, `src/publish/confluence/confluence.ts`, `src/tools/impl/chrome-for-testing.ts`, `src/tools/impl/chrome-headless-shell.ts` and `src/tools/impl/tinytex.ts` confirmed no extra formatting in those five files. The changed-comment grep printed nothing, `git diff --check` passed, and `git diff --name-only -- src/resources src/webui` printed nothing. `account.ts` keeps `chmod(tokensPath, 0o600)` un-awaited and `bundle.ts` keeps its stream pipeline. `tinytex.ts:738` still has `const realPath = await Deno.realPath(texLivePath);`, as expected before Task 3.
+- Step 2, type check: `cd src && ../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 with no output.
+- Additional restored-state check: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 385 (baseline 507)` and `OK: no count exceeds the baseline.` The one remaining count is the `tinytex.ts` collision owned by Task 3; the baseline update remains Task 4 Step 5.
+- Step 3: `git status --short -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render` showed only the 35 modified files and no untracked files. The source files were staged by the plan's `git diff --name-only … | xargs git add --` command; the plan update was staged by its explicit path. Deviations: validation replaced Steps 1–2 as directed for the restored diff, and the Windows `.cmd`/`.exe` launchers were used. Tasks 3–4 remain unexecuted.

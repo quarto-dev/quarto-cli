@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, statSync } from "../deno_ral/fs.ts";
 import { dirname, join, relative } from "../deno_ral/path.ts";
 
 import * as ld from "../core/lodash.ts";
@@ -69,7 +69,7 @@ export async function inspectConfig(path?: string): Promise<InspectedConfig> {
     throw new Error(`${path} not found`);
   }
 
-  const stat = Deno.statSync(path);
+  const stat = statSync(path);
   if (stat.isDirectory) {
     const nbContext = notebookContext();
     const ctx = await projectContext(path, nbContext);

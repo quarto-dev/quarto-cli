@@ -17,6 +17,7 @@ import { debug } from "../../deno_ral/log.ts";
 import { arch, isWindows, os } from "../../deno_ral/platform.ts";
 import { unzip } from "../../core/zip.ts";
 import { InstallContext } from "../types.ts";
+import { makeTempFileSync } from "../../deno_ral/temp.ts";
 
 /** Platform identifiers for Chrome binary downloads (CfT API + Playwright CDN). */
 export type ChromePlatform =
@@ -245,7 +246,7 @@ export async function downloadAndExtractChrome(
   context: InstallContext,
   binaryName?: string,
 ): Promise<string> {
-  const tempZipPath = Deno.makeTempFileSync({ suffix: ".zip" });
+  const tempZipPath = makeTempFileSync({ suffix: ".zip" });
 
   try {
     await context.download(label, url, tempZipPath);

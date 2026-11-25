@@ -6,7 +6,12 @@
 
 import { debug, info } from "../../deno_ral/log.ts";
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { copy } from "../../deno_ral/fs.ts";
+import {
+  copy,
+  readDirSync,
+  statSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import * as colors from "fmt/colors";
 
 import { Confirm } from "cliffy/prompt/confirm.ts";
@@ -105,7 +110,7 @@ async function publish(
   target?: PublishRecord,
 ): Promise<[PublishRecord | undefined, URL | undefined]> {
   // convert input to dir if necessary
-  input = Deno.statSync(input).isDirectory ? input : dirname(input);
+  input = statSync(input).isDirectory ? input : dirname(input);
 
   // check if git version is new enough
   const version = await gitVersion();
@@ -216,7 +221,7 @@ async function publish(
   removeIfExists(tempDir);
 
   // cleaning up leftover by listing folder with prefix .quarto-publish-worktree- and calling git worktree rm on them
-  const worktreeDir = Deno.readDirSync(projectScratchPath(input));
+  const worktreeDir = readDirSync(projectScratchPath(input));
   for (const entry of worktreeDir) {
     if (
       entry.isDirectory && entry.name.startsWith(kPublishWorktreeDir)
@@ -241,7 +246,7 @@ async function publish(
     // copy output to tempdir and add .nojekyll (include deployId
     // in .nojekyll so we can poll for completed deployment)
     await copy(renderResult.baseDir, tempDir, { overwrite: true });
-    Deno.writeTextFileSync(join(tempDir, ".nojekyll"), deployId);
+    writeTextFileSync(join(tempDir, ".nojekyll"), deployId);
 
     // push
     await gitCmds(tempDir, [

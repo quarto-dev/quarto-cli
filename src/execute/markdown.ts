@@ -19,6 +19,7 @@ import {
 import { MappedString } from "../core/lib/text-types.ts";
 import { EngineProjectContext } from "../project/types.ts";
 import type { QuartoAPI } from "../core/api/index.ts";
+import { readTextFileSync } from "../deno_ral/fs.ts";
 
 export const kMdExtensions = [".md", ".markdown"];
 
@@ -71,7 +72,7 @@ export const markdownEngineDiscovery: ExecutionEngineDiscovery = {
 
       partitionedMarkdown: (file: string) => {
         return Promise.resolve(
-          quarto.markdownRegex.partition(Deno.readTextFileSync(file)),
+          quarto.markdownRegex.partition(readTextFileSync(file)),
         );
       },
 

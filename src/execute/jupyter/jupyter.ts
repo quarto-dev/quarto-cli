@@ -7,7 +7,12 @@
 import { basename, dirname, join, relative } from "../../deno_ral/path.ts";
 import { satisfies } from "semver/mod.ts";
 
-import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 import { error, info } from "../../deno_ral/log.ts";
 
@@ -253,7 +258,7 @@ title: "Title"
 
       markdownForFile: (file: string): Promise<MappedString> => {
         if (quarto.jupyter.isJupyterNotebook(file)) {
-          const nbJSON = Deno.readTextFileSync(file);
+          const nbJSON = readTextFileSync(file);
           const nb = quarto.jupyter.fromJSON(nbJSON);
           return Promise.resolve(
             quarto.mappedString.fromString(
@@ -283,7 +288,7 @@ title: "Title"
         // at some point we'll resolve a full notebook/kernelspec
         let nb: JupyterNotebook | undefined;
         if (quarto.jupyter.isJupyterNotebook(file)) {
-          const nbJSON = Deno.readTextFileSync(file);
+          const nbJSON = readTextFileSync(file);
           const nbRaw = JSON.parse(nbJSON);
 
           // https://github.com/quarto-dev/quarto-cli/issues/12374
@@ -367,7 +372,7 @@ title: "Title"
             quarto.jupyter.percentScriptToMarkdown(file),
           );
         } else {
-          return quarto.markdownRegex.partition(Deno.readTextFileSync(file));
+          return quarto.markdownRegex.partition(readTextFileSync(file));
         }
       },
 
@@ -756,12 +761,12 @@ title: "Title"
             }
 
             // In the app.py file, replace the placeholder with the list of static assets.
-            let appContents = Deno.readTextFileSync(appScript);
+            let appContents = readTextFileSync(appScript);
             appContents = appContents.replace(
               "##STATIC_ASSETS_PLACEHOLDER##",
               JSON.stringify(staticAssets),
             );
-            Deno.writeTextFileSync(appScript, appContents);
+            writeTextFileSync(appScript, appContents);
           }
         }
       },
@@ -780,9 +785,9 @@ async function ensureYamlKernelspec(
       markdown,
     );
     if (yamlKernelspec.name !== kernelspec?.name) {
-      const nb = quarto.jupyter.fromJSON(Deno.readTextFileSync(target.source));
+      const nb = quarto.jupyter.fromJSON(readTextFileSync(target.source));
       nb.metadata.kernelspec = yamlKernelspec;
-      Deno.writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
+      writeTextFileSync(target.source, JSON.stringify(nb, null, 2));
       return yamlKernelspec;
     }
   }
@@ -817,7 +822,7 @@ async function createNotebookforTarget(
     true,
     project,
   );
-  Deno.writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
+  writeTextFileSync(target.input, JSON.stringify(nb, null, 2));
   return nb;
 }
 
