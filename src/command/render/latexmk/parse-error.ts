@@ -370,7 +370,7 @@ export function findMissingHyphenationFiles(logText: string): string[] {
 
   let nilPackages: string[] = [];
   if (packages.length === 0) {
-    // Run only when no warning matched, and merge with the .ini fallback
+    // Run only when the warnings yield no package name, and merge with the .ini fallback
     // result, as tinytex's check_extra() evaluates both checks.
     const hyphenRulesRegex =
       /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;

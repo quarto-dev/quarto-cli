@@ -58,9 +58,11 @@ tinytex R package and Quarto LaTeX engine use patterns differently:
 
 `kHyphenationPackageNames` in [parse-error.ts](../src/command/render/latexmk/parse-error.ts) is a copy of `hyphen.json`, and the unit tests keep a second copy. Detection of missing hyphenation patterns follows tinytex's `hyphen_pkgs()`, `check_babel()`, `detect_hyphen()`, `detect_babel_fallback()` and `check_polyglossia()` in `R/latex.R`.
 
-`regex.tar.gz` also contains `babel-hyphen.json`, the three maps behind the `.ini` fallback detection (`detect_babel_fallback()` in `R/latex.R`). `babel-hyphen.ts` is generated from it and never edited by hand. Regenerate it with:
+`regex.tar.gz` also contains `babel-hyphen.json`, the three maps behind the `.ini` fallback detection (`detect_babel_fallback()` in `R/latex.R`). `babel-hyphen.ts` is generated from it and never edited by hand. Regenerate it from the repository root with:
 
 ```bash
+gh release download daily --repo rstudio/tinytex-releases --pattern regex.tar.gz
+tar -xzf regex.tar.gz babel-hyphen.json
 deno run --no-config --no-lock --allow-read --allow-write tools/update-babel-hyphen.ts babel-hyphen.json
 ```
 
@@ -69,7 +71,7 @@ A round-trip unit test fails when the module's format no longer matches the gene
 Quarto-only differences:
 
 - the `chinese` and `chinese-hans` skip list ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291))
-- the `Hyphen rules for '...' set to \l@nil` fallback, which runs only when no warning matched and is merged with the `.ini` fallback result
+- the `Hyphen rules for '...' set to \l@nil` fallback, which runs only when the babel and polyglossia warnings yield no package name and is merged with the `.ini` fallback result
 - unquoted language names in the babel "You haven't defined the language" error regex
 
 ## Manual Adaptation Process
