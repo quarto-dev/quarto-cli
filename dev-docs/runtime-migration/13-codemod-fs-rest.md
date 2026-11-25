@@ -174,7 +174,7 @@ git commit -m "execute/publish/tools/extension/preview/inspect/render: codemod D
 **Files:**
 - Modify: `src/tools/impl/tinytex.ts`
 
-- [ ] **Step 1: `src/tools/impl/tinytex.ts`**
+- [x] **Step 1: `src/tools/impl/tinytex.ts`**
 
 Add `realPath as fsRealPath` to the file's `../../deno_ral/fs.ts` import (the codemod created or extended it for `writeTextFileSync`/`readTextFileSync`/… in the same file) and change the `const realPath = await Deno.realPath(texLivePath);` line (738 on `2d133a903`; the codemod's import line moves it):
 
@@ -182,7 +182,7 @@ Add `realPath as fsRealPath` to the file's `../../deno_ral/fs.ts` import (the co
     const realPath = await fsRealPath(texLivePath);
 ```
 
-- [ ] **Step 2: Verify and commit**
+- [x] **Step 2: Verify and commit**
 
 Run: `rg -n 'Deno\.realPath\b' src/tools -g '*.ts'` Expected: empty.
 (`Deno.openSync` still appears in the `bundle.ts:106` comment; PR 25 removes it.)
@@ -306,3 +306,9 @@ PR 12 changed only `src/project` and `src/format`, so no file under this PR's se
 - Step 2, type check: `cd src && ../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 with no output.
 - Additional restored-state check: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 385 (baseline 507)` and `OK: no count exceeds the baseline.` The one remaining count is the `tinytex.ts` collision owned by Task 3; the baseline update remains Task 4 Step 5.
 - Step 3: `git status --short -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render` showed only the 35 modified files and no untracked files. The source files were staged by the plan's `git diff --name-only … | xargs git add --` command; the plan update was staged by its explicit path. Deviations: validation replaced Steps 1–2 as directed for the restored diff, and the Windows `.cmd`/`.exe` launchers were used. Tasks 3–4 remain unexecuted.
+
+### Task 3: Hand fixes
+
+- Step 1: Added `realPath as fsRealPath` to the existing `../../deno_ral/fs.ts` import in `src/tools/impl/tinytex.ts` and changed the collision site to `const realPath = await fsRealPath(texLivePath);`. `git diff --shortstat -- src/tools/impl/tinytex.ts` printed `1 file changed, 2 insertions(+), 2 deletions(-)`; `git diff --check -- src/tools/impl/tinytex.ts` passed. The diff contains only the alias import and the `Deno.realPath` rewrite. The file was not formatted, as the README row for Task 3 Step 1 directs.
+- Step 2: `rg -n 'Deno\.realPath\b' src/tools -g '*.ts'` printed nothing and exited 1 because there were no matches, as expected. `cd src && ../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 with no errors.
+- Deviations: the Windows `.exe` Deno launcher was used; otherwise none. Task 4 remains unexecuted.

@@ -5,7 +5,7 @@
  */
 import { debug, warning } from "../../deno_ral/log.ts";
 
-import { chmodSync, existsSync, readTextFile, readTextFileSync, remove, safeRemoveSync, statSync, writeTextFileSync } from "../../deno_ral/fs.ts";
+import { chmodSync, existsSync, readTextFile, readTextFileSync, realPath as fsRealPath, remove, safeRemoveSync, statSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../deno_ral/path.ts";
 
 import { expandPath, which } from "../../core/path.ts";
@@ -735,7 +735,7 @@ async function texLiveRoot() {
   const texLivePath = await which("tlmgr");
   if (texLivePath) {
     // The real (non-symlink) path
-    const realPath = await Deno.realPath(texLivePath);
+    const realPath = await fsRealPath(texLivePath);
     if (isWindows) {
       return join(realPath, "..", "..", "..");
     } else {
