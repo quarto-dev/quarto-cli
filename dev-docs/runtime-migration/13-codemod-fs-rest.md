@@ -68,7 +68,7 @@ Files in scope that need attention beyond the codemod (verified):
 | `src/execute/ojs/extract-resources.ts:561` | a trailing comment `// Deno.readTextFileSync(thisResolvedImportPath);` after code on the same line; the AST codemod ignores it and the acceptance `rg` filters it explicitly; PR 25's comment cleanup removes it. |
 | `src/tools/tools.ts:397,423` | `Deno.symlink` → `symlink`, `Deno.lstat` → `lstat` (async variants added by PR 09). Review only. |
 | `src/publish/common/account.ts:100` | `Deno.chmod(tokensPath, 0o600)` (not awaited) → `chmod(...)`. Review only; keep it un-awaited as today. |
-| `src/tools/impl/verapdf.ts:208,212`, `src/tools/impl/chrome-headless-shell.ts:122,128`, `src/extension/extension.ts:296,477,685`, `src/extension/install.ts:289`, `src/publish/gh-pages/gh-pages.ts:219` | `Deno.readDir`/`readDirSync` loops; extension discovery (`extension.ts`) now visits extension directories in sorted order, which only matters when two extensions declare the same id (last wins today, in filesystem order; now in name order). `tests/smoke/extensions/` covers discovery. Review only. |
+| `src/tools/impl/verapdf.ts:208,212`, `src/tools/impl/chrome-headless-shell.ts:122,128`, `src/extension/extension.ts:296,477,685`, `src/extension/install.ts:289`, `src/publish/gh-pages/gh-pages.ts:219` | `Deno.readDir`/`readDirSync` loops; extension discovery (`extension.ts`) now visits extension directories in sorted order. That changes which extension wins when two declare the same id (last wins today, in filesystem order; now in name order), and the row order of `quarto list extensions`, which prints extensions in discovery order (`src/command/list/cmd.ts:101`). `tests/smoke/extensions/` covers discovery. Review only. |
 | `src/execute/jupyter/jupyter-kernel.ts:275`, `src/execute/rmd.ts:450` | `Deno.makeTempFileSync(...)` → `makeTempFileSync(...)` (temp rule). The surrounding `Deno.Conn`/`Deno.connect` (PR 15) and `Deno.env` (PR 14) stay. Review only. |
 | `src/preview/preview-text.ts:170`, `src/tools/tools.ts:145,213,242`, `src/tools/impl/chrome-headless-shell.ts:94`, `src/tools/impl/chrome-for-testing.ts:248` | `Deno.makeTemp*` → temp rule. Review only. |
 
@@ -138,7 +138,7 @@ Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rule
 
 - [ ] **Step 2: Review the report**
 
-Run: `grep -E 'skipped|collision' .claude/docs/codemod-rest.txt` Expected exactly:
+Run: `grep -E 'skipped:|collision:' .claude/docs/codemod-rest.txt` Expected exactly (the `Summary:` line does not match these markers):
 ```
 src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*
 ```
@@ -157,14 +157,15 @@ Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execu
 
 - [ ] **Step 2: Format and type-check**
 
-Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: `git diff --stat | tail -1` lists only files under the seven directories.
+Run: `git diff --shortstat`, then `git diff --name-only | rg -v '^src/(execute/ojs/annotate-source|publish/confluence/confluence|tools/impl/chrome-for-testing|tools/impl/chrome-headless-shell|tools/impl/tinytex)\.ts$' | xargs package/dist/bin/tools/x86_64/deno fmt`, then `git diff --shortstat` again. Expected: 30 files formatted; the five left out are unformatted on `main` (README row for this step), so formatting them would add hunks unrelated to the codemod. `git diff --name-only` still lists exactly 35 files, all under the seven directories, and each file's diff holds only its import line and the `Deno.x` → `x` rewrites (wrap a rewritten call by hand only when it exceeds the line width).
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add src/execute src/publish src/tools src/extension src/preview src/inspect src/render
+git status --short -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render   # only the 35 modified files, no untracked file
+git diff --name-only -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render | xargs git add --
 git commit -m "execute/publish/tools/extension/preview/inspect/render: codemod Deno fs/temp calls to deno_ral (mechanical)"
 ```
 
@@ -229,7 +230,7 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The AST dry run and the `rg` in Acceptance criteria → as stated.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- Manual: `package/dist/bin/quarto tools list` (tools code: reads/writes through the layer); with network, `q="$PWD/package/dist/bin/quarto"; cd "$(mktemp -d)" && "$q" add quarto-ext/lightbox --no-prompt && "$q" list extensions` (extension install + discovery through sorted `readDirSync`) → both succeed; `package/dist/bin/quarto preview tests/docs/test.qmd --no-browser` serves and exits on Ctrl-C.
+- Manual: `package/dist/bin/quarto tools list` (tools code: reads/writes through the layer); with network, `q="$PWD/package/dist/bin/quarto"; (cd "$(mktemp -d)" && "$q" add quarto-ext/lightbox --no-prompt && "$q" list extensions 2>&1 | grep -F quarto-ext/lightbox)` (extension install + discovery through sorted `readDirSync`; the subshell keeps the checkout root as the working directory) → both succeed and the listing shows `quarto-ext/lightbox`; `package/dist/bin/quarto preview tests/docs/test.qmd --no-browser` serves and exits on Ctrl-C.
 
 ## Review checklist
 
@@ -241,7 +242,7 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 
 ## Risks and rollback
 
-- Extension discovery order is now sorted; a project with two extensions of the same id in different directories may resolve to a different one than before.
+- Extension discovery order is now sorted; a project with two extensions of the same id in different directories may resolve to a different one than before, and `quarto list extensions` lists rows in name order where the filesystem enumerated them otherwise.
   No supported configuration relies on that (ids are expected to be unique); `tests/smoke/extensions/` passes.
 - `src/tools/impl/verapdf.ts` and `chrome-headless-shell.ts` scan extracted archives; sorted order does not change which file they find (they search by name pattern).
 - `deno fmt` may reflow unrelated lines; revert unrelated hunks if a diff becomes hard to review.
@@ -261,7 +262,7 @@ Review items closed here: counts (35 files / 122 replacements), the comment-matc
 - Citation audit (`git grep` on `2d133a903`, compared with `b86f98d`): same at `bundle.ts:106,114-115`, `extract-resources.ts:561`, `account.ts:100`, `verapdf.ts:208,212`, `chrome-headless-shell.ts:94,122,128`, `extension.ts:296,477`, `install.ts:289`, `gh-pages.ts:219`, `jupyter-kernel.ts:275`, `rmd.ts:450`, `preview-text.ts:170`, `chrome-for-testing.ts:248`, `make-ast-diagram/cmd.ts:29`, `previewjs.ts:14`, `check-usage.ts:1`. Moved: `tinytex.ts:662` → 738, `tools.ts:139,207,235` → 145,213,242, `tools.ts:387,413` → 397,423, `extension.ts:683` → 685 (README PR 13 audit row). None gone. Task 3 now names the `realPath` statement instead of a line number, since the codemod's import line shifts it.
 - Dry run (Windows, Deno 2.9.8): `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run` printed `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` and the single collision `src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*`. Targets: `readTextFileSync` 32, `writeTextFileSync` 22, `statSync` 21, `readDirSync` 7, `remove` 6, `readFileSync` 5, `makeTempDirSync` 5, `readTextFile` 4, `readFile` 3, `makeTempFileSync` 3, `copyFileSync` 3, `readDir` 2, `open` 2, and one each of `writeTextFile`, `writeFileSync`, `symlink`, `renameSync`, `lstat`, `chmodSync`, `chmod`. `git status --short src` printed nothing. `check-runtime-boundary.ts` printed `src 670 (baseline 670)` and `OK`; the expected drop is 122 + 1 = 123 (670 → 547 if the base does not move, 507 → 384 after PR 12).
 - Type check on the untouched base: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` from `src` exits 0. The three `deno check` commands gain `--allow-import` (README row "Any plan that type-checks `src/quarto.ts`").
-- Formatting: `deno fmt --check` on each of the 35 files at base reports 5 already unformatted: `src/execute/ojs/annotate-source.ts`, `src/publish/confluence/confluence.ts`, `src/tools/impl/chrome-for-testing.ts`, `src/tools/impl/chrome-headless-shell.ts` and `src/tools/impl/tinytex.ts`. Task 2 Step 2's whole-file `deno fmt` would add unrelated hunks to them, and Task 2 Step 3 stages seven directories; the README rows for PR 13 Task 2 Steps 2 and 3 amend both.
+- Formatting: `deno fmt --check` on each of the 35 files at base reports 5 already unformatted: `src/execute/ojs/annotate-source.ts`, `src/publish/confluence/confluence.ts`, `src/tools/impl/chrome-for-testing.ts`, `src/tools/impl/chrome-headless-shell.ts` and `src/tools/impl/tinytex.ts`. Task 2 Step 2's whole-file `deno fmt` would add unrelated hunks to them, and Task 2 Step 3 stages seven directories; the README rows for PR 13 Task 2 Steps 2 and 3 amend both, and the plan carries the corrected commands in those steps (review of the step 0 commit). The same review tightened Task 1 Step 2's grep to the `collision:`/`skipped:` markers (the `Summary:` line matched the old pattern), ran the manual `quarto add` check in a subshell with a `grep` for `quarto-ext/lightbox`, documented the `quarto list extensions` row-order change, and corrected README row 13's directory list.
 - Code-block audit: `rg -n 'function \w+'` prints nothing; the indirect-`Deno` and `PR [0-9]` code-comment greps hit only prose. Other corrections: the report path moved from `/tmp` to `.claude/docs/codemod-rest.txt`; the conflict protocol uses `upstream/main` (README row from PR 12's review); `bundle.ts:106-108` leaves "Modify (hand)" and the manual `quarto add` check calls the dev build by absolute path (README PR 13 audit row).
 - Tests: every file named in Task 4 and `tests/docs/test.qmd` exist; the `find` directories hold 4 (`unit/tools`), 1 (`unit/extension`), 1 (`unit/jupyter`), 1 (`unit/confluence`), 8 (`unit/project`), 3 (`smoke/engine`), 4 (`smoke/jupyter`), 7 (`smoke/extensions`), 3 (`smoke/ojs`), 2 (`smoke/embed`), 2 (`smoke/env`) and 3 (`smoke/run`) test files. The `.cmd` launcher and PowerShell `run-tests.ps1` forms replace the POSIX ones at execution time.
 - Gate inputs: the only `Plan defect`/`Plan gap` bead that applies is the `--allow-import` one, already a README row; the Windows review rates this plan "Conventions" with E05 only (the `cd` path, covered); 8 commits touched the seven directories since `b86f98d`, all covered by the citation audit and the unchanged counts.
