@@ -157,7 +157,7 @@ Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execu
 
 - [ ] **Step 2: Format and type-check**
 
-Run: `git diff --shortstat`, then `git diff --name-only | rg -v '^src/(execute/ojs/annotate-source|publish/confluence/confluence|tools/impl/chrome-for-testing|tools/impl/chrome-headless-shell|tools/impl/tinytex)\.ts$' | xargs package/dist/bin/tools/x86_64/deno fmt`, then `git diff --shortstat` again. Expected: 30 files formatted; the five left out are unformatted on `main` (README row for this step), so formatting them would add hunks unrelated to the codemod. `git diff --name-only` still lists exactly 35 files, all under the seven directories, and each file's diff holds only its import line and the `Deno.x` → `x` rewrites (wrap a rewritten call by hand only when it exceeds the line width).
+Run: `git diff --shortstat`, then `git diff --name-only -- src/execute src/publish src/tools src/extension src/preview src/inspect src/render | rg -v '^src/(execute/ojs/annotate-source|publish/confluence/confluence|tools/impl/chrome-for-testing|tools/impl/chrome-headless-shell|tools/impl/tinytex)\.ts$' | xargs package/dist/bin/tools/x86_64/deno fmt`, then `git diff --shortstat` again. Expected: 30 files formatted; the five left out are unformatted on `main` (README row for this step), so formatting them would add hunks unrelated to the codemod. `git diff --name-only` still lists exactly 35 files, all under the seven directories, and each file's diff holds only its import line and the `Deno.x` → `x` rewrites (wrap a rewritten call by hand only when it exceeds the line width).
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
@@ -242,7 +242,7 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 
 ## Risks and rollback
 
-- Extension discovery order is now sorted; a project with two extensions of the same id in different directories may resolve to a different one than before, and `quarto list extensions` lists rows in name order where the filesystem enumerated them otherwise.
+- Extension discovery order is now sorted; a project with two extensions of the same id in different directories may resolve to a different one than before, and `quarto list extensions` lists rows in discovery order with the entries of each scanned directory sorted by name, where the filesystem enumerated them otherwise.
   No supported configuration relies on that (ids are expected to be unique); `tests/smoke/extensions/` passes.
 - `src/tools/impl/verapdf.ts` and `chrome-headless-shell.ts` scan extracted archives; sorted order does not change which file they find (they search by name pattern).
 - `deno fmt` may reflow unrelated lines; revert unrelated hunks if a diff becomes hard to review.
