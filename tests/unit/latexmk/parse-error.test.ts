@@ -526,9 +526,9 @@ unitTest("Detect missing hyphenation files from babel .ini fallbacks", async () 
   assertEquals(findMissingHyphenationFiles(""), [], "empty log");
 
   // babel-xx.ini is not in kBabelHyphenCodes, so the locale name decides
-  const unknownIni = `Package babel Info: Importing data for 'spanish'
+  const unknownIni = `Package babel Info: Importing data for 'mexican'
 (babel)             from babel-xx.ini. Reported on input line 3.
-Package babel Info: Hyphen rules for 'spanish' set to \\l@english
+Package babel Info: Hyphen rules for 'mexican' set to \\l@english
 (babel)             (\\language0). Reported on input line 3.`;
   assertEquals(findMissingHyphenationFiles(unknownIni), ["hyphen-spanish"], ".ini code absent from the code table");
 
