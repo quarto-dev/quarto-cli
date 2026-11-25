@@ -198,19 +198,19 @@ git commit -m "project: Deno.errors checks through deno_ral/errors predicates"
 
 ### Task 4: Tests, ratchet, commit
 
-- [ ] **Step 1: Unit tests that exercise `src/project` and `src/format`**
+- [x] **Step 1: Unit tests that exercise `src/project` and `src/format`**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/project/ -name '*.test.ts') unit/book-title-block-attr.test.ts unit/format-detection.test.ts unit/format-html-math.test.ts unit/giscus.test.ts unit/scrollable-regions.test.ts unit/preview-compatibility.test.ts unit/preview-initial-path.test.ts unit/render-shared-output-dir.test.ts unit/single-file-input-abs-12401.test.ts unit/typst-fonts.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 2: Smoke tests across project types and formats**
+- [x] **Step 2: Smoke tests across project types and formats**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/project/ -name '*.test.ts') $(find smoke/site/ -name '*.test.ts') $(find smoke/website/ -name '*.test.ts') $(find smoke/book/ -name '*.test.ts') $(find smoke/manuscript/ -name '*.test.ts') $(find smoke/jats/ -name '*.test.ts') $(find smoke/search/ -name '*.test.ts') $(find smoke/embed/ -name '*.test.ts') $(find smoke/scholar/ -name '*.test.ts') smoke/render/render-html.test.ts smoke/render/render-docx.test.ts smoke/render/render-reveal.test.ts smoke/render/render-pdf.test.ts smoke/render/render-latex-output.test.ts smoke/render/render-typst-package-staging.test.ts smoke/render/render-page-layout.test.ts smoke/render/render-title-block.test.ts` Expected: `0 failed` (PDF/LaTeX tests may skip without TinyTeX; note it in the PR).
 
-- [ ] **Step 3: Ratchet**
+- [x] **Step 3: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 163 and no increase in any scope.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add tools/runtime-boundary-baseline.json
@@ -342,3 +342,24 @@ Review items closed here: counts (51 files / 159 replacements), the comment-matc
   The full output is at `.claude/docs/task3-tests.log`; it is ignored and is not part of the task commit.
 - Additional check: the README's conditional import-type codemod check does not apply because PR 02b is still marked `planned` and `tools/codemod-import-type.ts` is absent. An exploratory invocation reported `ERROR: quarto run: script 'tools/codemod-import-type.ts' not found`; it changed no files.
 - Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations. The pre-existing harness lock file remained untracked and outside the commit. Outstanding: Task 4 and the final Verification remain for later sessions.
+
+### Task 4 — tests, ratchet and commit
+
+- Step 1: with the worktree's `package/dist/bin` prepended to `PATH` and `QUARTO_TESTS_NO_CONFIG=true`, the Windows PowerShell invocation expanded `unit/project/` with `(Get-ChildItem "unit/project" -Recurse -Filter "*.test.ts").FullName`, appended the plan's ten named unit files, and passed all 18 files to `& .\run-tests.ps1 --agent @files`. It printed:
+
+  ```text
+  ok | 99 passed | 0 failed | 3 ignored (44s)
+  ```
+
+  The full output, including the explicit expanded file list, is at `.claude/docs/task4-unit.log`; it is ignored and is not part of the task commit.
+- Step 2: with the same Windows test setup, the nine `find` expansions used `(Get-ChildItem <dir> -Recurse -Filter "*.test.ts").FullName`; together with the eight named render files, the invocation passed all 50 selected files to `& .\run-tests.ps1 --agent @files`. It printed:
+
+  ```text
+  ok | 139 passed | 0 failed (28m33s)
+  ```
+
+  The full selection and tally are at `.claude/docs/task4-smoke.log`. The summary reports no ignored tests or steps, including for the PDF/LaTeX selections, so no TinyTeX skip note is needed.
+- Step 3: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` passed. The update measured `src` at 507 against baseline 670; validation then measured 507 against 507 and printed `OK: no count exceeds the baseline.` The `src` baseline therefore decreased by exactly 163 (`670 → 507`). The other before/after counts were unchanged: `src-js` 7/7 Deno calls and 0/0 std-import files, `resources` 12/12 and 1/1, `package/src` 241/241 and 3/3, `tests` 774/774 and 176/176; `src` std-import files stayed 49/49. `git diff tools/runtime-boundary-baseline.json` changes only `src.denoCalls`, and no scope increased. The combined output is at `.claude/docs/task4-ratchet.log`.
+- Test cleanup: the smoke run modified two fixture `.gitignore` files and generated manuscript `site_libs` output. The two tracked files were restored by explicit path; the generated roots were previewed with `git clean -ndx`, checked against the status list, and removed with `git clean -fdx`. No test fixture change is part of this task.
+- Step 4: `tools/runtime-boundary-baseline.json` and this plan were staged by explicit path. The pre-existing harness lock file remained untracked and outside the commit.
+- Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations, including the call-operator form that passes the expanded file arrays directly to the test runner. There were no test failures, quarantines or selection changes. Outstanding: the final Verification remains for the wrap-up session.
