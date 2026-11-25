@@ -56,12 +56,20 @@ tinytex R package and Quarto LaTeX engine use patterns differently:
 
 ## Hyphenation packages
 
-`kHyphenationPackageNames` in [parse-error.ts](../src/command/render/latexmk/parse-error.ts) is a copy of `hyphen.json`, and the unit tests keep a second copy. Detection of missing hyphenation patterns follows tinytex's `hyphen_pkgs()`, `check_babel()`, `detect_hyphen()` and `check_polyglossia()` in `R/latex.R`.
+`kHyphenationPackageNames` in [parse-error.ts](../src/command/render/latexmk/parse-error.ts) is a copy of `hyphen.json`, and the unit tests keep a second copy. Detection of missing hyphenation patterns follows tinytex's `hyphen_pkgs()`, `check_babel()`, `detect_hyphen()`, `detect_babel_fallback()` and `check_polyglossia()` in `R/latex.R`.
+
+`regex.tar.gz` also contains `babel-hyphen.json`, the three maps behind the `.ini` fallback detection (`detect_babel_fallback()` in `R/latex.R`). `babel-hyphen.ts` is generated from it and never edited by hand. Regenerate it with:
+
+```bash
+deno run --no-config --no-lock --allow-read --allow-write tools/update-babel-hyphen.ts babel-hyphen.json
+```
+
+A round-trip unit test fails when the module's format no longer matches the generator's output. Value differences from tinytex show up in the daily workflow's regeneration diff when the upstream asset changes.
 
 Quarto-only differences:
 
 - the `chinese` and `chinese-hans` skip list ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291))
-- the `Hyphen rules for '...' set to \l@nil` fallback
+- the `Hyphen rules for '...' set to \l@nil` fallback, which runs only when no warning matched and is merged with the `.ini` fallback result
 - unquoted language names in the babel "You haven't defined the language" error regex
 
 ## Manual Adaptation Process
@@ -102,8 +110,8 @@ When the automated workflow detects TinyTeX pattern changes, it creates/updates 
 The automated workflow runs daily:
 
 1. Downloads `regex.tar.gz` from [TinyTeX releases](https://github.com/rstudio/tinytex-releases)
-2. Extracts and compares `regex.json` and `hyphen.json` with the cached versions
-3. If changed: generates diff and creates/updates issue
+2. Extracts and compares `regex.json`, `hyphen.json` and `babel-hyphen.json` with the cached versions
+3. If changed: generates the diff, including the regenerated `babel-hyphen.ts` diff when `babel-hyphen.json` changed, and creates/updates the issue
 4. If unchanged: exits early (no notification)
 
 **Workflow location**: [.github/workflows/verify-tinytex-patterns.yml](../.github/workflows/verify-tinytex-patterns.yml)
