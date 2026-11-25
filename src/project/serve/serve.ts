@@ -5,7 +5,14 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
-import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readFile,
+  readFileSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import {
   basename,
   dirname,
@@ -654,7 +661,7 @@ async function internalPreviewServer(
         // read the output file
         const fileContents = renderError
           ? renderErrorPage(renderError)
-          : Deno.readFileSync(file);
+          : readFileSync(file);
 
         // inject watcher client for html
         if (isHtmlContent(file) && inputFile) {
@@ -689,7 +696,7 @@ async function internalPreviewServer(
       let body = new TextEncoder().encode("Not Found");
       const custom404 = join(outputDir, kProject404File);
       if (existsSync(custom404)) {
-        let content404 = Deno.readTextFileSync(custom404);
+        let content404 = readTextFileSync(custom404);
         // replace site-path references with / so they work in dev server mode
         const sitePath = websitePath(project?.config);
         if (sitePath !== "/" || isRStudioServer()) {
@@ -729,7 +736,7 @@ async function internalPreviewServer(
       async (file: string, req: Request) => {
         // inject watcher client for html
         if (isHtmlContent(file)) {
-          const fileContents = await Deno.readFile(file);
+          const fileContents = await readFile(file);
           return watcher.injectClient(req, fileContents);
         } else {
           return undefined;
@@ -897,7 +904,7 @@ function acquirePreviewLock(project: ProjectContext) {
 
   // if there is a lockfile send a kill signal to the pid therin
   if (existsSync(lockfile)) {
-    const pid = parseInt(Deno.readTextFileSync(lockfile)) || undefined;
+    const pid = parseInt(readTextFileSync(lockfile)) || undefined;
     if (pid) {
       info(
         colors.bold(colors.blue("Terminating existing preview server....")),
@@ -915,7 +922,7 @@ function acquirePreviewLock(project: ProjectContext) {
   }
 
   // write our pid to the lockfile
-  Deno.writeTextFileSync(lockfile, String(Deno.pid));
+  writeTextFileSync(lockfile, String(Deno.pid));
 
   // remove the lockfile when we exit
   onCleanup(() => releasePreviewLock(project));
@@ -978,7 +985,7 @@ async function serveFiles(
         // resource files referenced in html
         const outputResources: string[] = [];
         if (isHtmlContent(outputFile)) {
-          const htmlInput = Deno.readTextFileSync(outputFile);
+          const htmlInput = readTextFileSync(outputFile);
           const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
           const resolver = htmlResourceResolverPostprocessor(
             inputFile,

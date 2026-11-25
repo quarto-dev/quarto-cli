@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 import { basename, isAbsolute, join, relative } from "../deno_ral/path.ts";
 import {
@@ -44,7 +49,7 @@ export function crossrefIndexForOutputFile(
   ensureDirSync(crossrefDir);
   const mainIndexFile = join(crossrefDir, "INDEX");
   const mainIndex: CrossrefIndex = existsSync(mainIndexFile)
-    ? JSON.parse(Deno.readTextFileSync(mainIndexFile))
+    ? JSON.parse(readTextFileSync(mainIndexFile))
     : {};
 
   // ensure this input/output has an index entry
@@ -55,7 +60,7 @@ export function crossrefIndexForOutputFile(
       mainIndex[input] = {};
     }
     mainIndex[input][outputBaseFile] = shortUuid();
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       mainIndexFile,
       JSON.stringify(mainIndex, undefined, 2),
     );

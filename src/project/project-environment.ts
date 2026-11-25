@@ -5,7 +5,7 @@
  */
 
 import { extname } from "../deno_ral/path.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../deno_ral/fs.ts";
 import { projectType } from "../project/types/project-types.ts";
 import {
   kManuscriptType,
@@ -152,7 +152,7 @@ const projectTools = async (
 
     // See if the file contains mermaid or graphviZ
     if (!chromium) {
-      const contents = Deno.readTextFileSync(input);
+      const contents = readTextFileSync(input);
       if (contents.match(kChromiumHint)) {
         chromium = true;
       }

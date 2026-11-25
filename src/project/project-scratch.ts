@@ -5,7 +5,7 @@
  */
 
 import { dirname, join } from "../deno_ral/path.ts";
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import { ensureDirSync, existsSync, renameSync } from "../deno_ral/fs.ts";
 import { normalizePath } from "../core/path.ts";
 import { warning } from "../deno_ral/log.ts";
 
@@ -39,7 +39,7 @@ export function migrateProjectScratchPath(
     // Ensure parent directory of new path exists
     ensureDirSync(dirname(newPath));
     try {
-      Deno.renameSync(oldPath, newPath);
+      renameSync(oldPath, newPath);
     } catch (e) {
       // Migration failed - not fatal, cache will be rebuilt
       warning(`Failed to migrate ${oldSubpath} to ${newSubpath}: ${e}`);

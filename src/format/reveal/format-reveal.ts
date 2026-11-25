@@ -82,6 +82,7 @@ import { titleSlidePartial } from "./format-reveal-title.ts";
 import { registerWriterFormatHandler } from "../format-handlers.ts";
 import { pandocNativeStr } from "../../core/pandoc/codegen.ts";
 import { resolveInputRelativeLogo } from "../../core/brand/brand.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export function revealResolveFormat(format: Format) {
   format.metadata = revealMetadataFilter(format.metadata);
@@ -173,7 +174,7 @@ export function revealjsFormat() {
           formatResourcePath("revealjs", "styles.html"),
           { [kScrollable]: format.metadata[kScrollable] },
         );
-        Deno.writeTextFileSync(stylesFile, styles);
+        writeTextFileSync(stylesFile, styles);
 
         // specify controlsAuto if there is no boolean 'controls'
         const metadataOverride: Metadata = {};

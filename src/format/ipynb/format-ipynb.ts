@@ -31,6 +31,7 @@ import {
   JupyterOutput,
   JupyterOutputDisplayData,
 } from "../../core/jupyter/types.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export function ipynbTitleTemplatePath() {
   return formatResourcePath(
@@ -137,7 +138,7 @@ export function ipynbFormat(): Format {
 
             return cell;
           });
-          Deno.writeTextFileSync(output, JSON.stringify(nb, null, 2));
+          writeTextFileSync(output, JSON.stringify(nb, null, 2));
           return Promise.resolve();
         }],
       };

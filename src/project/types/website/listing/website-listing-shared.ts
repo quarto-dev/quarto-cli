@@ -29,6 +29,7 @@ import {
   readTheme,
 } from "../../../../quarto-core/text-highlighting.ts";
 import { generateCssKeyValues } from "../../../../core/pandoc/css.ts";
+import { readTextFileSync } from "../../../../deno_ral/fs.ts";
 
 // The root listing key
 export const kListing = "listing";
@@ -322,7 +323,7 @@ export function readRenderedContents(
   options: RenderedContentOptions,
   siteUrl?: string,
 ): RenderedContents {
-  const htmlInput = Deno.readTextFileSync(filePath);
+  const htmlInput = readTextFileSync(filePath);
   const doc = new DOMParser().parseFromString(htmlInput, "text/html")!;
 
   const fileRelPath = relative(projectOutputDir(project), filePath);

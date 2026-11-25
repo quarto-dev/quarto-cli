@@ -57,7 +57,12 @@ import { formatResourcePath } from "../../core/resources.ts";
 import { kTemplatePartials } from "../../command/render/template.ts";
 import { copyTo } from "../../core/copy.ts";
 import { kCodeAnnotations } from "../html/format-html-shared.ts";
-import { safeModeFromFile } from "../../deno_ral/fs.ts";
+import {
+  open,
+  renameSync,
+  safeModeFromFile,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { hasLevelOneHeadings as hasL1Headings } from "../../core/lib/markdown-analysis/level-one-headings.ts";
 
 export function pdfFormat(): Format {
@@ -375,7 +380,7 @@ const pdfBookExtension: BookExtension = {
       const texOutputFile =
         texSafeFilename(basename(finalOutputFile, extname(finalOutputFile))) +
         ".tex";
-      Deno.renameSync(
+      renameSync(
         join(project.dir, "index.tex"),
         join(project.dir, texOutputFile),
       );
@@ -491,7 +496,7 @@ async function processLines(
 ) {
   // The temp file we generate into
   const outputFile = temp.createFile({ suffix: ".tex" });
-  const file = await Deno.open(inputFile);
+  const file = await open(inputFile);
   // Preserve the existing permissions as we'll replace
   const mode = safeModeFromFile(inputFile);
   try {
@@ -506,7 +511,7 @@ async function processLines(
 
       // skip lines that a processor has 'eaten'
       if (processedLine !== undefined) {
-        Deno.writeTextFileSync(outputFile, processedLine + "\n", {
+        writeTextFileSync(outputFile, processedLine + "\n", {
           append: true,
           mode,
         });

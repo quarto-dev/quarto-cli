@@ -24,6 +24,7 @@ import {
 } from "../../project-index.ts";
 
 import { ProjectContext, SidebarItem } from "../../types.ts";
+import { statSync } from "../../../deno_ral/fs.ts";
 
 export async function expandAutoSidebarItems(
   project: ProjectContext,
@@ -71,7 +72,7 @@ export async function expandAutoSidebarItems(
 
 function globbedDirectory(project: ProjectContext, contentsGlob: string) {
   const isValidDirectory = (dir: string) => {
-    return safeExistsSync(dir) && Deno.statSync(dir).isDirectory;
+    return safeExistsSync(dir) && statSync(dir).isDirectory;
   };
 
   // literal target dir
@@ -163,7 +164,7 @@ function globsFromAuto(
     globs.push(...auto.map((glob) => {
       // single directory name that exists means the whole directory
       const target = join(project.dir, glob);
-      if (safeExistsSync(target) && Deno.statSync(target).isDirectory) {
+      if (safeExistsSync(target) && statSync(target).isDirectory) {
         glob = join(glob, "**");
       }
       return glob;
@@ -261,7 +262,7 @@ async function nodesToEntries(
     const href = `${root}${node}`;
     const path = join(project.dir, href);
     if (safeExistsSync(path)) {
-      if (Deno.statSync(path).isDirectory) {
+      if (statSync(path).isDirectory) {
         // get child nodes (we may mutate so make a copy)
         const childNodes = ld.cloneDeep(nodes[node]) as SidebarNodes;
 

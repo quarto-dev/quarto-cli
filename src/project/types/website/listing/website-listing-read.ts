@@ -15,7 +15,13 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { cloneDeep, orderBy, uniq } from "../../../../core/lodash.ts";
-import { existsSync, safeExistsFileSync } from "../../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  safeExistsFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../../../../deno_ral/fs.ts";
 
 import { Format, Metadata } from "../../../../config/types.ts";
 import {
@@ -324,7 +330,7 @@ export function completeListingItems(
       isHtmlOutput(outputFile.format.pandoc, true)
     ) {
       // Read the listing page
-      let fileContents = Deno.readTextFileSync(outputFile.file);
+      let fileContents = readTextFileSync(outputFile.file);
 
       // Get listings from the file
       const listings = readDehydratedListings(
@@ -486,7 +492,7 @@ export function completeListingItems(
       }
       imgRegex.lastIndex = 0;
 
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         outputFile.file,
         fileContents,
       );
@@ -903,7 +909,7 @@ async function readContents(
           );
         }
       } else {
-        const isFile = Deno.statSync(file).isFile;
+        const isFile = statSync(file).isFile;
         if (isFile) {
           debug(`[listing] Reading file ${file}`);
           const item = await listItemFromFile(file, project, listing);
@@ -1449,7 +1455,7 @@ function listingForType(
 
 function fileModifiedDate(input: string) {
   if (safeExistsSync(input)) {
-    const fileInfo = Deno.statSync(input);
+    const fileInfo = statSync(input);
     return fileInfo.mtime !== null ? fileInfo.mtime : undefined;
   } else {
     return undefined;
@@ -1479,7 +1485,7 @@ function expandGlob(
   // not limiting itself to considering project inputs
   const globOrPathAsPath = getPath();
   try {
-    if (Deno.statSync(globOrPathAsPath).isDirectory) {
+    if (statSync(globOrPathAsPath).isDirectory) {
       return { glob: join(globOrPath, "**"), inputs: true };
     } else {
       return { glob: globOrPath, inputs: false };

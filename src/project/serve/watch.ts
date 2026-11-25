@@ -5,7 +5,7 @@
  */
 
 import { join, relative } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../deno_ral/fs.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -198,7 +198,7 @@ export function watchProject(
             (input: string) => {
               return !rendered.has(input) ||
                 rendered.get(input) !==
-                  md5HashSync(Deno.readTextFileSync(input));
+                  md5HashSync(readTextFileSync(input));
             },
           );
           if (inputs.length) {
@@ -258,7 +258,7 @@ export function watchProject(
               for (const input of inputs.filter(existsSync1)) {
                 rendered.set(
                   input,
-                  await md5HashAsync(Deno.readTextFileSync(input)),
+                  await md5HashAsync(readTextFileSync(input)),
                 );
               }
               renderManager.onRenderResult(

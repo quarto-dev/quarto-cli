@@ -6,7 +6,7 @@
 
 import { warning } from "../../../deno_ral/log.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../../deno_ral/fs.ts";
 
 import {
   Element,
@@ -59,7 +59,7 @@ export async function bookCrossrefsPostRender(
       const index = bookCrossrefIndexForOutputFile(fileRelative, indexes);
       if (index) {
         // resolve crossrefs
-        const doc = await parseHtml(Deno.readTextFileSync(outputFile.file));
+        const doc = await parseHtml(readTextFileSync(outputFile.file));
         resolveCrossrefs(
           context,
           fileRelative,
@@ -256,7 +256,7 @@ async function bookCrossrefIndexes(
             );
 
             if (existsSync(indexFile)) {
-              const indexJson = JSON.parse(Deno.readTextFileSync(indexFile));
+              const indexJson = JSON.parse(readTextFileSync(indexFile));
 
               // ensure we have an index for this format
               indexes[formatName] = indexes[formatName] ||

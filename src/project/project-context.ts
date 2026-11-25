@@ -14,7 +14,8 @@ import {
   SEP,
 } from "../deno_ral/path.ts";
 
-import { existsSync, walk, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, statSync, walk, walkSync } from "../deno_ral/fs.ts";
+import { isPermissionDenied } from "../deno_ral/errors.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -224,7 +225,7 @@ export async function projectContext(
 ): Promise<ProjectContext | undefined> {
   const flags = renderOptions?.flags;
   const originalDir = normalizePath(
-    Deno.statSync(path).isDirectory ? path : dirname(path),
+    statSync(path).isDirectory ? path : dirname(path),
   );
 
   // create an extension context if one doesn't exist
@@ -346,7 +347,7 @@ export async function projectContext(
         // if we are attemping to get the projectConext for a file and the
         // file isn't in list of input files then return a single-file project
         const fullPath = normalizePath(path);
-        if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
+        if (statSync(fullPath).isFile && !files.includes(fullPath)) {
           return undefined;
         }
 
@@ -507,7 +508,7 @@ export async function projectContext(
       },
     };
     try {
-      if (Deno.statSync(path).isDirectory) {
+      if (statSync(path).isDirectory) {
         const { files, engines } = await projectInputFiles(context);
         context.engines = engines;
         context.files.input = files;
@@ -730,7 +731,7 @@ function quartoYamlProjectConfigResolver(
     try {
       configFile = projectConfigFile(dir);
     } catch (e) {
-      if (e instanceof Deno.errors.PermissionDenied) {
+      if (isPermissionDenied(e)) {
         // ignore permission denied errors
       } else {
         throw e;
@@ -775,7 +776,7 @@ type ProjectTypeDetector = {
 // directory that can't be searched would match even if it doesn't exist.
 function detectPathExists(path: string) {
   try {
-    Deno.statSync(path);
+    statSync(path);
     return true;
   } catch {
     return false;
@@ -1052,7 +1053,7 @@ function projectHiddenIgnoreGlob(dir: string) {
 // inputs were being listed, and the _quarto.yml that made it a project
 // (null for an extension-detected root, unset outside a resolved project).
 const kInputWalkProject = Symbol("input-walk-project");
-type InputWalkError = Deno.errors.PermissionDenied & {
+type InputWalkError = Error & {
   [kInputWalkProject]?: { dir: string; configFile?: string | null };
 };
 
@@ -1157,7 +1158,7 @@ async function projectInputFilesInternal(
   };
   // directory traversals (walk, render globs) tag their PermissionDenied
   const tagInputWalkError = (e: unknown) => {
-    if (e instanceof Deno.errors.PermissionDenied) {
+    if (isPermissionDenied(e)) {
       (e as InputWalkError)[kInputWalkProject] = { dir: project.dir };
     }
   };
@@ -1194,7 +1195,7 @@ async function projectInputFilesInternal(
     return inclusions.flat();
   };
   const addEntry = async (entry: string) => {
-    if (Deno.statSync(entry).isDirectory) {
+    if (statSync(entry).isDirectory) {
       return addDir(entry);
     } else {
       return addFile(entry);
@@ -1262,7 +1263,7 @@ function projectConfigResources(
           const path = isAbsolute(value) ? value : join(dir, value);
           // Paths could be invalid paths (e.g. with colons or other weird characters)
           try {
-            if (existsSync(path) && !Deno.statSync(path).isDirectory) {
+            if (existsSync(path) && !statSync(path).isDirectory) {
               resources.push(normalizePath(path));
             }
           } catch {

@@ -95,6 +95,7 @@ import { pandocNativeStr } from "../../../core/pandoc/codegen.ts";
 import { asArray } from "../../../core/array.ts";
 import { canonicalizeTitlePostprocessor } from "../../../format/html/format-html-title.ts";
 import { getFavicon } from "../../../core/brand/brand.ts";
+import { readTextFileSync } from "../../../deno_ral/fs.ts";
 
 export const kSiteTemplateDefault = "default";
 export const kSiteTemplateBlog = "blog";
@@ -451,7 +452,7 @@ export function websiteOutputFiles(outputFiles: ProjectOutputFile[]) {
       return isHtmlFileOutput(outputFile.format.pandoc);
     })
     .map((outputFile) => {
-      const contents = Deno.readTextFileSync(outputFile.file);
+      const contents = readTextFileSync(outputFile.file);
       const doctypeMatch = contents.match(/^<!DOCTYPE.*?>/);
       // const doc = new DOMParser().parseFromString(contents, "text/html")!;
       return {

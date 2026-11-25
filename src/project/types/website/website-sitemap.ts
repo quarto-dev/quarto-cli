@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, safeRemoveDirSync, safeRemoveSync } from "../../../deno_ral/fs.ts";
+import { existsSync, open, readTextFileSync, safeRemoveDirSync, safeRemoveSync, statSync, writeTextFileSync } from "../../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../../deno_ral/path.ts";
 
 import { ElementInfo, SAXParser } from "xmlp/mod.ts";
@@ -78,7 +78,7 @@ export async function updateSitemap(
       baseUrl + pathWithForwardSlashes(relative(outputDir, file));
 
     const fileLastMod = (file: string) =>
-      (Deno.statSync(file).mtime || new Date(0))
+      (statSync(file).mtime || new Date(0))
         .toISOString();
 
     const inputModified = async (output: string, project: ProjectContext) => {
@@ -138,9 +138,9 @@ export async function updateSitemap(
       const robotsTxt = `Sitemap: ${baseUrl}sitemap.xml\n`;
       if (
         !existsSync(destRobotsTxt) ||
-        (Deno.readTextFileSync(destRobotsTxt) !== robotsTxt)
+        (readTextFileSync(destRobotsTxt) !== robotsTxt)
       ) {
-        Deno.writeTextFileSync(destRobotsTxt, robotsTxt);
+        writeTextFileSync(destRobotsTxt, robotsTxt);
       }
     }
   } else {
@@ -167,7 +167,7 @@ async function readSitemap(sitemapPath: string): Promise<Urlset> {
       urlset.push({ loc, lastmod });
     }
   });
-  const reader = await Deno.open(sitemapPath);
+  const reader = await open(sitemapPath);
   await parser.parse(reader);
   reader.close();
   return urlset;
@@ -189,5 +189,5 @@ function writeSitemap(sitemapPath: string, urlset: Urlset, draftMode: string) {
     ),
     { urlset: escapedUrls },
   );
-  Deno.writeTextFileSync(sitemapPath, sitemap);
+  writeTextFileSync(sitemapPath, sitemap);
 }

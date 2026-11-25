@@ -4,7 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import { basename, join, relative } from "../../../deno_ral/path.ts";
 
 // currently not building the index here so not using fuse
@@ -155,7 +159,7 @@ export async function updateSearchIndex(
   const outputDir = projectOutputDir(context);
   const searchJsonPath = join(outputDir, "search.json");
   const searchJson = existsSync(searchJsonPath)
-    ? Deno.readTextFileSync(searchJsonPath)
+    ? readTextFileSync(searchJsonPath)
     : undefined;
 
   // start with a set of search docs if this is incremental
@@ -218,7 +222,7 @@ export async function updateSearchIndex(
       };
 
       // parse doc
-      const contents = Deno.readTextFileSync(file);
+      const contents = readTextFileSync(file);
       const doc = new DOMParser().parseFromString(contents, "text/html")!;
 
       // determine title
@@ -419,7 +423,7 @@ export async function updateSearchIndex(
     if (updatedSearchDocs.length > 0) {
       const updatedSearchJson = JSON.stringify(updatedSearchDocs, undefined, 2);
       if (searchJson !== updatedSearchJson) {
-        Deno.writeTextFileSync(searchJsonPath, updatedSearchJson);
+        writeTextFileSync(searchJsonPath, updatedSearchJson);
       }
     }
   }
@@ -639,7 +643,7 @@ export async function websiteSearchIncludeInHeader(
   // Prepend search options script to beginning of includes
   includes.unshift(searchOptionsScript);
 
-  Deno.writeTextFileSync(websiteSearchScript, includes.join("\n"));
+  writeTextFileSync(websiteSearchScript, includes.join("\n"));
   return websiteSearchScript;
 }
 

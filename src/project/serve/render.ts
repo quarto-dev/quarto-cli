@@ -11,6 +11,7 @@ import { extensionFilesFromDirs } from "../../extension/extension.ts";
 import { projectFormatOutputDir } from "../project-shared.ts";
 import { kProjectType, ProjectContext } from "../types.ts";
 import { projectType } from "../types/project-types.ts";
+import { readTextFileSync, statSync } from "../../deno_ral/fs.ts";
 
 export class ServeRenderManager {
   public fileRequiresReRender(
@@ -111,7 +112,7 @@ export class ServeRenderManager {
       ...(project.files.resources || []),
     ].reduce((hash, file) => {
       try {
-        return hash + Deno.statSync(file).mtime?.toUTCString();
+        return hash + statSync(file).mtime?.toUTCString();
       } catch {
         return hash;
       }
@@ -121,12 +122,12 @@ export class ServeRenderManager {
     // robust file modification time in that case. non-html
     // content also shouldn't be read with readTextFileSync
     if (isJupyterNotebook(inputFile) || !isHtmlContent(file)) {
-      return String(Deno.statSync(file).mtime) +
-        String(Deno.statSync(inputFile).mtime) +
+      return String(statSync(file).mtime) +
+        String(statSync(inputFile).mtime) +
         resourceHash;
     } else {
-      return md5HashSync(Deno.readTextFileSync(file)) +
-        md5HashSync(Deno.readTextFileSync(inputFile)) +
+      return md5HashSync(readTextFileSync(file)) +
+        md5HashSync(readTextFileSync(inputFile)) +
         resourceHash;
     }
   }

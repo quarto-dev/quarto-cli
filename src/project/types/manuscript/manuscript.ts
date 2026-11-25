@@ -108,12 +108,7 @@ import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.t
 import * as ld from "../../../core/lodash.ts";
 import { isQmdFile, safeExistsSync } from "../../../core/path.ts";
 
-import {
-  copySync,
-  ensureDirSync,
-  existsSync,
-  safeRemoveSync,
-} from "../../../deno_ral/fs.ts";
+import { copyFileSync, copySync, ensureDirSync, existsSync, open, safeRemoveSync } from "../../../deno_ral/fs.ts";
 import { kTitleBlockStyle } from "../../../format/html/format-html-title.ts";
 import { resolveProjectInputLinks } from "../website/website-utils.ts";
 
@@ -688,7 +683,7 @@ export const manuscriptProjectType: ProjectType = {
       );
       if (mecaBundle) {
         const target = projectOutputDir(context);
-        Deno.copyFileSync(
+        copyFileSync(
           mecaBundle,
           join(target, mecaFileName),
         );
@@ -701,7 +696,7 @@ export const manuscriptProjectType: ProjectType = {
 
 const codeHintRegexes = [/`+{[^\.]+.*}/, /.*"cell_type"\s*:\s*"code".*/];
 const hasComputations = async (file: string) => {
-  const reader = await Deno.open(file);
+  const reader = await open(file);
   try {
     for await (const line of readLines(reader)) {
       if (line) {
@@ -767,7 +762,7 @@ const createTexOutputBundle = (
     const textOutputDir = dirname(texOutputFile);
 
     // move the root output file
-    Deno.copyFileSync(
+    copyFileSync(
       texInputFile,
       texOutputFile,
     );

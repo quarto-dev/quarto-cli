@@ -13,6 +13,7 @@ import { safeExistsSync } from "../core/path.ts";
 import { readInputTargetIndex } from "./project-index.ts";
 import { fileExecutionEngine } from "../execute/engine.ts";
 import { ProjectContext, SidebarItem } from "./types.ts";
+import { statSync } from "../deno_ral/fs.ts";
 
 export type SidebarContext = {
   counter: number;
@@ -52,7 +53,7 @@ export function normalizeSidebarItem(
       context.counter = context.counter + 1;
 
       const sectionPath = join(projectDir, section);
-      if (safeExistsSync(sectionPath) && Deno.statSync(sectionPath).isFile) {
+      if (safeExistsSync(sectionPath) && statSync(sectionPath).isFile) {
         item.href = section;
       } else {
         item.text = section;

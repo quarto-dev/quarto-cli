@@ -4,7 +4,13 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import {
+  copyFileSync,
+  ensureDirSync,
+  existsSync,
+  statSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { basename, join } from "../../deno_ral/path.ts";
 import {
   kIncludeInHeader,
@@ -274,13 +280,13 @@ export async function revealPluginExtras(
     } else {
       ensureDirSync(pluginDir);
       plugin.script?.forEach((script) => {
-        Deno.copyFileSync(
+        copyFileSync(
           join(plugin.path, script.path),
           join(pluginDir, basename(script.path)),
         );
       });
       plugin.stylesheet?.forEach((style) => {
-        Deno.copyFileSync(
+        copyFileSync(
           join(plugin.path, style),
           join(pluginDir, basename(style)),
         );
@@ -353,7 +359,7 @@ export async function revealPluginExtras(
     return `<link href="${file}" rel="stylesheet">`;
   }).join("\n");
   const linkTagsInclude = temp.createFile({ suffix: ".html" });
-  Deno.writeTextFileSync(linkTagsInclude, linkTags);
+  writeTextFileSync(linkTagsInclude, linkTags);
   extras[kIncludeInHeader]?.push(linkTagsInclude);
 
   // inject top level options used by plugins into config
@@ -494,7 +500,7 @@ async function pluginFromBundle(
   bundle: RevealPluginBundle,
 ): Promise<RevealPlugin> {
   // confirm it's a directory
-  if (!existsSync(bundle.plugin) || !Deno.statSync(bundle.plugin).isDirectory) {
+  if (!existsSync(bundle.plugin) || !statSync(bundle.plugin).isDirectory) {
     throw new Error(
       "Specified Reveal plugin directory '" + bundle.plugin +
         "' does not exist.",

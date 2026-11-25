@@ -121,6 +121,7 @@ import { brandSassFormatExtras } from "../../core/sass/brand.ts";
 import { ESBuildAnalysis } from "../../core/esbuild.ts";
 import { assert } from "testing/asserts";
 import { axeFormatDependencies } from "./format-html-axe.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 let esbuildAnalysisCache: Record<string, ESBuildAnalysis> | undefined;
 export function esbuildCachedAnalysis(
@@ -128,7 +129,7 @@ export function esbuildCachedAnalysis(
 ): ESBuildAnalysis {
   if (!esbuildAnalysisCache) {
     esbuildAnalysisCache = JSON.parse(
-      Deno.readTextFileSync(
+      readTextFileSync(
         formatResourcePath("html", "esbuild-analysis-cache.json"),
       ),
     ) as Record<string, ESBuildAnalysis>;
@@ -393,7 +394,7 @@ export async function htmlFormatExtras(
     });
 
     const zenscrollStyle = temp.createFile({ suffix: "-zen.html" });
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       zenscrollStyle,
       "<style>html{ scroll-behavior: smooth; }</style>",
     );
@@ -433,7 +434,7 @@ export async function htmlFormatExtras(
             functions: "",
             defaults: "",
             mixins: "",
-            rules: Deno.readTextFileSync(
+            rules: readTextFileSync(
               formatResourcePath("html", join("tippy", "_tippy.scss")),
             ),
           },
@@ -508,7 +509,7 @@ export async function htmlFormatExtras(
   // hypothesis
   if (options.hypothesis) {
     const hypothesisHeader = temp.createFile({ suffix: "-hypoth.html" });
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       hypothesisHeader,
       renderEjs(
         formatResourcePath("html", join("hypothesis", "hypothesis.ejs")),
@@ -539,7 +540,7 @@ export async function htmlFormatExtras(
         options,
       );
       if (renderedHtml.trim() !== "") {
-        Deno.writeTextFileSync(quartoHtmlScript, renderedHtml);
+        writeTextFileSync(quartoHtmlScript, renderedHtml);
         dest.push(quartoHtmlScript);
       }
     }
@@ -557,7 +558,7 @@ export async function htmlFormatExtras(
     utterances["issue-term"] = utterances["issue-term"] || "pathname";
     utterances["theme"] = utterances["theme"] || "github-light";
     const utterancesAfterBody = temp.createFile({ suffix: "-utter.html" });
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       utterancesAfterBody,
       renderEjs(
         formatResourcePath("html", join("utterances", "utterances.ejs")),
@@ -613,7 +614,7 @@ export async function htmlFormatExtras(
     }
 
     const giscusAfterBody = temp.createFile({ suffix: "-giscus.html" });
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       giscusAfterBody,
       renderEjs(
         formatResourcePath("html", join("giscus", "giscus.ejs")),

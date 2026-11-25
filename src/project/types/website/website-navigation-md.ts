@@ -28,6 +28,7 @@ import {
 import { removeChapterNumber } from "./website-utils.ts";
 import { MarkdownPipelineHandler } from "../../../core/markdown-pipeline.ts";
 import { safeExistsSync } from "../../../core/path.ts";
+import { readTextFileSync } from "../../../deno_ral/fs.ts";
 
 const kSidebarTitleId = "quarto-int-sidebar-title";
 const kNavbarTitleId = "quarto-int-navbar-title";
@@ -716,7 +717,7 @@ function expandMarkdown(source: string, name: string, val: unknown): string[] {
 function expandMarkdownFilePath(source: string, path: string): string {
   const absPath = isAbsolute(path) ? path : join(dirname(source), path);
   if (safeExistsSync(absPath)) {
-    const fileContents = Deno.readTextFileSync(absPath);
+    const fileContents = readTextFileSync(absPath);
 
     // If we are reading raw HTML, provide raw block indicator
     const ext = extname(absPath);

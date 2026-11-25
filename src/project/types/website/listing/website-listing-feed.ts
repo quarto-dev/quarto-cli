@@ -53,6 +53,11 @@ import { imageContentType } from "../../../../core/image.ts";
 import { isDataUrl } from "../../../../core/data-url.ts";
 import { warnOnce } from "../../../../core/log.ts";
 import { isHtmlOutput } from "../../../../config/format.ts";
+import {
+  open,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../../deno_ral/fs.ts";
 
 export const kDefaultItems = 20;
 
@@ -325,7 +330,7 @@ export function completeStagedFeeds(
 
             // Read the staged file contents and replace any
             // content with the rendered version from the document
-            let feedContents = Deno.readTextFileSync(feedFile);
+            let feedContents = readTextFileSync(feedFile);
             const tagWithReplacements = [
               {
                 tag: "title",
@@ -385,7 +390,7 @@ export function completeStagedFeeds(
             });
 
             // Move the completed feed to its final location
-            Deno.writeTextFileSync(
+            writeTextFileSync(
               join(feedDir, `${feedStem}.${kFinalExt}`),
               feedContents,
             );
@@ -529,7 +534,7 @@ async function generateFeed(
   feedItems: FeedItem[],
   path: string,
 ) {
-  const feedFile = await Deno.open(path, {
+  const feedFile = await open(path, {
     write: true,
     create: true,
   });

@@ -65,6 +65,7 @@ import { kBootstrapDependencyName } from "../../../format/html/format-html-share
 import { formatHasBootstrap } from "../../../format/html/format-html-info.ts";
 import { isSpecialDate, parseSpecialDate } from "../../../core/date.ts";
 import { kHtmlEmptyPostProcessResult } from "../../../command/render/constants.ts";
+import { readTextFileSync } from "../../../deno_ral/fs.ts";
 
 const kSingleFileBook = "single-file-book";
 
@@ -318,7 +319,7 @@ function bookScssBundle() {
       defaults: "",
       functions: "",
       mixins: "",
-      rules: Deno.readTextFileSync(scssPath),
+      rules: readTextFileSync(scssPath),
     },
   };
 }

@@ -9,6 +9,7 @@ import { Format } from "../../config/types.ts";
 import { pandocFormat } from "../../core/pandoc/pandoc-formats.ts";
 import { createFormat, plaintextFormat } from "../formats-shared.ts";
 import { kGfmCommonmarkVariant } from "./format-markdown-consts.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export function requiresShortcodeUnescapePostprocessor(markdown: string) {
   return markdown.includes("{{{<");
@@ -20,9 +21,9 @@ const kDisplayNameMarkdown = "Markdown";
 
 export function shortcodeUnescapePostprocessor(output: string): Promise<void> {
   // unescape shortcodes
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     output,
-    Deno.readTextFileSync(output)
+    readTextFileSync(output)
       .replaceAll("{{\\<", "{{<")
       .replaceAll("\\>}}", ">}}"),
   );

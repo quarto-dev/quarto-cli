@@ -5,7 +5,11 @@
  */
 
 import { basename, join, relative, resolve } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  removeSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 
 import { Document, Element, Node } from "../../../core/deno-dom.ts";
@@ -34,6 +38,7 @@ import { Format, Metadata, PandocFlags } from "../../../config/types.ts";
 import { MathMethods } from "../../../resources/types/schema-types.ts";
 import { resolveHtmlMathMethod } from "../../../format/html/format-html-math.ts";
 import { kWebsite } from "./website-constants.ts";
+import { makeTempDirSync } from "../../../deno_ral/temp.ts";
 
 /**
  * Compute the output HTML file path from the source file.
@@ -337,9 +342,9 @@ export async function convertHtmlToLlmsMarkdown(
   const filterPath = resourcePath("filters/llms/llms.lua");
 
   // Create a temporary file for the HTML content
-  const tempDir = Deno.makeTempDirSync();
+  const tempDir = makeTempDirSync();
   const tempHtml = join(tempDir, "input.html");
-  Deno.writeTextFileSync(tempHtml, htmlContent);
+  writeTextFileSync(tempHtml, htmlContent);
 
   try {
     // Run Pandoc to convert HTML to markdown
@@ -370,7 +375,7 @@ export async function convertHtmlToLlmsMarkdown(
   } finally {
     // Cleanup temp files
     try {
-      Deno.removeSync(tempDir, { recursive: true });
+      removeSync(tempDir, { recursive: true });
     } catch {
       // Ignore cleanup errors
     }
@@ -473,5 +478,5 @@ export async function updateLlmsTxt(
   }
   lines.push("");
 
-  Deno.writeTextFileSync(llmsTxtPath, lines.join("\n"));
+  writeTextFileSync(llmsTxtPath, lines.join("\n"));
 }

@@ -13,7 +13,7 @@ import {
   relative,
 } from "../../../../deno_ral/path.ts";
 import { Document, Element } from "deno_dom/deno-dom-wasm-noinit.ts";
-import { existsSync } from "../../../../deno_ral/fs.ts";
+import { existsSync, writeTextFileSync } from "../../../../deno_ral/fs.ts";
 
 import {
   Format,
@@ -417,7 +417,7 @@ const kMarginSidebarId = "quarto-margin-sidebar";
 function scriptFileForScripts(scripts: string[], temp: TempContext) {
   const scriptFile = temp.createFile({ suffix: "-listing.html" });
   const contents = `<script>\n${scripts.join("\n")}</script>`;
-  Deno.writeTextFileSync(scriptFile, contents);
+  writeTextFileSync(scriptFile, contents);
   return scriptFile;
 }
 

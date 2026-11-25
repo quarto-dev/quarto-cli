@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../deno_ral/fs.ts";
+import { ensureDirSync, existsSync, readTextFileSync } from "../deno_ral/fs.ts";
 
 import { join } from "../deno_ral/path.ts";
 import { PandocOptions } from "../command/render/types.ts";
@@ -35,7 +35,7 @@ export function citeIndexFilterParams(
 export function citeIndex(projectDir: string) {
   const mainIndexFile = citeIndexFile(projectDir);
   const mainIndex: CiteIndex = existsSync(mainIndexFile)
-    ? JSON.parse(Deno.readTextFileSync(mainIndexFile))
+    ? JSON.parse(readTextFileSync(mainIndexFile))
     : {};
   return mainIndex;
 }
