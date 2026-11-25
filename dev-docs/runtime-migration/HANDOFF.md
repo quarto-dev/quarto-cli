@@ -84,7 +84,7 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. PR 12 (`src/project` and `src/format`) is in progress on branch `rt/12-codemod-fs-project-format`: Tasks 1–4 are committed and its wrap-up (Verification) is next. Then PR 13 (the remaining `src` directories). Generate each from fresh `main` and regenerate the shared ratchet baseline before it lands. PR 14 waits for both, then PR 08 and PR 22 follow.
+5. PR 12 (`src/project` and `src/format`) is in progress on branch `rt/12-codemod-fs-project-format`: Tasks 1–4 and the wrap-up are committed; the PR is next. Then PR 13 (the remaining `src` directories). Generate each from fresh `main` and regenerate the shared ratchet baseline before it lands. PR 14 waits for both, then PR 08 and PR 22 follow.
    On the Phase 0 path, #15259 landed the lockfile half of 00b. The remainder follows the README overlap row and gates 03–06, then 07.
    See the README sequence for work that can proceed in parallel.
    For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check

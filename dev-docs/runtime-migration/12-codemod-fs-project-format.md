@@ -228,11 +228,11 @@ git commit -m "Lower runtime boundary baseline after project/format fs/temp code
 
 ## Review checklist
 
-- [ ] `git diff` under the two directories contains only `Deno.x` → `x` rewrites, import lines, the three `isPermissionDenied`/`isNotFound` edits and the `InputWalkError` type change.
-- [ ] Every `open()` handle is still closed on every path it was closed on before.
-- [ ] `InputWalkError`'s symbol-keyed field is unchanged; `frameInputWalkError` still compiles.
-- [ ] The MECA item order change (sorted) is understood and the manuscript smoke tests pass.
-- [ ] Baseline only decreased.
+- [x] `git diff` under the two directories contains only `Deno.x` → `x` rewrites, import lines, the three `isPermissionDenied`/`isNotFound` edits and the `InputWalkError` type change.
+- [x] Every `open()` handle is still closed on every path it was closed on before.
+- [x] `InputWalkError`'s symbol-keyed field is unchanged; `frameInputWalkError` still compiles.
+- [x] The MECA item order change (sorted) is understood and the manuscript smoke tests pass.
+- [x] Baseline only decreased.
 
 ## Risks and rollback
 
@@ -363,3 +363,12 @@ Review items closed here: counts (51 files / 159 replacements), the comment-matc
 - Test cleanup: the smoke run modified two fixture `.gitignore` files and generated manuscript `site_libs` output. The two tracked files were restored by explicit path; the generated roots were previewed with `git clean -ndx`, checked against the status list, and removed with `git clean -fdx`. No test fixture change is part of this task.
 - Step 4: `tools/runtime-boundary-baseline.json` and this plan were staged by explicit path. The pre-existing harness lock file remained untracked and outside the commit.
 - Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations, including the call-operator form that passes the expanded file arrays directly to the test runner. There were no test failures, quarantines or selection changes. Outstanding: the final Verification remains for the wrap-up session.
+
+### Wrap-up — coordinator review at `f47e31894`
+
+- Base: `upstream/main` fetched on 2026-11-25 is the branch's merge base; no rebase needed.
+- Acceptance criteria rerun: the AST dry run printed `Summary: 123 files scanned, 0 would be rewritten, 0 replacements, 0 with collisions, 0 skipped`; the comment-filtered `rg` printed nothing; `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` from `src` printed `Check quarto.ts` and exited 0; `check-runtime-boundary.ts` printed `src 507 (baseline 507)` and `OK: no count exceeds the baseline.`, and the baseline diff against `upstream/main` changes only `src.denoCalls` (670 → 507).
+- Manual Verification: `package/dist/bin/quarto.cmd render tests/docs/listings-feed-image` exited 0 and wrote `_site/sitemap.xml`, `_site/index.xml`, `_site/archive/index.xml` and `_site/updates/index.xml`; `package/dist/bin/quarto.cmd render tests/docs/manuscript/base` exited 0 and wrote `_manuscript/index-meca.zip`. Neither log had an error or warning line. `git clean -ndx` on the two fixtures listed only `.quarto/`, `_site/` and `_manuscript/`, which `git clean -fdx` then removed.
+- Whole-branch checks of README "How to execute a plan" (against `upstream/main...HEAD`): the indirect-`Deno` grep, the `PR [0-9]` comment grep and the new-test-function grep each printed nothing.
+- Review checklist: the hand edits in `62b1cebe1` match the code given in Task 3. The close and `finally` lines of the six `open()` sites are unchanged context in the diff. `isPermissionDenied`/`isNotFound` also match an error's `cause` and Node error codes, so the three edited sites now also accept a wrapped PermissionDenied/NotFound; that is the layer's design (PR 09) and the Task 3 tests pass.
+- Test runs were not repeated: the executor's logs (Task 3, Task 4 Steps 1–2) are the evidence, and the two manual renders re-exercise the sitemap, feed, `open()` and MECA paths.
