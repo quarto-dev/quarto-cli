@@ -23,7 +23,7 @@ See [dev-docs/tinytex-pattern-maintenance.md](./dev-docs/tinytex-pattern-mainten
 - [ ] Determine if patterns need adaptation
 - [ ] Update `parse-error.ts` if needed
 - [ ] If `hyphen.json` changed, update `kHyphenationPackageNames` in `parse-error.ts` and the copy in the unit test
-- [ ] If `babel-hyphen.json` changed, regenerate `babel-hyphen.ts` from the repository root with `gh release download daily --repo rstudio/tinytex-releases --pattern regex.tar.gz`, `tar -xzf regex.tar.gz babel-hyphen.json` and `deno run --no-config --no-lock --allow-read --allow-write tools/update-babel-hyphen.ts babel-hyphen.json`, run the unit tests, and commit
+- [ ] If `babel-hyphen.json` changed, [regenerate `babel-hyphen.ts`](https://github.com/quarto-dev/quarto-cli/blob/main/dev-docs/tinytex-pattern-maintenance.md#hyphenation-packages), run `unit/latexmk/babel-hyphen.test.ts` and `unit/latexmk/parse-error.test.ts`, then commit the generated file
 - [ ] Add/update filter functions
 - [ ] Run tests: `unit\latexmk\parse-error.test.ts`
 - [ ] Add test cases for new patterns if needed

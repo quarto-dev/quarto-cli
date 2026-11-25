@@ -223,7 +223,7 @@ export const kBabelHyphenMap: Record<string, string> = {
   "welsh": "welsh",
 };
 
-// .ini file base names to hyphenrules values (babel_hyphen_codes)
+// Codes from babel-<code>.ini filenames to hyphenrules values (babel_hyphen_codes)
 export const kBabelHyphenCodes: Record<string, string> = {
   "af": "afrikaans",
   "as": "assamese",

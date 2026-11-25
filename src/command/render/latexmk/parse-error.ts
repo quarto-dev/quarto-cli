@@ -303,7 +303,7 @@ function foldBabelLines(logText: string): string[] {
   return foldedLines;
 }
 
-// Locale name -> base name of the .ini file babel imported it from
+// Maps each locale to the code in its babel-<code>.ini filename.
 function babelIniImports(foldedLines: string[]): Map<string, string> {
   const importingRegex =
     /^Package babel Info: Importing (basic )?data for '?([^' ]+)'? .*from babel-([-.A-Za-z0-9]+)[.]ini.*$/;
@@ -320,9 +320,8 @@ function babelIniImports(foldedLines: string[]): Map<string, string> {
   return imports;
 }
 
-// The hyphenation language a locale imported from babel-<ini>.ini expects:
-// the .ini file's hyphenrules value, else the locale name when it is a
-// language.dat name, else undefined
+// Use the .ini file's hyphenrules value when available. Otherwise, look up
+// the locale's language.dat name.
 function expectedHyphenLanguage(
   locale: string,
   ini: string,
@@ -377,7 +376,6 @@ export function findBabelFallbackLanguages(logText: string): string[] {
   return fallback;
 }
 
-// Finds missing hyphenation files (these appear as warnings in the log file)
 export function findMissingHyphenationFiles(logText: string): string[] {
   // Same regexes as check_babel() and check_polyglossia() in tinytex, on
   // warning blocks only
@@ -393,10 +391,8 @@ export function findMissingHyphenationFiles(logText: string): string[] {
 
   let nilPackages: string[] = [];
   if (packages.length === 0) {
-    // Run only when the warnings yield no package name, and merge with the .ini fallback
-    // result, as tinytex's check_extra() evaluates both checks. A locale
-    // whose .ini import the tables resolve is left to the .ini fallback, which
-    // knows its patterns (mexican is in hyphen-spanish, not hyphen-mexican).
+    // Skip locales resolved by the .ini lookup: mexican needs
+    // hyphen-spanish, not hyphen-mexican.
     const hyphenRulesRegex =
       /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
     const imported = babelIniImports(foldBabelLines(logText));

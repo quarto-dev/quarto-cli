@@ -525,22 +525,21 @@ unitTest("Detect missing hyphenation files from babel .ini fallbacks", async () 
   );
   assertEquals(findMissingHyphenationFiles(""), [], "empty log");
 
-  // babel-xx.ini is not in kBabelHyphenCodes, so the locale name decides
+  // babel-xx.ini is not in the code table, so look up mexican in the locale table.
   const unknownIni = `Package babel Info: Importing data for 'mexican'
 (babel)             from babel-xx.ini. Reported on input line 3.
 Package babel Info: Hyphen rules for 'mexican' set to \\l@english
 (babel)             (\\language0). Reported on input line 3.`;
   assertEquals(findMissingHyphenationFiles(unknownIni), ["hyphen-spanish"], ".ini code absent from the code table");
 
-  // The .ini import gives the package, not the locale name on the \l@nil line
   const mexicanNil = `Package babel Info: Importing data for 'mexican'
 (babel)             from babel-es-MX.ini. Reported on input line 3.
 Package babel Info: Hyphen rules for 'mexican' set to \\l@nil
 (babel)             (\\language23). Reported on input line 3.`;
   assertEquals(findMissingHyphenationFiles(mexicanNil), ["hyphen-spanish"], "\\l@nil fallback for an imported dialect");
 
-  // Neither babel-fa.ini nor 'farsi' is in the tables, so the \l@nil check
-  // still gives its package
+  // Neither lookup table resolves this import, so the \l@nil check falls back
+  // to the locale name.
   const unresolvedNil = `Package babel Info: Importing data for 'farsi'
 (babel)             from babel-fa.ini. Reported on input line 3.
 Package babel Info: Hyphen rules for 'farsi' set to \\l@nil

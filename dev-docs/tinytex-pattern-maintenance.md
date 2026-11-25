@@ -71,7 +71,7 @@ A round-trip unit test fails when the module's format no longer matches the gene
 Quarto-only differences:
 
 - the `chinese` and `chinese-hans` skip list ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291))
-- the `Hyphen rules for '...' set to \l@nil` fallback, which runs only when the babel and polyglossia warnings yield no package name, skips locales whose `.ini` import the three tables resolve (the `.ini` fallback gives their package, e.g. `hyphen-spanish` for `mexican`), and is merged with the `.ini` fallback result
+- the `\l@nil` check: Quarto runs it when neither babel nor polyglossia warnings identify a package. It skips locales the `.ini` lookup can resolve: for example, `mexican` needs `hyphen-spanish`, not `hyphen-mexican`. Quarto combines the results of the `\l@nil` and `.ini` checks.
 - unquoted language names in the babel "You haven't defined the language" error regex
 
 ## Manual Adaptation Process
@@ -113,7 +113,7 @@ The automated workflow runs daily:
 
 1. Downloads `regex.tar.gz` from [TinyTeX releases](https://github.com/rstudio/tinytex-releases)
 2. Extracts and compares `regex.json`, `hyphen.json` and `babel-hyphen.json` with the cached versions
-3. If changed: generates the diff, including the regenerated `babel-hyphen.ts` diff when `babel-hyphen.json` changed, and creates/updates the issue
+3. If any files changed, generates a diff and creates or updates the issue. When a valid `babel-hyphen.json` is available, the workflow also attempts to regenerate `babel-hyphen.ts` and includes any resulting diff.
 4. If unchanged: exits early (no notification)
 
 **Workflow location**: [.github/workflows/verify-tinytex-patterns.yml](../.github/workflows/verify-tinytex-patterns.yml)

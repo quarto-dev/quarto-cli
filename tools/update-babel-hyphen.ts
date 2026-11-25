@@ -77,7 +77,7 @@ ${renderTable(
   )}
 ${renderTable(
     "kBabelHyphenCodes",
-    ".ini file base names to hyphenrules values (babel_hyphen_codes)",
+    "Codes from babel-<code>.ini filenames to hyphenrules values (babel_hyphen_codes)",
     validated.babel_hyphen_codes,
   )}`;
 }
