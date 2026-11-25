@@ -180,14 +180,11 @@ The rows below are the ones that still need a named person or an external answer
 | PR 07 size | **Decided 2026-11-17:** two PRs, 07a then 07b. Was: whether PR 07 lands as one PR or as 07a (Tasks 1–5: puppeteer helpers and the `chromium` tool, needs only 00b) + 07b (Task 6: Phase 0 exit, needs 03–06) | maintainer | before 03–06 start |
 | PRs 00c, 05 and 06, maintainer actions | These plans contain `gh pr create` (00c Task 4 Step 1, 06 Task 6 Step 3) and `gh workflow run` (05 Task 7 Step 4), which "How to execute a plan" reserves to the maintainer; its list of PRs that need such an action names only 02b, 25, 32, 37 and 39. The executor stops at those steps and leaves the changelog PR number as a placeholder | maintainer | step 0 of each |
 | PRs 10–13 and 14, landing order (audit of 2026-11-16 against `1d80652`) | **Decided 2026-11-17:** 10–13 then 14 land now, before PR 08 and PR 22; the sequence rows carry the new dependencies and PR 08 applies the row below. Background: The order 08 → 22 → 10–13 → 14 avoids import-block conflicts; it is not a code dependency. The `fs`, `temp` and `env` rules need only PR 09's layer and tool, on `main` since #15223, and PR 10 says both orders end in the same place (`10-codemod-fs-core.md:121`). As written, the order parks five ready PRs behind PR 22, which waits for PR 04, which waits for the full 00b gate. Measured overlap on `main`: 36 files between PR 08's process sites and the files the `fs,temp` rules rewrite, 22 with PR 22's importers, 28 between the `env` and `fs,temp` rewrites. Decide whether 10–13 then 14 land now, before the PR 08 branch exists (a codemod PR is regenerated from fresh `main`, a hand-written PR is not). If yes: change "Depends on" of rows 10–13 to `09` and of row 14 to `09, 10–13`, and PR 08 applies the row below | maintainer | before PR 08 starts |
-| PR 08 Task 4 step 6, Task 5 and the baseline delta | PR 10 (#15418) moved the file read in `src/core/console.ts` to `readFileSync`; PR 11 moves the read in `src/command/editor-support/crossref.ts`. Keep both layer imports and migrate their stdout writes. Re-measure the `src` delta at step 0 against the merged filesystem and env codemods. `package/src/common/configure.ts` has its `Deno.run` at line 172 | PR 08 executor | PR 08 step 0 |
+| PR 08 Task 4 step 6, Task 5 and the baseline delta | PR 10 (#15418) moved the file read in `src/core/console.ts` to `readFileSync`; PR 11 (#15423) moved the read in `src/command/editor-support/crossref.ts`. Keep both layer imports and migrate their stdout writes. Re-measure the `src` delta at step 0 against the merged filesystem and env codemods. `package/src/common/configure.ts` has its `Deno.run` at line 172 | PR 08 executor | PR 08 step 0 |
 | PR 08, plan code blocks (step 0 audit) | Nine code comments name a later PR and must state the current reason only: `08-ral-process.md:166`, `:177`, `:207`, `:313`, `:468`, `:592`, `:756`, `:899`, `:1014` (`// TODO(PR 28)`). `:361` tests `"Deno" in globalThis` in `childScript`: the ratchet does not count it, but the step 0 rule asks for a ruling; state the accepted form. Check `childScript` against `childCmd` in `tests/unit/exec-process-utf8-chunks.test.ts:26-31` before adding a second child-script helper | PR 08 executor | PR 08 step 0 |
 | PR 10 (audit of 2026-11-16) | The dry run on `main` reports `205 files scanned, 57 would be rewritten, 153 replacements, 2 with collisions, 2 skipped`: 57 files, not 56 (`src/core/bibliography.ts:116` gained a `Deno.readTextFileSync`; `src/core/cache/cache.ts` lost its `Deno.removeSync` to `safeRemoveSync` in #15180). The `src` delta stays 170. Moved lines: `src/core/path.ts:189` is 197 and `:53` is 61; `src/core/cache/cache.ts:161` is 186. If PR 08 landed first and took `readFileSync` from the layer, expect 56 files, 152 replacements and a delta of 169 | PR 10 executor | PR 10 step 0 |
 | PR 10 Task 6 (step 0 of 2026-11-19, applies the `kRalDenoReplacements` row) | Task 6, added to the plan at step 0, adds the `fs`, `temp` and `errors` keys (decided 2026-11-19: the `Deno.errors.*` keys too, since PR 09 shipped `errors.ts` and PR 10 converts the first `instanceof` sites). The keys apply to `src` and `package/src` only. A covered API is an error that `--accept-increase` cannot clear: `renderDelta` reports it before checking acceptance. `tests` keeps deliberate `Deno.*` fixtures (`tests/unit/kv-damage-fixtures.ts`, `tests/unit/ral/safe-remove-dir.test.ts`) whose increase the maintainer accepts. Layer PRs that add keys later (08, 14) choose their scopes with the same rule | coordinator | PR 10 step 0 |
 | PR 10 Task 2, `src/core/console.ts` (from PR 10 Task 2 step 2, 2026-11-19), and PR 08 Task 4 step 6 | **Decided 2026-11-19:** `FsFile` gets no `readSync`. With PR 08 not landed, the codemod turns `writeFileToStdout`'s `Deno.openSync` into `openSync`, and `readAllSync(df)` fails `deno check` (TS2345: `FsFile` is not a `ReaderSync`). That call is the only `ReaderSync` consumer in `src`, and PR 08 step 6 already replaces the whole body with a `readFileSync` read, so a `readSync` in the contract would bind PR 27's `NodeFsFile` (descriptor-owner rule, `EBADF` after close) and a contract test to a method with no consumer once PR 08 lands. PR 10 instead applies the read half of PR 08 step 6 by hand, after the codemod and in the hand-fix commit: the body becomes `writeAllSync(Deno.stdout, readFileSync(file));`, with `readFileSync` imported from `../deno_ral/fs.ts` (replacing the codemod's `openSync` import) and the `io/read-all` import dropped. `Deno.stdout` and `writeAllSync` stay for PR 08. The codemod audit counts (57 files, 153 replacements) are unchanged; the plan's `console.ts:174` row moves from "Review only" to the hand fixes, and the executor re-reads the `src` boundary delta from `--update-baseline` rather than assuming it. Verification: the `deno check ... quarto.ts` command passes, and a `--to pdf --output -` render (the `writeFileToStdout` callers in `output.ts`, `output-tex.ts`, `output-typst.ts`) writes the PDF bytes to stdout. PR 08 step 6 then only replaces `writeAllSync(Deno.stdout, …)` with `writeStdoutSync(…)` and drops the `io/write-all` import; its "lines 8-9" and "173-178" citations are re-derived at its step 0. PR 27: no `FsFile` change | coordinator | PR 10 (resume Task 2), PR 08 step 0 |
-| PR 11 Tasks 1–4 (checked after #15418) | Apply the 2026-11-17 landing order and generate from fresh `upstream/main`. The dry run at `1c129ffe` reports `107 files scanned, 43 would be rewritten, 149 replacements, 1 with collisions, 0 skipped`. The collision is `stat` in `pull-git-subtree/cmd.ts:91`; `render/pandoc.ts:1648` still needs the `isNotFound` hand edit. The expected `src` delta is 151; verify it against the new base. Use `--allow-import` in the type-check command. Task 1 commits its checkboxes and execution log, with the dry-run report stored at a durable path if later tasks need it. The coordinator runs Verification and the review checklist after Task 4 | PR 11 executor and coordinator | PR 11 step 0 and wrap-up |
-| PR 11 Task 1 steps 1–2 (step 0) | **Completed in Task 1.** The dry run on `7a77d06e9` confirmed 107 files scanned, 43 to rewrite, 149 replacements, one `stat` collision and no skipped files. The executor saved the report at `.claude/docs/codemod-command.txt`, used `grep 'collision:'` to check for collisions (`skipped` also matches the summary), and committed only the plan, including its execution log | PR 11 executor | Task 1 |
-| PR 11 wrap-up Verification (Windows review W29) | **Completed at wrap-up.** The coordinator ran `create`, `render`, and `inspect` from a new temporary directory, invoking the configured CLI by absolute path and passing a relative project name. The sequence passed on Windows both before and after the migration | PR 11 coordinator | wrap-up |
 | PR 12 (audit of 2026-11-16) | The dry run on `main` reports 159 replacements, not 158 (`src/project/project-shared.ts` gained `parse(Deno.readTextFileSync(brandPath))` in #15101), so the `src` delta is 163, not 162. Moved lines: `src/project/project-context.ts:652,967-969,1072` are 733, 1055-1057, 1160; `website-listing-feed.ts:521` is 532; `format-html-shared.ts:133` is 163; `project-shared.ts:482,592` are 483, 615 | PR 12 executor | PR 12 step 0 |
 | PR 13 (audit of 2026-11-16) | Counts hold on `main` (`172, 35, 122, 1, 0`, delta 123). Drop `src/publish/common/bundle.ts:106-108` from "Modify (hand)" (`13-codemod-fs-rest.md:105`): the plan leaves that commented block to PR 25 everywhere else. `src/extension/extension.ts:683` is 685. The manual check `cd $(mktemp -d) && package/dist/bin/quarto add …` (`:232`) uses a relative path after `cd`: call the dev build by absolute path | PR 13 executor | PR 13 step 0 |
 | PR 14 (audit of 2026-11-16) | Counts hold on `main` (`624, 50, 149, 6, 2`, delta 166). The `env.ts` listing names PR 27b in two code comments (`14-ral-env.md:98`, `:108`): state the current reason only. Task 3's "Modify" list omits `src/command/call/axe/cmd.ts`, which its `sed`, table and `git add` include. The manual dotenv check (`:355`) calls `package/dist/bin/quarto` by relative path after `cd "$d"`: use an absolute path | PR 14 executor | PR 14 step 0 |
@@ -264,7 +261,7 @@ Change it in its owner.
 Step 0, before the plan is executed (coordinator): the plans were written against `main` at `b86f98d` and cite line numbers.
 Re-grep every `path:line` the plan cites, check each "assumes PR xx landed with ..."
 against `main`, check the plan's `**Depends on:**` PRs are merged, read the "Open decisions with an owner" table above for a row that names this PR, and set the plan's row in "The sequence" to `in progress`.
-The person who merges the PR sets it to `merged`.
+The coordinator sets it to `merged` during [post-merge closeout](#after-a-pr-merges).
 
 Step 0 also audits the plan's code blocks, because the executor transcribes them verbatim and a defect in them lands in the PR (all three findings of PR 09's review came from its plan).
 Fix each hit in the plan, and record it in the execution log, before Task 1:
@@ -313,10 +310,31 @@ Progress tracking while executing (decided 2026-10-28, from PR 09's run):
   The ticked checkboxes, the execution log and the git log make the plan file self-sufficient; a fresh session resumes with "Continue executing PR NN in worktree `<path>`; the plan is `dev-docs/runtime-migration/NN-*.md` — resume at Task N per its checkboxes and execution log."
   This is the fallback for `superpowers:subagent-driven-development` when the executor has no sub-agent tooling: the artifacts above replace the orchestrator's memory.
 
+### After a PR merges
+
+The coordinator runs this closeout for each migration PR. Individual plan tasks
+record their progress in the plan file and commit it with the task.
+
+1. Fetch `upstream/main`. Verify the GitHub PR is merged, its merge commit is on
+   `upstream/main`, and any maintainer actions required for completion are done.
+2. Close the completed work in the private tracker, if used, with the GitHub PR
+   number and merge commit. Check which dependents are ready and which still have
+   blockers, and compare with the sequence below.
+3. Branch from the fetched `upstream/main` for the docs follow-up, or reuse the
+   follow-up branch if one already exists.
+   - Mark the sequence row `merged` and cite the GitHub PR. Update `HANDOFF.md`
+     if the merge changes what to work on next or makes an instruction stale.
+   - Retire resolved instructions from "Open decisions with an owner" and revise
+     any that still apply but need updating. Keep the plan's execution log as the
+     historical record.
+   - If the ratchet baseline changed, record the new counts from the merged
+     `tools/runtime-boundary-baseline.json` under "Progress metric".
+4. Review the docs diff and hand the branch to the maintainer for publication.
+   Report the closeout as pending until the docs update is on `main`.
+
 ## The sequence
 
 Status values: `planned`, `in progress`, `merged`.
-Update this table as PRs land.
 
 ### Phase 0: de-risk dependencies (PR 02 first, then 02c, then 00a → 00b, then 03–06 in parallel, then 07)
 
@@ -347,7 +365,7 @@ Every PR that changes a count lands after 02c; preparing it earlier is fine.
 | 09 | [09-ral-fs-and-temp-layer.md](09-ral-fs-and-temp-layer.md) | `deno_ral/fs.ts`, `temp.ts`, `errors.ts` API (`canonicalPathSync`, retyped `FileInfo`), unit tests, and the idempotent ts-morph codemod with `--reverse` (#15223) | 02 | Opus | M | merged |
 | 22 | [22-std-import-seams.md](22-std-import-seams.md) | `colors.ts`, `flags.ts`, base64 seams; table of std modules with internal `Deno.*` and their owner (PR 20b) | 08 | Sonnet | S | planned |
 | 10 | [10-codemod-fs-core.md](10-codemod-fs-core.md) | Run the fs/temp codemod on `src/core`, `src/quarto-core`, `src/config` (57 files), and add fs/temp/error replacement hints to the ratchet (#15418) | 09 | Sonnet | L | merged |
-| 11 | [11-codemod-fs-command.md](11-codemod-fs-command.md) | Codemod on `src/command` (43 files) | 09 | Sonnet | L | in progress |
+| 11 | [11-codemod-fs-command.md](11-codemod-fs-command.md) | Codemod on `src/command` (43 files; #15423) | 09 | Sonnet | L | merged |
 | 12 | [12-codemod-fs-project-format.md](12-codemod-fs-project-format.md) | Codemod on `src/project`, `src/format` (51 files) | 09 | Sonnet | L | planned |
 | 13 | [13-codemod-fs-rest.md](13-codemod-fs-rest.md) | Codemod on `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, TS under `src/resources` (35 files) | 09 | Sonnet | M | planned |
 | 14 | [14-ral-env.md](14-ral-env.md) | `deno_ral/env.ts` and codemod of all `Deno.env` uses in `src/` (58 files) | 02, 09, 10–13 | Sonnet | L | planned |
@@ -445,6 +463,7 @@ Baseline as measured by the reworked PR 02 script (2026-10-15, `main` at `b86f98
 
 Counts on `main` at `1d80652` (2026-11-16, `tools/runtime-boundary-baseline.json`): `src` 992 / 49, `src-js` 7 / 0, `resources` 12 / 1, `package/src` 241 / 3, `tests` 775 / 176.
 Baseline on `main` after #15418 (`1c129ffe`, 2026-11-24): `src` 821 / 49, `src-js` 7 / 0, `resources` 12 / 1, `package/src` 241 / 3, `tests` 774 / 176.
+Baseline on `main` after #15423 (`2f262e6e8`, 2026-11-25): `src` 670 / 49 (151 fewer Deno calls); the other scopes are unchanged.
 
 The std column counts files with a direct std import that the std boundary rule does not allow-list (PR 02); 13 `src` files and 1 `package/src` file import allow-listed seams only and are not counted.
 Zero in `src`, `src-js` and `package/src`, and an explicit allow-list for `resources`, is the exit criterion of Phase 1 (PR 25).
