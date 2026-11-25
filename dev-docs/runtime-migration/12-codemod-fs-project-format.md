@@ -163,7 +163,7 @@ git commit -m "project/format: codemod Deno fs/temp calls to deno_ral (mechanica
 **Files:**
 - Modify: `src/project/project-context.ts`, `src/project/project-index.ts`
 
-- [ ] **Step 1: `src/project/project-context.ts`**
+- [x] **Step 1: `src/project/project-context.ts`**
 
 Add `import { isPermissionDenied } from "../deno_ral/errors.ts";`.
 Lines 733 and 1160:
@@ -180,12 +180,12 @@ type InputWalkError = Error & {
 };
 ```
 
-- [ ] **Step 2: `src/project/project-index.ts`**
+- [x] **Step 2: `src/project/project-index.ts`**
 
 Add `import { isNotFound } from "../deno_ral/errors.ts";`.
 Line 250: `if (isNotFound(e)) {`.
 
-- [ ] **Step 3: Verify and commit**
+- [x] **Step 3: Verify and commit**
 
 Run: `rg -n 'Deno\.errors' src/project src/format -g '*.ts'` Expected: empty.
 
@@ -328,3 +328,17 @@ Review items closed here: counts (51 files / 159 replacements), the comment-matc
 
 - Step 4: scoped `git status --short -- src/project src/format` listed only the 51 modified source files. Full status also contained the pre-existing untracked `.pi-loop.json.lock` at the repository root. Following the coordinator's staging row, `git diff --name-only | xargs git add --` staged only the 51 tracked source paths before this plan was staged explicitly; the lock file was not staged.
 - Deviations: the prescribed Windows `.cmd`/`.exe` launchers and the coordinator's formatting and staging amendments. The pre-existing harness lock file remained untracked and outside the commit. Outstanding: Tasks 3–4 and the final Verification remain for later sessions.
+
+### Task 3 — `Deno.errors` → predicates in `src/project`
+
+- Steps 1–2: added the prescribed `isPermissionDenied` and `isNotFound` imports. In `project-context.ts`, replaced both `instanceof Deno.errors.PermissionDenied` checks with `isPermissionDenied(e)` and changed `InputWalkError` to the prescribed `Error & { … }` intersection without changing its symbol-keyed field. In `project-index.ts`, replaced the `instanceof Deno.errors.NotFound` check with `isNotFound(e)` while preserving the non-NotFound rethrow. `git diff --check` printed nothing, and `package/dist/bin/tools/x86_64/deno.exe fmt --check src/project/project-context.ts src/project/project-index.ts` printed `Checked 2 files`; no formatting changes were needed.
+- Step 3 residue check: `rg -n 'Deno\.errors' src/project src/format -g '*.ts'` printed nothing and exited 1 (no matches), as expected.
+- Step 3 tests: with the worktree's `package/dist/bin` prepended to `PATH`, the Windows invocation was `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.ps1 --agent unit/project/project-context-unreadable-dir.test.ts unit/project/project-detect-denied-path.test.ts smoke/project/project-unreadable-dir.test.ts smoke/project/project-detect-denied-config.test.ts`. It printed:
+
+  ```text
+  ok | 7 passed | 0 failed | 3 ignored (8s)
+  ```
+
+  The full output is at `.claude/docs/task3-tests.log`; it is ignored and is not part of the task commit.
+- Additional check: the README's conditional import-type codemod check does not apply because PR 02b is still marked `planned` and `tools/codemod-import-type.ts` is absent. An exploratory invocation reported `ERROR: quarto run: script 'tools/codemod-import-type.ts' not found`; it changed no files.
+- Deviations: only the prescribed Windows `.cmd`/PowerShell adaptations. The pre-existing harness lock file remained untracked and outside the commit. Outstanding: Task 4 and the final Verification remain for later sessions.

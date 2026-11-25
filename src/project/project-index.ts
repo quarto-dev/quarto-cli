@@ -48,6 +48,7 @@ import {
   statSync,
   writeTextFileSync,
 } from "../deno_ral/fs.ts";
+import { isNotFound } from "../deno_ral/errors.ts";
 
 export async function inputTargetIndex(
   project: ProjectContext,
@@ -252,7 +253,7 @@ function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
       }
     }
   } catch (e) {
-    if (e instanceof Deno.errors.NotFound) {
+    if (isNotFound(e)) {
       return undefined;
     } else {
       throw e;

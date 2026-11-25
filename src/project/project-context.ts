@@ -15,6 +15,7 @@ import {
 } from "../deno_ral/path.ts";
 
 import { existsSync, statSync, walk, walkSync } from "../deno_ral/fs.ts";
+import { isPermissionDenied } from "../deno_ral/errors.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -730,7 +731,7 @@ function quartoYamlProjectConfigResolver(
     try {
       configFile = projectConfigFile(dir);
     } catch (e) {
-      if (e instanceof Deno.errors.PermissionDenied) {
+      if (isPermissionDenied(e)) {
         // ignore permission denied errors
       } else {
         throw e;
@@ -1052,7 +1053,7 @@ function projectHiddenIgnoreGlob(dir: string) {
 // inputs were being listed, and the _quarto.yml that made it a project
 // (null for an extension-detected root, unset outside a resolved project).
 const kInputWalkProject = Symbol("input-walk-project");
-type InputWalkError = Deno.errors.PermissionDenied & {
+type InputWalkError = Error & {
   [kInputWalkProject]?: { dir: string; configFile?: string | null };
 };
 
@@ -1157,7 +1158,7 @@ async function projectInputFilesInternal(
   };
   // directory traversals (walk, render globs) tag their PermissionDenied
   const tagInputWalkError = (e: unknown) => {
-    if (e instanceof Deno.errors.PermissionDenied) {
+    if (isPermissionDenied(e)) {
       (e as InputWalkError)[kInputWalkProject] = { dir: project.dir };
     }
   };
