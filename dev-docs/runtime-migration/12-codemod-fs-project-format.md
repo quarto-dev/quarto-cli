@@ -79,9 +79,9 @@ Phase 1 lands the filesystem codemods 10–13 first, then 14, then 08 and 22 (RE
 PRs 10–13 cover disjoint directories, but PR 08, PR 22 and PR 14 edit the import blocks of many of the same files (34–38 files overlap), and the codemod inserts its import after the last import, the same anchor every one of them uses.
 If `main` moves between the codemod run and the merge, conflicts in this PR are resolved mechanically, never by hand-merging a codemodded hunk:
 
-1. `git rebase origin/main`; for every conflicted file under this PR's directories, `git checkout origin/main -- <file>` (reset the file to `main`).
+1. `git fetch upstream && git rebase upstream/main`; for every conflicted file under this PR's directories, `git checkout upstream/main -- <file>` (reset the file to `main`).
 2. Re-run the codemod on exactly those files: `quarto run --dev tools/codemod-deno-ral.ts --rules <this PR's rules> --file <file> [--file <file>...]`.
-3. Re-apply this PR's hand edits for those files (each is listed with its exact code below), then `package/dist/bin/tools/x86_64/deno fmt <file>...`.
+3. Re-apply this PR's hand edits for those files (each is listed with its exact code below), then `package/dist/bin/tools/x86_64/deno fmt <file>...`, leaving out `website-sitemap.ts`, `manuscript.ts` and `format-reveal.ts` (unformatted on `main`; see the README row for Task 2 Step 2).
 4. `git add` the files and `git rebase --continue`; run the type check and the dry run of Task 1 again (it must report `0 replacements` for the PR's directories once the hand edits are back).
 
 This works because PR 09's collision detection is symbol-based and reuses existing alias imports: a re-run over a partly migrated file finishes it and does not report the layer's own imports as collisions.
@@ -94,7 +94,7 @@ No alias imports are expected: the dry run (Task 1) must report zero collisions 
 ### Files
 
 - Modify (codemod): every `*.ts` under `src/project` and `src/format` that uses an fs/temp API (51 files)
-- Modify (hand): `src/project/project-context.ts:652,967,1072`, `src/project/project-index.ts:250`
+- Modify (hand): `src/project/project-context.ts:733,1055,1160`, `src/project/project-index.ts:250`
 - Modify: `tools/runtime-boundary-baseline.json`
 
 ### Acceptance criteria
@@ -223,8 +223,8 @@ git commit -m "Lower runtime boundary baseline after project/format fs/temp code
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - The AST dry run and the `rg` in Acceptance criteria → as stated.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- Manual: `package/dist/bin/quarto render tests/docs/websites/search` (a website with listing/feed/sitemap; `_site/sitemap.xml` is written) and `package/dist/bin/quarto render tests/docs/manuscript/base` (the MECA bundle is written under its `_manuscript/` output); both complete without errors.
-  Remove the generated output afterwards: run `git clean -ndx tests/docs/websites/search tests/docs/manuscript/base`, check that the list holds only generated output, then run it again with `-fdx`.
+- Manual: `package/dist/bin/quarto render tests/docs/listings-feed-image` (a website with `site-url` and listing feeds; `_site/sitemap.xml`, `_site/index.xml`, `_site/archive/index.xml` and `_site/updates/index.xml` are written) and `package/dist/bin/quarto render tests/docs/manuscript/base` (the MECA bundle is written under its `_manuscript/` output); both complete without errors.
+  Remove the generated output afterwards: run `git clean -ndx tests/docs/listings-feed-image tests/docs/manuscript/base`, check that the list holds only generated output, then run it again with `-fdx`.
 
 ## Review checklist
 
@@ -333,7 +333,7 @@ Review items closed here: counts (51 files / 159 replacements), the comment-matc
 
 - Steps 1–2: added the prescribed `isPermissionDenied` and `isNotFound` imports. In `project-context.ts`, replaced both `instanceof Deno.errors.PermissionDenied` checks with `isPermissionDenied(e)` and changed `InputWalkError` to the prescribed `Error & { … }` intersection without changing its symbol-keyed field. In `project-index.ts`, replaced the `instanceof Deno.errors.NotFound` check with `isNotFound(e)` while preserving the non-NotFound rethrow. `git diff --check` printed nothing, and `package/dist/bin/tools/x86_64/deno.exe fmt --check src/project/project-context.ts src/project/project-index.ts` printed `Checked 2 files`; no formatting changes were needed.
 - Step 3 residue check: `rg -n 'Deno\.errors' src/project src/format -g '*.ts'` printed nothing and exited 1 (no matches), as expected.
-- Step 3 tests: with the worktree's `package/dist/bin` prepended to `PATH`, the Windows invocation was `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.ps1 --agent unit/project/project-context-unreadable-dir.test.ts unit/project/project-detect-denied-path.test.ts smoke/project/project-unreadable-dir.test.ts smoke/project/project-detect-denied-config.test.ts`. It printed:
+- Step 3 tests: with the worktree's `package/dist/bin` prepended to `PATH`, the tests ran from `tests` in PowerShell, with `$env:QUARTO_TESTS_NO_CONFIG = 'true'` set first, as `.\run-tests.ps1 --agent unit/project/project-context-unreadable-dir.test.ts unit/project/project-detect-denied-path.test.ts smoke/project/project-unreadable-dir.test.ts smoke/project/project-detect-denied-config.test.ts`. It printed:
 
   ```text
   ok | 7 passed | 0 failed | 3 ignored (8s)
