@@ -57,7 +57,7 @@ Files that need attention beyond the codemod (verified):
 | File | Why |
 |---|---|
 | `src/project/project-context.ts:733,1160` | `e instanceof Deno.errors.PermissionDenied` → `isPermissionDenied(e)`. |
-| `src/project/project-context.ts:1055` | `type InputWalkError = Deno.errors.PermissionDenied & { [kInputWalkProject]?: … }` is a *type* position the codemod does not touch; it becomes `Error & { … }` (the symbol-keyed field is what matters; `frameInputWalkError` and the tests in `tests/unit/project/project-context-unreadable-dir.test.ts` read it through `isPermissionDenied`/`assertInstanceOf(e, Error)`). |
+| `src/project/project-context.ts:1055` | `type InputWalkError = Deno.errors.PermissionDenied & { [kInputWalkProject]?: … }` is a *type* position the codemod does not touch; it becomes `Error & { … }` (the symbol-keyed field is what matters: `tagInputWalkError` sets it after an `isPermissionDenied` check and `frameInputWalkError` reads only that field; `tests/unit/project/project-context-unreadable-dir.test.ts` still asserts the raw rejection is `Deno.errors.PermissionDenied` and the framed result an `ErrorEx`). |
 | `src/project/project-index.ts:250` | `e instanceof Deno.errors.NotFound` → `isNotFound(e)`. |
 | `src/project/types/manuscript/manuscript-config.ts:88`, `manuscript.ts:704` | `await Deno.open(file)` then `readLines(reader)` from `deno_ral/io.ts` (`@std/io` `readLines` takes a `Reader`, i.e. anything with `read(p)`; the layer's `FsFile` has it). Codemod rewrites to `open`; review only. |
 | `src/project/types/website/website-sitemap.ts:170` | `await Deno.open(sitemapPath)` handed to `xmlp`'s `SAXParser.parse(reader)` (a `Reader`) then `reader.close()`. Codemod; review only. (PR 04 replaces `xmlp`.) |
