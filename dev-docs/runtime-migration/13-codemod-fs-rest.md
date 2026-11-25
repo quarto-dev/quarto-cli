@@ -210,7 +210,7 @@ Publishing code has no smoke tests (network); `unit/confluence/` is its unit cov
 In `.claude/rules/typescript/deno-ral.md`, under the "Moving code off `Deno.*`" subsection added by PR 09, append:
 
 ```
-Standalone scripts that run without the import map cannot import `deno_ral` and keep their `Deno.*` calls until the PR that owns them: `src/resources/scripts/*.ts` and `src/resources/create/**/*.ejs.ts` (PR 35), `src/resources/tools/ast-diagram/main.ts` (allow-listed by PR 25, ported by PR 35), `src/webui/quarto-preview/build.ts` (allow-listed until PR 33), and the `src/resources/extension-subtrees/` git subtrees (upstream). The codemod skips all of them.
+Standalone scripts that run without the import map cannot import `deno_ral` and keep their `Deno.*` calls until the PR that owns them: `src/resources/scripts/*.ts` (PR 35), the engine extension template under `src/resources/create/**/*.ejs.ts` (PR 36), `src/resources/tools/ast-diagram/main.ts` (allow-listed by PR 25, ported by PR 35), `src/webui/quarto-preview/build.ts` (allow-listed until PR 33), and the `src/resources/extension-subtrees/` git subtrees (upstream). A `--dir` walk of the codemod skips all of them; `--file` bypasses the exclusions, so never pass them that way.
 ```
 
 - [x] **Step 4: Changelog entry for sorted directory listings**
@@ -222,7 +222,7 @@ In `news/changelog-1.12.md`, append to the end of `## Other fixes and improvemen
 
 ```markdown
 - ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name in character-code order, not by locale) on every platform.
-  Extension discovery, the theme list of `quarto capabilities`, the brand extension that `quarto use brand` picks, the order of the bslib component SCSS files, and the manifest entries for the files of a supporting directory in a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
+  Extension discovery, the theme list of `quarto capabilities`, the brand extension that `quarto use brand` picks, the order of the bslib component SCSS files, and the manifest entries for the files of a supporting directory in a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, or set conflicting project options such as `execute-dir`, which one wins can differ from earlier versions.
 ```
 
 - [x] **Step 5: Ratchet**
