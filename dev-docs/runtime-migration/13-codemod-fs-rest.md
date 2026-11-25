@@ -124,7 +124,7 @@ import { realPath as fsRealPath } from "../../deno_ral/fs.ts";
 ## Plan
 
 Assumes PR 09 landed.
-PRs 09, 10 and 11 are merged; PR 08 and PR 22 have not landed. PR 12 (#15426) is open and edits only `src/project` and `src/format`; whichever of 12 and 13 merges second rebases and regenerates the baseline (Task 1 intro).
+PRs 09, 10, 11 and 12 are merged; PR 08 and PR 22 have not landed. PR 12 merged as #15426 and edited only `src/project` and `src/format`; this branch is rebased onto `f23c186c8`, which includes it, and the `src` baseline on that base is 507 (execution log, "Base refresh").
 
 ### Task 1: Dry run and review
 
@@ -134,7 +134,7 @@ PRs 10–13 are independent (disjoint directories) but every one of them edits `
 
 - [x] **Step 1: Dry run**
 
-Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run > .claude/docs/codemod-rest.txt; tail -1 .claude/docs/codemod-rest.txt` Expected: `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
+Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run > .claude/docs/codemod-rest.txt; tail -1 .claude/docs/codemod-rest.txt` Expected: `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`, again on `f23c186c8`); `git status --short src` is empty.
 
 - [x] **Step 2: Review the report**
 
@@ -215,7 +215,7 @@ Standalone scripts that run without the import map cannot import `deno_ral` and 
 
 - [ ] **Step 4: Ratchet**
 
-Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 123 and no increase in any scope.
+Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 123 (507 → 384 on `f23c186c8`) and no increase in any scope.
 
 - [ ] **Step 5: Commit**
 
@@ -273,3 +273,15 @@ Review items closed here: counts (35 files / 122 replacements), the comment-matc
 - Step 2: `grep -E 'skipped:|collision:' .claude/docs/codemod-rest.txt` printed exactly `src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*`. `grep '→' .claude/docs/codemod-rest.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` printed only fs/temp targets: `readTextFileSync` 32, `writeTextFileSync` 22, `statSync` 21, `readDirSync` 7, `remove` 6, `readFileSync` 5, `makeTempDirSync` 5, `readTextFile` 4, `readFile` 3, `makeTempFileSync` 3, `copyFileSync` 3, `readDir` 2, `open` 2, and one each of `writeTextFile`, `writeFileSync`, `symlink`, `renameSync`, `lstat`, `chmodSync`, `chmod`.
 - Step 3: `grep -c 'src/resources\|src/webui' .claude/docs/codemod-rest.txt` printed `0` and exited 1 because there were no matches, as expected.
 - Deviations: the Windows `.cmd` dev launcher was used; otherwise none. Tasks 2–4 remain unexecuted.
+
+### Base refresh — rebase onto `f23c186c8` after PR 12
+
+The records above were taken on `2d133a903`, before PR 12 (#15426) merged; they stay as written.
+The branch was rebased once onto `upstream/main` at `f23c186c8` ("Reconcile runtime migration docs with main after PRs 10-12"), which includes PR 12 (`330120538`) and its closeout (`75452bd80`).
+PR 12 changed only `src/project` and `src/format`, so no file under this PR's seven directories conflicted.
+
+- Rebase conflicts: two, both in README "Open decisions with an owner". Kept `main`'s "PR 13 (audit of 2026-11-16)" row (counts held on `1d80652`, re-read from the dry run) and its new "PRs 13 and 14, what PRs 10–12 found" row, and kept this branch's "PR 13 Task 2 Step 2" and "Task 2 Step 3" rows as last corrected on the branch. Every other branch commit applied without conflict.
+- Dry run (Windows, Deno 2.9.8, same command as Task 1 Step 1, report rewritten to `.claude/docs/codemod-rest.txt`): `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped`. `grep -E 'skipped:|collision:'` printed only `src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*`. The targets are the same as Task 1 Step 2's list, count for count. `grep -c 'src/resources\|src/webui'` printed `0`; `git status --short src` printed nothing. Task 1 stays ticked.
+- Ratchet on the clean base: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 507 (baseline 507)` and `OK: no count exceeds the baseline.` The expected Task 4 result is `src` 507 → 384 (122 codemod replacements + the `tinytex.ts` collision site = 123).
+- Type check on the clean base: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` from `src` exits 0.
+- "PRs 13 and 14, what PRs 10–12 found": items (1)–(3) are already in this plan (report path, the five unformatted files left out of `deno fmt`, staging by path). Item (4), the "Pending checks" list, belongs to the PR description at wrap-up. Item (5), the changelog entry for sorted directory listings that PR 13 owes, has no step in this plan yet.
