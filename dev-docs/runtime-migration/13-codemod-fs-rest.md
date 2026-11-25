@@ -132,11 +132,11 @@ README ground rule 7 applies: this PR is generated from fresh `main` the day it 
 PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
 
 
-- [ ] **Step 1: Dry run**
+- [x] **Step 1: Dry run**
 
 Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run > .claude/docs/codemod-rest.txt; tail -1 .claude/docs/codemod-rest.txt` Expected: `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped` (measured on `b86f98d`); `git status --short src` is empty.
 
-- [ ] **Step 2: Review the report**
+- [x] **Step 2: Review the report**
 
 Run: `grep -E 'skipped:|collision:' .claude/docs/codemod-rest.txt` Expected exactly (the `Summary:` line does not match these markers):
 ```
@@ -145,7 +145,7 @@ src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts wit
 
 Run: `grep '→' .claude/docs/codemod-rest.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` Expected: only `fs`/`temp` rule targets.
 
-- [ ] **Step 3: Confirm the exclusions are not in the walk**
+- [x] **Step 3: Confirm the exclusions are not in the walk**
 
 Run: `grep -c 'src/resources\|src/webui' .claude/docs/codemod-rest.txt` Expected: `0` (those directories were not passed; `src/resources/extension-subtrees` would be skipped by the tool anyway).
 
@@ -266,3 +266,10 @@ Review items closed here: counts (35 files / 122 replacements), the comment-matc
 - Code-block audit: `rg -n 'function \w+'` prints nothing; the indirect-`Deno` and `PR [0-9]` code-comment greps hit only prose. Other corrections: the report path moved from `/tmp` to `.claude/docs/codemod-rest.txt`; the conflict protocol uses `upstream/main` (README row from PR 12's review); `bundle.ts:106-108` leaves "Modify (hand)" and the manual `quarto add` check calls the dev build by absolute path (README PR 13 audit row).
 - Tests: every file named in Task 4 and `tests/docs/test.qmd` exist; the `find` directories hold 4 (`unit/tools`), 1 (`unit/extension`), 1 (`unit/jupyter`), 1 (`unit/confluence`), 8 (`unit/project`), 3 (`smoke/engine`), 4 (`smoke/jupyter`), 7 (`smoke/extensions`), 3 (`smoke/ojs`), 2 (`smoke/embed`), 2 (`smoke/env`) and 3 (`smoke/run`) test files. The `.cmd` launcher and PowerShell `run-tests.ps1` forms replace the POSIX ones at execution time.
 - Gate inputs: the only `Plan defect`/`Plan gap` bead that applies is the `--allow-import` one, already a README row; the Windows review rates this plan "Conventions" with E05 only (the `cd` path, covered); 8 commits touched the seven directories since `b86f98d`, all covered by the citation audit and the unchanged counts.
+
+### Task 1: Dry run and review
+
+- Step 1 (Windows): `mkdir -p .claude/docs && package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run > .claude/docs/codemod-rest.txt` retained the report at `.claude/docs/codemod-rest.txt`. `tail -1 .claude/docs/codemod-rest.txt` printed `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped`; `git status --short src` printed nothing.
+- Step 2: `grep -E 'skipped:|collision:' .claude/docs/codemod-rest.txt` printed exactly `src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*`. `grep '→' .claude/docs/codemod-rest.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` printed only fs/temp targets: `readTextFileSync` 32, `writeTextFileSync` 22, `statSync` 21, `readDirSync` 7, `remove` 6, `readFileSync` 5, `makeTempDirSync` 5, `readTextFile` 4, `readFile` 3, `makeTempFileSync` 3, `copyFileSync` 3, `readDir` 2, `open` 2, and one each of `writeTextFile`, `writeFileSync`, `symlink`, `renameSync`, `lstat`, `chmodSync`, `chmod`.
+- Step 3: `grep -c 'src/resources\|src/webui' .claude/docs/codemod-rest.txt` printed `0` and exited 1 because there were no matches, as expected.
+- Deviations: the Windows `.cmd` dev launcher was used; otherwise none. Tasks 2–4 remain unexecuted.
