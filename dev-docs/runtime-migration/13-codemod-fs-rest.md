@@ -217,7 +217,7 @@ Standalone scripts that run without the import map cannot import `deno_ral` and 
 
 This PR moves extension discovery onto the sorted `readDir`/`readDirSync` of `src/deno_ral/fs.ts`, the last of the listings that #15286 dropped from the changelog as premature (README row "PRs 13 and 14, what PRs 10–12 found", item 5).
 Run: `rg -n 'Deno\.readDir' src/extension/extension.ts src/command/capabilities/capabilities.ts src/command/use/commands/brand.ts src/format/html/format-html-shared.ts src/project/types/manuscript/manuscript-meca.ts` Expected: nothing (each listing named below reads through the layer).
-The `rg` cannot see indirect reads: `walkSync`/`walk` are std's unsorted walker re-exported by `src/deno_ral/fs.ts`, so listings built on them stay out of the entry (the MECA source items gathered by `walkSync` outside a Git repository, `manuscript-meca.ts:177`; the extension file lists of `extension.ts:515,528`, which do not decide discovery).
+The `rg` cannot see indirect reads: `walkSync`/`walk` are std's unsorted walker re-exported by `src/deno_ral/fs.ts`, so listings built on them stay out of the entry (the MECA source items gathered by `walkSync` outside a Git repository, `manuscript-meca.ts:177`; the extension file list of `extension.ts:528`, which does not decide discovery). The `_extensions` directory search at `extension.ts:515` uses `expandGlobSync`, which already sorts its results, so this PR does not change its order.
 In `news/changelog-1.12.md`, append to the end of `## Other fixes and improvements` (the maintainer replaces `N` with this PR's number and moves the entry to its ascending position):
 
 ```markdown
