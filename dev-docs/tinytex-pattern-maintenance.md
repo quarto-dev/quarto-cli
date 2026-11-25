@@ -71,7 +71,7 @@ A round-trip unit test fails when the module's format no longer matches the gene
 Quarto-only differences:
 
 - the `chinese` and `chinese-hans` skip list ([#10291](https://github.com/quarto-dev/quarto-cli/issues/10291))
-- the `Hyphen rules for '...' set to \l@nil` fallback, which runs only when the babel and polyglossia warnings yield no package name and is merged with the `.ini` fallback result
+- the `Hyphen rules for '...' set to \l@nil` fallback, which runs only when the babel and polyglossia warnings yield no package name, skips locales imported from an `.ini` file (the `.ini` fallback gives their package, e.g. `hyphen-spanish` for `mexican`), and is merged with the `.ini` fallback result
 - unquoted language names in the babel "You haven't defined the language" error regex
 
 ## Manual Adaptation Process

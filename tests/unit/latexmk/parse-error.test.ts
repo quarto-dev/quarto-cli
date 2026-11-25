@@ -532,6 +532,13 @@ Package babel Info: Hyphen rules for 'mexican' set to \\l@english
 (babel)             (\\language0). Reported on input line 3.`;
   assertEquals(findMissingHyphenationFiles(unknownIni), ["hyphen-spanish"], ".ini code absent from the code table");
 
+  // The .ini import gives the package, not the locale name on the \l@nil line
+  const mexicanNil = `Package babel Info: Importing data for 'mexican'
+(babel)             from babel-es-MX.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'mexican' set to \\l@nil
+(babel)             (\\language23). Reported on input line 3.`;
+  assertEquals(findMissingHyphenationFiles(mexicanNil), ["hyphen-spanish"], "\\l@nil fallback for an imported dialect");
+
   const mixedCase = `Package babel Info: Importing data for 'Spanish'
 (babel)             from babel-ES.ini. Reported on input line 3.
 Package babel Info: Hyphen rules for 'Spanish' set to \\l@english

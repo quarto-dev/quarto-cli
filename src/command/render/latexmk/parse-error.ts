@@ -288,17 +288,9 @@ export function findMissingHyphenationPackages(logText: string): string[] {
   );
 }
 
-/**
- * Babel logs an .ini hyphenation fallback with Info lines only:
- *
- * Package babel Info: Importing data for 'spanish'
- * (babel)             from babel-es.ini. Reported on input line 3.
- * Package babel Info: Hyphen rules for 'spanish' set to \l@english
- * (babel)             (\language0). Reported on input line 3.
- *
- * Port of detect_babel_fallback() in tinytex (R/latex.R).
- */
-export function findBabelFallbackLanguages(logText: string): string[] {
+// Joins babel continuation lines ("(babel)  from babel-es.ini.") to the
+// message they belong to
+function foldBabelLines(logText: string): string[] {
   const foldedLines: string[] = [];
   for (const line of logText.split(/\r?\n/)) {
     const continuation = line.match(/^\(babel\)\s+(.*)$/);
@@ -308,7 +300,11 @@ export function findBabelFallbackLanguages(logText: string): string[] {
       foldedLines.push(line);
     }
   }
+  return foldedLines;
+}
 
+// Locale name -> base name of the .ini file babel imported it from
+function babelIniImports(foldedLines: string[]): Map<string, string> {
   const importingRegex =
     /^Package babel Info: Importing (basic )?data for '?([^' ]+)'? .*from babel-([-.A-Za-z0-9]+)[.]ini.*$/;
   const imports = new Map<string, string>();
@@ -321,6 +317,22 @@ export function findBabelFallbackLanguages(logText: string): string[] {
       }
     }
   }
+  return imports;
+}
+
+/**
+ * Babel logs an .ini hyphenation fallback with Info lines only:
+ *
+ * Package babel Info: Importing data for 'spanish'
+ * (babel)             from babel-es.ini. Reported on input line 3.
+ * Package babel Info: Hyphen rules for 'spanish' set to \l@english
+ * (babel)             (\language0). Reported on input line 3.
+ *
+ * Port of detect_babel_fallback() in tinytex (R/latex.R).
+ */
+export function findBabelFallbackLanguages(logText: string): string[] {
+  const foldedLines = foldBabelLines(logText);
+  const imports = babelIniImports(foldedLines);
 
   const hyphenRulesRegex =
     /^Package babel Info: Hyphen rules for '([^']+)' set to \\l@([-.A-Za-z0-9]+).*$/;
@@ -371,11 +383,16 @@ export function findMissingHyphenationFiles(logText: string): string[] {
   let nilPackages: string[] = [];
   if (packages.length === 0) {
     // Run only when the warnings yield no package name, and merge with the .ini fallback
-    // result, as tinytex's check_extra() evaluates both checks.
+    // result, as tinytex's check_extra() evaluates both checks. A locale
+    // imported from an .ini file is left to the .ini fallback, which knows its
+    // patterns (mexican is in hyphen-spanish, not hyphen-mexican).
     const hyphenRulesRegex =
       /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
+    const imported = babelIniImports(foldBabelLines(logText));
     nilPackages = hyphenationPackagesForLanguages(
-      [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
+      [...logText.matchAll(hyphenRulesRegex)]
+        .map((m) => m[1])
+        .filter((locale) => !imported.has(locale.toLowerCase())),
     );
   }
   return ld.uniq([
