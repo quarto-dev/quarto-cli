@@ -1,6 +1,6 @@
 ## TinyTeX Pattern Update: {{DATE}}
 
-The daily TinyTeX patterns (`regex.json`) or hyphenation map (`hyphen.json`) have changed and need review.
+The daily TinyTeX patterns (`regex.json`), hyphenation map (`hyphen.json`), or babel hyphenation tables (`babel-hyphen.json`) have changed and need review.
 
 ### Pattern Diff
 
@@ -23,6 +23,7 @@ See [dev-docs/tinytex-pattern-maintenance.md](./dev-docs/tinytex-pattern-mainten
 - [ ] Determine if patterns need adaptation
 - [ ] Update `parse-error.ts` if needed
 - [ ] If `hyphen.json` changed, update `kHyphenationPackageNames` in `parse-error.ts` and the copy in the unit test
+- [ ] If `babel-hyphen.json` changed, [regenerate `babel-hyphen.ts`](https://github.com/quarto-dev/quarto-cli/blob/main/dev-docs/tinytex-pattern-maintenance.md#hyphenation-packages), run `unit/latexmk/babel-hyphen.test.ts` and `unit/latexmk/parse-error.test.ts`, then commit the generated file
 - [ ] Add/update filter functions
 - [ ] Run tests: `unit\latexmk\parse-error.test.ts`
 - [ ] Add test cases for new patterns if needed

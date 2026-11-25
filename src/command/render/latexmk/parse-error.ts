@@ -9,6 +9,11 @@ import { existsSync, readTextFileSync } from "../../../deno_ral/fs.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { lines } from "../../../core/text.ts";
+import {
+  kBabelHyphenCodes,
+  kBabelHyphenMap,
+  kHyphenSynonyms,
+} from "./babel-hyphen.ts";
 
 // The missing font log file name
 export const kMissingFontLog = "missfont.log";
@@ -283,7 +288,94 @@ export function findMissingHyphenationPackages(logText: string): string[] {
   );
 }
 
-// Finds missing hyphenation files (these appear as warnings in the log file)
+// Joins babel continuation lines ("(babel)  from babel-es.ini.") to the
+// message they belong to
+function foldBabelLines(logText: string): string[] {
+  const foldedLines: string[] = [];
+  for (const line of logText.split(/\r?\n/)) {
+    const continuation = line.match(/^\(babel\)\s+(.*)$/);
+    if (continuation && foldedLines.length > 0) {
+      foldedLines[foldedLines.length - 1] += ` ${continuation[1]}`;
+    } else {
+      foldedLines.push(line);
+    }
+  }
+  return foldedLines;
+}
+
+// Maps each locale to the code in its babel-<code>.ini filename.
+function babelIniImports(foldedLines: string[]): Map<string, string> {
+  const importingRegex =
+    /^Package babel Info: Importing (basic )?data for '?([^' ]+)'? .*from babel-([-.A-Za-z0-9]+)[.]ini.*$/;
+  const imports = new Map<string, string>();
+  for (const line of foldedLines) {
+    const match = line.match(importingRegex);
+    if (match) {
+      const locale = match[2].toLowerCase();
+      if (!imports.has(locale)) {
+        imports.set(locale, match[3].toLowerCase());
+      }
+    }
+  }
+  return imports;
+}
+
+// Use the .ini file's hyphenrules value when available. Otherwise, look up
+// the locale's language.dat name.
+function expectedHyphenLanguage(
+  locale: string,
+  ini: string,
+): string | undefined {
+  if (Object.hasOwn(kBabelHyphenCodes, ini)) {
+    return kBabelHyphenCodes[ini];
+  }
+  if (Object.hasOwn(kBabelHyphenMap, locale)) {
+    return kBabelHyphenMap[locale];
+  }
+  return undefined;
+}
+
+/**
+ * Babel logs an .ini hyphenation fallback with Info lines only:
+ *
+ * Package babel Info: Importing data for 'spanish'
+ * (babel)             from babel-es.ini. Reported on input line 3.
+ * Package babel Info: Hyphen rules for 'spanish' set to \l@english
+ * (babel)             (\language0). Reported on input line 3.
+ *
+ * Port of detect_babel_fallback() in tinytex (R/latex.R).
+ */
+export function findBabelFallbackLanguages(logText: string): string[] {
+  const foldedLines = foldBabelLines(logText);
+  const imports = babelIniImports(foldedLines);
+
+  const hyphenRulesRegex =
+    /^Package babel Info: Hyphen rules for '([^']+)' set to \\l@([-.A-Za-z0-9]+).*$/;
+  const canon = (name: string) =>
+    Object.hasOwn(kHyphenSynonyms, name) ? kHyphenSynonyms[name] : name;
+  const fallback: string[] = [];
+  for (const line of foldedLines) {
+    const match = line.match(hyphenRulesRegex);
+    if (!match) {
+      continue;
+    }
+    const locale = match[1].toLowerCase();
+    const target = match[2].toLowerCase();
+    if (!imports.has(locale)) {
+      continue;
+    }
+
+    const expected = expectedHyphenLanguage(locale, imports.get(locale)!);
+    if (expected === undefined) {
+      continue;
+    }
+    if (canon(target) !== canon(expected)) {
+      fallback.push(expected);
+    }
+  }
+  return fallback;
+}
+
 export function findMissingHyphenationFiles(logText: string): string[] {
   // Same regexes as check_babel() and check_polyglossia() in tinytex, on
   // warning blocks only
@@ -296,16 +388,29 @@ export function findMissingHyphenationFiles(logText: string): string[] {
     ...warnings.matchAll(babelRegex),
     ...warnings.matchAll(polyglossiaRegex),
   ].map((m) => m[1]));
-  if (packages.length > 0) {
-    return packages;
-  }
 
-  // Try an alternative way of parsing
-  const hyphenRulesRegex =
-    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
-  return hyphenationPackagesForLanguages(
-    [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
-  );
+  let nilPackages: string[] = [];
+  if (packages.length === 0) {
+    // Skip locales resolved by the .ini lookup: mexican needs
+    // hyphen-spanish, not hyphen-mexican.
+    const hyphenRulesRegex =
+      /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
+    const imported = babelIniImports(foldBabelLines(logText));
+    const resolvedByIni = (locale: string) => {
+      const ini = imported.get(locale);
+      return ini !== undefined &&
+        expectedHyphenLanguage(locale, ini) !== undefined;
+    };
+    nilPackages = hyphenationPackagesForLanguages(
+      [...logText.matchAll(hyphenRulesRegex)]
+        .map((m) => m[1])
+        .filter((locale) => !resolvedByIni(locale.toLowerCase())),
+    );
+  }
+  return ld.uniq([
+    ...(packages.length > 0 ? packages : nilPackages),
+    ...hyphenationPackagesForLanguages(findBabelFallbackLanguages(logText)),
+  ]);
 }
 
 // Parse a log file to find latex errors

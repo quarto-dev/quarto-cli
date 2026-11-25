@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Download and extract regex.json and hyphen.json
+      - name: Download and extract regex.json, hyphen.json, and babel-hyphen.json
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -27,12 +27,35 @@ jobs:
             echo "::warning::Failed to download TinyTeX daily release - may not be published yet"
             exit 0
           fi
-          tar -xzf regex.tar.gz
+          # Extract outside the checkout and copy only the known regular files,
+          # so archive members cannot overwrite repository files used later
+          EXTRACT_DIR="$RUNNER_TEMP/tinytex-regex"
+          mkdir -p "$EXTRACT_DIR"
+          tar -xzf regex.tar.gz -C "$EXTRACT_DIR"
+          for f in regex.json hyphen.json babel-hyphen.json; do
+            if [ -f "$EXTRACT_DIR/$f" ] && [ ! -L "$EXTRACT_DIR/$f" ]; then
+              cp "$EXTRACT_DIR/$f" "$f"
+            fi
+          done
+          if [ ! -f regex.json ]; then
+            echo "::warning::regex.json not found in regex.tar.gz"
+            exit 0
+          fi
           # Files compared by the later steps
           PATTERN_FILES="regex.json hyphen.json"
           if [ ! -f hyphen.json ]; then
             echo "::warning::hyphen.json not found in regex.tar.gz"
             PATTERN_FILES="regex.json"
+          fi
+          if [ -f babel-hyphen.json ]; then
+            if jq -e -s 'length == 1 and (.[0] | [.hyphen_synonyms, .babel_hyphen_map, .babel_hyphen_codes] | all(type == "object" and (map(type == "string") | all)))' babel-hyphen.json > /dev/null; then
+              PATTERN_FILES="$PATTERN_FILES babel-hyphen.json"
+              echo "BABEL_HYPHEN=true" >> "$GITHUB_ENV"
+            else
+              echo "::warning::babel-hyphen.json failed validation - leaving it out"
+            fi
+          else
+            echo "::warning::babel-hyphen.json not found in regex.tar.gz"
           fi
           echo "PATTERN_FILES=$PATTERN_FILES" >> "$GITHUB_ENV"
           echo "✓ Downloaded and extracted: $PATTERN_FILES"
@@ -52,7 +75,7 @@ jobs:
             echo "changed=false" >> $GITHUB_OUTPUT
             echo "first_run=false" >> $GITHUB_OUTPUT
             echo "skipped=true" >> $GITHUB_OUTPUT
-            echo "::warning::No pattern files downloaded - comparison skipped"
+            echo "::warning::No pattern files available for comparison; skipping"
             exit 0
           fi
 
@@ -140,6 +163,32 @@ jobs:
             unset old
           done
 
+      - name: Read Deno version
+        id: deno_version
+        if: steps.compare.outputs.changed == 'true' && env.BABEL_HYPHEN == 'true'
+        run: |
+          DENO_VERSION=$(sed -n 's/^export DENO=//p' configuration)
+          echo "version=$DENO_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Deno
+        if: steps.compare.outputs.changed == 'true' && env.BABEL_HYPHEN == 'true'
+        # Still report the JSON diff if regeneration fails
+        continue-on-error: true
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed
+        with:
+          deno-version: ${{ steps.deno_version.outputs.version }}
+
+      - name: Regenerate babel-hyphen.ts
+        if: steps.compare.outputs.changed == 'true' && env.BABEL_HYPHEN == 'true'
+        continue-on-error: true
+        run: |
+          deno run --no-config --no-lock --allow-read=babel-hyphen.json --allow-write=src/command/render/latexmk/babel-hyphen.ts tools/update-babel-hyphen.ts babel-hyphen.json
+          git diff -- src/command/render/latexmk/babel-hyphen.ts > babel-hyphen-ts.diff
+          if [ -s babel-hyphen-ts.diff ]; then
+            echo "# Regenerated src/command/render/latexmk/babel-hyphen.ts" >> readable-diff.txt
+            cat babel-hyphen-ts.diff >> readable-diff.txt
+          fi
+
       - name: Create or update issue
         if: steps.compare.outputs.changed == 'true'
         env:
@@ -205,7 +254,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.compare.outputs.skipped }}" == "true" ]; then
-            echo "⚠ Download failed - comparison skipped"
+            echo "⚠ No pattern files available for comparison; skipping"
           elif [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
             echo "✓ Baseline established - cache created"
           elif [ "${{ steps.compare.outputs.changed }}" == "true" ]; then

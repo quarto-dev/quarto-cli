@@ -47,6 +47,7 @@ All changes included in 1.12:
 
 ### `pdf`
 
+- ([#15082](https://github.com/quarto-dev/quarto-cli/issues/15082)): Fix automatic installation of missing hyphenation patterns when babel loads a PDF document’s language from a locale file.
 - ([#15251](https://github.com/quarto-dev/quarto-cli/pull/15251)): Fix algorithm blocks (`#alg-`) being set in italics. Their body is now upright, like definitions, examples and exercises. (author: @mcanouil)
 - ([#15320](https://github.com/quarto-dev/quarto-cli/pull/15320)): Update to Pandoc's LaTeX template following Pandoc 3.13 support:
   - Table captions are set with the `caption` package, with a 6pt gap to the table.
