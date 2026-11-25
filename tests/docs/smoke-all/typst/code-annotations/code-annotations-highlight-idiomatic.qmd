@@ -1,0 +1,24 @@
+---
+title: Code Annotations (syntax-highlighting idiomatic)
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - '#quarto-code-annotation\(\("1": 1\), cell-id: "annotated-cell-1"\)'
+          - '```python'
+          - '#quarto-annotation-item\("annotated-cell-1"'
+        -
+          - '#Skylighting\('
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+1. Assign x.

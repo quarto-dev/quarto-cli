@@ -33,12 +33,214 @@ $endif$
 $endif$
 // Some quarto-specific definitions.
 
-#show raw.where(block: true): set block(
-    fill: luma(230),
-    width: 100%,
-    inset: 8pt,
-    radius: 2pt
-  )
+// Style of code blocks and of the filename bar. A template or a filter that
+// frames code blocks itself can change it for part of the document with
+// quarto-code-block-style.update(s => s + (key: value)).
+// fill: auto keeps the highlight style or brand background (Skylighting) and
+// the set rules (native code blocks); none gives no background.
+// stroke, surface and label: auto take colours that suit the code block fill,
+// or the page fill when the code block has no fill.
+#let quarto-code-block-style-defaults = (
+  inset: 8pt,
+  radius: 2pt,
+  stroke: auto,
+  fill: auto,
+  surface: auto,
+  label: auto,
+  title-inset: (x: 8pt, y: 4pt),
+)
+
+// True when a colour is dark, by its ITU-R BT.709 relative luminance.
+// Anything that is not a colour, such as none or a gradient, counts as light.
+#let quarto-color-is-dark(c) = {
+  if type(c) != color { return false }
+  let (r, g, b) = rgb(c).components(alpha: false).map(v => v / 100%)
+  0.2126 * r + 0.7152 * g + 0.0722 * b < 0.5
+}
+
+#let quarto-code-block-style = state("quarto-code-block-style", quarto-code-block-style-defaults)
+
+// Merge a code block style over the defaults, and replace an auto stroke,
+// surface or label with the colour for the background bg, or for the page fill
+// when bg is not a colour. Stops the compile on a key that the defaults do not
+// have. Reads the page fill, so call it in context.
+#let quarto-code-block-style-resolve(style, bg: auto) = {
+  for key in style.keys() {
+    if key not in quarto-code-block-style-defaults {
+      panic("quarto-code-block-style: unknown key \"" + key + "\". Known keys: "
+        + quarto-code-block-style-defaults.keys().join(", ") + ".")
+    }
+  }
+  let resolved = quarto-code-block-style-defaults + style
+  let background = if type(bg) == color { bg } else { page.fill }
+  let chrome-colors = if quarto-color-is-dark(background) {
+    (stroke: 0.5pt + luma(100), surface: luma(55), label: luma(225))
+  } else {
+    (stroke: 0.5pt + luma(128), surface: luma(220), label: luma(30))
+  }
+  for (key, value) in chrome-colors {
+    if resolved.at(key) == auto { resolved.insert(key, value) }
+  }
+  resolved
+}
+
+// Draw a code block with the current code block style.
+// The style fill comes first, then the fill argument; with both auto, the
+// block takes its fill from the set rules.
+// A style fill also clears the set rule fill of the raw block inside.
+// The drawn fill goes in a quarto-code-fill metadata, so that a filename frame
+// around the block can match its bar to it.
+#let quarto-code-block(fill: auto, body) = context {
+  let state-style = quarto-code-block-style.get()
+  let block-fill = state-style.at("fill", default: auto)
+  if block-fill == auto { block-fill = fill }
+  if block-fill == auto { block-fill = block.fill }
+  let style = quarto-code-block-style-resolve(state-style, bg: block-fill)
+  let args = (width: 100%, inset: style.inset, radius: style.radius, stroke: style.stroke)
+  let content = body
+  if style.fill != auto {
+    args.insert("fill", style.fill)
+    content = [#set block(fill: none)
+      #body]
+  } else if fill != auto {
+    args.insert("fill", fill)
+  }
+  [#metadata(block-fill) <quarto-code-fill>]
+  block(..args, content)
+}
+
+// Code annotation support
+
+// Derive a contrasting annotation colour from a background fill.
+// Light backgrounds get dark circles; dark backgrounds get light circles.
+#let quarto-annote-color(bg) = {
+  if quarto-color-is-dark(bg) { luma(200) } else { luma(60) }
+}
+
+// A circled annotation number. color wins; otherwise, with bg set, the colour
+// contrasts with the code block fill (the style fill, else bg); otherwise
+// the circle takes the text colour. size sets the text size that the circle
+// scales with; auto uses the current text size.
+#let quarto-circled-number(n, color: none, bg: auto, size: auto) = context {
+  let c = if color != none {
+    color
+  } else if bg != auto {
+    let style = quarto-code-block-style-resolve(quarto-code-block-style.get())
+    quarto-annote-color(if style.fill != auto { style.fill } else { bg })
+  } else {
+    text.fill
+  }
+  // A template or an extension can wrap code blocks in a broad set block rule.
+  // Without this reset, that rule reaches the blocks inside the circle and
+  // pushes the circle off its code line.
+  set block(width: auto, height: auto, inset: 0pt, outset: 0pt, radius: 0pt, stroke: none, fill: none, spacing: 0pt)
+  // A zero-height box lets the circle overflow instead of making its row taller.
+  // The 0.55em baseline offset, undone by the move, stops the box from raising its line.
+  // The equation wrapper carries the text alternative.
+  let circled = box(height: 0pt, baseline: 0.55em, move(dy: -0.63em, math.equation(alt: "Annotation " + str(n), block: false, circle(
+    radius: 0.55em,
+    stroke: 0.5pt + c,
+  )[#set text(size: 0.7em, fill: c); #align(center + horizon, str(n))])))
+  if size != auto { text(size: size, circled) } else { circled }
+}
+
+// Link to `target` only if that label exists in the document; otherwise
+// render `body` unlinked. Keeps annotation rendering resilient when the
+// counterpart (annotation item or code line) is missing.
+#let quarto-annote-link(target, body) = context {
+  if query(label(target)).len() > 0 { link(label(target), body) } else { body }
+}
+
+// Frame a code block with a filename bar, styled by quarto-code-block-style.
+// The code block inside draws no outline of its own, so the frame shows one.
+#let quarto-code-filename(filename, body) = context {
+  let previous = quarto-code-block-style.get()
+  // The bar matches the fill of the first code block inside this frame,
+  // found between here and the end marker of the frame.
+  let frame-end = query(selector(<quarto-code-filename-end>).after(here()))
+  let body-fills = if frame-end.len() > 0 {
+    query(selector(<quarto-code-fill>).after(here()).before(frame-end.first().location()))
+  } else { () }
+  let body-fill = if body-fills.len() > 0 { body-fills.first().value } else { auto }
+  let style = quarto-code-block-style-resolve(previous, bg: body-fill)
+  // Long names would be clipped: allow breaks after separators (but not after the
+  // last dot, which keeps the extension attached) first, and
+  // inside runs of more than 30 characters without a separator
+  let filename = if type(filename) == str and filename.len() > 40 {
+    filename
+      .replace(regex("[/_.-]"), m => m.text + "\u{200b}")
+      .replace(regex("[.]\u{200b}([^.]*)\\z"), m => "." + m.captures.at(0))
+      .replace(regex("[^/_.\u{200b}-]{31,}"), m => m.text.clusters().join("\u{200b}"))
+  } else { filename }
+  show raw.where(block: true): it => it
+  block(width: 100%, radius: style.radius, clip: true, stroke: style.stroke)[
+    #set block(spacing: 0pt)
+    #block(fill: style.surface, width: 100%, inset: style.title-inset)[
+      #text(size: 0.85em, weight: "bold", fill: style.label)[#filename]]
+    #quarto-code-block-style.update(s => s + (stroke: none, radius: 0pt))
+    #body
+    #quarto-code-block-style.update(previous)
+    #metadata(none) <quarto-code-filename-end>
+  ]
+}
+
+// Native code annotations. The circles are drawn inside the raw block, where
+// the text is smaller, so they take the text size from outside the block to
+// match the circles of the annotation list. They follow the code text colour.
+#let quarto-code-annotation(annotations, cell-id: "", color: none, body) = context {
+  let size = text.size
+  // Build a set of first-line positions per annotation number so that
+  // back-labels are only emitted once (avoiding duplicate labels when
+  // one annotation spans multiple lines).
+  let first-lines = (:)
+  for (line, num) in annotations {
+    let key = str(num)
+    if key not in first-lines or int(line) < int(first-lines.at(key)) {
+      first-lines.insert(key, line)
+    }
+  }
+  show raw.where(block: true): it => it
+  show raw.line: it => {
+    let annote-num = annotations.at(str(it.number), default: none)
+    if annote-num != none {
+      if cell-id != "" {
+        let lbl = cell-id + "-annote-" + str(annote-num)
+        let is-first = first-lines.at(str(annote-num), default: none) == str(it.number)
+        if is-first {
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color, size: size)] #label(lbl + "-back")]
+        } else {
+          box(width: 100%)[#it #h(1fr) #quarto-annote-link(lbl)[#quarto-circled-number(annote-num, color: color, size: size)]]
+        }
+      } else {
+        box(width: 100%)[#it #h(1fr) #quarto-circled-number(annote-num, color: color, size: size)]
+      }
+    } else {
+      it
+    }
+  }
+  body
+}
+
+#let quarto-annotation-item(cell-id, n, content) = {
+  if cell-id != "" {
+    [#block(above: 0.4em, below: 0.4em)[
+      #quarto-annote-link(cell-id + "-annote-" + str(n) + "-back")[#quarto-circled-number(n)]
+      #h(0.4em)
+      #content
+    ] #label(cell-id + "-annote-" + str(n))]
+  } else {
+    block(above: 0.4em, below: 0.4em)[
+      #quarto-circled-number(n)
+      #h(0.4em)
+      #content
+    ]
+  }
+}
+
+// Style native raw code blocks with default inset and radius
+// Default fill is a set rule so a later `set block(fill: ...)` (brand or user) wins
+#show raw.where(block: true): set block(fill: luma(230))
+#show raw.where(block: true): it => quarto-code-block(it)
 
 #let block_with_new_content(old_block, new_content) = {
   let fields = old_block.fields()

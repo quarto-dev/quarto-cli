@@ -1,0 +1,38 @@
+---
+title: Code Annotations (circle size, Skylighting)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+The circle on an annotated code line must have the same size as the circle in the annotation list.
+The probe measures the width of every circle, and the compile fails when two widths differ.
+
+```{=typst}
+#let radii = state("circle-radii", ())
+#show circle: it => {
+  context { let w = measure(it).width; radii.update(r => r + (w,)) }
+  it
+}
+```
+
+```python
+x = 1 # <1>
+y = 2 # <2>
+```
+
+1. First.
+2. Second.
+
+```{=typst}
+#context {
+  let all = radii.final()
+  assert.eq(all.len(), 4, message: "expected 4 circles, 2 on the code lines and 2 in the list")
+  assert(all.all(r => r == all.first()), message: "circle widths differ: " + repr(all))
+}
+```

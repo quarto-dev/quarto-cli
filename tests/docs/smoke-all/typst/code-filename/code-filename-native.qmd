@@ -1,0 +1,19 @@
+---
+title: Code Filename (Native)
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-code-filename\('
+        - []
+---
+
+```{.python filename="example.py"}
+def hello():
+    print("Hello, world!")
+```

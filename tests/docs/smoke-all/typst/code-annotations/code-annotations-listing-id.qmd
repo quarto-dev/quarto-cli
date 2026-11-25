@@ -1,0 +1,22 @@
+---
+title: Code Annotations (identifier with dot)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'Skylighting\(cell-id: "lst-a\.b"'
+          - 'quarto-annotation-item\("lst-a\.b"'
+        -
+          - 'quarto-code-annotations:'
+---
+
+```{#lst-a.b .python}
+x = 1  # <1>
+```
+
+1. Assign x.

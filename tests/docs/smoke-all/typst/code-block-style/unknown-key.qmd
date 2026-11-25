@@ -1,0 +1,23 @@
+---
+title: Code block style, unknown key
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      shouldError: default
+      printsMessage:
+        level: ERROR
+        regex: 'quarto-code-block-style: unknown key "fil"'
+---
+
+A misspelt key must stop the compile with a message that names it.
+
+```{=typst}
+#quarto-code-block-style.update(s => s + (fil: red))
+```
+
+```python
+x = 1
+```

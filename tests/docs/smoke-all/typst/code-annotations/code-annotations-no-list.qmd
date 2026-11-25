@@ -1,0 +1,21 @@
+---
+title: Code Annotations (no annotation list)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'annotations: \("1": 1\)'
+        -
+          - 'quarto-annotation-item\("'
+---
+
+```{.python}
+x = 1  # <1>
+```
+
+Prose without an ordered list; the circle renders unlinked.

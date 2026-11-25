@@ -1,0 +1,30 @@
+---
+title: Code block style, one outline around a filename block (skylighting)
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A code block with a filename must have one outline, drawn by the filename frame.
+The code block inside the frame must not draw its own outline.
+
+```{=typst}
+#show block: it => {
+  let s = it.stroke
+  let drawn = s != none and not (type(s) == dictionary and s.values().all(v => v == none))
+  if drawn { counter("cbs-outline").step() }
+  it
+}
+```
+
+```{.python filename="example.py"}
+x = 1
+```
+
+```{=typst}
+#context assert.eq(counter("cbs-outline").final().first(), 1, message: "expected one outline around the filename block")
+```

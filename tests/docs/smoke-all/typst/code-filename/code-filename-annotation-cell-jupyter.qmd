@@ -1,0 +1,24 @@
+---
+title: Code Filename + Annotation (Cell, Jupyter)
+format:
+  typst:
+    keep-typ: true
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'quarto-code-filename\("hello\.py"\)\[\s*#Skylighting\(cell-id:'
+          - "quarto-annotation-item"
+          - "cell-id:"
+          - "annotations:"
+        - []
+---
+
+```{python}
+#| filename: "hello.py"
+print("Hello, world!")  # <1>
+```
+
+1. Print a greeting.

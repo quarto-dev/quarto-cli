@@ -1,0 +1,49 @@
+---
+title: Code block style, filename bar
+format:
+  typst:
+    keep-typ: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template sets the filename bar keys and a per-side stroke in `quarto-code-block-style`.
+The bar must use `surface`, `title-inset` and `label`, and only the frame draws the stroke.
+
+```{=typst}
+#quarto-code-block-style.update(s => s + (
+  surface: rgb("#203040"),
+  label: rgb("#f0f0f0"),
+  title-inset: (x: 12pt, y: 6pt),
+  stroke: (top: 2pt + red, rest: none),
+))
+#show "example.py": it => context {
+  if text.fill == rgb("#f0f0f0") { counter("cbs-label").step() }
+  it
+}
+#show block: it => {
+  if it.fill == rgb("#203040") {
+    assert(it.inset.left == 12pt and it.inset.top == 6pt, message: "the bar must use title-inset")
+    counter("cbs-surface").step()
+  }
+  let s = it.stroke
+  if type(s) == dictionary and s.at("top", default: none) != none and s.top.paint == red {
+    counter("cbs-frame").step()
+  }
+  it
+}
+```
+
+```{.python filename="example.py"}
+x = 1
+```
+
+```{=typst}
+#context {
+  assert.eq(counter("cbs-surface").final().first(), 1, message: "expected 1 filename bar with the surface fill")
+  assert.eq(counter("cbs-label").final().first(), 1, message: "expected the filename in the label colour")
+  assert.eq(counter("cbs-frame").final().first(), 1, message: "expected only the frame to draw the stroke")
+}
+```

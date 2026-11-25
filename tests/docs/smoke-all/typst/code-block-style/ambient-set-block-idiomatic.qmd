@@ -1,0 +1,49 @@
+---
+title: Code block style, annotation circles under a broad set block rule (idiomatic)
+format:
+  typst:
+    keep-typ: true
+    syntax-highlighting: idiomatic
+    code-annotations: true
+_quarto:
+  tests:
+    typst:
+      noErrors: default
+---
+
+A template or an extension can wrap code blocks in a broad `set block` rule.
+The annotation circle must stay on its code line, so an annotated code block has the same height as the same code block without annotations.
+
+```{=typst}
+#let heights = state("cbs-heights", ())
+#show block.where(stroke: 0.5pt + luma(128)): it => {
+  context { let h = measure(it, width: 400pt).height; heights.update(all => all + (h,)) }
+  it
+}
+#[
+#set block(width: 100%)
+```
+
+```python
+x = 1
+y = 2
+```
+
+```python
+x = 1 # <1>
+y = 2
+```
+
+```{=typst}
+]
+```
+
+1. First.
+
+```{=typst}
+#context {
+  let all = heights.final()
+  assert.eq(all.len(), 2, message: "expected 2 code blocks")
+  assert(calc.abs(all.at(1) - all.at(0)) < 0.5pt, message: "a broad set block rule moved the annotation circle off its code line")
+}
+```
