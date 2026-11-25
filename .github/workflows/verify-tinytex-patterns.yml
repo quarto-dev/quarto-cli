@@ -251,7 +251,7 @@ jobs:
         if: always()
         run: |
           if [ "${{ steps.compare.outputs.skipped }}" == "true" ]; then
-            echo "⚠ Download failed - comparison skipped"
+            echo "⚠ No pattern files downloaded - comparison skipped"
           elif [ "${{ steps.compare.outputs.first_run }}" == "true" ]; then
             echo "✓ Baseline established - cache created"
           elif [ "${{ steps.compare.outputs.changed }}" == "true" ]; then
