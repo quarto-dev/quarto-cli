@@ -196,16 +196,16 @@ git commit -m "tools: resolve realPath collision in tinytex.ts"
 
 ### Task 4: Tests, docs, ratchet, commit
 
-- [ ] **Step 1: Unit tests that exercise the seven directories**
+- [x] **Step 1: Unit tests that exercise the seven directories**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find unit/tools/ -name '*.test.ts') $(find unit/extension/ -name '*.test.ts') $(find unit/jupyter/ -name '*.test.ts') $(find unit/confluence/ -name '*.test.ts') $(find unit/project/ -name '*.test.ts') unit/preview-compatibility.test.ts unit/preview-brand-cache.test.ts unit/preview-external-links.test.ts unit/preview-initial-path.test.ts unit/preview-subdir-knitr-cwd.test.ts unit/exec-process-stdin.test.ts unit/render-shared-output-dir.test.ts` Expected: `0 failed` (`unit/tools/` holds `chrome-for-testing`, `chrome-headless-shell` and `tinytex` tests; `unit/project/` exercises `src/render/notebook` through the project context).
 
-- [ ] **Step 2: Smoke tests across engines, extensions, preview, tools**
+- [x] **Step 2: Smoke tests across engines, extensions, preview, tools**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/engine/ -name '*.test.ts') $(find smoke/jupyter/ -name '*.test.ts') $(find smoke/extensions/ -name '*.test.ts') $(find smoke/ojs/ -name '*.test.ts') $(find smoke/embed/ -name '*.test.ts') $(find smoke/env/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') smoke/check/check.test.ts smoke/inspect/inspect-extensions.test.ts smoke/render/render-jupyter.test.ts smoke/render/render-r.test.ts smoke/render/render-ojs.test.ts smoke/render/render-verapdf.test.ts` Expected: `0 failed` (Jupyter/R/veraPDF tests skip when their prerequisites are missing; note any skip in the PR).
 Publishing code has no smoke tests (network); `unit/confluence/` is its unit coverage.
 
-- [ ] **Step 3: Document the exclusions**
+- [x] **Step 3: Document the exclusions**
 
 In `.claude/rules/typescript/deno-ral.md`, under the "Moving code off `Deno.*`" subsection added by PR 09, append:
 
@@ -213,7 +213,7 @@ In `.claude/rules/typescript/deno-ral.md`, under the "Moving code off `Deno.*`" 
 Standalone scripts that run without the import map cannot import `deno_ral` and keep their `Deno.*` calls until the PR that owns them: `src/resources/scripts/*.ts` and `src/resources/create/**/*.ejs.ts` (PR 35), `src/resources/tools/ast-diagram/main.ts` (allow-listed by PR 25, ported by PR 35), `src/webui/quarto-preview/build.ts` (allow-listed until PR 33), and the `src/resources/extension-subtrees/` git subtrees (upstream). The codemod skips all of them.
 ```
 
-- [ ] **Step 4: Changelog entry for sorted directory listings**
+- [x] **Step 4: Changelog entry for sorted directory listings**
 
 This PR moves extension discovery onto the sorted `readDir`/`readDirSync` of `src/deno_ral/fs.ts`, the last of the listings that #15286 dropped from the changelog as premature (README row "PRs 13 and 14, what PRs 10–12 found", item 5).
 Run: `rg -n 'Deno\.readDir' src/extension/extension.ts src/command/capabilities/capabilities.ts src/command/use/commands/brand.ts src/format/html/format-html-shared.ts src/project/types/manuscript/manuscript-meca.ts` Expected: nothing (each listing named below reads through the layer).
@@ -225,11 +225,11 @@ In `news/changelog-1.12.md`, append to the end of `## Other fixes and improvemen
   Extension discovery, the theme list of `quarto capabilities`, the brand extension that `quarto use brand` picks, the order of the bslib component SCSS files, and the manifest entries for the files of a supporting directory in a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
 ```
 
-- [ ] **Step 5: Ratchet**
+- [x] **Step 5: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 123 (507 → 384 on `f23c186c8`) and no increase in any scope.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tools/runtime-boundary-baseline.json .claude/rules/typescript/deno-ral.md news/changelog-1.12.md
@@ -246,12 +246,12 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 
 ## Review checklist
 
-- [ ] `git diff` under the seven directories contains only `Deno.x` → `x` rewrites, import lines and the `fsRealPath` alias; no comment line changed.
-- [ ] `account.ts:100` `chmod` is still fire-and-forget (unchanged semantics).
-- [ ] `bundle.ts` still pipes `src.readable` through `CompressionStream` into `dest.writable`.
-- [ ] No file under `src/resources`, `src/webui` or the subtree changed.
-- [ ] The rules doc lists the excluded scripts; the baseline only decreased.
-- [ ] The changelog entry names only listings that read through the sorted `deno_ral` helpers.
+- [x] `git diff` under the seven directories contains only `Deno.x` → `x` rewrites, import lines and the `fsRealPath` alias; no comment line changed.
+- [x] `account.ts:100` `chmod` is still fire-and-forget (unchanged semantics).
+- [x] `bundle.ts` still pipes `src.readable` through `CompressionStream` into `dest.writable`.
+- [x] No file under `src/resources`, `src/webui` or the subtree changed.
+- [x] The rules doc lists the excluded scripts; the baseline only decreased.
+- [x] The changelog entry names only listings that read through the sorted `deno_ral` helpers.
 
 ## Risks and rollback
 
@@ -312,3 +312,18 @@ PR 12 changed only `src/project` and `src/format`, so no file under this PR's se
 - Step 1: Added `realPath as fsRealPath` to the existing `../../deno_ral/fs.ts` import in `src/tools/impl/tinytex.ts` and changed the collision site to `const realPath = await fsRealPath(texLivePath);`. `git diff --shortstat -- src/tools/impl/tinytex.ts` printed `1 file changed, 2 insertions(+), 2 deletions(-)`; `git diff --check -- src/tools/impl/tinytex.ts` passed. The diff contains only the alias import and the `Deno.realPath` rewrite. The file was not formatted, as the README row for Task 3 Step 1 directs.
 - Step 2: `rg -n 'Deno\.realPath\b' src/tools -g '*.ts'` printed nothing and exited 1 because there were no matches, as expected. `cd src && ../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0 with no errors.
 - Deviations: the Windows `.exe` Deno launcher was used; otherwise none. Task 4 remains unexecuted.
+
+### Task 4: Tests, docs, ratchet, commit
+
+- Step 1: the plan's unit-test selection was expanded in Git Bash to 22 explicit files and run with the Windows PowerShell `run-tests.ps1 --agent` form, the dev `bin` directory prefixed to `PATH`, and `QUARTO_TESTS_NO_CONFIG=true`. The retained log is `.claude/docs/pr13-task4-unit.log`; its final line was `ok | 351 passed | 0 failed | 3 ignored (1m49s)`.
+- Step 2: the plan's smoke-test selection was expanded in Git Bash to 30 explicit files and run with the same Windows PowerShell environment. The retained log is `.claude/docs/pr13-task4-smoke.log`; its final line was `ok | 84 passed | 0 failed | 1 ignored (13m36s)`. The run left generated Jupyter/extension outputs and modifications to two test `.gitignore` files and one `.ipynb`; only those observed artifacts were restored or removed. `git status --short` then showed only the three Task 4 files being edited at that point.
+- Step 3: appended the plan's standalone-script exclusion paragraph verbatim under `.claude/rules/typescript/deno-ral.md` "Moving code off `Deno.*`". Markdown was not formatted.
+- Step 4: `rg -n 'Deno\.readDir' src/extension/extension.ts src/command/capabilities/capabilities.ts src/command/use/commands/brand.ts src/format/html/format-html-shared.ts src/project/types/manuscript/manuscript-meca.ts` printed nothing and exited 1 because there were no matches, as expected. Appended the changelog entry verbatim with the reserved literal `#N` and `pull/N` placeholders.
+- Step 5: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` wrote the baseline and passed. The update printed `src 384 (baseline 507)`; the check printed `src 384 (baseline 384)` and `OK: no count exceeds the baseline.` Every other scope stayed at its previous count (`src-js` 7/0, `resources` 12/1, `package/src` 241/3, `tests` 774/176 Deno calls/std-import files). `git diff tools/runtime-boundary-baseline.json` changed only `src.denoCalls` from 507 to 384.
+- Verification, AST dry run: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/execute --dir src/publish --dir src/tools --dir src/extension --dir src/preview --dir src/inspect --dir src/render --dry-run | tail -1` printed `Summary: 172 files scanned, 0 would be rewritten, 0 replacements, 0 with collisions, 0 skipped`.
+- Verification, text check: the Acceptance criteria's two-filter `rg` pipeline printed nothing.
+- Verification, type check: `cd src && ../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 with no output.
+- Verification, manual tools listing: `package/dist/bin/quarto.cmd tools list` exited 0, printed the superseded-command notice, and listed `chrome-headless-shell` as not installed, `tinytex` as up to date at `v2026.11`, and `verapdf` as up to date at `1.30.3`.
+- Review: the changed-comment-line grep over `upstream/main...HEAD` and the seven directories printed nothing; `account.ts` still calls `chmod(tokensPath, 0o600)` without `await`; `bundle.ts` still pipes `src.readable` through `CompressionStream("gzip")` into `dest.writable`; `git diff --name-only upstream/main...HEAD -- src/resources src/webui` printed nothing; and `git diff --check upstream/main...HEAD` passed. The rules doc and changelog contain only the prescribed additions, and the baseline only decreased.
+- Reserved for the maintainer: replace `#N`/`pull/N` and move the changelog entry to its ascending position; run the network `quarto add quarto-ext/lightbox` plus extension-listing check; run the interactive `quarto preview tests/docs/test.qmd --no-browser` and Ctrl-C check. No push, PR, workflow, label or branch-protection action was run.
+- Deviations: the Windows `.cmd`/`.exe` launchers and PowerShell test runner were used; otherwise none. All Task 4 steps and all non-reserved Verification items are complete; the branch is ready for wrap.
