@@ -5,7 +5,7 @@
 *
 */
 
-import { findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles, findMissingHyphenationPackages } from "../../../src/command/render/latexmk/parse-error.ts"
+import { findBabelFallbackLanguages, findLatexError, findMissingFontsAndPackages, findMissingHyphenationFiles, findMissingHyphenationPackages } from "../../../src/command/render/latexmk/parse-error.ts"
 import { unitTest } from "../../test.ts";
 import { assert, assertEquals } from "testing/asserts";
 
@@ -450,3 +450,136 @@ unitTest("Detect missing hyphenation from a language description with spaces", a
 }, {
   cwd: () => "unit/latexmk/"
 })
+
+// Fixtures from tinytex's tests/test-cran/test-latex.R at 582ab42.
+const x = `Package babel Info: Importing data for 'spanish'
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'spanish' set to \\l@english
+(babel)             (\\language0). Reported on input line 3.`;
+
+const y = `Package babel Info: Importing font and identification data for 'english'
+(babel)             from babel-en.ini. Reported on input line 4478.
+Package babel Info: Hyphen rules for 'canadian' set to \\l@english
+(babel)             (\\language0). Reported on input line 102.
+Package babel Info: Hyphen rules for 'australian' set to \\l@ukenglish
+(babel)             (\\language6). Reported on input line 105.
+Package babel Info: Importing data for 'canadianfrench'
+(babel)             from babel-fr-CA.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'canadianfrench' set to \\l@french
+(babel)             (\\language8). Reported on input line 3.
+Package babel Info: Importing data for 'austrian'
+(babel)             from babel-de-AT.ini. Reported on input line 4.
+Package babel Info: Hyphen rules for 'austrian' set to \\l@ngerman-x-2024-02-28
+(babel)             (\\language5). Reported on input line 4.
+Package babel Info: Importing data for 'mexican'
+(babel)             from babel-es-MX.ini. Reported on input line 5.
+Package babel Info: Hyphen rules for 'mexican' set to \\l@english
+(babel)             (\\language0). Reported on input line 5.`;
+
+const w = `Package babel Info: Importing data for 'myspanish'
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'myspanish' set to \\l@english
+(babel)             (\\language0). Reported on input line 3.
+Package babel Info: Importing data for 'mycanadian'
+(babel)             from babel-fr-CA.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'mycanadian' set to \\l@french
+(babel)             (\\language8). Reported on input line 3.`;
+
+const ldf = `Package babel Info: Importing font and identification data for 'naustrian'
+(babel)             from babel-de-AT.ini. Reported on input line 4478.
+Package babel Info: Hyphen rules for 'naustrian' set to \\l@ngerman
+(babel)             (\\language10). Reported on input line 200.
+Package babel Info: Importing font and identification data for 'nswissgerman'
+(babel)             from babel-de-CH.ini. Reported on input line 4478.
+Package babel Info: Hyphen rules for 'nswissgerman' set to \\l@ngerman
+(babel)             (\\language10). Reported on input line 200.
+Package babel Info: Importing font and identification data for 'austrian'
+(babel)             from babel-de-AT.ini. Reported on input line 4478.
+Package babel Info: Hyphen rules for 'austrian' set to \\l@german
+(babel)             (\\language9). Reported on input line 200.`;
+
+const z = `Package babel Info: Importing data for 'spanish'
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'spanish' set to \\l@nil
+(babel)             (\\language23). Reported on input line 3.`;
+
+const basic = `Package babel Info: Importing basic data for 'spanish'
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'spanish' set to \\l@nil
+(babel)             (\\language23). Reported on input line 3.`;
+
+const old = `Package babel Info: Importing data for spanish
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'spanish' set to \\l@nil
+(babel)             (\\language23). Reported on input line 3.`;
+
+unitTest("Detect missing hyphenation files from babel .ini fallbacks", async () => {
+  assertEquals(findMissingHyphenationFiles(x), ["hyphen-spanish"], "plain spanish");
+  assertEquals(findMissingHyphenationFiles(y), ["hyphen-spanish"], "locale and dialect mix");
+  assertEquals(findMissingHyphenationFiles(w), ["hyphen-spanish"], "custom language names");
+  assertEquals(findMissingHyphenationFiles(ldf), [], ".ldf-loaded languages");
+  assertEquals(
+    findMissingHyphenationFiles("Package babel Info: Hyphen rules for 'spanish' set to \\l@english"),
+    [],
+    "Hyphen rules without an Importing line",
+  );
+  assertEquals(findMissingHyphenationFiles(""), [], "empty log");
+
+  const mixedCase = `Package babel Info: Importing data for 'Spanish'
+(babel)             from babel-ES.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'Spanish' set to \\l@english
+(babel)             (\\language0). Reported on input line 3.`;
+  assertEquals(findMissingHyphenationFiles(mixedCase), ["hyphen-spanish"], "mixed case");
+
+  const repeatedImport = `Package babel Info: Importing data for 'spanish'
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Importing data for 'spanish'
+(babel)             from babel-fr.ini. Reported on input line 4.
+Package babel Info: Hyphen rules for 'spanish' set to \\l@english
+(babel)             (\\language0). Reported on input line 4.`;
+  assertEquals(findMissingHyphenationFiles(repeatedImport), ["hyphen-spanish"], "first import wins");
+
+  const italianNil = "Package babel Info: Hyphen rules for 'italian' set to \\l@nil";
+  assertEquals(
+    findMissingHyphenationFiles(`${italianNil}\n${x}`),
+    ["hyphen-italian", "hyphen-spanish"],
+    "nil and .ini fallback results are merged",
+  );
+
+  const frenchWarning = `Package babel Warning: No hyphenation patterns were preloaded for
+(babel)                the language 'french' into the format.
+
+${x}`;
+  assertEquals(
+    findMissingHyphenationFiles(frenchWarning),
+    ["hyphen-french", "hyphen-spanish"],
+    "warning and .ini fallback results are merged",
+  );
+
+  assertEquals(
+    findMissingHyphenationFiles(x.replaceAll("\n", "\r\n")),
+    ["hyphen-spanish"],
+    "CRLF log",
+  );
+
+  const synonymTarget = `Package babel Info: Importing data for 'spanish'
+(babel)             from babel-es.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'spanish' set to \\l@espanol
+(babel)             (\\language8). Reported on input line 3.`;
+  assertEquals(findMissingHyphenationFiles(synonymTarget), [], "synonym target");
+
+  const importingOnly = `Package babel Info: Importing data for 'spanish'
+(babel)             from babel-es.ini. Reported on input line 3.`;
+  assertEquals(findMissingHyphenationFiles(importingOnly), [], "truncated log");
+}, {
+  cwd: () => "unit/latexmk/",
+});
+
+unitTest("Detect expected languages for babel .ini fallbacks", async () => {
+  assertEquals(findBabelFallbackLanguages(z), ["spanish"], "nil fallback");
+  assertEquals(findBabelFallbackLanguages(basic), ["spanish"], "basic import");
+  assertEquals(findBabelFallbackLanguages(old), ["spanish"], "unquoted babel 3.84 locale");
+  assertEquals(findBabelFallbackLanguages(y), ["spanish"], "locale and dialect mix");
+}, {
+  cwd: () => "unit/latexmk/",
+});

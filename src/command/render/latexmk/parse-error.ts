@@ -9,6 +9,11 @@ import { existsSync } from "../../../deno_ral/fs.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { lines } from "../../../core/text.ts";
+import {
+  kBabelHyphenCodes,
+  kBabelHyphenMap,
+  kHyphenSynonyms,
+} from "./babel-hyphen.ts";
 
 // The missing font log file name
 export const kMissingFontLog = "missfont.log";
@@ -283,6 +288,72 @@ export function findMissingHyphenationPackages(logText: string): string[] {
   );
 }
 
+/**
+ * Babel logs an .ini hyphenation fallback with Info lines only:
+ *
+ * Package babel Info: Importing data for 'spanish'
+ * (babel)             from babel-es.ini. Reported on input line 3.
+ * Package babel Info: Hyphen rules for 'spanish' set to \l@english
+ * (babel)             (\language0). Reported on input line 3.
+ *
+ * Port of detect_babel_fallback() in tinytex (R/latex.R).
+ */
+export function findBabelFallbackLanguages(logText: string): string[] {
+  const foldedLines: string[] = [];
+  for (const line of logText.split(/\r?\n/)) {
+    const continuation = line.match(/^\(babel\)\s+(.*)$/);
+    if (continuation && foldedLines.length > 0) {
+      foldedLines[foldedLines.length - 1] += ` ${continuation[1]}`;
+    } else {
+      foldedLines.push(line);
+    }
+  }
+
+  const importingRegex =
+    /^Package babel Info: Importing (basic )?data for '?([^' ]+)'? .*from babel-([-.A-Za-z0-9]+)[.]ini.*$/;
+  const imports = new Map<string, string>();
+  for (const line of foldedLines) {
+    const match = line.match(importingRegex);
+    if (match) {
+      const locale = match[2].toLowerCase();
+      if (!imports.has(locale)) {
+        imports.set(locale, match[3].toLowerCase());
+      }
+    }
+  }
+
+  const hyphenRulesRegex =
+    /^Package babel Info: Hyphen rules for '([^']+)' set to \\l@([-.A-Za-z0-9]+).*$/;
+  const canon = (name: string) =>
+    Object.hasOwn(kHyphenSynonyms, name) ? kHyphenSynonyms[name] : name;
+  const fallback: string[] = [];
+  for (const line of foldedLines) {
+    const match = line.match(hyphenRulesRegex);
+    if (!match) {
+      continue;
+    }
+    const locale = match[1].toLowerCase();
+    const target = match[2].toLowerCase();
+    if (!imports.has(locale)) {
+      continue;
+    }
+
+    const ini = imports.get(locale)!;
+    let expected: string;
+    if (Object.hasOwn(kBabelHyphenCodes, ini)) {
+      expected = kBabelHyphenCodes[ini];
+    } else if (Object.hasOwn(kBabelHyphenMap, locale)) {
+      expected = kBabelHyphenMap[locale];
+    } else {
+      continue;
+    }
+    if (canon(target) !== canon(expected)) {
+      fallback.push(expected);
+    }
+  }
+  return fallback;
+}
+
 // Finds missing hyphenation files (these appear as warnings in the log file)
 export function findMissingHyphenationFiles(logText: string): string[] {
   // Same regexes as check_babel() and check_polyglossia() in tinytex, on
@@ -296,16 +367,21 @@ export function findMissingHyphenationFiles(logText: string): string[] {
     ...warnings.matchAll(babelRegex),
     ...warnings.matchAll(polyglossiaRegex),
   ].map((m) => m[1]));
-  if (packages.length > 0) {
-    return packages;
-  }
 
-  // Try an alternative way of parsing
-  const hyphenRulesRegex =
-    /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
-  return hyphenationPackagesForLanguages(
-    [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
-  );
+  let nilPackages: string[] = [];
+  if (packages.length === 0) {
+    // Run only when no warning matched, and merge with the .ini fallback
+    // result, as tinytex's check_extra() evaluates both checks.
+    const hyphenRulesRegex =
+      /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
+    nilPackages = hyphenationPackagesForLanguages(
+      [...logText.matchAll(hyphenRulesRegex)].map((m) => m[1]),
+    );
+  }
+  return ld.uniq([
+    ...(packages.length > 0 ? packages : nilPackages),
+    ...hyphenationPackagesForLanguages(findBabelFallbackLanguages(logText)),
+  ]);
 }
 
 // Parse a log file to find latex errors
