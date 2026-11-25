@@ -9,7 +9,7 @@ import { info } from "../../../deno_ral/log.ts";
 
 import { execProcess } from "../../../core/process.ts";
 import { dirname, join, relative } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, writeTextFileSync } from "../../../deno_ral/fs.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 import { readYaml } from "../../../core/yaml.ts";
 import {
@@ -294,7 +294,7 @@ async function initConfig(): Promise<void> {
 
   // Write config file
   try {
-    Deno.writeTextFileSync(configFile, configContent);
+    writeTextFileSync(configFile, configContent);
   } catch (e) {
     console.error(`Error writing typst-gather.toml: ${e}`);
     Deno.exit(1);

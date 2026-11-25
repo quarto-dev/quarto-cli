@@ -118,6 +118,7 @@ import { NotebookContext } from "../../render/notebook/notebook-types.ts";
 import { setExecuteEnvironment } from "../../execute/environment.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 import { warn } from "log";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -364,7 +365,7 @@ export async function renderFiles(
   } finally {
     tempContext.cleanup();
     if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         Deno.env.get("QUARTO_PROFILER_OUTPUT")!,
         JSON.stringify(getTimingData()),
       );
@@ -421,7 +422,7 @@ export async function renderFile(
     };
   } finally {
     if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         Deno.env.get("QUARTO_PROFILER_OUTPUT")!,
         JSON.stringify(getTimingData()),
       );
@@ -701,7 +702,7 @@ async function renderFileInternal(
                   }) is the output file of another format`,
               );
             } else {
-              Deno.writeTextFileSync(keepMd, executeResult.markdown.value);
+              writeTextFileSync(keepMd, executeResult.markdown.value);
             }
           }
 

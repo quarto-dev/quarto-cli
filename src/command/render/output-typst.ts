@@ -16,6 +16,8 @@ import {
   copySync,
   ensureDirSync,
   existsSync,
+  readDirSync,
+  renameSync,
   safeRemoveSync,
 } from "../../deno_ral/fs.ts";
 import {
@@ -159,12 +161,12 @@ export function stageSelectedPackages(
 // package directory level. Built-in listed first, extensions after.
 export function stageAllPackages(sources: string[], cacheDir: string): void {
   for (const source of sources) {
-    for (const nsEntry of Deno.readDirSync(source)) {
+    for (const nsEntry of readDirSync(source)) {
       if (!nsEntry.isDirectory) continue;
       const nsSrc = join(source, nsEntry.name);
       const nsDest = join(cacheDir, nsEntry.name);
       ensureDirSync(nsDest);
-      for (const pkgEntry of Deno.readDirSync(nsSrc)) {
+      for (const pkgEntry of readDirSync(nsSrc)) {
         const pkgSrc = join(nsSrc, pkgEntry.name);
         const pkgDest = join(nsDest, pkgEntry.name);
         copySync(pkgSrc, pkgDest, { overwrite: true });
@@ -308,7 +310,7 @@ export function typstPdfOutputRecipe(
         if (normalize(pdfOutput) !== normalize(outputPdf)) {
           // ensure the target directory exists
           ensureDirSync(dirname(outputPdf));
-          Deno.renameSync(pdfOutput, outputPdf);
+          renameSync(pdfOutput, outputPdf);
         }
       }
 

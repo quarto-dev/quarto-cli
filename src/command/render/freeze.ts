@@ -18,6 +18,9 @@ import {
   existsSync,
   format,
   LF,
+  readDirSync,
+  readTextFileSync,
+  writeTextFileSync,
 } from "../../deno_ral/fs.ts";
 
 import { inputFilesDir } from "../../core/render.ts";
@@ -65,7 +68,7 @@ export function freezeExecuteResult(
       if (innerResult.includes[name]) {
         innerResult.includes[name] = innerResult.includes[name]!.map((file) =>
           // Storing file content using LF line ending
-          format(Deno.readTextFileSync(file), LF)
+          format(readTextFileSync(file), LF)
         );
       }
     }
@@ -88,7 +91,7 @@ export function freezeExecuteResult(
 
   // write the freeze json
   const freezeJsonFile = freezeResultFile(input, output, true);
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     freezeJsonFile,
     JSON.stringify({ hash, result: innerResult }, undefined, 2),
   );
@@ -108,7 +111,7 @@ export function defrostExecuteResult(
     // parse result
     let hash: string;
     let result: ExecuteResult;
-    const contents = Deno.readTextFileSync(resultFile);
+    const contents = readTextFileSync(resultFile);
     try {
       const inp = JSON.parse(contents) as {
         hash: string;
@@ -150,7 +153,7 @@ export function defrostExecuteResult(
               const includeFile = temp.createFile();
               // Restoring content in file using the OS line ending character
               content = format(content, EOL);
-              Deno.writeTextFileSync(includeFile, content);
+              writeTextFileSync(includeFile, content);
               return includeFile;
             });
           }
@@ -183,12 +186,12 @@ export function copyToProjectFreezer(
   const srcFilesDir = join(project.dir, file);
   const destFilesDir = join(freezerDir, asFreezerDir(file));
   if (incremental) {
-    for (const dir of Deno.readDirSync(srcFilesDir)) {
+    for (const dir of readDirSync(srcFilesDir)) {
       if (dir.name === kFreezeExecuteResults) {
         const resultsDir = join(srcFilesDir, dir.name);
         const destResultsDir = join(destFilesDir, kFreezeExecuteResults);
         ensureDirSync(destResultsDir);
-        for (const json of Deno.readDirSync(resultsDir)) {
+        for (const json of readDirSync(resultsDir)) {
           if (json.isFile) {
             copyTo(
               join(resultsDir, json.name),
@@ -247,7 +250,7 @@ export function pruneProjectFreezer(project: ProjectContext, hidden: boolean) {
   const libDir = project.config?.project[kProjectLibDir];
   if (libDir) {
     let remove = true;
-    for (const entry of Deno.readDirSync(freezerDir)) {
+    for (const entry of readDirSync(freezerDir)) {
       if (entry.isFile || entry.name !== libDir) {
         remove = false;
         break;
@@ -312,7 +315,7 @@ export function removeFreezeResults(filesDir: string) {
 function freezeInputHash(input: string) {
   // Calculate the hash on a content with LF line ending to avoid
   // different hash on different OS (#3599)
-  return md5HashSync(format(Deno.readTextFileSync(input), LF));
+  return md5HashSync(format(readTextFileSync(input), LF));
 }
 
 // don't use _files suffix in freezer

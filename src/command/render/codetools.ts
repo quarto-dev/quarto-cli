@@ -29,6 +29,7 @@ import { isHtmlOutput } from "../../config/format.ts";
 import { executionEngineCanKeepSource } from "../../execute/engine-info.ts";
 import { formatHasBootstrap } from "../../format/html/format-html-info.ts";
 import { withTiming } from "../../core/timing.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 const kHideAllCodeLinkId = "quarto-hide-all-code";
 const kShowAllCodeLinkId = "quarto-show-all-code";
@@ -72,7 +73,7 @@ export function resolveKeepSource(
 export function keepSourceBlock(format: Format, source: string) {
   if (format.render[kKeepSource]) {
     // read code
-    let code = Deno.readTextFileSync(source).trimLeft();
+    let code = readTextFileSync(source).trimLeft();
     if (!code.endsWith("\n")) {
       code = code + "\n";
     }

@@ -5,7 +5,7 @@
  */
 
 import { dirname, relative } from "../../deno_ral/path.ts";
-import { expandGlobSync } from "../../deno_ral/fs.ts";
+import { expandGlobSync, statSync } from "../../deno_ral/fs.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { debug, info, warning } from "../../deno_ral/log.ts";
 
@@ -272,7 +272,7 @@ export const renderCommand = new Command()
       if (!options.flags?.quiet && options.flags?.output !== kStdOut) {
         const finalOutput = renderResultFinalOutput(
           renderResult,
-          Deno.statSync(renderResultInput).isDirectory
+          statSync(renderResultInput).isDirectory
             ? renderResultInput
             : dirname(renderResultInput),
         );

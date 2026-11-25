@@ -32,12 +32,13 @@ import {
 } from "../../core/jupyter/jupyter-shared.ts";
 import { assert } from "testing/asserts";
 import { getEndingNewlineCount } from "../../core/lib/text.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 export async function markdownToJupyterNotebook(
   file: string,
   includeIds: boolean,
 ) {
-  const markdown = Deno.readTextFileSync(file);
+  const markdown = readTextFileSync(file);
   const notebook = await quartoMdToJupyter(markdown, includeIds);
   return JSON.stringify(notebook, null, 2);
 }

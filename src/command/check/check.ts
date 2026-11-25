@@ -36,6 +36,7 @@ import { detectBrowser } from "../../core/puppeteer.ts";
 import { executionEngines } from "../../execute/engine.ts";
 import type { ProjectConfigResolution } from "../../project/project-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
+import { writeTextFile, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export function getTargets(): readonly string[] {
   const checkableEngineNames = executionEngines()
@@ -125,7 +126,7 @@ export async function check(
     }
 
     if (conf.jsonResult && conf.output) {
-      await Deno.writeTextFile(
+      await writeTextFile(
         conf.output,
         JSON.stringify(conf.jsonResult, null, 2),
       );
@@ -544,7 +545,7 @@ async function checkInstall(conf: CheckConfiguration) {
   }
   const markdownRenderCb = async () => {
     const mdPath = services.temp.createFile({ suffix: "check.md" });
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       mdPath,
       `
 ---

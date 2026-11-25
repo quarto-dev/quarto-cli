@@ -8,6 +8,7 @@ import { render } from "../render/render-shared.ts";
 import type { RenderServiceWithLifetime } from "../render/types.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 /**
  * Options for test-rendering a document during check operations
@@ -47,7 +48,7 @@ export async function checkRender(
   const tempFile = services.temp.createFile({ suffix: ".qmd" });
 
   // Write content to file
-  Deno.writeTextFileSync(tempFile, content);
+  writeTextFileSync(tempFile, content);
 
   // Render with appropriate flags
   // Single-file context: the temp dir can sit beneath a project root, whose

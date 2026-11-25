@@ -13,7 +13,14 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
-import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  removeSync,
+  statSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import {
   dirname,
   isAbsolute,
@@ -126,7 +133,7 @@ export function readBaseline(file: string): AxeBaseline {
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(Deno.readTextFileSync(file));
+    parsed = JSON.parse(readTextFileSync(file));
   } catch (e) {
     throw new Error(
       `${file} is not valid JSON: ${e instanceof Error ? e.message : e}`,
@@ -233,7 +240,7 @@ export function reportDestinationError(
     return `--report ${reportFile} is inside the axe-managed cells ` +
       `directory; choose a different destination.`;
   }
-  if (!existsSync(reportFile) || !Deno.statSync(reportFile).isDirectory) {
+  if (!existsSync(reportFile) || !statSync(reportFile).isDirectory) {
     return undefined;
   }
   return `--report ${reportFile} is a directory; give it a file path.`;
@@ -327,7 +334,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
     error(`Site directory not found: ${config.siteDir}`);
     return kExitIncomplete;
   }
-  if (!Deno.statSync(config.siteDir).isDirectory) {
+  if (!statSync(config.siteDir).isDirectory) {
     error(`Not a directory: ${config.siteDir}`);
     return kExitIncomplete;
   }
@@ -366,7 +373,7 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   // the committed contract is the baseline, which lives beside this dir.
   const gitignoreFile = join(outputDir, ".gitignore");
   if (!existsSync(gitignoreFile)) {
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       gitignoreFile,
       "# Written by quarto call axe: everything here is a scan artifact.\n*\n",
     );
@@ -384,8 +391,8 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
   for (const path of staleArtifacts(outputDir)) {
     // Regular files only: a directory at any of these paths is not this
     // command's to delete.
-    if (existsSync(path) && Deno.statSync(path).isFile) {
-      Deno.removeSync(path);
+    if (existsSync(path) && statSync(path).isFile) {
+      removeSync(path);
     }
   }
 
@@ -508,10 +515,10 @@ export async function axeScan(config: AxeScanConfig): Promise<number> {
 
     const findingsFile = join(outputDir, "findings.json");
     const readmeFile = join(outputDir, "README.md");
-    Deno.writeTextFileSync(findingsFile, JSON.stringify(results, null, 2));
+    writeTextFileSync(findingsFile, JSON.stringify(results, null, 2));
     ensureDirSync(dirname(reportFile));
-    Deno.writeTextFileSync(reportFile, renderReport(results));
-    Deno.writeTextFileSync(readmeFile, renderReadme(results));
+    writeTextFileSync(reportFile, renderReport(results));
+    writeTextFileSync(readmeFile, renderReadme(results));
 
     info("");
     for (const row of summaryTable(results)) {

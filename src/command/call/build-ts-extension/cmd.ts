@@ -12,7 +12,13 @@ import {
 } from "../../../core/resources.ts";
 import { execProcess } from "../../../core/process.ts";
 import { basename, dirname, extname, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  mkdirSync,
+  readDir,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 import { readYaml } from "../../../core/yaml.ts";
 import { warning } from "../../../deno_ral/log.ts";
@@ -43,7 +49,7 @@ async function resolveConfig(): Promise<
 
   if (existsSync(userConfigPath)) {
     info(`Using config: ${userConfigPath}`);
-    const content = Deno.readTextFileSync(userConfigPath);
+    const content = readTextFileSync(userConfigPath);
     const config = JSON.parse(content) as DenoConfig;
 
     // Validate that both importMap and imports are not present
@@ -70,7 +76,7 @@ async function resolveConfig(): Promise<
   }
 
   info(`Using default config: ${defaultConfigPath}`);
-  const content = Deno.readTextFileSync(defaultConfigPath);
+  const content = readTextFileSync(defaultConfigPath);
   const config = JSON.parse(content) as DenoConfig;
 
   return { config, configPath: defaultConfigPath };
@@ -115,7 +121,7 @@ async function autoDetectEntryPoint(
 
   // Find .ts files in src/
   const tsFiles: string[] = [];
-  for await (const entry of Deno.readDir(srcDir)) {
+  for await (const entry of readDir(srcDir)) {
     if (entry.isFile && entry.name.endsWith(".ts")) {
       tsFiles.push(entry.name);
     }
@@ -279,7 +285,7 @@ async function bundle(
   // Ensure output directory exists
   const outputDir = dirname(outputPath);
   if (!existsSync(outputDir)) {
-    Deno.mkdirSync(outputDir, { recursive: true });
+    mkdirSync(outputDir, { recursive: true });
   }
 
   // Build deno bundle arguments
@@ -381,7 +387,7 @@ async function initializeConfig(): Promise<void> {
   };
 
   // Write deno.json
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     configPath,
     JSON.stringify(config, null, 2) + "\n",
   );

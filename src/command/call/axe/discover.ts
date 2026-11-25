@@ -15,7 +15,7 @@
  */
 
 import { globToRegExp, join, relative } from "../../../deno_ral/path.ts";
-import { walkSync } from "../../../deno_ral/fs.ts";
+import { readTextFileSync, walkSync } from "../../../deno_ral/fs.ts";
 import { pathWithForwardSlashes } from "../../../core/path.ts";
 import {
   AxeScanConfig,
@@ -226,7 +226,7 @@ export function discoverPages(config: AxeScanConfig): DiscoveredPages {
     if (config.maxPages !== undefined && pages.length === config.maxPages) {
       break;
     }
-    const html = Deno.readTextFileSync(join(config.siteDir, path));
+    const html = readTextFileSync(join(config.siteDir, path));
     const stub = sniffRedirectStub(html);
     if (stub) {
       redirects.push({ path, to: stub.to });

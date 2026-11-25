@@ -34,6 +34,7 @@ import { normalizePath } from "../../core/path.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { ProjectContext } from "../../project/types.ts";
+import { statSync } from "../../deno_ral/fs.ts";
 
 export async function render(
   path: string,
@@ -83,7 +84,7 @@ export async function render(
     Deno.env.set("QUARTO_PROJECT_DIR", context.dir);
   }
 
-  if (Deno.statSync(path).isDirectory) {
+  if (statSync(path).isDirectory) {
     // if the path is a sub-directory of the project, then create
     // a files list that is only those files in the subdirectory
     let files: string[] | undefined;

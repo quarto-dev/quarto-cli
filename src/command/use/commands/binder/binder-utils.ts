@@ -8,7 +8,12 @@ import { md5HashAsync } from "../../../../core/hash.ts";
 import { projectScratchPath } from "../../../../project/project-scratch.ts";
 
 import { info, warning } from "../../../../deno_ral/log.ts";
-import { ensureDirSync, existsSync } from "../../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../../deno_ral/fs.ts";
 import { dirname, join } from "../../../../deno_ral/path.ts";
 
 import { Confirm } from "cliffy/prompt/mod.ts";
@@ -23,7 +28,7 @@ export const safeFileWriter = (projectDir: string, prompt = true) => {
   // Read the index, if it is there
   let fileIndex: Record<string, string> = {};
   if (existsSync(idxPath)) {
-    fileIndex = JSON.parse(Deno.readTextFileSync(idxPath));
+    fileIndex = JSON.parse(readTextFileSync(idxPath));
   }
 
   return async (projRelativePath: string, contents: string) => {
@@ -31,15 +36,15 @@ export const safeFileWriter = (projectDir: string, prompt = true) => {
 
     const write = () => {
       fileIndex[projRelativePath] = hash;
-      Deno.writeTextFileSync(absPath, contents);
-      Deno.writeTextFileSync(idxPath, JSON.stringify(fileIndex, null, 2));
+      writeTextFileSync(absPath, contents);
+      writeTextFileSync(idxPath, JSON.stringify(fileIndex, null, 2));
       info(`[✓] ${projRelativePath}`);
     };
 
     const hash = await md5HashAsync(contents);
     if (existsSync(absPath)) {
       const lastHash = fileIndex[projRelativePath];
-      const currentContents = Deno.readTextFileSync(absPath);
+      const currentContents = readTextFileSync(absPath);
       const currentHash = await md5HashAsync(currentContents);
 
       let writeFile = true;

@@ -21,6 +21,11 @@ import { initTreeSitter } from "../../../core/schema/deno-init-tree-sitter.ts";
 // initialize language handlers
 import "../../../core/handlers/handlers.ts";
 import { join } from "../../../deno_ral/path.ts";
+import {
+  readFileSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 
 function ensureAllowableIDESyntax(src: string, filename: string) {
   const ast = Parser.extend(classFields).parse(src, {
@@ -60,11 +65,11 @@ async function buildYAMLJS() {
   // the entire thread. That means we can't use base64 strings to encode the wasm
   // values. So we will encode them as plain js numbers. facepalm
   const treeSitterYamlJson = {
-    "data": Array.from(Deno.readFileSync(
+    "data": Array.from(readFileSync(
       resourcePath("editor/tools/yaml/tree-sitter-yaml.wasm"),
     )),
   };
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     resourcePath("editor/tools/yaml/tree-sitter-yaml.json"),
     JSON.stringify(treeSitterYamlJson),
   );
@@ -87,7 +92,7 @@ async function buildYAMLJS() {
     return result;
   };
 
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     resourcePath("editor/tools/yaml/yaml-intelligence.js"),
     await esbuild(
       resourcePath("../core/lib/yaml-intelligence"),
@@ -96,7 +101,7 @@ async function buildYAMLJS() {
     ),
   );
 
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     resourcePath("editor/tools/yaml/yaml.js"),
     await esbuild(
       resourcePath("editor/tools/yaml"),
@@ -115,17 +120,17 @@ async function buildYAMLJS() {
     false,
   );
 
-  const treeSitter = Deno.readTextFileSync(
+  const treeSitter = readTextFileSync(
     resourcePath("editor/tools/yaml/tree-sitter.js"),
   );
   ensureAllowableIDESyntax(treeSitter, "tree-sitter.js");
 
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     resourcePath("editor/tools/vs-code.mjs"),
     [treeSitter, vsCodeSrc].join(""),
   );
 
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     resourcePath("editor/tools/yaml/web-worker.js"),
     [treeSitter, webWorkerSrc].join(""),
   );
@@ -143,7 +148,7 @@ async function buildEsbuildAnalysisCache() {
       resourcePath(join("formats", "html")),
     );
   }
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     formatResourcePath("html", "esbuild-analysis-cache.json"),
     JSON.stringify(analysisCache, null, 2),
   );

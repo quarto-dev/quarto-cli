@@ -13,6 +13,7 @@ import { pandocListFormats } from "../../core/pandoc/pandoc-formats.ts";
 import { JupyterCapabilitiesEx } from "../../core/jupyter/types.ts";
 import { jupyterCapabilities } from "../../core/jupyter/capabilities.ts";
 import { jupyterKernelspecs } from "../../core/jupyter/kernels.ts";
+import { readDir } from "../../deno_ral/fs.ts";
 
 export interface Capabilities {
   formats: string[];
@@ -72,7 +73,7 @@ async function themes() {
   const themesPath = formatResourcePath("html", join("bootstrap", "themes"));
   const themes: string[] = ["default"];
   const kScss = ".scss";
-  for await (const dirEntry of Deno.readDir(themesPath)) {
+  for await (const dirEntry of readDir(themesPath)) {
     if (dirEntry.isFile && dirEntry.name.endsWith(kScss)) {
       themes.push(basename(dirEntry.name, kScss));
     }

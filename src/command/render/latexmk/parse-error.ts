@@ -5,7 +5,7 @@
  */
 
 import { basename, join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../../deno_ral/fs.ts";
 import * as ld from "../../../core/lodash.ts";
 
 import { lines } from "../../../core/text.ts";
@@ -31,7 +31,7 @@ export function findMissingFontsAndPackages(
 // Does the log file indicate recompilation is neeeded
 export function needsRecompilation(log: string) {
   if (existsSync(log)) {
-    const logContents = Deno.readTextFileSync(log);
+    const logContents = readTextFileSync(log);
 
     // First look for an explicit request to recompile
     const explicitMatches = explicitMatchers.some((matcher) => {
@@ -371,7 +371,7 @@ function findMissingFonts(dir: string): string[] {
   // Look in the missing font file for any missing fonts
   const missFontLog = join(dir, kMissingFontLog);
   if (existsSync(missFontLog)) {
-    const missFontLogText = Deno.readTextFileSync(missFontLog);
+    const missFontLogText = readTextFileSync(missFontLog);
     const fontSearchTerms = findInMissingFontLog(missFontLogText);
     missingFonts.push(...fontSearchTerms);
   }

@@ -7,10 +7,14 @@
 import {
   ensureDirSync,
   existsSync,
+  readDirSync,
+  renameSync,
   safeMoveSync,
   safeRemoveDirSync,
   safeRemoveSync,
+  statSync,
   UnsafeRemovalError,
+  writeTextFileSync,
 } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
@@ -322,7 +326,7 @@ export async function renderProject(
     };
 
     if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")) {
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")!,
         filesToRender.join("\n"),
       );
@@ -482,7 +486,7 @@ export async function renderProject(
         copyTo(srcDir, targetDir);
       } else {
         try {
-          Deno.renameSync(srcDir, targetDir);
+          renameSync(srcDir, targetDir);
         } catch (_e) {
           // if renaming failed, it could have happened
           // because src and target are in different file systems.
@@ -658,7 +662,7 @@ export async function renderProject(
         }
 
         if (libsIncremental) {
-          for (const lib of Deno.readDirSync(libDirFull)) {
+          for (const lib of readDirSync(libDirFull)) {
             if (lib.isDirectory) {
               const copyDir = join(libDir, lib.name);
               const srcDir = join(projDir, copyDir);
@@ -759,7 +763,7 @@ export async function renderProject(
       const destinationFiles = resourceFilesToCopy[srcPath];
       destinationFiles.forEach((destPath: string) => {
         if (existsSync(srcPath)) {
-          if (Deno.statSync(srcPath).isFile) {
+          if (statSync(srcPath).isFile) {
             copyResourceFile(context.dir, srcPath, destPath);
           }
         } else if (!existsSync(destPath)) {
@@ -842,7 +846,7 @@ export async function renderProject(
       };
 
       if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")) {
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")!,
           outputFiles.map((outputFile) => relative(projDir, outputFile.file))
             .join("\n"),

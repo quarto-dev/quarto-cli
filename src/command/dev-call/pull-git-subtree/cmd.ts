@@ -7,6 +7,7 @@
 import { Command } from "cliffy/command/mod.ts";
 import { gitCmdOutput, gitCmds } from "../../../core/git.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
+import { stat as fsStat } from "../../../deno_ral/fs.ts";
 import { logLevel } from "../../../core/log.ts";
 
 interface SubtreeConfig {
@@ -88,7 +89,7 @@ async function pullSubtree(
   const prefixPath = `${quartoRoot}/${config.prefix}`;
   let prefixExists = false;
   try {
-    const stat = await Deno.stat(prefixPath);
+    const stat = await fsStat(prefixPath);
     prefixExists = stat.isDirectory;
     debug(`Prefix directory exists: ${prefixExists} (${prefixPath})`);
   } catch {

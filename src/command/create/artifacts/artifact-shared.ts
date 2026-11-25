@@ -13,9 +13,11 @@ import { coerce } from "semver/mod.ts";
 import { info } from "../../../deno_ral/log.ts";
 import { basename, dirname, join, relative } from "../../../deno_ral/path.ts";
 import {
+  copyFileSync,
   ensureDirSync,
   ensureUserWritable,
   walkSync,
+  writeTextFileSync,
 } from "../../../deno_ral/fs.ts";
 import { renderEjs } from "../../../core/ejs.ts";
 import { safeExistsSync } from "../../../core/path.ts";
@@ -112,14 +114,14 @@ const renderArtifact = (
 
     // Write the rendered EJS to the output file
     ensureDirSync(dirname(renderTarget));
-    Deno.writeTextFileSync(renderTarget, rendered);
+    writeTextFileSync(renderTarget, rendered);
     return renderTarget;
   } else {
     if (safeExistsSync(target)) {
       throw new Error(`The file ${target} already exists.`);
     }
     ensureDirSync(dirname(target));
-    Deno.copyFileSync(src, target);
+    copyFileSync(src, target);
     ensureUserWritable(target);
     return target;
   }
