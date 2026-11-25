@@ -122,12 +122,12 @@ README ground rule 7 applies: this PR is generated from fresh `main` the day it 
 PRs 10–13 are independent (disjoint directories) but every one of them edits `tools/runtime-boundary-baseline.json` with an exact delta: open them one at a time, or rebase and regenerate the baseline (ground rule 8) before each merge; the expected delta of this plan is then read against the new `main`.
 
 
-- [ ] **Step 1: Dry run**
+- [x] **Step 1: Dry run**
 
 Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format --dry-run > .claude/docs/codemod-project-format.txt; tail -1 .claude/docs/codemod-project-format.txt` Expected: `Summary: 123 files scanned, 51 would be rewritten, 159 replacements, 0 with collisions, 0 skipped` (measured on `2d133a903`); `git status --short src` is empty.
 The report is ignored by git and later steps read it from that path.
 
-- [ ] **Step 2: Review the report**
+- [x] **Step 2: Review the report**
 
 Run: `grep -E 'skipped|collision' .claude/docs/codemod-project-format.txt` Expected: only the summary line.
 If a collision is reported, read that file and resolve it with an alias import (`import { x as fsX } from ".../deno_ral/fs.ts"`, replace the blocked `Deno.x(` with `fsX(`) before Task 2.
@@ -259,3 +259,39 @@ Review items closed here: counts (51 files / 159 replacements), the comment-matc
 - Code-block audit: `rg -n 'function \w+'` and the indirect-`Deno` grep print nothing in code blocks (the hits are prose); no PR-number code comment. Plan corrections: counts 158 → 159 and 162 → 163, moved lines, the report path moved from `/tmp` to `.claude/docs/codemod-project-format.txt`, `--allow-import` on the three `deno check` commands (README row), and `git clean -ndx` before the final `git clean -fdx` in Verification.
 - Windows and tests: every test file named in Tasks 3 and 4 exists; `tests/docs/websites/search` and `tests/docs/manuscript/base` exist; the Task 4 `find` directories hold 8 (`unit/project`), 12 (`smoke/project`), 15 (`smoke/site`), 6 (`smoke/website`), 2 (`smoke/book`), 1 (`smoke/manuscript`), 2 (`smoke/jats`), 1 (`smoke/search`), 2 (`smoke/embed`) and 1 (`smoke/scholar`) test files. The `.cmd` launcher and PowerShell `run-tests.ps1` forms replace the POSIX ones at execution time.
 - Gate inputs: no `Plan defect` or `Plan gap` bead names PR 12; 29 commits touched `src/project` or `src/format` since `b86f98d`, all covered by the citation audit.
+
+### Task 1 — dry run and review
+
+- Step 1: the plan's dry run used the worktree's Windows `.cmd` launcher (shown repository-relatively):
+
+  ```bash
+  mkdir -p .claude/docs && package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format --dry-run > .claude/docs/codemod-project-format.txt && tail -1 .claude/docs/codemod-project-format.txt
+  ```
+
+  It printed the expected summary:
+
+  ```text
+  Summary: 123 files scanned, 51 would be rewritten, 159 replacements, 0 with collisions, 0 skipped
+  ```
+
+  `git status --short src` printed nothing, confirming that the dry run left `src` unchanged. The durable report is `.claude/docs/codemod-project-format.txt`; it is ignored and is not part of the task commit.
+- Step 2: `grep -E 'skipped|collision' .claude/docs/codemod-project-format.txt` printed only the summary line quoted above. `grep '→' .claude/docs/codemod-project-format.txt | awk -F'→' '{print $2}' | sort | uniq -c | sort -rn` printed the complete replacement-name inventory:
+
+  ```text
+       65  readTextFileSync
+       41  writeTextFileSync
+       28  statSync
+        6  open
+        6  copyFileSync
+        2  writeTextFile
+        2  renameSync
+        2  readTextFile
+        2  readFileSync
+        2  readDirSync
+        1  removeSync
+        1  readFile
+        1  makeTempDirSync
+  ```
+
+  Every target is in the `fs` or `temp` rule table, and `open` appears exactly six times. No collision or skipped file requires a hand edit before Task 2. No codemod was applied and no source or baseline file changed.
+- Deviations: only the prescribed Windows `.cmd` launcher adaptation. Outstanding: Tasks 2–4 and the final Verification remain for later sessions.
