@@ -4,7 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync } from "../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { Format } from "../../../config/types.ts";
 import {
@@ -65,14 +69,14 @@ export async function resolveFormatForGiscus(
 
   try {
     // Try to read the cached data and use that
-    const giscusJson = Deno.readTextFileSync(path);
+    const giscusJson = readTextFileSync(path);
     giscusMeta = JSON.parse(giscusJson);
   } catch {
     // Couldn't read the cached metadata, fetch it
     removeIfExists(path);
     giscusMeta = await getGithubDiscussionsMetadata(repo);
     const jsonStr = JSON.stringify(giscusMeta, undefined, 2);
-    Deno.writeTextFileSync(path, jsonStr);
+    writeTextFileSync(path, jsonStr);
   }
 
   // Populate the ids if need be

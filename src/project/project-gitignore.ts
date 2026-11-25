@@ -5,7 +5,12 @@
  */
 
 import { join } from "../deno_ral/path.ts";
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  walkSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 import { which } from "../core/path.ts";
 import { execProcess } from "../core/process.ts";
@@ -24,7 +29,7 @@ export async function ensureGitignore(
   // if .gitignore exists, then ensure it has the requisite entries
   const gitignorePath = join(dir, ".gitignore");
   if (existsSync(gitignorePath)) {
-    const gitignore = lines(Deno.readTextFileSync(gitignorePath))
+    const gitignore = lines(readTextFileSync(gitignorePath))
       .map((line) => line.trim());
     const requiredEntries: string[] = [];
     for (const requiredEntry of gitignoreEntries(dir, forceEnv)) {
@@ -89,7 +94,7 @@ export function gitignoreEntries(dir: string, forceEnv = false) {
 function writeGitignore(dir: string, lines: string[]) {
   // write gitignore
   const lineEnding = isWindows ? "\r\n" : "\n";
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     join(dir, ".gitignore"),
     lines.join(lineEnding) + lineEnding,
   );

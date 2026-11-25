@@ -32,7 +32,12 @@ import {
   kSectionTitleReferences,
   kShiftHeadingLevelBy,
 } from "../../config/constants.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import {
+  copyFileSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { ProjectOutputFile } from "../../project/types/types.ts";
 import { lines } from "../../core/text.ts";
 import {
@@ -151,11 +156,11 @@ const asciidocBookExtension = {
     if (existsSync(atlasInFile)) {
       // See if there is an atlas.json file to move to the output
       // directory
-      Deno.copyFileSync(atlasInFile, atlasOutFile);
+      copyFileSync(atlasInFile, atlasOutFile);
     } else {
       // Cook up an atlas file based upon the project inputs
       // and place this in the output dir
-      Deno.writeTextFileSync(atlasOutFile, project2Atlas(projDir, context));
+      writeTextFileSync(atlasOutFile, project2Atlas(projDir, context));
     }
 
     // Find the explicit ref target
@@ -164,7 +169,7 @@ const asciidocBookExtension = {
     for (const outputFile of outputFiles) {
       const path = outputFile.file;
       if (existsSync(path)) {
-        const contents = Deno.readTextFileSync(path);
+        const contents = readTextFileSync(path);
         if (contents.match(kRefTargetIndentifierMatch)) {
           refsTarget = path;
         }
@@ -231,12 +236,12 @@ const asciidocBookExtension = {
 
       if (refsTarget) {
         // Replace the refs target with the bibliography (or empty to remove it)
-        const refTargetContents = Deno.readTextFileSync(refsTarget);
+        const refTargetContents = readTextFileSync(refsTarget);
         const updatedContents = refTargetContents.replace(
           kRefTargetIndentifierMatch,
           cleanedBibliography,
         );
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           refsTarget,
           updatedContents,
         );
@@ -244,10 +249,10 @@ const asciidocBookExtension = {
         const title = format.language[kSectionTitleReferences] || "References";
         const titleAdoc = `== ${title}`;
 
-        const indexPageContents = Deno.readTextFileSync(indexPage);
+        const indexPageContents = readTextFileSync(indexPage);
         const updatedContents =
           `${indexPageContents}\n\n${titleAdoc}\n\n[[refs]]\n\n${cleanedBibliography}`;
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           indexPage,
           updatedContents,
         );

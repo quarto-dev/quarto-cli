@@ -4,7 +4,12 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFile,
+  statSync,
+  writeTextFile,
+} from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { isSelfContainedOutput } from "../../command/render/render-info.ts";
 import { kResourcePath } from "../../config/constants.ts";
@@ -29,8 +34,8 @@ export function revealMuliplexPreviewFile(file: string) {
   const speakerFile = revealSpeakerOutput(file);
   if (existsSync(speakerFile) && existsSync(file)) {
     // return speaker file if it's >= mod time of file
-    const modTime = Deno.statSync(file).mtime;
-    const speakerModTime = Deno.statSync(speakerFile).mtime;
+    const modTime = statSync(file).mtime;
+    const speakerModTime = statSync(speakerFile).mtime;
     if (modTime && speakerModTime && (speakerModTime > modTime)) {
       return speakerFile;
     }
@@ -52,7 +57,7 @@ export function revealMultiplexExtras(
         const token = await revealMultiplexToken(format, output);
 
         // read file
-        const content = await Deno.readTextFile(output);
+        const content = await readTextFile(output);
 
         // generate speaker content
         const speakerContent = withMultiplexToken(content, token);
@@ -66,11 +71,11 @@ export function revealMultiplexExtras(
           );
 
         // write client version
-        await Deno.writeTextFile(output, clientContent);
+        await writeTextFile(output, clientContent);
 
         // write speaker version
         const speakerOutput = revealSpeakerOutput(output);
-        await Deno.writeTextFile(speakerOutput, speakerContent);
+        await writeTextFile(speakerOutput, speakerContent);
 
         // determine whether this is self-contained output
         const selfContained = isSelfContainedOutput(
@@ -123,7 +128,7 @@ async function revealMultiplexToken(
   // is it located inside the -speaker file?
   const speakerOutput = revealSpeakerOutput(output);
   if (existsSync(speakerOutput)) {
-    const speakerContent = await Deno.readTextFile(speakerOutput);
+    const speakerContent = await readTextFile(speakerOutput);
     const initPos = speakerContent.lastIndexOf("Reveal.initialize({");
     if (initPos !== -1) {
       const initLines = lines(speakerContent.substring(initPos));

@@ -31,6 +31,7 @@ import { normalizePath } from "../../core/path.ts";
 import { formatHasBootstrap } from "./format-html-info.ts";
 import { HtmlFormatFeatureDefaults } from "./format-html-types.ts";
 import { normalizeNewlines } from "../../core/text.ts";
+import { readDirSync, readTextFileSync } from "../../deno_ral/fs.ts";
 
 // features that are enabled by default for 'html'. setting
 // all of these to false will yield the minimal html output
@@ -114,25 +115,25 @@ export const clipboardDependency = () => {
 };
 
 export const bootstrapFunctions = () => {
-  return Deno.readTextFileSync(
+  return readTextFileSync(
     join(bootstrapResourceDir(), "_functions.scss"),
   );
 };
 
 export const bootstrapMixins = () => {
-  return Deno.readTextFileSync(
+  return readTextFileSync(
     join(bootstrapResourceDir(), "_mixins.scss"),
   );
 };
 
 export const bootstrapVariables = () => {
-  return Deno.readTextFileSync(
+  return readTextFileSync(
     join(bootstrapResourceDir(), "_variables.scss"),
   );
 };
 
 export const bootstrapRules = () => {
-  return Deno.readTextFileSync(
+  return readTextFileSync(
     join(bootstrapResourceDir(), "bootstrap.scss"),
   );
 };
@@ -143,7 +144,7 @@ export const bslibComponentMixins = () => {
     "bslib",
   );
   const mixinsDir = join(bootstrapDistDir, "components", "scss", "mixins");
-  return Deno.readTextFileSync(join(mixinsDir, "_mixins.scss"));
+  return readTextFileSync(join(mixinsDir, "_mixins.scss"));
 };
 
 export const bslibComponentRules = () => {
@@ -160,10 +161,10 @@ export const bslibComponentRules = () => {
   const scss = [];
   for (const bsLibDir of bslibDirs) {
     for (
-      const walk of Deno.readDirSync(bsLibDir)
+      const walk of readDirSync(bsLibDir)
     ) {
       if (walk.isFile) {
-        const contents = Deno.readTextFileSync(join(bsLibDir, walk.name));
+        const contents = readTextFileSync(join(bsLibDir, walk.name));
         scss.push(contents);
       }
     }
@@ -177,7 +178,7 @@ export const htmlToolsRules = () => {
     "html",
     join("htmltools"),
   );
-  const fillCss = Deno.readTextFileSync(join(htmlToolsDir, "fill.css"));
+  const fillCss = readTextFileSync(join(htmlToolsDir, "fill.css"));
   return fillCss;
 };
 
@@ -202,41 +203,41 @@ export const sassUtilFunctions = (name: string) => {
   );
 
   const path = join(bootstrapDistDir, "sass-utils", name);
-  return Deno.readTextFileSync(path);
+  return readTextFileSync(path);
 };
 
 export const quartoRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules.scss",
   ));
 
 export const quartoCopyCodeDefaults = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-variables-copy-code.scss",
   ));
 
 export const quartoCopyCodeRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules-copy-code.scss",
   ));
 
 export const quartoLinkExternalRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules-link-external.scss",
   ));
 
 export const quartoCodeFilenameRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules-code-filename.scss",
   ));
 
 export const quartoTabbyRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-rules-tabby.scss",
   ));
@@ -269,19 +270,19 @@ export const quartoBootstrapCustomizationLayer = () => {
 };
 
 export const quartoBootstrapRules = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-rules.scss"),
   ));
 
 export const quartoBootstrapMixins = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-mixins.scss"),
   ));
 
 export const quartoBootstrapFunctions = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     join("bootstrap", "_bootstrap-functions.scss"),
   ));
@@ -322,19 +323,19 @@ export const quartoBaseLayer = (
 };
 
 export const quartoVariables = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-variables.scss",
   ));
 
 export const quartoUses = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-uses.scss",
   ));
 
 export const quartoFunctions = () =>
-  Deno.readTextFileSync(formatResourcePath(
+  readTextFileSync(formatResourcePath(
     "html",
     "_quarto-functions.scss",
   ));

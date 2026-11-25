@@ -136,22 +136,22 @@ Run: `grep '→' .claude/docs/codemod-project-format.txt | awk -F'→' '{print $
 
 ### Task 2: Apply the codemod
 
-- [ ] **Step 1: Rewrite**
+- [x] **Step 1: Rewrite**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format | tail -1` Expected: `Summary: 123 files scanned, 51 rewritten, 159 replacements, 0 with collisions, 0 skipped`.
 
-- [ ] **Step 2: Format and type-check**
+- [x] **Step 2: Format and type-check**
 
 Run: `git diff --name-only | xargs package/dist/bin/tools/x86_64/deno fmt` Expected: `git diff --stat | tail -1` lists only files under `src/project` and `src/format`.
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 If `readLines(reader)` or `parser.parse(reader)` reports that `FsFile` is not assignable to `Reader`, the layer's `FsFile.read` signature is wrong; fix it in `src/deno_ral/fs.ts` (it must be `read(p: Uint8Array): Promise<number | null>`) rather than casting at the call site.
 
-- [ ] **Step 3: Review the six `open` sites**
+- [x] **Step 3: Review the six `open` sites**
 
 Run: `git diff -U2 src/project/types/manuscript/manuscript-config.ts src/project/types/manuscript/manuscript.ts src/project/types/website/website-sitemap.ts src/project/types/website/listing/website-listing-feed.ts src/format/jats/format-jats-postprocess.ts src/format/pdf/format-pdf.ts | grep '^[-+]' | grep -v '^[-+][-+]'` Expected: each hunk is `Deno.open(` → `open(` plus an import line; every handle is still closed in the same `finally`/after the same loop as before.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/project src/format
@@ -295,3 +295,36 @@ Review items closed here: counts (51 files / 159 replacements), the comment-matc
 
   Every target is in the `fs` or `temp` rule table, and `open` appears exactly six times. No collision or skipped file requires a hand edit before Task 2. No codemod was applied and no source or baseline file changed.
 - Deviations: only the prescribed Windows `.cmd` launcher adaptation. Outstanding: Tasks 2–4 and the final Verification remain for later sessions.
+
+### Task 2 — apply the codemod
+
+- Step 1: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/project --dir src/format | tail -1` printed the expected summary:
+
+  ```text
+  Summary: 123 files scanned, 51 rewritten, 159 replacements, 0 with collisions, 0 skipped
+  ```
+
+  `git diff --name-only` listed exactly 51 files, all under `src/project` or `src/format`.
+- Step 2: before formatting, `git diff --shortstat` and `git diff --stat | tail -1` both printed:
+
+  ```text
+   51 files changed, 211 insertions(+), 207 deletions(-)
+  ```
+
+  Following the coordinator's formatting row, the formatter excluded `src/project/types/website/website-sitemap.ts`, `src/project/types/manuscript/manuscript.ts` and `src/format/reveal/format-reveal.ts`:
+
+  ```bash
+  git diff --name-only | rg -v '^(src/project/types/website/website-sitemap\.ts|src/project/types/manuscript/manuscript\.ts|src/format/reveal/format-reveal\.ts)$' | xargs package/dist/bin/tools/x86_64/deno fmt
+  ```
+
+  It printed `Checked 48 files`. After formatting, both short-stat commands printed `51 files changed, 314 insertions(+), 196 deletions(-)`. The changed-file count stayed 51, no path was outside the two scoped directories, and `git diff --check` printed nothing. The three excluded files' diffs contain only their import changes and `Deno.x` → `x` rewrites; no rewritten call exceeded the line width.
+- Step 2 type check: `cd src && ../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` printed `Check quarto.ts` and exited 0. No `FsFile`/`Reader` error occurred.
+- Step 3: the prescribed `git diff -U2` pipeline over the six files showed only mechanical fs rewrites and their imports. The six `Deno.open(` calls became `open(` in `manuscript-config.ts`, `manuscript.ts`, `website-sitemap.ts`, `website-listing-feed.ts`, `format-jats-postprocess.ts` and `format-pdf.ts`. The existing `finally` closes in the two manuscript files, listing feed and PDF processing are unchanged; the sitemap reader is still closed immediately after `parser.parse(reader)`. The JATS reader had no explicit close before this task and remains without one; no lifecycle code was added or removed.
+- Additional mechanical review: an inline audit removed all fs/temp import declarations from the base and current texts, applied the prescribed API replacements to the base, canonically formatted both copies outside the repository, and compared them. It printed:
+
+  ```text
+  Mechanical diff audit: 51/51 files match after normalizing imports, formatting, and the 159 prescribed Deno fs/temp rewrites
+  ```
+
+- Step 4: scoped `git status --short -- src/project src/format` listed only the 51 modified source files. Full status also contained the pre-existing untracked `.pi-loop.json.lock` at the repository root. Following the coordinator's staging row, `git diff --name-only | xargs git add --` staged only the 51 tracked source paths before this plan was staged explicitly; the lock file was not staged.
+- Deviations: the prescribed Windows `.cmd`/`.exe` launchers and the coordinator's formatting and staging amendments. The pre-existing harness lock file remained untracked and outside the commit. Outstanding: Tasks 3–4 and the final Verification remain for later sessions.

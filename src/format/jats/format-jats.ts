@@ -35,6 +35,7 @@ import {
   reformatXmlPostProcessor,
   renderSubarticlePostProcessor,
 } from "./format-jats-postprocess.ts";
+import { writeTextFileSync } from "../../deno_ral/fs.ts";
 
 const kJatsExtended = "jats-extended";
 const kJatsDtd = "jats-dtd";
@@ -117,7 +118,7 @@ export function jatsFormat(displayName: string, ext: string): Format {
             );
             placeholders.push(placeholder);
           });
-          Deno.writeTextFileSync(placeholderFile, placeholders.join("\n"));
+          writeTextFileSync(placeholderFile, placeholders.join("\n"));
           afterBody.push(placeholderFile);
 
           // Render subarticles and place them in the root article in the correct position

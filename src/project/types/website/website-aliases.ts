@@ -3,7 +3,11 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
-import { ensureDirSync, existsSync } from "../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  existsSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../../deno_ral/path.ts";
 
 import { ProjectOutputFile } from "../types.ts";
@@ -196,5 +200,5 @@ export function writeMultipleRedirectPage(
     redirects,
   });
 
-  Deno.writeTextFileSync(path, redirectHtml);
+  writeTextFileSync(path, redirectHtml);
 }

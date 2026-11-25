@@ -5,7 +5,11 @@
  */
 import { Document } from "../../../core/deno-dom.ts";
 import { join } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../../deno_ral/fs.ts";
 import { kLang, kTitle } from "../../../config/constants.ts";
 import { Format, Metadata } from "../../../config/types.ts";
 import { projectTypeResourcePath } from "../../../core/resources.ts";
@@ -132,7 +136,7 @@ export function websiteAnalyticsScriptFile(
         if (snippetPath) {
           const absolutePath = join(project.dir, snippetPath);
           if (existsSync(absolutePath)) {
-            const snippetContent = Deno.readTextFileSync(absolutePath);
+            const snippetContent = readTextFileSync(absolutePath);
             scripts.push(snippetContent);
           } else {
             throw new Error(
@@ -416,6 +420,6 @@ cookieconsent.run({
 
 function scriptFile(script: string, temp: TempContext) {
   const analyticsScriptFile = temp.createFile({ suffix: "-lytics.js" });
-  Deno.writeTextFileSync(analyticsScriptFile, script);
+  writeTextFileSync(analyticsScriptFile, script);
   return analyticsScriptFile;
 }

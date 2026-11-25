@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, safeRemoveSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  safeRemoveSync,
+  statSync,
+} from "../deno_ral/fs.ts";
 import { warnOnce } from "../core/log.ts";
 import {
   dirname,
@@ -480,7 +485,7 @@ export async function projectResolveFullMarkdownForFile(
   let currentMtime: number | undefined;
   let currentSize: number | undefined;
   try {
-    const stat = Deno.statSync(file);
+    const stat = statSync(file);
     currentMtime = stat.mtime?.getTime();
     currentSize = stat.size;
   } catch {
@@ -559,7 +564,7 @@ export async function projectResolveBrand(
   function isEmptyBrandFile(brandPath: string): boolean {
     let empty = false;
     try {
-      empty = parse(Deno.readTextFileSync(brandPath)) == null;
+      empty = parse(readTextFileSync(brandPath)) == null;
     } catch {
       // invalid YAML: let validation report it
     }
@@ -612,7 +617,7 @@ export async function projectResolveBrand(
   function brandSourceState(paths: string[]): string {
     return paths.map((path) => {
       try {
-        const stat = Deno.statSync(path);
+        const stat = statSync(path);
         return `${path}:${stat.mtime?.getTime()}:${stat.size}`;
       } catch {
         return `${path}:absent`;

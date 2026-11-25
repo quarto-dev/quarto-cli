@@ -4,7 +4,12 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, safeRemoveSync } from "../../../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../../../../deno_ral/fs.ts";
 import { dirname, join } from "../../../../deno_ral/path.ts";
 
 import { projectScratchPath } from "../../../project-scratch.ts";
@@ -75,7 +80,7 @@ function clearListingMap(project: ProjectContext) {
 function readListingMap(project: ProjectContext) {
   const file = projectListingMapFile(project.dir);
   try {
-    const mapRaw = Deno.readTextFileSync(file);
+    const mapRaw = readTextFileSync(file);
     const data = JSON.parse(mapRaw);
     return data as ListingCache;
   } catch {
@@ -87,7 +92,7 @@ function writeListingCache(project: ProjectContext, cache: ListingCache) {
   const file = projectListingMapFile(project.dir);
   ensureDirSync(dirname(file));
   const mapJson = JSON.stringify(cache, undefined, 2);
-  Deno.writeTextFileSync(file, mapJson);
+  writeTextFileSync(file, mapJson);
 }
 
 function projectListingMapFile(dir: string) {

@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
 
 import { formatResourcePath } from "../../core/resources.ts";
@@ -530,7 +530,7 @@ export const quartoBootstrapDefaults = (metadata: Metadata) => {
     "html",
     join("bootstrap", "_bootstrap-variables.scss"),
   );
-  const variables = [Deno.readTextFileSync(varFilePath)];
+  const variables = [readTextFileSync(varFilePath)];
   const colorDefaults: string[] = [];
 
   const navbar = (metadata[kWebsite] as Metadata)?.[kSiteNavbar];

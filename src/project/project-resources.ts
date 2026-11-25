@@ -4,7 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync } from "../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../deno_ral/path.ts";
 import * as ld from "../core/lodash.ts";
 import { asArray } from "../core/array.ts";
@@ -115,7 +119,7 @@ function handleCssReferences(
   destFile: string,
 ) {
   // read the css
-  const css = Deno.readTextFileSync(destFile);
+  const css = readTextFileSync(destFile);
 
   // offset for root references
   const offset = relative(dirname(srcFile), rootDir);
@@ -134,6 +138,6 @@ function handleCssReferences(
 
   // write the css if necessary
   if (destCss !== css) {
-    Deno.writeTextFileSync(destFile, destCss);
+    writeTextFileSync(destFile, destCss);
   }
 }

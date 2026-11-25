@@ -151,6 +151,7 @@ import { dashboardScssLayer } from "../../../format/dashboard/format-dashboard-s
 
 import { navigation } from "./website-shared.ts";
 import { isAboutPage } from "./about/website-about.ts";
+import { statSync, writeTextFileSync } from "../../../deno_ral/fs.ts";
 
 export const kSidebarLogo = "logo";
 export const kSidebarLogoHref = "logo-href";
@@ -446,7 +447,7 @@ export function writeRedirectPage(path: string, href: string) {
   const redirectHtml = renderEjs(redirectTemplate, {
     url: href,
   });
-  Deno.writeTextFileSync(path, redirectHtml);
+  writeTextFileSync(path, redirectHtml);
 }
 
 function navigationHtmlPostprocessor(
@@ -1371,7 +1372,7 @@ export async function navigationItem(
   // allow short form syntax
   if (typeof navItem === "string") {
     const navItemPath = join(project.dir, navItem);
-    if (safeExistsSync(navItemPath) && Deno.statSync(navItemPath).isFile) {
+    if (safeExistsSync(navItemPath) && statSync(navItemPath).isFile) {
       navItem = { href: navItem };
     } else {
       navItem = { text: navItem };

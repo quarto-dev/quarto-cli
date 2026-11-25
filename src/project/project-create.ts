@@ -9,6 +9,7 @@ import {
   ensureDirSync,
   ensureUserWritable,
   existsSync,
+  writeTextFileSync,
 } from "../deno_ral/fs.ts";
 import { basename, dirname, join } from "../deno_ral/path.ts";
 import { info } from "../deno_ral/log.ts";
@@ -80,7 +81,7 @@ export async function projectCreate(options: ProjectCreateOptions) {
     editor: options.editor,
     ext: engine.defaultExt,
   }, false);
-  Deno.writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
+  writeTextFileSync(join(options.dir, "_quarto.yml"), quartoConfig);
   if (!options.quiet) {
     info(
       "- Created _quarto.yml",
@@ -254,7 +255,7 @@ function projectMarkdownFile(
 
   const path = ensureSubDir(dir, name, subdirectory);
   if (!existsSync(path)) {
-    Deno.writeTextFileSync(path, lines.join("\n") + "\n");
+    writeTextFileSync(path, lines.join("\n") + "\n");
 
     // Write supporting files
     supporting?.forEach((from) => {

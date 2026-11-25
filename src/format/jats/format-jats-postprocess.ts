@@ -9,7 +9,12 @@ import { RenderServices } from "../../command/render/types.ts";
 import { JatsRenderSubArticle, xmlPlaceholder } from "./format-jats-types.ts";
 
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { copySync } from "../../deno_ral/fs.ts";
+import {
+  copySync,
+  open,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { readLines } from "io/read-lines";
 import { ProjectContext } from "../../project/types.ts";
 import { logProgress } from "../../core/log.ts";
@@ -65,7 +70,7 @@ export const renderSubarticlePostProcessor = (
     for (const subArticle of subArticles) {
       const nb = services.notebook.get(subArticle.input, project);
       if (nb && nb[kJatsSubarticle]) {
-        let outputContents = Deno.readTextFileSync(output);
+        let outputContents = readTextFileSync(output);
 
         const notebook = nb[kJatsSubarticle];
         const jatsSubarticlePath = notebook.path;
@@ -76,7 +81,7 @@ export const renderSubarticlePostProcessor = (
 
         // Read the subarticle and change any cross references to not conflict
         // by atdding a token suffix
-        const subArtReader = await Deno.open(jatsSubarticlePath);
+        const subArtReader = await open(jatsSubarticlePath);
         const subArtLines: string[] = [];
         for await (let line of readLines(subArtReader)) {
           // Process ids (add a suffix to all ids and rids)
@@ -105,7 +110,7 @@ export const renderSubarticlePostProcessor = (
           }
           supportingOut.push(toPath);
         }
-        Deno.writeTextFileSync(output, outputContents);
+        writeTextFileSync(output, outputContents);
       }
     }
     // Clean up the renderings now that they've been ingested

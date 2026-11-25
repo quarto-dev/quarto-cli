@@ -43,6 +43,11 @@ import { projectType } from "./types/project-types.ts";
 import { withRenderServices } from "../command/render/render-services.ts";
 import { RenderServices } from "../command/render/types.ts";
 import { kDraft } from "../format/html/format-html-shared.ts";
+import {
+  readTextFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 export async function inputTargetIndex(
   project: ProjectContext,
@@ -52,7 +57,7 @@ export async function inputTargetIndex(
   const inputFile = join(project.dir, input);
 
   // return undefined if the file doesn't exist
-  if (!safeExistsSync(inputFile) || Deno.statSync(inputFile).isDirectory) {
+  if (!safeExistsSync(inputFile) || statSync(inputFile).isDirectory) {
     return Promise.resolve(undefined);
   }
 
@@ -77,7 +82,7 @@ export async function inputTargetIndex(
   const index = await readBaseInputIndex(inputFile, project);
   if (index) {
     const indexFile = inputTargetIndexFile(project.dir, input);
-    Deno.writeTextFileSync(indexFile, JSON.stringify(index));
+    writeTextFileSync(indexFile, JSON.stringify(index));
   }
   return index;
 }
@@ -178,7 +183,7 @@ export function readInputTargetIndex(
     return { index };
   }
 
-  let contents = Deno.readTextFileSync(projConfigFile);
+  let contents = readTextFileSync(projConfigFile);
   if (contents.trim().length === 0) {
     contents = kDefaultProjectFileContents;
   }
@@ -219,8 +224,8 @@ function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
   const inputFile = join(projectDir, input);
   const indexFile = inputTargetIndexFile(projectDir, input);
   try {
-    const inputMod = Deno.statSync(inputFile).mtime;
-    const indexMod = Deno.statSync(indexFile).mtime;
+    const inputMod = statSync(inputFile).mtime;
+    const indexMod = statSync(indexFile).mtime;
     if (
       inputMod && indexMod
     ) {
@@ -237,7 +242,7 @@ function readInputTargetIndexIfStillCurrent(projectDir: string, input: string) {
         inputTargetIndexCacheMetrics.misses++;
         try {
           const result = JSON.parse(
-            Deno.readTextFileSync(indexFile),
+            readTextFileSync(indexFile),
           ) as InputTargetIndex;
           inputTargetIndexCache.set(indexFile, result);
           return result;

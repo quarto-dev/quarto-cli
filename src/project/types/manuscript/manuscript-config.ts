@@ -6,7 +6,7 @@
 
 import { isAbsolute, join, relative } from "../../../deno_ral/path.ts";
 import { ProjectContext } from "../../types.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, open } from "../../../deno_ral/fs.ts";
 import {
   ManuscriptConfig,
   ResolvedManuscriptConfig,
@@ -85,7 +85,7 @@ export const computeProjectArticleFile = (
 
 const codeHintRegexes = [/`+{[^\.]+.*}/, /.*"cell_type"\s*:\s*"code".*/];
 export const hasComputations = async (file: string) => {
-  const reader = await Deno.open(file);
+  const reader = await open(file);
   try {
     for await (const line of readLines(reader)) {
       if (line) {

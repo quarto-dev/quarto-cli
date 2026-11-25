@@ -23,10 +23,14 @@ import {
   SEP,
 } from "../../../deno_ral/path.ts";
 import {
+  copyFileSync,
   copySync,
   ensureDirSync,
   moveSync,
+  readDirSync,
+  statSync,
   walkSync,
+  writeTextFileSync,
 } from "../../../deno_ral/fs.ts";
 import { kMecaVersion, MecaItem, MecaManifest, toXml } from "./meca.ts";
 import { zip } from "../../../core/zip.ts";
@@ -187,7 +191,7 @@ export const createMecaBundle = async (
     const relPath = join(kSrcDirName, relative(context.dir, file));
     const targetPath = join(workingDir, relPath);
     ensureDirSync(dirname(targetPath));
-    Deno.copyFileSync(file, targetPath);
+    copyFileSync(file, targetPath);
     const item = toMecaItem(relPath, type);
     sourceFiles.push(item);
     sourceZipFiles.push(relPath);
@@ -296,7 +300,7 @@ export const createMecaBundle = async (
           relative(outputDir, otherSupporting),
           false,
         );
-        const isDir = Deno.statSync(otherSupporting).isDirectory;
+        const isDir = statSync(otherSupporting).isDirectory;
 
         const otherItems = mecaItemsForPath(
           workingDir,
@@ -380,7 +384,7 @@ export const createMecaBundle = async (
     // Write the manifest
     const manifestFile = "manifest.xml";
     const manifestXML = toXml(manifest);
-    Deno.writeTextFileSync(join(workingDir, manifestFile), manifestXML);
+    writeTextFileSync(join(workingDir, manifestFile), manifestXML);
 
     const filesToZip: string[] = ld.uniq([
       manifestFile,
@@ -422,9 +426,9 @@ const mecaItemsForPath = (
   isDir?: boolean,
 ): MecaItem[] => {
   const path = join(basePath, relPath);
-  if (isDir === true || Deno.statSync(path).isDirectory) {
+  if (isDir === true || statSync(path).isDirectory) {
     const items: MecaItem[] = [];
-    for (const subPath of Deno.readDirSync(path)) {
+    for (const subPath of readDirSync(path)) {
       if (subPath.isDirectory) {
         items.push(
           ...mecaItemsForPath(

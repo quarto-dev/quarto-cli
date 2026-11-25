@@ -46,6 +46,7 @@ import {
   resolveLogo,
 } from "../../core/brand/brand.ts";
 import { LogoLightDarkSpecifierPathOptional } from "../../resources/types/zod/schema-types.ts";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 const typstBookExtension: BookExtension = {
   selfContainedOutput: true,
@@ -194,7 +195,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
     /(#let Skylighting\(fill: none, number: false, start: 1, sourcelines\) = \{[\s\S]*?\n\})/;
 
   return async (output: string) => {
-    const content = Deno.readTextFileSync(output);
+    const content = readTextFileSync(output);
 
     const match = skylightingFnRe.exec(content);
     if (!match) {
@@ -220,7 +221,7 @@ function skylightingPostProcessor(brandBgColor?: string) {
     }
 
     if (fn !== match[1]) {
-      Deno.writeTextFileSync(output, content.replace(match[1], fn));
+      writeTextFileSync(output, content.replace(match[1], fn));
     }
   };
 }

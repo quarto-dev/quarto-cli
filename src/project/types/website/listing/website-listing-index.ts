@@ -5,7 +5,12 @@
  */
 
 import { join, relative } from "../../../../deno_ral/path.ts";
-import { existsSync, safeRemoveSync } from "../../../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../../../../deno_ral/fs.ts";
 
 import { ProjectContext } from "../../../types.ts";
 import { ListingDescriptor, ListingItem } from "./website-listing-shared.ts";
@@ -58,7 +63,7 @@ export async function createListingIndex(
       };
 
       const listingIndexPath = listingIndex(source);
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         listingIndexPath,
         JSON.stringify(listingJson, undefined, 2),
       );
@@ -86,7 +91,7 @@ export function updateGlobalListingIndex(
   const outputDir = projectOutputDir(context);
   const listingJsonPath = join(outputDir, "listings.json");
   const listingJson = existsSync(listingJsonPath)
-    ? Deno.readTextFileSync(listingJsonPath)
+    ? readTextFileSync(listingJsonPath)
     : undefined;
 
   // start with a set of search docs if this is incremental
@@ -112,7 +117,7 @@ export function updateGlobalListingIndex(
       if (hasListing && isHtmlOutput(outputFile.format.pandoc, true)) {
         const indexPath = listingIndex(outputFile.file);
         if (existsSync(indexPath)) {
-          const json = Deno.readTextFileSync(indexPath);
+          const json = readTextFileSync(indexPath);
           const indexJson = JSON.parse(json) as ListingPaths;
 
           const existingIndex = listingPaths.findIndex((paths) =>
@@ -130,7 +135,7 @@ export function updateGlobalListingIndex(
     }
 
     if (listingPaths.length > 0) {
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         listingJsonPath,
         JSON.stringify(listingPaths, undefined, 2),
       );

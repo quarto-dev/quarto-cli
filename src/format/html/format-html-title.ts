@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync } from "../../deno_ral/fs.ts";
+import { existsSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { kDateFormat, kTocLocation } from "../../config/constants.ts";
 import { Format, Metadata, PandocFlags } from "../../config/types.ts";
@@ -125,7 +125,7 @@ export function documentTitleIncludeInHeader(
 
     styles.push("</style>");
     const file = temp.createFile({ suffix: ".css" });
-    Deno.writeTextFileSync(file, styles.join("\n"));
+    writeTextFileSync(file, styles.join("\n"));
     return file;
   }
 }

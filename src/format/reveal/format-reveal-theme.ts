@@ -5,7 +5,11 @@
  */
 
 import { dirname, join, relative } from "../../deno_ral/path.ts";
-import { existsSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readFileSync,
+  readTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 import { kTheme } from "../../config/constants.ts";
 import {
@@ -199,7 +203,7 @@ export async function revealTheme(
   // Remove sourcemap information
   cleanSourceMappingUrl(css);
   // convert from string to bytes
-  const hash = await md5HashBytes(Deno.readFileSync(css));
+  const hash = await md5HashBytes(readFileSync(css));
   const fileName = `quarto-${hash}`;
   copyTo(
     css,
@@ -208,7 +212,7 @@ export async function revealTheme(
   metadata[kTheme] = fileName;
 
   const highlightingMode: "light" | "dark" =
-    cssHasDarkModeSentinel(Deno.readTextFileSync(css)) ? "dark" : "light";
+    cssHasDarkModeSentinel(readTextFileSync(css)) ? "dark" : "light";
 
   // return
   return {
@@ -225,7 +229,7 @@ export async function revealTheme(
 // - exposer.scss is loaded in theme.scss and found through the loadPaths
 function revealFrameworkLayer(revealDir: string): SassLayer {
   const readTemplate = (template: string) => {
-    return Deno.readTextFileSync(
+    return readTextFileSync(
       join(revealDir, "css", "theme", "template", template),
     );
   };

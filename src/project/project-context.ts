@@ -14,7 +14,7 @@ import {
   SEP,
 } from "../deno_ral/path.ts";
 
-import { existsSync, walk, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, statSync, walk, walkSync } from "../deno_ral/fs.ts";
 import * as ld from "../core/lodash.ts";
 
 import { ProjectType } from "./types/types.ts";
@@ -224,7 +224,7 @@ export async function projectContext(
 ): Promise<ProjectContext | undefined> {
   const flags = renderOptions?.flags;
   const originalDir = normalizePath(
-    Deno.statSync(path).isDirectory ? path : dirname(path),
+    statSync(path).isDirectory ? path : dirname(path),
   );
 
   // create an extension context if one doesn't exist
@@ -346,7 +346,7 @@ export async function projectContext(
         // if we are attemping to get the projectConext for a file and the
         // file isn't in list of input files then return a single-file project
         const fullPath = normalizePath(path);
-        if (Deno.statSync(fullPath).isFile && !files.includes(fullPath)) {
+        if (statSync(fullPath).isFile && !files.includes(fullPath)) {
           return undefined;
         }
 
@@ -507,7 +507,7 @@ export async function projectContext(
       },
     };
     try {
-      if (Deno.statSync(path).isDirectory) {
+      if (statSync(path).isDirectory) {
         const { files, engines } = await projectInputFiles(context);
         context.engines = engines;
         context.files.input = files;
@@ -775,7 +775,7 @@ type ProjectTypeDetector = {
 // directory that can't be searched would match even if it doesn't exist.
 function detectPathExists(path: string) {
   try {
-    Deno.statSync(path);
+    statSync(path);
     return true;
   } catch {
     return false;
@@ -1194,7 +1194,7 @@ async function projectInputFilesInternal(
     return inclusions.flat();
   };
   const addEntry = async (entry: string) => {
-    if (Deno.statSync(entry).isDirectory) {
+    if (statSync(entry).isDirectory) {
       return addDir(entry);
     } else {
       return addFile(entry);
@@ -1262,7 +1262,7 @@ function projectConfigResources(
           const path = isAbsolute(value) ? value : join(dir, value);
           // Paths could be invalid paths (e.g. with colons or other weird characters)
           try {
-            if (existsSync(path) && !Deno.statSync(path).isDirectory) {
+            if (existsSync(path) && !statSync(path).isDirectory) {
               resources.push(normalizePath(path));
             }
           } catch {

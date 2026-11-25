@@ -5,7 +5,7 @@
  */
 
 import { dirname, isAbsolute, join, relative } from "../../../deno_ral/path.ts";
-import { existsSync } from "../../../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../../../deno_ral/fs.ts";
 
 import * as ld from "../../../core/lodash.ts";
 import { stringify } from "../../../core/yaml.ts";
@@ -155,7 +155,7 @@ export async function bookBibliographyPostRender(
         relative(dirname(file.file), refsHtml!),
       );
       // check each citation
-      const doc = await parseHtml(Deno.readTextFileSync(file.file));
+      const doc = await parseHtml(readTextFileSync(file.file));
       forEachCite(doc, (cite: Element) => {
         // record ids
         citeIds.push(...citeIdsFromCite(cite));
@@ -199,7 +199,7 @@ export async function bookBibliographyPostRender(
             outputFiles.findIndex((file) => file.file === htmlOutput) === -1
           ) {
             if (existsSync(htmlOutput)) {
-              const doc = await parseHtml(Deno.readTextFileSync(htmlOutput));
+              const doc = await parseHtml(readTextFileSync(htmlOutput));
               if (doc) {
                 forEachCite(doc, (cite: Element) => {
                   citeIds.push(...citeIdsFromCite(cite));
@@ -229,7 +229,7 @@ export async function bookBibliographyPostRender(
           "html",
           csl,
         );
-        const doc = await parseHtml(Deno.readTextFileSync(refsOutputFile.file));
+        const doc = await parseHtml(readTextFileSync(refsOutputFile.file));
         const newRefsDiv = doc.createElement("div");
         newRefsDiv.innerHTML = biblioHtml;
         const refsDiv = doc.getElementById("refs") as Element;
