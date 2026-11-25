@@ -160,7 +160,7 @@ changing the grouping logic or upgrading Deno:
 
 ```bash
 GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt
-deno run --allow-read tests/tools/check-gha-log.ts log.txt
+deno run --allow-read --import-map=src/import_map.json tests/tools/check-gha-log.ts log.txt
 ```
 
 Direct `Deno.test` files that bypass the Quarto harness (e.g.

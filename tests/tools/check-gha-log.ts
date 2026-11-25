@@ -10,7 +10,7 @@
  *
  * Usage:
  *   GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt
- *   deno run --allow-read tests/tools/check-gha-log.ts log.txt
+ *   deno run --allow-read --import-map=src/import_map.json tests/tools/check-gha-log.ts log.txt
  *
  * Copyright (C) 2026 Posit Software, PBC
  */
