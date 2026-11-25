@@ -320,6 +320,22 @@ function babelIniImports(foldedLines: string[]): Map<string, string> {
   return imports;
 }
 
+// The hyphenation language a locale imported from babel-<ini>.ini expects:
+// the .ini file's hyphenrules value, else the locale name when it is a
+// language.dat name, else undefined
+function expectedHyphenLanguage(
+  locale: string,
+  ini: string,
+): string | undefined {
+  if (Object.hasOwn(kBabelHyphenCodes, ini)) {
+    return kBabelHyphenCodes[ini];
+  }
+  if (Object.hasOwn(kBabelHyphenMap, locale)) {
+    return kBabelHyphenMap[locale];
+  }
+  return undefined;
+}
+
 /**
  * Babel logs an .ini hyphenation fallback with Info lines only:
  *
@@ -350,13 +366,8 @@ export function findBabelFallbackLanguages(logText: string): string[] {
       continue;
     }
 
-    const ini = imports.get(locale)!;
-    let expected: string;
-    if (Object.hasOwn(kBabelHyphenCodes, ini)) {
-      expected = kBabelHyphenCodes[ini];
-    } else if (Object.hasOwn(kBabelHyphenMap, locale)) {
-      expected = kBabelHyphenMap[locale];
-    } else {
+    const expected = expectedHyphenLanguage(locale, imports.get(locale)!);
+    if (expected === undefined) {
       continue;
     }
     if (canon(target) !== canon(expected)) {
@@ -384,15 +395,20 @@ export function findMissingHyphenationFiles(logText: string): string[] {
   if (packages.length === 0) {
     // Run only when the warnings yield no package name, and merge with the .ini fallback
     // result, as tinytex's check_extra() evaluates both checks. A locale
-    // imported from an .ini file is left to the .ini fallback, which knows its
-    // patterns (mexican is in hyphen-spanish, not hyphen-mexican).
+    // whose .ini import the tables resolve is left to the .ini fallback, which
+    // knows its patterns (mexican is in hyphen-spanish, not hyphen-mexican).
     const hyphenRulesRegex =
       /Package babel Info: Hyphen rules for '(.*?)' set to \\l@nil/gm;
     const imported = babelIniImports(foldBabelLines(logText));
+    const resolvedByIni = (locale: string) => {
+      const ini = imported.get(locale);
+      return ini !== undefined &&
+        expectedHyphenLanguage(locale, ini) !== undefined;
+    };
     nilPackages = hyphenationPackagesForLanguages(
       [...logText.matchAll(hyphenRulesRegex)]
         .map((m) => m[1])
-        .filter((locale) => !imported.has(locale.toLowerCase())),
+        .filter((locale) => !resolvedByIni(locale.toLowerCase())),
     );
   }
   return ld.uniq([

@@ -539,6 +539,14 @@ Package babel Info: Hyphen rules for 'mexican' set to \\l@nil
 (babel)             (\\language23). Reported on input line 3.`;
   assertEquals(findMissingHyphenationFiles(mexicanNil), ["hyphen-spanish"], "\\l@nil fallback for an imported dialect");
 
+  // Neither babel-fa.ini nor 'farsi' is in the tables, so the \l@nil check
+  // still gives its package
+  const unresolvedNil = `Package babel Info: Importing data for 'farsi'
+(babel)             from babel-fa.ini. Reported on input line 3.
+Package babel Info: Hyphen rules for 'farsi' set to \\l@nil
+(babel)             (\\language23). Reported on input line 3.`;
+  assertEquals(findMissingHyphenationFiles(unresolvedNil), ["hyphen-farsi"], "\\l@nil fallback for an import the tables do not resolve");
+
   const mixedCase = `Package babel Info: Importing data for 'Spanish'
 (babel)             from babel-ES.ini. Reported on input line 3.
 Package babel Info: Hyphen rules for 'Spanish' set to \\l@english
