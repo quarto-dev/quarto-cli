@@ -74,7 +74,7 @@ Files in scope that need attention beyond the codemod (verified):
 
 ### Scope
 
-In: the codemod with `--rules fs,temp` on `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, `src/inspect`, `src/render`; the `tinytex.ts` alias; `deno fmt`; baseline update; a note in `.claude/rules/typescript/deno-ral.md` listing the excluded standalone scripts.
+In: the codemod with `--rules fs,temp` on `src/execute`, `src/publish`, `src/tools`, `src/extension`, `src/preview`, `src/inspect`, `src/render`; the `tinytex.ts` alias; `deno fmt`; baseline update; a note in `.claude/rules/typescript/deno-ral.md` listing the excluded standalone scripts; the changelog entry for sorted directory listings.
 Out: everything in the exclusion table; comment lines that mention `Deno.*` (PR 25); `Deno.env` (PR 14); process/net/platform APIs (PRs 08, 15, 19); `Deno.errors` (none in these directories).
 
 ### Landing order and conflict protocol
@@ -104,7 +104,7 @@ import { realPath as fsRealPath } from "../../deno_ral/fs.ts";
 
 - Modify (codemod): every `*.ts` under the seven directories that uses an fs/temp API (35 files)
 - Modify (hand): `src/tools/impl/tinytex.ts:738` (`src/publish/common/bundle.ts:106-108` is a commented-out block left for PR 25)
-- Modify: `tools/runtime-boundary-baseline.json`, `.claude/rules/typescript/deno-ral.md`
+- Modify: `tools/runtime-boundary-baseline.json`, `.claude/rules/typescript/deno-ral.md`, `news/changelog-1.12.md`
 
 ### Acceptance criteria
 
@@ -213,15 +213,26 @@ In `.claude/rules/typescript/deno-ral.md`, under the "Moving code off `Deno.*`" 
 Standalone scripts that run without the import map cannot import `deno_ral` and keep their `Deno.*` calls until the PR that owns them: `src/resources/scripts/*.ts` and `src/resources/create/**/*.ejs.ts` (PR 35), `src/resources/tools/ast-diagram/main.ts` (allow-listed by PR 25, ported by PR 35), `src/webui/quarto-preview/build.ts` (allow-listed until PR 33), and the `src/resources/extension-subtrees/` git subtrees (upstream). The codemod skips all of them.
 ```
 
-- [ ] **Step 4: Ratchet**
+- [ ] **Step 4: Changelog entry for sorted directory listings**
+
+This PR moves extension discovery onto the sorted `readDir`/`readDirSync` of `src/deno_ral/fs.ts`, the last of the listings that #15286 dropped from the changelog as premature (README row "PRs 13 and 14, what PRs 10–12 found", item 5).
+Run: `rg -n 'Deno\.readDir' src/extension/extension.ts src/command/capabilities/capabilities.ts src/command/use/commands/brand.ts src/format/html/format-html-shared.ts src/project/types/manuscript/manuscript-meca.ts` Expected: nothing (each listing named below reads through the layer).
+In `news/changelog-1.12.md`, append to the end of `## Other fixes and improvements` (the maintainer replaces `N` with this PR's number and moves the entry to its ascending position):
+
+```markdown
+- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name in character-code order, not by locale) on every platform.
+  Extension discovery, the theme list of `quarto capabilities`, the brand extension that `quarto use brand` picks, the order of the bslib component SCSS files, and the items of a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, which one wins can differ from earlier versions.
+```
+
+- [ ] **Step 5: Ratchet**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows the `src` count lower by exactly 123 (507 → 384 on `f23c186c8`) and no increase in any scope.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add tools/runtime-boundary-baseline.json .claude/rules/typescript/deno-ral.md
-git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; document excluded scripts"
+git add tools/runtime-boundary-baseline.json .claude/rules/typescript/deno-ral.md news/changelog-1.12.md
+git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; document excluded scripts and sorted directory order"
 ```
 
 ## Verification
@@ -239,6 +250,7 @@ git commit -m "Lower runtime boundary baseline after remaining fs/temp codemod; 
 - [ ] `bundle.ts` still pipes `src.readable` through `CompressionStream` into `dest.writable`.
 - [ ] No file under `src/resources`, `src/webui` or the subtree changed.
 - [ ] The rules doc lists the excluded scripts; the baseline only decreased.
+- [ ] The changelog entry names only listings that read through the sorted `deno_ral` helpers.
 
 ## Risks and rollback
 
@@ -284,4 +296,4 @@ PR 12 changed only `src/project` and `src/format`, so no file under this PR's se
 - Dry run (Windows, Deno 2.9.8, same command as Task 1 Step 1, report rewritten to `.claude/docs/codemod-rest.txt`): `Summary: 172 files scanned, 35 would be rewritten, 122 replacements, 1 with collisions, 0 skipped`. `grep -E 'skipped:|collision:'` printed only `src/tools/impl/tinytex.ts:738: collision: local binding 'realPath' conflicts with deno_ral/fs.ts; left as Deno.*`. The targets are the same as Task 1 Step 2's list, count for count. `grep -c 'src/resources\|src/webui'` printed `0`; `git status --short src` printed nothing. Task 1 stays ticked.
 - Ratchet on the clean base: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` printed `src 507 (baseline 507)` and `OK: no count exceeds the baseline.` The expected Task 4 result is `src` 507 → 384 (122 codemod replacements + the `tinytex.ts` collision site = 123).
 - Type check on the clean base: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` from `src` exits 0.
-- "PRs 13 and 14, what PRs 10–12 found": items (1)–(3) are already in this plan (report path, the five unformatted files left out of `deno fmt`, staging by path). Item (4), the "Pending checks" list, belongs to the PR description at wrap-up. Item (5), the changelog entry for sorted directory listings that PR 13 owes, has no step in this plan yet.
+- "PRs 13 and 14, what PRs 10–12 found": items (1)–(3) are already in this plan (report path, the five unformatted files left out of `deno fmt`, staging by path). Item (4), the "Pending checks" list, belongs to the PR description at wrap-up. Item (5), the changelog entry for sorted directory listings that PR 13 owes, is Task 4 Step 4, added in review of this refresh; its five call sites were checked on this base (`capabilities.ts:76`, `brand.ts:97`, `format-html-shared.ts:164`, `manuscript-meca.ts:431` import the sorted helpers, and `extension.ts` does after Task 2).
