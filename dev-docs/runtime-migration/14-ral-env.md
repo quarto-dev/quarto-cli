@@ -366,15 +366,15 @@ git commit -m "Alias deno_ral env import in files with a local env binding"
 
 ### Task 4: Tests, docs, ratchet, commit
 
-- [ ] **Step 1: Unit tests around environment handling**
+- [x] **Step 1: Unit tests around environment handling**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/env.test.ts unit/environment.test.ts unit/dotenv-config.test.ts unit/binary-mode-strip-env.test.ts $(find unit/core/ -name '*.test.ts') $(find unit/tools/ -name '*.test.ts') $(find unit/jupyter/ -name '*.test.ts') $(find unit/project/ -name '*.test.ts') unit/github-actions-reporting.test.ts unit/chrome-launch.test.ts unit/preview-compatibility.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 2: Smoke tests that set or read environment variables (profiles, dotenv files, pre/post render scripts, drafts, check, run)**
+- [x] **Step 2: Smoke tests that set or read environment variables (profiles, dotenv files, pre/post render scripts, drafts, check, run)**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent $(find smoke/env/ -name '*.test.ts') smoke/website/drafts-env.test.ts smoke/project/project-prepost.test.ts smoke/project/project-simple.test.ts smoke/render/render-html.test.ts smoke/render/render-cli-metadata-file.test.ts $(find smoke/check/ -name '*.test.ts') $(find smoke/run/ -name '*.test.ts') smoke/jupyter/issue-10097.test.ts smoke/render/render-r.test.ts` Expected: `0 failed` (Jupyter/R tests skip without their prerequisites; note it).
 
-- [ ] **Step 3: Manual dotenv check**
+- [x] **Step 3: Manual dotenv check**
 
 From the worktree root (the path is captured before the `cd`; `engine: knitr` because a document with only inline `` `r` `` code is not claimed by knitr):
 
@@ -385,7 +385,7 @@ d=$(mktemp -d) && (cd "$d" && printf 'project:\n  type: default\n' > _quarto.yml
 Expected (with R available): the rendered `index.md` contains `hello`, proving `dotenvSetVariables` still exports the file's variables to child processes through `env.set`.
 Without R, instead run `(cd "$d" && QUARTO_LOG_LEVEL=DEBUG "$Q" render index.qmd --to html 2>&1 | grep -c 'MY_DOTENV_VAR')` → `0` is fine as long as the render succeeds; the smoke test `smoke/env/` covers the variable plumbing.
 
-- [ ] **Step 4: Docs and ratchet**
+- [x] **Step 4: Docs and ratchet**
 
 In `.claude/rules/typescript/deno-ral.md`, add this row to the module table after `errors.ts`, padded to the table's existing column widths (the file is already unformatted on `main`; do not run `deno fmt` on it):
 
@@ -419,7 +419,7 @@ Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/tools/
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: passes; `git diff tools/runtime-boundary-baseline.json` shows `src.denoCalls` 384 → 219 (lower by exactly 165; 166 with PR 20b first) and no other change.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts tools/runtime-boundary-baseline.json .claude/rules/typescript/deno-ral.md
@@ -433,7 +433,7 @@ git commit -m "Lower runtime boundary baseline after env codemod; document deno_
 - The AST check and the text check from Acceptance criteria → as stated.
 - `quarto run --dev tools/check-runtime-boundary.ts` → passes at the new baseline.
 - `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` → exit 0.
-- Manual: `QUARTO_PROFILE=x package/dist/bin/quarto render tests/docs/test.qmd` works; `package/dist/bin/quarto check` shows the same environment-dependent rows (Python/R paths) as before; `QUARTO_CAPTURE_RENDER_COMMAND=$(mktemp -d) package/dist/bin/quarto render tests/docs/test.qmd` writes the capture directory (the `toObject` snapshot).
+- Manual: `QUARTO_PROFILE=x package/dist/bin/quarto render tests/docs/test.qmd` works; `package/dist/bin/quarto check` shows the same environment-dependent rows (Python/R paths) as before; `QUARTO_CAPTURE_RENDER_COMMAND=$(mktemp -d) package/dist/bin/quarto render tests/docs/test.qmd --to html` writes the capture directory (the `toObject` snapshot; `--to html` because the capture crashes on docx on `main` too, where the defaults have no `template`).
 
 ## Review checklist
 
