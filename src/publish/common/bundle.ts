@@ -5,7 +5,14 @@
  */
 
 import { dirname, join } from "../../deno_ral/path.ts";
-import { ensureDirSync } from "../../deno_ral/fs.ts";
+import {
+  copyFileSync,
+  ensureDirSync,
+  open,
+  readFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 import { PublishFiles } from "../provider-types.ts";
 import { TempContext } from "../../core/temp-types.ts";
@@ -51,8 +58,8 @@ export async function createBundle(
   const manifestFiles: Record<string, { checksum: string }> = {};
   for (const file of files.files) {
     const filePath = join(files.baseDir, file);
-    if (Deno.statSync(filePath).isFile) {
-      const fileBytes = Deno.readFileSync(filePath);
+    if (statSync(filePath).isFile) {
+      const fileBytes = readFileSync(filePath);
       const checksum = await md5HashBytes(fileBytes);
       manifestFiles[file] = { checksum };
     }
@@ -79,14 +86,14 @@ export async function createBundle(
   const stageDir = tempContext.createDir();
   files.files.forEach((file) => {
     const filePath = join(files.baseDir, file);
-    if (Deno.statSync(filePath).isFile) {
+    if (statSync(filePath).isFile) {
       const targetDir = join(stageDir, dirname(file));
       ensureDirSync(targetDir);
-      Deno.copyFileSync(filePath, join(stageDir, file));
+      copyFileSync(filePath, join(stageDir, file));
     }
   });
   // write manifest
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     join(stageDir, "manifest.json"),
     JSON.stringify(manifest, undefined, 2),
   );
@@ -111,8 +118,8 @@ export async function createBundle(
 
   // compress to tar.gz
   const targzFile = `${tarFile}.gz`;
-  const src = await Deno.open(tarFile);
-  const dest = await Deno.open(targzFile, {
+  const src = await open(tarFile);
+  const dest = await open(targzFile, {
     create: true,
     write: true,
   });

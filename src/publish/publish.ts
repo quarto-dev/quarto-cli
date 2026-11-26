@@ -6,7 +6,7 @@
 
 import * as ld from "../core/lodash.ts";
 
-import { existsSync, walkSync } from "../deno_ral/fs.ts";
+import { existsSync, statSync, walkSync } from "../deno_ral/fs.ts";
 
 import {
   basename,
@@ -334,7 +334,7 @@ export async function publishDocument(
 function normalizePublishFiles(publishFiles: PublishFiles) {
   publishFiles.files = publishFiles.files.reduce((files, file) => {
     const filePath = join(publishFiles.baseDir, file);
-    if (Deno.statSync(filePath).isDirectory) {
+    if (statSync(filePath).isDirectory) {
       for (const walk of walkSync(filePath)) {
         if (walk.isFile) {
           files.push(relative(publishFiles.baseDir, walk.path));

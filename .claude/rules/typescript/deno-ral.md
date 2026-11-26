@@ -79,3 +79,15 @@ Outside `deno_ral/`, never add new `Deno.*` calls; import the equivalent from `d
     quarto run --dev tools/codemod-deno-ral.ts --rules fs,temp --dir src/<dir>
 
 The tool reports local-name collisions (left as `Deno.*`; fix with an alias import such as `import { stat as fsStat } ...`, which later runs reuse) and skips files that assign to `Deno.*`, `src/core/lib` and the standalone scripts. Replace `instanceof Deno.errors.X` with the predicates in `deno_ral/errors.ts`. After a rebase conflict in a codemodded file, reset the file to `main` and re-run the codemod; never resolve by hand. `--reverse` produces the `Deno.*` form for backports (`dev-docs/checklist-backport-a-pr.md`).
+
+Keep `Deno.*` calls in the paths below. The codemod skips them with `--dir`.
+Leave them out of `--file` arguments because `--file` bypasses the exclusions.
+
+These scripts and templates must work without Quarto's source import map:
+
+- `src/resources/scripts/*.ts` (PR 35)
+- The engine extension template under `src/resources/create/**/*.ejs.ts` (PR 36)
+- `src/resources/tools/ast-diagram/main.ts` (PR 25 adds it to the allow-list and PR 35 ports it)
+- `src/webui/quarto-preview/build.ts` (allow-listed until PR 33)
+
+The Git subtrees under `src/resources/extension-subtrees/` are maintained upstream.

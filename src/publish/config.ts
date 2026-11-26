@@ -15,6 +15,11 @@ import { PublishDeployments, PublishRecord } from "./types.ts";
 import { AccountToken } from "./provider-types.ts";
 import { writePublishRecord } from "./common/data.ts";
 import { existsSync1 } from "../core/file.ts";
+import {
+  readTextFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 export function readPublishDeployments(
   source: string,
@@ -79,7 +84,7 @@ export function writePublishDeployment(
   const [deployDir, deploySource] = resolveDeploymentSource(source);
   const deploymentsFile = publishDeploymentsFile(deployDir);
   if (deploymentsFile) {
-    const deploymentsFileYaml = Deno.readTextFileSync(deploymentsFile);
+    const deploymentsFileYaml = readTextFileSync(deploymentsFile);
     indent = detectIndentLevel(deploymentsFileYaml);
     const deployments = readYamlFromString(deploymentsFileYaml);
     if (isDeploymentsArray(deployments)) {
@@ -110,7 +115,7 @@ export function writePublishDeployment(
         deployments.push(deployment);
       }
 
-      Deno.writeTextFileSync(
+      writeTextFileSync(
         deploymentsFile,
         stringifyPublishConfig(deployments, indent),
       );
@@ -120,7 +125,7 @@ export function writePublishDeployment(
       );
     }
   } else {
-    Deno.writeTextFileSync(
+    writeTextFileSync(
       join(deployDir, kDefaultPublishDeploymentsFile),
       stringifyPublishConfig([{
         source: deploySource,
@@ -135,10 +140,8 @@ export function writePublishDeployment(
 }
 
 function resolveDeploymentSource(source: string) {
-  const deployDir = Deno.statSync(source).isDirectory
-    ? source
-    : dirname(source);
-  const deploySource = Deno.statSync(source).isDirectory
+  const deployDir = statSync(source).isDirectory ? source : dirname(source);
+  const deploySource = statSync(source).isDirectory
     ? "project"
     : basename(source);
   return [deployDir, deploySource];

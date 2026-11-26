@@ -29,6 +29,11 @@ import { Format } from "../../config/types.ts";
 import { safeExistsSync, safeRemoveIfExists } from "../../core/path.ts";
 import { qmdNotebookContributor } from "./notebook-contributor-qmd.ts";
 import { debug } from "../../deno_ral/log.ts";
+import {
+  copyFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 const contributors: Record<RenderType, NotebookContributor | undefined> = {
   [kJatsSubarticle]: jatsContributor,
@@ -158,8 +163,8 @@ export function notebookContext(): NotebookContext {
       const existingPath = contrib.cachedPath(nbAbsPath, context);
       if (existingPath) {
         if (safeExistsSync(existingPath)) {
-          const inputTime = Deno.statSync(nbAbsPath).mtime?.valueOf() || 0;
-          const outputTime = Deno.statSync(existingPath).mtime?.valueOf() || 0;
+          const inputTime = statSync(nbAbsPath).mtime?.valueOf() || 0;
+          const outputTime = statSync(existingPath).mtime?.valueOf() || 0;
           if (inputTime <= outputTime) {
             debug(
               `[NotebookContext]: Revived Rendering (${renderType}):${nbAbsPath}`,
@@ -207,7 +212,7 @@ export function notebookContext(): NotebookContext {
           `[NotebookContext]: Writing all notebooks to ${allNotebooksTempFilename}`,
         );
         const objs = Object.values(notebooks);
-        Deno.writeTextFileSync(
+        writeTextFileSync(
           allNotebooksTempFilename,
           JSON.stringify(objs),
         );
@@ -297,7 +302,7 @@ export function notebookContext(): NotebookContext {
         ? staged ? qmdIpynb.hrefPath : qmdIpynb.path
         : nbAbsPath;
       if (staged) {
-        Deno.copyFileSync(qmdIpynb.path, qmdIpynb.hrefPath);
+        copyFileSync(qmdIpynb.path, qmdIpynb.hrefPath);
       }
 
       let renderedFile: NotebookRenderResult;

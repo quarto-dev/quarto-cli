@@ -6,7 +6,12 @@
 
 import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors";
-import { ensureDirSync, walkSync } from "../../deno_ral/fs.ts";
+import {
+  ensureDirSync,
+  readFileSync,
+  walkSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 
 import { Input } from "cliffy/prompt/input.ts";
 import { Select } from "cliffy/prompt/select.ts";
@@ -134,7 +139,7 @@ export async function handlePublish<
     let size = 0;
     for (const file of publishFiles.files) {
       const filePath = publishFilePath(file);
-      const fileBuffer = Deno.readFileSync(filePath);
+      const fileBuffer = readFileSync(filePath);
       size = size + fileBuffer.byteLength;
       const sha1 = await crypto.subtle.digest("SHA-1", fileBuffer);
       const encodedSha1 = encodeHex(new Uint8Array(sha1));
@@ -179,7 +184,7 @@ export async function handlePublish<
   }, async () => {
     for (const requiredFile of required) {
       const filePath = publishFilePath(requiredFile);
-      const fileArray = Deno.readFileSync(filePath);
+      const fileArray = readFileSync(filePath);
       await handler.uploadDeployFile(
         siteDeploy?.id!,
         requiredFile,
@@ -319,7 +324,7 @@ function stageDocumentPublish(title: string, publishFiles: PublishFiles) {
 </body>
 </html>
 `;
-    Deno.writeTextFileSync(join(stagedFiles.baseDir, kIndex), indexHtml);
+    writeTextFileSync(join(stagedFiles.baseDir, kIndex), indexHtml);
   }
 
   // make sure the root file is index.html

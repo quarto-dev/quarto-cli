@@ -10,6 +10,7 @@ import { RenderContext } from "../../command/render/types.ts";
 import { lines } from "../../core/text.ts";
 
 import { isJupyterNotebook } from "../../core/jupyter/jupyter.ts";
+import { readTextFileSync } from "../../deno_ral/fs.ts";
 
 interface OJSLineNumbersAnnotation {
   ojsBlockLineNumbers: number[];
@@ -21,7 +22,7 @@ export function annotateOjsLineNumbers(
   const canPatch = !isJupyterNotebook(context.target.source);
 
   if (canPatch) {
-    const source = lines(Deno.readTextFileSync(context.target.source));
+    const source = lines(readTextFileSync(context.target.source));
 
     const ojsBlockLineNumbers: number[] = [];
     let lineNumber = 1;

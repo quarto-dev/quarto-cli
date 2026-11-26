@@ -5,7 +5,7 @@
  */
 
 import { join } from "../deno_ral/path.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import { existsSync, readTextFileSync } from "../deno_ral/fs.ts";
 import { resolvePathGlobs } from "../core/path.ts";
 import { lines } from "../core/text.ts";
 import { warning } from "../deno_ral/log.ts";
@@ -18,7 +18,7 @@ export function templateFiles(dir: string) {
   const includes: string[] = [];
   const ignoreFile = join(dir, kQuartoIgnore);
   if (existsSync(ignoreFile)) {
-    const ignoreFileContents = Deno.readTextFileSync(ignoreFile);
+    const ignoreFileContents = readTextFileSync(ignoreFile);
     const ignoreLines = lines(ignoreFileContents.trim());
     ignoreLines.forEach((line) => {
       const splitOnComment = line.split("#");

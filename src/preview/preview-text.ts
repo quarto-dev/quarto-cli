@@ -19,9 +19,15 @@ import {
   pandocBinaryPath,
   textHighlightThemePath,
 } from "../core/resources.ts";
-import { safeRemoveSync } from "../deno_ral/fs.ts";
+import {
+  readTextFile,
+  readTextFileSync,
+  safeRemoveSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 import { basename, extname, join } from "../deno_ral/path.ts";
+import { makeTempDirSync } from "../deno_ral/temp.ts";
 
 export const jatsStaticResources = () => {
   return [
@@ -93,7 +99,7 @@ export async function previewTextContent(
 }
 
 export async function jatsPreviewXml(file: string, _request: Request) {
-  const fileContents = await Deno.readTextFile(file);
+  const fileContents = await readTextFile(file);
 
   // Attach the stylesheet
   let xmlContents = fileContents.replace(
@@ -143,7 +149,7 @@ async function textPreviewHtml(file: string, req: Request) {
   const markdown = frontMatter.join("\n") + "\n\n" +
     styles.join("\n") + "\n\n" +
     kFence + lang + "\n" +
-    Deno.readTextFileSync(file) + "\n" +
+    readTextFileSync(file) + "\n" +
     kFence;
 
   // build the pandoc command (we'll feed it the input on stdin)
@@ -167,7 +173,7 @@ async function textPreviewHtml(file: string, req: Request) {
 }
 
 async function gfmPreview(file: string, request: Request) {
-  const workingDir = Deno.makeTempDirSync();
+  const workingDir = makeTempDirSync();
   try {
     // dark mode?
     const darkMode = darkHighlightStyle(request);
@@ -189,10 +195,10 @@ async function gfmPreview(file: string, request: Request) {
 
     // Add JS files
     for (const path of [mermaidJs]) {
-      const js = Deno.readTextFileSync(path);
+      const js = readTextFileSync(path);
       const contents = `<script type="text/javascript">\n${js}\n</script>`;
       const target = join(workingDir, basename(path));
-      Deno.writeTextFileSync(target, contents);
+      writeTextFileSync(target, contents);
       includeInHeader.push(target);
     }
 
@@ -214,9 +220,9 @@ async function gfmPreview(file: string, request: Request) {
     );
     const cssTempFile = join(workingDir, "github.css");
     const cssContents = `<style>\n${
-      Deno.readTextFileSync(css)
+      readTextFileSync(css)
     }\n</style>\n${jsInit}`;
-    Deno.writeTextFileSync(cssTempFile, cssContents);
+    writeTextFileSync(cssTempFile, cssContents);
     includeInHeader.push(cssTempFile);
 
     // Inject GFM style code cell theming
@@ -246,7 +252,7 @@ async function gfmPreview(file: string, request: Request) {
     cmd.push("--mathjax");
     const result = await execProcess(
       { cmd: cmd[0], args: cmd.slice(1), stdout: "piped", stderr: "piped" },
-      Deno.readTextFileSync(file),
+      readTextFileSync(file),
     );
     if (result.success) {
       return result.stdout;

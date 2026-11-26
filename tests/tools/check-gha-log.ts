@@ -8,9 +8,9 @@
  *   2. Workflow command markers start at column 0.
  *   3. Harness `FAILED` lines and final failure sections remain ungrouped.
  *
- * Usage:
- *   GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt
- *   deno run --allow-read tests/tools/check-gha-log.ts log.txt
+ * Example from the tests/ directory:
+ *   GITHUB_ACTIONS=true ./run-tests.sh unit/gha-grouping.test.ts | tee log.txt
+ *   deno run --allow-read --import-map=../src/import_map.json --lock=../deno.lock --frozen tools/check-gha-log.ts log.txt
  *
  * Copyright (C) 2026 Posit Software, PBC
  */

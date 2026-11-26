@@ -85,6 +85,7 @@ import { pathWithForwardSlashes } from "../../core/path.ts";
 import { executeInlineCodeHandlerMapped } from "../../core/execute-inline.ts";
 
 import { encodeBase64 } from "encoding/base64";
+import { readTextFileSync, writeTextFileSync } from "../../deno_ral/fs.ts";
 
 export interface OjsCompileOptions {
   source: string;
@@ -843,7 +844,7 @@ export async function ojsCompile(
   ]
     .join("\n");
   const includeAfterBodyFile = options.temp.createFile();
-  Deno.writeTextFileSync(includeAfterBodyFile, afterBody);
+  writeTextFileSync(includeAfterBodyFile, afterBody);
 
   const extras = resolveDependencies(
     {
@@ -868,12 +869,12 @@ export async function ojsCompile(
     );
     const ojsBundle = [
       `<script type="module">`,
-      Deno.readTextFileSync(ojsBundleFilename),
+      readTextFileSync(ojsBundleFilename),
       `</script>`,
     ];
 
     const filename = options.temp.createFile();
-    Deno.writeTextFileSync(filename, ojsBundle.join("\n"));
+    writeTextFileSync(filename, ojsBundle.join("\n"));
     ojsBundleTempFiles.push(filename);
   }
 

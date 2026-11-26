@@ -4,7 +4,13 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { ensureDirSync, existsSync } from "../../deno_ral/fs.ts";
+import {
+  chmod,
+  ensureDirSync,
+  existsSync,
+  readTextFileSync,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { join } from "../../deno_ral/path.ts";
 import { info } from "../../deno_ral/log.ts";
 import * as colors from "fmt/colors";
@@ -77,7 +83,7 @@ export function readAccessTokens<T>(
 ): Array<T> | undefined {
   const tokenPath = accessTokensPath(provider);
   if (existsSync(tokenPath)) {
-    const tokens = JSON.parse(Deno.readTextFileSync(tokenPath)) as Array<T>;
+    const tokens = JSON.parse(readTextFileSync(tokenPath)) as Array<T>;
     return tokens;
   } else {
     return undefined;
@@ -90,14 +96,14 @@ export function writeAccessTokens<T>(
 ) {
   // write tokens
   const tokensPath = accessTokensPath(provider);
-  Deno.writeTextFileSync(
+  writeTextFileSync(
     tokensPath,
     JSON.stringify(tokens, undefined, 2),
   );
 
   // set file permissions
   if (!isWindows) {
-    Deno.chmod(tokensPath, 0o600);
+    chmod(tokensPath, 0o600);
   }
 }
 

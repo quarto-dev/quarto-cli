@@ -5,6 +5,11 @@
  */
 
 import { GitHubRelease } from "./types.ts";
+import {
+  readTextFileSync,
+  statSync,
+  writeTextFileSync,
+} from "../deno_ral/fs.ts";
 
 // deno-lint-ignore-file camelcase
 
@@ -198,7 +203,7 @@ export class AnnotationBudget {
       return this.localCount;
     }
     try {
-      return parseInt(Deno.readTextFileSync(this.counterPath), 10) || 0;
+      return parseInt(readTextFileSync(this.counterPath), 10) || 0;
     } catch {
       return 0;
     }
@@ -210,7 +215,7 @@ export class AnnotationBudget {
       return;
     }
     try {
-      Deno.writeTextFileSync(this.counterPath, String(n));
+      writeTextFileSync(this.counterPath, String(n));
     } catch {
       // Reporting is best-effort and must not replace the original failure.
       this.persistenceFailed = true;
@@ -241,7 +246,7 @@ export function stepSummary(
   const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return false;
   try {
-    Deno.writeTextFileSync(p, markdown, { append: true });
+    writeTextFileSync(p, markdown, { append: true });
     return true;
   } catch {
     return false;
@@ -255,7 +260,7 @@ export function stepSummarySize(
   const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return 0;
   try {
-    return Deno.statSync(p).size;
+    return statSync(p).size;
   } catch {
     return 0;
   }
@@ -327,7 +332,7 @@ function appendIfFits(markdown: string, path: string): boolean {
 function emitTruncationNotice(path: string): void {
   let existing = "";
   try {
-    existing = Deno.readTextFileSync(path);
+    existing = readTextFileSync(path);
   } catch {
     // Continue with the write attempt.
   }

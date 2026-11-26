@@ -5,7 +5,12 @@
  */
 
 import { error, info, warning } from "../deno_ral/log.ts";
-import { existsSync } from "../deno_ral/fs.ts";
+import {
+  existsSync,
+  readTextFile,
+  readTextFileSync,
+  remove,
+} from "../deno_ral/fs.ts";
 import { basename, extname } from "../deno_ral/path.ts";
 
 import * as colors from "fmt/colors";
@@ -48,6 +53,7 @@ import {
   mappedIndexToLineCol,
   MappedString,
 } from "../core/lib/mapped-text.ts";
+import { makeTempFileSync } from "../deno_ral/temp.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -139,7 +145,7 @@ export const knitrEngineDiscovery: ExecutionEngineDiscovery = {
             await markdownFromKnitrSpinScript(file),
           );
         } else {
-          return quarto.markdownRegex.partition(Deno.readTextFileSync(file));
+          return quarto.markdownRegex.partition(readTextFileSync(file));
         }
       },
 
@@ -447,7 +453,7 @@ async function callR<T>(
   const cwd = withinActiveRenv() ? Deno.cwd() : projectDir ?? Deno.cwd();
 
   // create a temp file for writing the results
-  const resultsFile = Deno.makeTempFileSync(
+  const resultsFile = makeTempFileSync(
     { dir: tempDir, prefix: "r-results", suffix: ".json" },
   );
 
@@ -487,8 +493,8 @@ async function callR<T>(
     );
 
     if (result.success) {
-      const results = await Deno.readTextFile(resultsFile);
-      await Deno.remove(resultsFile);
+      const results = await readTextFile(resultsFile);
+      await remove(resultsFile);
       const resultsJson = JSON.parse(results);
       return resultsJson as T;
     } else {
@@ -521,7 +527,7 @@ function withinActiveRenv() {
   const kRProfile = ".Rprofile";
   const kREnvActivate = 'source("renv/activate.R")';
   if (existsSync(".Rprofile")) {
-    const profile = Deno.readTextFileSync(kRProfile);
+    const profile = readTextFileSync(kRProfile);
     return profile.includes(kREnvActivate) &&
       !profile.includes("# " + kREnvActivate);
   } else {
@@ -632,7 +638,7 @@ function resolveInlineExecute(code: string) {
 export function isKnitrSpinScript(file: string) {
   const ext = extname(file).toLowerCase();
   if (ext == ".r") {
-    const text = Deno.readTextFileSync(file);
+    const text = readTextFileSync(file);
     // Consider a .R script that can be spinned if it contains a YAML header inside a special `#'` comment
     return /^\s*#'\s*---[\s\S]+?\s*#'\s*---/.test(text);
   } else {

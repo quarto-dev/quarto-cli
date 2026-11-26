@@ -234,7 +234,7 @@ export interface DirEntry {
 }
 
 export interface FsFile {
-  readonly readable: ReadableStream<Uint8Array>;
+  readonly readable: ReadableStream<Uint8Array<ArrayBuffer>>;
   readonly writable: WritableStream<Uint8Array>;
   read(p: Uint8Array): Promise<number | null>;
   write(p: Uint8Array): Promise<number>;
@@ -306,7 +306,7 @@ export async function readTextFile(path: string | URL): Promise<string> {
   }
 }
 
-export function readFileSync(path: string | URL): Uint8Array {
+export function readFileSync(path: string | URL): Uint8Array<ArrayBuffer> {
   try {
     return Deno.readFileSync(path);
   } catch (e) {
@@ -314,7 +314,9 @@ export function readFileSync(path: string | URL): Uint8Array {
   }
 }
 
-export async function readFile(path: string | URL): Promise<Uint8Array> {
+export async function readFile(
+  path: string | URL,
+): Promise<Uint8Array<ArrayBuffer>> {
   try {
     return await Deno.readFile(path);
   } catch (e) {

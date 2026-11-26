@@ -30,6 +30,7 @@ import { completeMessage, withSpinner } from "../../core/console.ts";
 import { randomHex } from "../../core/random.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { createBundle } from "../common/bundle.ts";
+import { readFileSync } from "../../deno_ral/fs.ts";
 
 export const kRSConnect = "connect";
 const kRSConnectDescription = "Posit Connect";
@@ -265,7 +266,7 @@ async function publish(
         publishFiles,
         tempContext,
       );
-      const bundleBytes = Deno.readFileSync(bundlePath);
+      const bundleBytes = readFileSync(bundlePath);
       const bundleBlob = new Blob([bundleBytes.buffer]);
       const bundle = await client.uploadBundle(target!.id, bundleBlob);
       task = await client.deployBundle(bundle);

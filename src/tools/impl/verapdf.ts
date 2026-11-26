@@ -4,7 +4,14 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { existsSync, safeRemoveSync } from "../../deno_ral/fs.ts";
+import {
+  existsSync,
+  readDir,
+  readTextFile,
+  safeRemoveSync,
+  writeTextFile,
+  writeTextFileSync,
+} from "../../deno_ral/fs.ts";
 import { basename, join } from "../../deno_ral/path.ts";
 import { warning } from "../../deno_ral/log.ts";
 
@@ -151,7 +158,7 @@ async function installedVersion(): Promise<string | undefined> {
   const dir = verapdfInstallDir();
   const versionFile = join(dir, kVersionFileName);
   if (existsSync(versionFile)) {
-    return await Deno.readTextFile(versionFile);
+    return await readTextFile(versionFile);
   }
   return undefined;
 }
@@ -159,7 +166,7 @@ async function installedVersion(): Promise<string | undefined> {
 function noteInstalledVersion(version: string): void {
   const dir = verapdfInstallDir();
   const versionFile = join(dir, kVersionFileName);
-  Deno.writeTextFileSync(versionFile, version);
+  writeTextFileSync(versionFile, version);
 }
 
 async function latestRelease(): Promise<RemotePackageInfo> {
@@ -205,11 +212,11 @@ async function install(
   const extractedDir = context.workingDir;
   let installerJar: string | undefined;
 
-  for await (const entry of Deno.readDir(extractedDir)) {
+  for await (const entry of readDir(extractedDir)) {
     if (entry.isDirectory && entry.name.startsWith("verapdf-")) {
       // Look inside the extracted subdirectory for the JAR
       const subDir = join(extractedDir, entry.name);
-      for await (const subEntry of Deno.readDir(subDir)) {
+      for await (const subEntry of readDir(subDir)) {
         if (subEntry.isFile && subEntry.name.endsWith(".jar")) {
           installerJar = join(subDir, subEntry.name);
           break;
@@ -252,7 +259,7 @@ async function install(
 </AutomatedInstallation>`;
 
   const autoInstallPath = join(extractedDir, "auto-install.xml");
-  await Deno.writeTextFile(autoInstallPath, autoInstallXml);
+  await writeTextFile(autoInstallPath, autoInstallXml);
 
   // Run the installer in headless mode
   // Pass the auto-install XML path directly to the installer
