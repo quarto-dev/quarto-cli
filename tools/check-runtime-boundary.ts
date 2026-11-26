@@ -311,7 +311,7 @@ export function acceptIncrease(current: Baseline): Baseline {
  * `src-js` plain JavaScript, neither of which can. */
 const kDenoRalImportScopes: readonly string[] = ["src", "package/src", "tests"];
 
-/** The scopes of the fs, temp and errors keys. `tests` is left out: it keeps deliberate Deno.*
+/** The scopes of the fs, temp, errors and env keys. `tests` is left out: it keeps deliberate Deno.*
  * fixtures whose increase a maintainer accepts, and a covered API is an error no acceptance clears. */
 const kRalLayerScopes: readonly string[] = ["src", "package/src"];
 
@@ -366,6 +366,7 @@ export const kRalDenoReplacements: Readonly<
     "errors.AddrInUse": "isAddrInUse",
     "errors.ConnectionRefused": "isConnectionRefused",
   }),
+  ...ralReplacements("env.ts", ["env.get", "env.set", "env.delete", "env.toObject"]),
   ...Object.fromEntries(
     ["BrokenPipe", "NotConnected", "ConnectionAborted", "ConnectionReset"].map((name) => [
       `errors.${name}`,
