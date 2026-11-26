@@ -557,6 +557,8 @@ Written by the coordinator at wrap-up from the executor's logs in `.claude/docs/
 
 - Reruns on Windows (Deno 2.9.8, branch base = `upstream/main` `83432c028`): Task 4 Step 1 → `ok | 262 passed | 0 failed | 3 ignored`; Step 2 → `ok | 41 passed | 0 failed | 2 ignored`.
   Both ran from `tests/` in Git Bash with `QUARTO_TESTS_NO_CONFIG=true NO_COLOR=1` exported, as `pwsh -File run-tests.ps1 --agent <files>`, where `<files>` is the step's Run-line file list with its `$(find ...)` expansions.
+  That shell's PATH had the main checkout's `package/dist/bin`, not the worktree's, so `smoke/run/command-passthrough.test.ts` (which spawns bare `quarto.cmd`) ran the `main` build; rerun with the worktree's `package/dist/bin` first on PATH (`Get-Command quarto.cmd` → the worktree launcher) → `ok | 2 passed | 0 failed`.
+  Put the worktree's `package/dist/bin` first on PATH before these runs.
   AST check → `0 would be rewritten, 0 replacements, 0 with collisions, 2 skipped`; text check prints nothing; ratchet → `OK: no count exceeds the baseline.` with `src` 219; `deno check ... quarto.ts` exits 0.
 - Capture: the docx failure reproduces with the `main` checkout's build at `83432c028`, so it predates this PR. With `--to html` and a sentinel variable set, `render-command.json` contains it under `ourEnv`, so the `toObject` snapshot is written.
 - `quarto check`: the Path/Version rows match the `main` build line for line except the Quarto install path.
