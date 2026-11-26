@@ -11,6 +11,7 @@ import { TempContext } from "./temp-types.ts";
 import { createTempContext } from "./temp.ts";
 import { nullDevice } from "./platform.ts";
 import { readTextFileSync } from "../deno_ral/fs.ts";
+import { env } from "../deno_ral/env.ts";
 
 type ESBuildAnalysisImport = {
   path: string;
@@ -89,7 +90,7 @@ export async function esbuildCommand(
   input: string,
   workingDir: string,
 ) {
-  const cmd = Deno.env.get("QUARTO_ESBUILD") ||
+  const cmd = env.get("QUARTO_ESBUILD") ||
     architectureToolsPath("esbuild");
   const result = await execProcess(
     {

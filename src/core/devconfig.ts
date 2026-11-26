@@ -18,6 +18,7 @@ import { md5HashSync } from "./hash.ts";
 import { quartoConfig } from "./quarto.ts";
 import { normalizePath } from "./path.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 const kDevConfig = "dev-config";
 
@@ -42,7 +43,7 @@ export function createDevConfig(
   scriptDir: string,
 ): DevConfig {
   const scriptPath = join(scriptDir, "quarto" + (isWindows ? ".cmd" : ""));
-  const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
+  const srcDir = env.get("QUARTO_SRC_PATH") ||
     join(quartoConfig.sharePath(), "../../src");
   return {
     deno,
@@ -80,7 +81,7 @@ export function readInstalledDevConfig(): DevConfig | null {
 }
 
 export function readSourceDevConfig(): DevConfig {
-  const rootDir = Deno.env.get("QUARTO_ROOT") ||
+  const rootDir = env.get("QUARTO_ROOT") ||
     join(quartoConfig.sharePath(), "../..");
   const configurationScript = join(
     rootDir,

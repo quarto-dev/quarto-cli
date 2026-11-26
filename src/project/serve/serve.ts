@@ -133,6 +133,7 @@ import {
 } from "../../preview/preview-server.ts";
 import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const kRenderNone = "none";
 export const kRenderDefault = "default";
@@ -221,7 +222,7 @@ export async function serveProject(
   clearProjectIndex(project.dir);
 
   // set QUARTO_PROJECT_DIR
-  Deno.env.set("QUARTO_PROJECT_DIR", project.dir);
+  env.set("QUARTO_PROJECT_DIR", project.dir);
 
   // resolve options
   options = {

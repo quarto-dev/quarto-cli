@@ -24,6 +24,7 @@ import { QuartoPubClient } from "./api/index.ts";
 import { authorizePrompt } from "../account.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { RenderFlags } from "../../command/render/types.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const kQuartoPub = "quarto-pub";
 export const kQuartoPubAuthTokenVar = "QUARTO_PUB_AUTH_TOKEN";
@@ -102,7 +103,7 @@ const dotenvConfig = await quartoConfig.dotenv();
 const quartoPubEnvironment = dotenvConfig["QUARTO_PUB_ENVIRONMENT"];
 
 function environmentAuthToken() {
-  return Deno.env.get(kQuartoPubAuthTokenVar);
+  return env.get(kQuartoPubAuthTokenVar);
 }
 
 function authorizeQuartoPubAccessToken(): Promise<

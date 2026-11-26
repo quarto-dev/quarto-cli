@@ -10,6 +10,7 @@ import { error, info } from "../../../deno_ral/log.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
 import { architectureToolsPath } from "../../../core/resources.ts";
+import { env } from "../../../deno_ral/env.ts";
 
 export const typstGatherCommand = new Command()
   .name("typst-gather")
@@ -21,7 +22,7 @@ export const typstGatherCommand = new Command()
   )
   .action(async () => {
     // Get quarto root directory
-    const quartoRoot = Deno.env.get("QUARTO_ROOT");
+    const quartoRoot = env.get("QUARTO_ROOT");
     if (!quartoRoot) {
       error(
         "QUARTO_ROOT environment variable not set. This command requires a development version of Quarto.",
@@ -37,11 +38,11 @@ export const typstGatherCommand = new Command()
 
     // Find typst-gather binary in standard tools location
     const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-    const typstGatherBinary = Deno.env.get("QUARTO_TYPST_GATHER") ||
+    const typstGatherBinary = env.get("QUARTO_TYPST_GATHER") ||
       architectureToolsPath(binaryName);
     if (!existsSync(typstGatherBinary)) {
       error(`typst-gather binary not found at ${typstGatherBinary}.`);
-      if (Deno.env.get("QUARTO_TYPST_GATHER")) {
+      if (env.get("QUARTO_TYPST_GATHER")) {
         error(
           "QUARTO_TYPST_GATHER is set but does not point to an existing file.",
         );

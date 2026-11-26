@@ -5,9 +5,10 @@
  */
 
 import { isWindows } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function getenv(name: string, defaultValue?: string) {
-  const value = Deno.env.get(name);
+  const value = env.get(name);
   if (value === undefined) {
     if (defaultValue === undefined) {
       throw new Error(`Required environment variable ${name} not specified.`);
@@ -24,7 +25,7 @@ export function withPath(
 ): string {
   const delimiter = isWindows ? ";" : ":";
 
-  const currentPath = Deno.env.get("PATH") || "";
+  const currentPath = env.get("PATH") || "";
   if (paths.append !== undefined && paths.prepend !== undefined) {
     // Nothing to append or prepend
     return currentPath;

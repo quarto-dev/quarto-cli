@@ -236,6 +236,7 @@ import { walkJson } from "../../core/json.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 import { assert } from "testing/asserts";
 import { call } from "../../deno_ral/process.ts";
+import { env } from "../../deno_ral/env.ts";
 
 // in case we are running multiple pandoc processes
 // we need to make sure we capture all of the trace files
@@ -250,7 +251,7 @@ const handleCombinedLuaProfiles = (
   const afterPandocHooks: (() => unknown)[] = [];
   const tmp = temp.createFile();
 
-  const combinedProfile = Deno.env.get("QUARTO_COMBINED_LUA_PROFILE");
+  const combinedProfile = env.get("QUARTO_COMBINED_LUA_PROFILE");
   if (combinedProfile) {
     beforePandocHooks.push(() => {
       paramsJson["lua-profiler-output"] = tmp;
@@ -358,7 +359,7 @@ export async function runPandoc(
     const traceFilters =
       // deno-lint-ignore no-explicit-any
       (pandocMetadata as any)?.["_quarto"]?.["trace-filters"] ||
-      Deno.env.get("QUARTO_TRACE_FILTERS");
+      env.get("QUARTO_TRACE_FILTERS");
 
     if (traceFilters) {
       // in case we are running multiple pandoc processes
@@ -380,7 +381,7 @@ export async function runPandoc(
     // do not use the default LUA_CPATH, as it will cause pandoc to
     // load the system lua libraries, which may not be compatible with
     // the lua version we are using
-    if (Deno.env.get("QUARTO_LUA_CPATH") !== undefined) {
+    if (env.get("QUARTO_LUA_CPATH") !== undefined) {
       pandocEnv["LUA_CPATH"] = getenv("QUARTO_LUA_CPATH");
     } else {
       pandocEnv["LUA_CPATH"] = "";
@@ -1413,9 +1414,9 @@ export async function runPandoc(
     args: cmd.slice(1),
     cwd,
     env: pandocEnv,
-    ourEnv: Deno.env.toObject(),
+    ourEnv: env.toObject(),
   };
-  const captureCommand = Deno.env.get("QUARTO_CAPTURE_RENDER_COMMAND");
+  const captureCommand = env.get("QUARTO_CAPTURE_RENDER_COMMAND");
   if (captureCommand) {
     captureRenderCommand(params, options.services.temp, captureCommand);
   }

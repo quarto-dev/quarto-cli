@@ -37,6 +37,7 @@ import { executionEngines } from "../../execute/engine.ts";
 import type { ProjectConfigResolution } from "../../project/project-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { writeTextFile, writeTextFileSync } from "../../deno_ral/fs.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export function getTargets(): readonly string[] {
   const checkableEngineNames = executionEngines()
@@ -186,7 +187,7 @@ function warnOnBroadProjectRoot(dir: string, configFile: string | null) {
 }
 
 function userHomeDir(): string | undefined {
-  const home = Deno.env.get(isWindows ? "USERPROFILE" : "HOME");
+  const home = env.get(isWindows ? "USERPROFILE" : "HOME");
   if (!home) {
     return undefined;
   }
@@ -347,7 +348,7 @@ async function checkInstall(conf: CheckConfiguration) {
     // if they're running a dev version, we assume git is installed
     // and QUARTO_ROOT is set to the root of the quarto-cli repo
     // print the output of git rev-parse HEAD
-    const quartoRoot = Deno.env.get("QUARTO_ROOT");
+    const quartoRoot = env.get("QUARTO_ROOT");
     if (quartoRoot) {
       const gitHead = await execProcess({
         cmd: "git",

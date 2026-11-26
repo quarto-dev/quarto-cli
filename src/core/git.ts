@@ -7,6 +7,7 @@
 import { which } from "./path.ts";
 import { execProcess } from "./process.ts";
 import SemVer from "semver/mod.ts";
+import { env } from "../deno_ral/env.ts";
 
 export async function gitCmds(dir: string, argsArray: Array<string[]>) {
   for (const args of argsArray) {
@@ -106,12 +107,12 @@ export async function gitUserIdentityConfigured(
   });
 
   const hasName = (name.success && (name.stdout?.trim().length ?? 0) > 0) ||
-    (Deno.env.get("GIT_AUTHOR_NAME")?.trim().length ?? 0) > 0 ||
-    (Deno.env.get("GIT_COMMITTER_NAME")?.trim().length ?? 0) > 0;
+    (env.get("GIT_AUTHOR_NAME")?.trim().length ?? 0) > 0 ||
+    (env.get("GIT_COMMITTER_NAME")?.trim().length ?? 0) > 0;
 
   const hasEmail = (email.success && (email.stdout?.trim().length ?? 0) > 0) ||
-    (Deno.env.get("GIT_AUTHOR_EMAIL")?.trim().length ?? 0) > 0 ||
-    (Deno.env.get("GIT_COMMITTER_EMAIL")?.trim().length ?? 0) > 0;
+    (env.get("GIT_AUTHOR_EMAIL")?.trim().length ?? 0) > 0 ||
+    (env.get("GIT_COMMITTER_EMAIL")?.trim().length ?? 0) > 0;
 
   return hasName && hasEmail;
 }

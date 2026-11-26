@@ -267,7 +267,7 @@ git commit -m "deno_ral/env: process environment object with unit test"
 
 ### Task 2: Codemod `src/`
 
-- [ ] **Step 1: Dry run**
+- [x] **Step 1: Dry run**
 
 Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rules env --dir src --dry-run > .claude/docs/codemod-env.txt; tail -1 .claude/docs/codemod-env.txt` Expected: `Summary: 625 files scanned, 50 would be rewritten, 148 replacements, 6 with collisions, 2 skipped` (measured at `83432c028`; 625 is the number of `.ts` files under `src/` outside the skip list and moves only if files are added or removed).
 `.claude/docs/` is ignored by git; Step 2 and the execution log read the report from there.
@@ -276,7 +276,7 @@ Run: `mkdir -p .claude/docs && quarto run --dev tools/codemod-deno-ral.ts --rule
 The two skipped files are `src/core/deno/monkey-patch.ts` and `src/core/performance/metrics.ts`; if PR 20b landed first, the line reads `51 would be rewritten, 149 replacements, 6 with collisions, 1 skipped`.
 If the numbers differ, recount with `rg -c 'Deno\.env' <file>` on the six files before continuing.
 
-- [ ] **Step 2: Review the report**
+- [x] **Step 2: Review the report**
 
 Run: `grep -E 'skipped:|collision:' .claude/docs/codemod-env.txt` Expected exactly these six collision lines and two skipped lines (measured at `83432c028`):
 ```
@@ -293,7 +293,7 @@ src/quarto.ts:87: collision: local binding 'env' conflicts with deno_ral/env.ts;
 
 Run: `grep '→' .claude/docs/codemod-env.txt | awk -F'→' '{print $2}' | sort | uniq -c` Expected: a single target, `148 env`.
 
-- [ ] **Step 3: Rewrite, format, type-check**
+- [x] **Step 3: Rewrite, format, type-check**
 
 Run: `quarto run --dev tools/codemod-deno-ral.ts --rules env --dir src | tail -1` Expected: `Summary: 625 files scanned, 50 rewritten, 148 replacements, 6 with collisions, 2 skipped`.
 
@@ -512,3 +512,18 @@ Review items closed here: the sixth collision (`axe/cmd.ts:314`), counts (58 fil
   The post-format test run exited 0 with `ok | 5 passed | 0 failed (95ms)`; `git diff --check` passed.
 - Deviations: used the Windows PowerShell runner and `.exe` formatter as the plan requires; no implementation or test changes beyond formatting.
 - Outstanding: none in Task 1. Tasks 2–4 remain unticked for later sessions; no maintainer-reserved steps occur in this plan.
+
+### Task 2: Codemod `src/`
+
+- Step 1: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules env --dir src --dry-run > .claude/docs/codemod-env.txt` exited 0 and printed `Summary: 625 files scanned, 50 would be rewritten, 148 replacements, 6 with collisions, 2 skipped`.
+  The report remains at `.claude/docs/codemod-env.txt` for Task 3.
+- Step 2: `grep -E 'skipped:|collision:' .claude/docs/codemod-env.txt` printed exactly the six planned collision lines and two planned skipped lines.
+  `grep '→' .claude/docs/codemod-env.txt | awk -F'→' '{print $2}' | sort | uniq -c` printed `148  env` as the only target.
+- Step 3: the non-dry-run codemod exited 0 and printed `Summary: 625 files scanned, 50 rewritten, 148 replacements, 6 with collisions, 2 skipped`.
+  Before formatting, `git diff --shortstat -- src` printed `50 files changed, 194 insertions(+), 144 deletions(-)`.
+  The planned formatter pipeline excluded the five already-unformatted files, ran `deno.exe fmt` on the other 45 rewritten files, and printed `Checked 45 files`; the shortstat afterward was `50 files changed, 194 insertions(+), 145 deletions(-)`.
+  The only formatter-only line removal was the split `const dir =` in `src/core/appdirs.ts`, joined onto the rewritten environment line.
+- Type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+  `git diff --check` passed; the diff stat lists exactly the 50 rewritten files.
+- Deviations: used the Windows `.cmd` launcher and `.exe` formatter as required; no implementation changes beyond the codemod and its formatting.
+- Outstanding: none in Task 2. Tasks 3–4 remain unticked for later sessions; no maintainer-reserved steps occur in this plan.

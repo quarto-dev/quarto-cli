@@ -13,6 +13,7 @@ import { debug, info } from "../deno_ral/log.ts";
 import { existsSync, writeTextFileSync } from "../deno_ral/fs.ts";
 import { warnOnce } from "./log.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function dartSassInstallDir() {
   return architectureToolsPath("dart-sass");
@@ -91,7 +92,7 @@ function resolveSassCommand(options?: DartCommandOptions): {
     // Only check env var override when no explicit installDir is provided.
     // If QUARTO_DART_SASS doesn't exist on disk, fall through to use the
     // bundled dart-sass at the default architectureToolsPath.
-    const dartOverrideCmd = Deno.env.get("QUARTO_DART_SASS");
+    const dartOverrideCmd = env.get("QUARTO_DART_SASS");
     if (dartOverrideCmd) {
       if (!existsSync(dartOverrideCmd)) {
         warnOnce(

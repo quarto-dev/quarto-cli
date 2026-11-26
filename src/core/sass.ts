@@ -27,6 +27,7 @@ import { quartoConfig } from "../core/quarto.ts";
 import { safeModeFromFile } from "../deno_ral/fs.ts";
 import { ProjectContext } from "../project/types.ts";
 import { memoizeStringFunction } from "./cache/cache.ts";
+import { env } from "../deno_ral/env.ts";
 
 export interface SassVariable {
   name: string;
@@ -151,7 +152,7 @@ export async function compileSass(
     '// quarto-scss-analysis-annotation { "origin": null }',
   ].join("\n\n");
 
-  const saveScssPrefix = Deno.env.get("QUARTO_SAVE_SCSS");
+  const saveScssPrefix = env.get("QUARTO_SAVE_SCSS");
   if (saveScssPrefix) {
     // Save the SCSS before compilation
     const counterValue = counter++;

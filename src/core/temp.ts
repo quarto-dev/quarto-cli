@@ -19,6 +19,7 @@ import {
   makeTempFileSync,
   type TempOptions,
 } from "../deno_ral/temp.ts";
+import { env } from "../deno_ral/env.ts";
 
 export type { TempContext } from "./temp-types.ts";
 
@@ -29,7 +30,7 @@ let tempContext: TempContext | undefined;
 export function initSessionTempDir() {
   // if TMPDIR exists and has been removed (sometimes occurs for stale TMPDIR values
   // in resurrected RStudio terminal sessions) then try to re-create it
-  const tmpEnv = Deno.env.get("TMPDIR");
+  const tmpEnv = env.get("TMPDIR");
   if (tmpEnv) {
     try {
       if (!existsSync(tmpEnv)) {
@@ -118,8 +119,8 @@ export function systemTempDir(name: string) {
 
 function rootTempDir() {
   const tempDir = isWindows
-    ? Deno.env.get("TMP") || Deno.env.get("TEMP") ||
-      Deno.env.get("USERPROFILE") || ""
-    : Deno.env.get("TMPDIR") || "/tmp";
+    ? env.get("TMP") || env.get("TEMP") ||
+      env.get("USERPROFILE") || ""
+    : env.get("TMPDIR") || "/tmp";
   return normalizePath(tempDir);
 }

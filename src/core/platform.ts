@@ -5,13 +5,14 @@
  */
 
 import { isWindows } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function isMingw() {
-  return isWindows && !!Deno.env.get("MSYSTEM");
+  return isWindows && !!env.get("MSYSTEM");
 }
 
 export function isWSL() {
-  return !!Deno.env.get("WSL_DISTRO_NAME");
+  return !!env.get("WSL_DISTRO_NAME");
 }
 
 // Test override for isRStudio — avoids Deno.env.set() race conditions
@@ -23,19 +24,19 @@ export function _setIsRStudioForTest(value: boolean | undefined) {
 
 export function isRStudio() {
   if (_isRStudioOverride !== undefined) return _isRStudioOverride;
-  return !!Deno.env.get("RSTUDIO");
+  return !!env.get("RSTUDIO");
 }
 
 export function isPositron() {
-  return !!Deno.env.get("POSITRON");
+  return !!env.get("POSITRON");
 }
 
 export function isVSCodeOutputChannel() {
-  return !!Deno.env.get("VSCODE_PID");
+  return !!env.get("VSCODE_PID");
 }
 
 export function isVSCodeTerminal() {
-  return Deno.env.get("TERM_PROGRAM") === "vscode";
+  return env.get("TERM_PROGRAM") === "vscode";
 }
 
 export function isVSCodeServer() {
@@ -45,11 +46,11 @@ export function isVSCodeServer() {
 export function isPositWorkbench() {
   // RS_SERVER_URL e.g. https://daily-rsw.soleng.rstudioservices.com/
   // RS_SESSION_URL e.g. /s/eae053c9ab5a71168ee19/
-  return !!Deno.env.get("RS_SERVER_URL") && !!Deno.env.get("RS_SESSION_URL");
+  return !!env.get("RS_SERVER_URL") && !!env.get("RS_SESSION_URL");
 }
 
 export function isRStudioTerminal() {
-  return !!Deno.env.get("RSTUDIO_TERM");
+  return !!env.get("RSTUDIO_TERM");
 }
 
 export function isPositronTerminal() {
@@ -63,7 +64,7 @@ export function isServerSession() {
 }
 
 export function isRStudioServer() {
-  return isRStudio() && Deno.env.get("RSTUDIO_PROGRAM_MODE") === "server";
+  return isRStudio() && env.get("RSTUDIO_PROGRAM_MODE") === "server";
 }
 
 export function isRStudioPreview() {
@@ -71,7 +72,7 @@ export function isRStudioPreview() {
 }
 
 export function isJupyterServer() {
-  return !!Deno.env.get("JUPYTER_SERVER_URL");
+  return !!env.get("JUPYTER_SERVER_URL");
 }
 
 export function isJupyterHubServer() {
@@ -79,19 +80,19 @@ export function isJupyterHubServer() {
 }
 
 export function vsCodeServerProxyUri() {
-  return Deno.env.get("VSCODE_PROXY_URI");
+  return env.get("VSCODE_PROXY_URI");
 }
 
 export function jupyterHubHttpReferrer() {
-  return Deno.env.get("JUPYTERHUB_HTTP_REFERER");
+  return env.get("JUPYTERHUB_HTTP_REFERER");
 }
 
 export function jupyterHubUser() {
-  return Deno.env.get("JUPYTERHUB_USER");
+  return env.get("JUPYTERHUB_USER");
 }
 
 export function jupyterHubServicePrefix() {
-  return Deno.env.get("JUPYTERHUB_SERVICE_PREFIX");
+  return env.get("JUPYTERHUB_SERVICE_PREFIX");
 }
 
 export function isInteractiveTerminal() {

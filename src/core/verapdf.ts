@@ -13,6 +13,7 @@ import { which } from "./path.ts";
 import { quartoDataDir } from "./appdirs.ts";
 import { existsSync } from "../deno_ral/fs.ts";
 import { warnOnce } from "./log.ts";
+import { env } from "../deno_ral/env.ts";
 
 const kVerapdfEnvVar = "QUARTO_VERAPDF";
 const kVerapdfMainClass = "org.verapdf.apps.GreenfieldCliWrapper";
@@ -73,7 +74,7 @@ export async function buildVerapdfCommand(
   pdfPath: string,
 ): Promise<VerapdfInvocation | undefined> {
   // Priority 1: QUARTO_VERAPDF env var
-  const envOverride = Deno.env.get(kVerapdfEnvVar);
+  const envOverride = env.get(kVerapdfEnvVar);
   if (envOverride) {
     // Check if it looks like a file path and doesn't exist
     const looksLikePath = envOverride.startsWith("/") ||

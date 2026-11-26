@@ -54,6 +54,7 @@ import {
   MappedString,
 } from "../core/lib/mapped-text.ts";
 import { makeTempFileSync } from "../deno_ral/temp.ts";
+import { env } from "../deno_ral/env.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -466,7 +467,7 @@ async function callR<T>(
 
   // QUARTO_KNITR_RSCRIPT_ARGS allows to pass additional arguments to Rscript as comma separated values
   // e.g. QUARTO_KNITR_RSCRIPT_ARGS="--vanilla,--no-init-file,--max-connections=258"
-  const rscriptArgs = Deno.env.get("QUARTO_KNITR_RSCRIPT_ARGS") || "";
+  const rscriptArgs = env.get("QUARTO_KNITR_RSCRIPT_ARGS") || "";
   const rscriptArgsArray = rscriptArgs.split(",").filter((a) =>
     a.trim() !== ""
   );

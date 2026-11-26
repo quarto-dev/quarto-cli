@@ -23,6 +23,7 @@ import {
 import { pandocMetadataPath } from "./render-paths.ts";
 import { isMultiFileBookFormat } from "../../project/types/book/book-shared.ts";
 import { projectIsBook } from "../../project/project-shared.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export function crossrefFilterActive(options: PandocOptions) {
   return options.format.metadata.crossref !== false;
@@ -83,14 +84,14 @@ export function crossrefFilterParams(
 
     // caller may have requested that a crossref index be written
   } else {
-    const crossrefIndex = Deno.env.get("QUARTO_CROSSREF_INDEX_PATH");
+    const crossrefIndex = env.get("QUARTO_CROSSREF_INDEX_PATH");
     if (crossrefIndex) {
       params[kCrossrefIndexFile] = pandocMetadataPath(crossrefIndex);
     }
   }
 
   // caller may have requested a special input type
-  const crossrefInputType = Deno.env.get("QUARTO_CROSSREF_INPUT_TYPE");
+  const crossrefInputType = env.get("QUARTO_CROSSREF_INPUT_TYPE");
   if (crossrefInputType) {
     params[kCrossrefInputType] = crossrefInputType;
   }

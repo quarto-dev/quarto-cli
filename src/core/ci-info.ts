@@ -7,6 +7,7 @@
 * Adapted from: https://github.com/watson/ci-info
 */
 
+import { env } from "../deno_ral/env.ts";
 export function runningInCI() {
   // check generic env vars
   if (
@@ -30,10 +31,10 @@ export function runningInCI() {
 
 function checkEnv(obj: string | Record<string, string>) {
   if (typeof obj === "string") {
-    return !!Deno.env.get(obj);
+    return !!env.get(obj);
   } else {
     return Object.keys(obj).every(function (k) {
-      return Deno.env.get(k) === obj[k];
+      return env.get(k) === obj[k];
     });
   }
 }

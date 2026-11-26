@@ -34,6 +34,7 @@ import * as ld from "./lodash.ts";
 import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function skipHiddenWithin(dir: string) {
   // walk() yields children of `dir` in normalized form without a doubled separator
@@ -368,7 +369,7 @@ export function suggestUserBinPaths() {
     ];
 
     // Read the user path
-    const pathRaw = Deno.env.get("PATH");
+    const pathRaw = env.get("PATH");
     const paths: string[] = pathRaw ? pathRaw.split(":") : [];
 
     // Filter the above list by what is in the user path

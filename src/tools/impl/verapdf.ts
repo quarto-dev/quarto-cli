@@ -28,6 +28,7 @@ import {
 } from "../types.ts";
 import { createToolSymlink, removeToolSymlink } from "../tools.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
+import { env } from "../../deno_ral/env.ts";
 
 // Download base URL (quarto.org redirects to S3 bucket)
 const kDownloadBaseUrl = "https://quarto.org/download";
@@ -171,7 +172,7 @@ function noteInstalledVersion(version: string): void {
 
 async function latestRelease(): Promise<RemotePackageInfo> {
   // Use pinned version from configuration or default
-  const version = Deno.env.get("VERAPDF") || kDefaultVersion;
+  const version = env.get("VERAPDF") || kDefaultVersion;
   const filename = `verapdf-greenfield-${version}-installer.zip`;
   // Use quarto.org redirect with version in path (points to S3 bucket)
   const downloadUrl = `${kDownloadBaseUrl}/verapdf/${version}/${filename}`;

@@ -31,6 +31,7 @@ import {
 import { ExecuteOptions } from "../types.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeTempFileSync } from "../../deno_ral/temp.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
@@ -51,7 +52,7 @@ export async function executeKernelOneshot(
 
   trace(options, "Executing notebook with oneshot kernel");
   const debug = !!options.format.execute[kExecuteDebug] ||
-    (!!Deno.env.get("QUARTO_JUPYTER_DEBUG"));
+    (!!env.get("QUARTO_JUPYTER_DEBUG"));
   const result = await execJupyter(
     "execute",
     { ...options, debug },

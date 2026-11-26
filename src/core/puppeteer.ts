@@ -17,6 +17,7 @@ import {
   chromeHeadlessShellInstallDir,
   readInstalledVersion,
 } from "../tools/impl/chrome-headless-shell-paths.ts";
+import { env } from "../deno_ral/env.ts";
 
 // deno-lint-ignore no-explicit-any
 // let puppeteerImport: any = undefined;
@@ -303,7 +304,7 @@ export async function detectBrowser(): Promise<BrowserDetectionResult> {
   const result: BrowserDetectionResult = {};
 
   // 1. QUARTO_CHROMIUM environment variable
-  const envPath = Deno.env.get("QUARTO_CHROMIUM");
+  const envPath = env.get("QUARTO_CHROMIUM");
   if (envPath) {
     if (safeExistsSync(envPath)) {
       result.detected = {

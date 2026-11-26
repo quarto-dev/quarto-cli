@@ -12,6 +12,7 @@ import { isEqual } from "../core/lodash.ts";
 import { globalTempContext } from "../core/temp.ts";
 import { existsSync, writeTextFileSync } from "../deno_ral/fs.ts";
 import { activeProfiles, kQuartoProfile } from "./profile.ts";
+import { env } from "../deno_ral/env.ts";
 
 const kQuartoEnv = "_environment";
 const kQuartoEnvLocal = `${kQuartoEnv}.local`;
@@ -41,7 +42,7 @@ let prevDotenvVariablesDefined: Record<string, string> | undefined;
 
 export async function dotenvSetVariables(projectDir: string) {
   // back out any previous variables set (and note firstRun)
-  dotenvVariablesSet.forEach(Deno.env.delete);
+  dotenvVariablesSet.forEach(env.delete);
   dotenvVariablesSet.splice(0, dotenvVariablesSet.length);
 
   // form a list of dotenv files we might read, filter by existence, then
@@ -60,8 +61,8 @@ export async function dotenvSetVariables(projectDir: string) {
     const conf = await config({ envPath: dotenvFile });
     for (const key in conf) {
       // set into environment (and track that we did so for reversing out later)
-      if (Deno.env.get(key) === undefined) {
-        Deno.env.set(key, conf[key]);
+      if (env.get(key) === undefined) {
+        env.set(key, conf[key]);
         dotenvVariablesSet.push(key);
       }
       // track all defined variables (for validation against example)
