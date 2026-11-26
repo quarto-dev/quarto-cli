@@ -311,7 +311,7 @@ Expected: `git diff --stat` lists only the 50 rewritten files under `src/`, each
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git diff --name-only -- src | xargs git add --
@@ -525,5 +525,8 @@ Review items closed here: the sixth collision (`axe/cmd.ts:314`), counts (58 fil
   The only formatter-only line removal was the split `const dir =` in `src/core/appdirs.ts`, joined onto the rewritten environment line.
 - Type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
   `git diff --check` passed; the diff stat lists exactly the 50 rewritten files.
+- Step 4: committed as `src: codemod Deno.env to deno_ral/env (mechanical)` (51 files: the 50 rewritten `src/` files and this plan); its checkbox was ticked in a follow-up bookkeeping commit.
+  The commit's `src/` file list is identical to the 50 `replacement(s)` files in `.claude/docs/codemod-env.txt`; it contains none of the six colliding or two skipped files.
+  `rg -c 'Deno\.env'` over those 50 files reports only `src/core/platform.ts:1`, the comment at line 18 that the plan leaves to PR 25.
 - Deviations: used the Windows `.cmd` launcher and `.exe` formatter as required; no implementation changes beyond the codemod and its formatting.
 - Outstanding: none in Task 2. Tasks 3–4 remain unticked for later sessions; no maintainer-reserved steps occur in this plan.
