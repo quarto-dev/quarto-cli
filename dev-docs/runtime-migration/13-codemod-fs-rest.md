@@ -210,7 +210,17 @@ Publishing code has no smoke tests (network); `unit/confluence/` is its unit cov
 In `.claude/rules/typescript/deno-ral.md`, under the "Moving code off `Deno.*`" subsection added by PR 09, append:
 
 ```
-Standalone scripts that run without the import map cannot import `deno_ral` and keep their `Deno.*` calls until the PR that owns them: `src/resources/scripts/*.ts` (PR 35), the engine extension template under `src/resources/create/**/*.ejs.ts` (PR 36), `src/resources/tools/ast-diagram/main.ts` (allow-listed by PR 25, ported by PR 35), `src/webui/quarto-preview/build.ts` (allow-listed until PR 33), and the `src/resources/extension-subtrees/` git subtrees (upstream). A `--dir` walk of the codemod skips all of them; `--file` bypasses the exclusions, so never pass them that way.
+Keep `Deno.*` calls in the paths below. The codemod skips them with `--dir`.
+Leave them out of `--file` arguments because `--file` bypasses the exclusions.
+
+These scripts and templates must work without Quarto's source import map:
+
+- `src/resources/scripts/*.ts` (PR 35)
+- The engine extension template under `src/resources/create/**/*.ejs.ts` (PR 36)
+- `src/resources/tools/ast-diagram/main.ts` (PR 25 adds it to the allow-list and PR 35 ports it)
+- `src/webui/quarto-preview/build.ts` (allow-listed until PR 33)
+
+The Git subtrees under `src/resources/extension-subtrees/` are maintained upstream.
 ```
 
 - [x] **Step 4: Changelog entry for sorted directory listings**
@@ -221,8 +231,7 @@ The `rg` cannot see indirect reads: `walkSync`/`walk` are std's unsorted walker 
 In `news/changelog-1.12.md`, append to the end of `## Other fixes and improvements` (the maintainer replaces `N` with this PR's number and moves the entry to its ascending position):
 
 ```markdown
-- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Directories are now read in a fixed order (sorted by name in character-code order, not by locale) on every platform.
-  Extension discovery, the theme list of `quarto capabilities`, the brand extension that `quarto use brand` picks, the order of the bslib component SCSS files, and the manifest entries for the files of a supporting directory in a MECA bundle no longer depend on the file system's listing order; when two extensions share an id, or set conflicting project options such as `execute-dir`, which one wins can differ from earlier versions.
+- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): Sort directory entries by name in a locale-independent order when listing themes in `quarto capabilities`, choosing a brand extension with `quarto use brand`, loading bslib component SCSS files, writing MECA manifest entries for files in supporting directories, and discovering extensions, where the new order can change which extension Quarto uses for a duplicate ID or which value it uses for a conflicting project option such as `execute-dir`.
 ```
 
 - [x] **Step 5: Ratchet**

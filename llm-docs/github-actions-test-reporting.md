@@ -155,12 +155,12 @@ Unit coverage is in:
 - `tests/unit/check-gha-log.test.ts`
 
 `tests/tools/check-gha-log.ts` validates captured logs for balanced, non-nested
-groups, column-zero markers, and failure sections outside groups. Run it after
-changing the grouping logic or upgrading Deno:
+groups, column-zero markers, and failure sections outside groups. After
+changing the grouping logic or upgrading Deno, run both commands from `tests/`.
 
 ```bash
-GITHUB_ACTIONS=true ./run-tests.sh <subset> | tee log.txt
-deno run --allow-read --import-map=src/import_map.json tests/tools/check-gha-log.ts log.txt
+GITHUB_ACTIONS=true ./run-tests.sh unit/gha-grouping.test.ts | tee log.txt
+deno run --allow-read --import-map=../src/import_map.json --lock=../deno.lock --frozen tools/check-gha-log.ts log.txt
 ```
 
 Direct `Deno.test` files that bypass the Quarto harness (e.g.
