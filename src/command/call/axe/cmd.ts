@@ -13,6 +13,7 @@
 
 import { Command } from "cliffy/command/mod.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
+import { env as runtimeEnv } from "../../../deno_ral/env.ts";
 import {
   ensureDirSync,
   existsSync,
@@ -311,7 +312,7 @@ export function staleArtifacts(outputDir: string): string[] {
  * Takes its reader so tests don't have to mutate the process environment.
  */
 export function isIncrementalProjectRender(
-  env: (key: string) => string | undefined = (key) => Deno.env.get(key),
+  env: (key: string) => string | undefined = (key) => runtimeEnv.get(key),
 ): boolean {
   return env("QUARTO_PROJECT_OUTPUT_DIR") !== undefined &&
     env("QUARTO_PROJECT_RENDER_ALL") === undefined;

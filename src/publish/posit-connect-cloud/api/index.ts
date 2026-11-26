@@ -8,6 +8,7 @@
  */
 
 import { debug } from "../../../deno_ral/log.ts";
+import { env as runtimeEnv } from "../../../deno_ral/env.ts";
 import { sleep } from "../../../core/wait.ts";
 import { quartoConfig } from "../../../core/quarto.ts";
 import { ApiError } from "../../types.ts";
@@ -62,7 +63,7 @@ const kEnvironments: Record<PositConnectCloudEnvironment, EnvironmentConfig> = {
 };
 
 export function getEnvironment(): PositConnectCloudEnvironment {
-  const env = Deno.env.get("POSIT_CONNECT_CLOUD_ENVIRONMENT");
+  const env = runtimeEnv.get("POSIT_CONNECT_CLOUD_ENVIRONMENT");
   if (env === "staging" || env === "development" || env === "production") {
     return env;
   }

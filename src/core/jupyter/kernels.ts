@@ -8,6 +8,7 @@ import { basename, join } from "../../deno_ral/path.ts";
 import { existsSync, readTextFileSync, walkSync } from "../../deno_ral/fs.ts";
 
 import { debug } from "../../deno_ral/log.ts";
+import { env as runtimeEnv } from "../../deno_ral/env.ts";
 
 import { execProcess } from "../process.ts";
 import { jupyterExec } from "./exec.ts";
@@ -36,7 +37,7 @@ export async function jupyterKernelspecForLanguage(
     }
   };
   const python = () => {
-    const env = Deno.env.get("VIRTUAL_ENV");
+    const env = runtimeEnv.get("VIRTUAL_ENV");
     if (env) {
       for (const kernelspec of kernelspecs.values()) {
         if (

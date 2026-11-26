@@ -17,6 +17,7 @@ import {
 import { commands } from "./command/command.ts";
 import { appendLogOptions } from "./core/log.ts";
 import { debug, error } from "./deno_ral/log.ts";
+import { env as runtimeEnv } from "./deno_ral/env.ts";
 
 import { cleanupSessionTempDir, initSessionTempDir } from "./core/temp.ts";
 import { removeFlags } from "./core/flags.ts";
@@ -59,7 +60,7 @@ import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
 
 const checkVersionRequirement = () => {
-  const versionReq = Deno.env.get("QUARTO_VERSION_REQUIREMENT");
+  const versionReq = runtimeEnv.get("QUARTO_VERSION_REQUIREMENT");
   if (versionReq) {
     if (!satisfies(quartoConfig.version(), versionReq)) {
       error(
@@ -162,9 +163,9 @@ export async function quarto(
 
   const oldEnv: Record<string, string | undefined> = {};
   for (const [key, value] of Object.entries(env || {})) {
-    const oldV = Deno.env.get(key);
+    const oldV = runtimeEnv.get(key);
     oldEnv[key] = oldV;
-    Deno.env.set(key, value);
+    runtimeEnv.set(key, value);
   }
 
   const quartoCommand = new Command()
@@ -209,9 +210,9 @@ export async function quarto(
   } finally {
     for (const [key, value] of Object.entries(oldEnv)) {
       if (value === undefined) {
-        Deno.env.delete(key);
+        runtimeEnv.delete(key);
       } else {
-        Deno.env.set(key, value);
+        runtimeEnv.set(key, value);
       }
     }
   }

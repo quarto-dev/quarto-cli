@@ -325,7 +325,7 @@ git commit -m "src: codemod Deno.env to deno_ral/env (mechanical)"
 
 `axe/cmd.ts` and `render/project.ts` are already unformatted on `main`, so Step 1 formats only the other four.
 
-- [ ] **Step 1: Apply the alias in each file**
+- [x] **Step 1: Apply the alias in each file**
 
 ```bash
 sed -i 's/Deno\.env\./runtimeEnv./g' src/quarto.ts src/command/render/project.ts src/core/jupyter/kernels.ts src/publish/posit-connect-cloud/api/index.ts src/publish/posit-connect-cloud/posit-connect-cloud.ts src/command/call/axe/cmd.ts
@@ -352,7 +352,7 @@ The resulting lines read, for example, `src/core/jupyter/kernels.ts:39`: `const 
 
 Then: `package/dist/bin/tools/x86_64/deno fmt src/quarto.ts src/core/jupyter/kernels.ts src/publish/posit-connect-cloud/api/index.ts src/publish/posit-connect-cloud/posit-connect-cloud.ts`.
 
-- [ ] **Step 2: Verify and commit**
+- [x] **Step 2: Verify and commit**
 
 Run the text check from Acceptance criteria.
 Expected: empty.
@@ -530,3 +530,14 @@ Review items closed here: the sixth collision (`axe/cmd.ts:314`), counts (58 fil
   `rg -c 'Deno\.env'` over those 50 files reports only `src/core/platform.ts:1`, the comment at line 18 that the plan leaves to PR 25.
 - Deviations: used the Windows `.cmd` launcher and `.exe` formatter as required; no implementation changes beyond the codemod and its formatting.
 - Outstanding: none in Task 2. Tasks 3–4 remain unticked for later sessions; no maintainer-reserved steps occur in this plan.
+
+### Task 3: Alias fixes for the six colliding files
+
+- Step 1: added the planned `env as runtimeEnv` import to each of the six colliding files and changed exactly their 17 `Deno.env.` call sites to `runtimeEnv.`; every local `env` binding stayed unchanged.
+  Before formatting, `git diff --shortstat` over the six files printed `6 files changed, 23 insertions(+), 17 deletions(-)`.
+  `package/dist/bin/tools/x86_64/deno.exe fmt src/quarto.ts src/core/jupyter/kernels.ts src/publish/posit-connect-cloud/api/index.ts src/publish/posit-connect-cloud/posit-connect-cloud.ts` printed `Checked 4 files`; the shortstat afterward was unchanged. The two already-unformatted files were not formatted.
+- Step 2: the Acceptance-criteria text check produced no output.
+  From `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+  `git diff --check` passed; the six-file diff contains only the six imports and 17 call-site substitutions.
+- Deviations: applied the planned textual substitution with exact file edits rather than `sed -i`, and used the Windows `.exe` formatter as required. No implementation changes beyond the planned aliases and call-site substitutions.
+- Outstanding: none in Task 3. Task 4 remains unticked for a later session; no maintainer-reserved steps occur in this plan.

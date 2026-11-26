@@ -18,6 +18,7 @@ import {
 } from "../../deno_ral/fs.ts";
 import { dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
 import { info, warning } from "../../deno_ral/log.ts";
+import { env as runtimeEnv } from "../../deno_ral/env.ts";
 
 import * as colors from "fmt/colors";
 
@@ -325,9 +326,9 @@ export async function renderProject(
       ...prePostEnv,
     };
 
-    if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")) {
+    if (runtimeEnv.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")) {
       writeTextFileSync(
-        Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")!,
+        runtimeEnv.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES")!,
         filesToRender.join("\n"),
       );
     } else {
@@ -845,9 +846,9 @@ export async function renderProject(
         ...prePostEnv,
       };
 
-      if (Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")) {
+      if (runtimeEnv.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")) {
         writeTextFileSync(
-          Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")!,
+          runtimeEnv.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES")!,
           outputFiles.map((outputFile) => relative(projDir, outputFile.file))
             .join("\n"),
         );
@@ -982,8 +983,8 @@ async function runScripts(
       },
     };
 
-    const input = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
-    const output = Deno.env.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
+    const input = runtimeEnv.get("QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES");
+    const output = runtimeEnv.get("QUARTO_USE_FILE_FOR_PROJECT_OUTPUT_FILES");
     if (input) {
       env["QUARTO_USE_FILE_FOR_PROJECT_INPUT_FILES"] = input;
     }
