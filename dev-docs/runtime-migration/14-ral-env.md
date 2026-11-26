@@ -544,7 +544,7 @@ Review items closed here: the sixth collision (`axe/cmd.ts:314`), counts (58 fil
 
 ### Task 4: Tests, docs, ratchet, commit
 
-Written by the coordinator at wrap-up from the executor's logs in `.claude/docs/` (ignored by git); the executor ticked the steps without a log entry.
+Written by the coordinator at wrap-up from the executor's logs in `.claude/docs/` (ignored by git); the executor ticked the steps without a log entry, and the logs hold test output only, not the command lines.
 
 - Step 1 (`task4-unit-tests.log`): `ok | 261 passed | 0 failed | 3 ignored`, run before Step 4 added the env-keys test.
 - Step 2 (`task4-smoke-tests.log`): `ok | 41 passed | 0 failed | 2 ignored`; the two ignored tests are `ignore: isWindows` (`check-info-project.test.ts:181`, `stdlib-run-version.test.ts:27`), and R and Jupyter were available, so `render-r` and `issue-10097` ran.
@@ -556,6 +556,7 @@ Written by the coordinator at wrap-up from the executor's logs in `.claude/docs/
 ### Wrap-up — coordinator at `9ca5d44bc`
 
 - Reruns on Windows (Deno 2.9.8, branch base = `upstream/main` `83432c028`): Task 4 Step 1 → `ok | 262 passed | 0 failed | 3 ignored`; Step 2 → `ok | 41 passed | 0 failed | 2 ignored`.
+  Both ran from `tests/` in Git Bash with `QUARTO_TESTS_NO_CONFIG=true NO_COLOR=1` exported, as `pwsh -File run-tests.ps1 --agent <files>`, where `<files>` is the step's Run-line file list with its `$(find ...)` expansions.
   AST check → `0 would be rewritten, 0 replacements, 0 with collisions, 2 skipped`; text check prints nothing; ratchet → `OK: no count exceeds the baseline.` with `src` 219; `deno check ... quarto.ts` exits 0.
 - Capture: the docx failure reproduces with the `main` checkout's build at `83432c028`, so it predates this PR. With `--to html` and a sentinel variable set, `render-command.json` contains it under `ourEnv`, so the `toObject` snapshot is written.
 - `quarto check`: the Path/Version rows match the `main` build line for line except the Quarto install path.
