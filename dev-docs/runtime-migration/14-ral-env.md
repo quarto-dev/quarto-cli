@@ -174,7 +174,7 @@ On Windows, use `package/dist/bin/quarto.cmd`, `deno.exe` and `tests/run-tests.p
 - Create: `src/deno_ral/env.ts`
 - Test: `tests/unit/ral/env.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```ts
 /*
@@ -246,19 +246,19 @@ unitTest("env - methods work when passed as callbacks", async () => {
 });
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [x] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/env.test.ts` Expected: fails with `Module not found "file:///.../src/deno_ral/env.ts"`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `src/deno_ral/env.ts` with the exact content shown under Interfaces.
 
-- [ ] **Step 4: Run the test**
+- [x] **Step 4: Run the test**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/env.test.ts` Expected: `ok | 5 passed | 0 failed`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/deno_ral/env.ts tests/unit/ral/env.test.ts
@@ -500,3 +500,15 @@ Review items closed here: the sixth collision (`axe/cmd.ts:314`), counts (58 fil
 - Gate inputs: of the `Plan defect`/`Plan gap` beads, the `--allow-import` one applies and is a README row; the `testing/asserts` one for PRs 08, 09 and 14 is closed (the listing imports `../../asserts.ts`).
   121 commits touched `src` since `b86f98d`; the recount and citation audit cover them.
   `configuration` pins Deno v2.9.8, the version every measurement here used.
+
+### Task 1: `src/deno_ral/env.ts` with its unit test
+
+- Steps 1–2: added `tests/unit/ral/env.test.ts`, then ran `.\run-tests.ps1 --agent unit/ral/env.test.ts` from `tests` with the worktree's `package/dist/bin` first on `PATH` and `QUARTO_TESTS_NO_CONFIG=true`.
+  The expected characterization start exited 1 at module load, before any behaviour test ran: `TS2307 [ERROR]: Cannot find module 'file:///.../src/deno_ral/env.ts'.` and `error: Type checking failed.`
+  This is the Windows runner's wording of the planned `Module not found` failure, not a failing behaviour test.
+- Steps 3–4: added the planned `src/deno_ral/env.ts`; the same test command exited 0 with `ok | 5 passed | 0 failed (122ms)`.
+- Formatting: with the two new files marked intent-to-add, `git diff --shortstat -- src/deno_ral/env.ts tests/unit/ral/env.test.ts` printed `2 files changed, 108 insertions(+)` before formatting.
+  `package/dist/bin/tools/x86_64/deno.exe fmt src/deno_ral/env.ts tests/unit/ral/env.test.ts` printed `Checked 2 files`; the shortstat afterward was `2 files changed, 118 insertions(+)` because the formatter reflowed long lines in the new files.
+  The post-format test run exited 0 with `ok | 5 passed | 0 failed (95ms)`; `git diff --check` passed.
+- Deviations: used the Windows PowerShell runner and `.exe` formatter as the plan requires; no implementation or test changes beyond formatting.
+- Outstanding: none in Task 1. Tasks 2–4 remain unticked for later sessions; no maintainer-reserved steps occur in this plan.
