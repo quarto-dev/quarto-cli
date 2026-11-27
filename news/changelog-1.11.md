@@ -63,6 +63,7 @@ All changes included in 1.11:
 
 ### All Formats
 
+- ([#2275](https://github.com/quarto-dev/quarto-cli/issues/2275)): Support cross references to individual rows of `align`, `gather` and similar environments labeled with `\label{eq-...}`. Labeled rows are numbered along with other equations and unlabeled rows are left unnumbered. (author: @Wizorx)
 - ([#14772](https://github.com/quarto-dev/quarto-cli/issues/14772)): Fix custom `language` keys expanding to empty strings in Pandoc templates; they are now available through `$quarto.language.<key>$`. (author: @mcanouil)
 - ([#14882](https://github.com/quarto-dev/quarto-cli/issues/14882)): Fix brand font families with a word starting with a digit, such as `Source Sans 3`, not applying in `html` and `revealjs` output. The same names in `mainfont` now also apply in `revealjs`. (author: @Masad791)
 - ([#14891](https://github.com/quarto-dev/quarto-cli/issues/14891)): Fix a brand file that holds only comments, such as a commented-out `_brand.yml` template, stopping the render with `YAML value is missing`. It now prints a warning and is ignored. (author: @Masad791)
