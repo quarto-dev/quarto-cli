@@ -87,7 +87,7 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. Continue with PR 08 (`deno_ral/process.ts`): its dependencies (02, 10–13, 14) are merged. PR 22 follows it. PR 20b Task 6 (dotenv) no longer waits for PR 14.
+5. PR 08 (`deno_ral/process.ts`) is in progress on `rt/08-ral-process` (step 0 done 2026-11-27; see its execution log). PR 22 follows it. PR 20b Task 6 (dotenv) no longer waits for PR 14.
    On the Phase 0 path, #15259 landed the lockfile half of 00b. The remainder follows the PR 00b overlap row in `OPEN-DECISIONS.md` and gates 03–06, then 07.
    The remainder has not started (checked 2026-11-25) and is the critical path of both phases: PR 25 waits for 04 and 07, which wait for it. Start it now, alongside PR 08, then PR 00c, the one PR tied to the `v1.12` branch cut.
    See the README sequence for work that can proceed in parallel.
