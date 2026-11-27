@@ -1,0 +1,11 @@
+/*-- scss:defaults --*/
+// Dart Sass recommends declaring a variable as `null` at the stylesheet root
+// before setting it conditionally. Quarto must treat `null` as "not set".
+$body-bg: null !default;
+$body-color: null !default;
+
+/*-- scss:rules --*/
+#test-15304 {
+  background-color: $body-bg;
+  color: $body-color;
+}
