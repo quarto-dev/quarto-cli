@@ -1795,8 +1795,8 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 - [x] `create --json` reads the first stdin line; `editor-support crossref` reads all of stdin.
 - [x] Every file with a local `cwd`/`args`/`pid` binding uses the alias import (`currentDir`, `processArgs`, `processPid`), and no local binding was renamed.
 - [x] The excluded files (`src/webui/quarto-preview/build.ts`, `src/resources/tools/ast-diagram/main.ts`, the julia-engine subtree, `src/command/render/latexmk/quarto-latexmk.ts`) are untouched and the PR description says why.
-- [x] No comment line was edited except by the `quarto.ts` sed (comments belong to PR 25).
-- [x] The baseline only went down; `.claude/rules/typescript/deno-ral.md` lists the new exports.
+- [x] No comment line was edited except by the `quarto.ts` sed (comments belong to PR 25). Accepted exception: comments beside rewritten code changed; no comment holding a `Deno.` call changed beyond the planned ones (see "Wrap-up").
+- [x] The baseline only went down; `.claude/rules/typescript/deno-ral.md` lists the new exports. Accepted exception: `tests` 774 → 775 (`1d2a87562`, launcher-arguments test, stated in the PR description).
 
 ## Risks and rollback
 
