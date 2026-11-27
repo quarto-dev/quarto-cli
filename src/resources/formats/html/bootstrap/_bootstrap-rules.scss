@@ -2287,12 +2287,21 @@ code.sourceCode a.code-annotation-anchor {
     word-break: break-word;
   }
 
-  // This disables new styling taken from boostrap that overrides
-  // table level styling
+  // Inherit the text colour set on the table itself instead of Bootstrap's.
+  // The fill stays transparent through $table-bg.
   // See https://github.com/quarto-dev/quarto-cli/issues/7566
   > :not(caption) > * > * {
-    background-color: unset;
     color: unset;
+  }
+
+  // A variant class on a cell keeps the text colour that matches its fill.
+  @each $variant, $_ in $table-variants {
+    > :not(caption) > * > .table-#{$variant} {
+      color: var(
+        --#{$prefix}table-color-state,
+        var(--#{$prefix}table-color-type, var(--#{$prefix}table-color))
+      );
+    }
   }
 }
 
