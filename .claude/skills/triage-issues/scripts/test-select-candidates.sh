@@ -2,7 +2,7 @@
 # Contract tests for select-candidates.sh. Run: bash test-select-candidates.sh
 set -u
 
-here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+here=$(CDPATH= cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 script="$here/select-candidates.sh"
 fixture="$here/fixtures/search.json"
 now="2026-11-27T12:00:00Z"
@@ -68,6 +68,15 @@ jq '.[-1].data.search.issueCount += 1' "$fixture" > "$tmp/truncated.json"
 d=$(fresh_dir)
 out=$(bash "$script" --input "$tmp/truncated.json" --now "$now" --state-dir "$d" 2>/dev/null); rc=$?
 check truncated "$rc:$out" "2:"
+
+# duplicate_across_pages: a node repeated on a later page must not count toward completeness
+jq '.[0] as $p | [$p, ($p | .data.search.nodes = [$p.data.search.nodes[0]])] | map(.data.search.issueCount = 10)' "$fixture" > "$tmp/duplicate.json"
+d=$(fresh_dir)
+out=$(bash "$script" --input "$tmp/duplicate.json" --now "$now" --state-dir "$d" 2>/dev/null); rc=$?
+check duplicate_across_pages "$rc:$out" "2:"
+jq 'map(.data.search.issueCount = 9) | .[1].data.search.nodes = [.[0].data.search.nodes[7]]' "$tmp/duplicate.json" > "$tmp/duplicate-complete.json"
+out=$(bash "$script" --input "$tmp/duplicate-complete.json" --now "$now" --state-dir "$d")
+check duplicate_emitted_once "$(numbers "$out")" '[1007,1008,1009]'
 
 # missing_input
 out=$(bash "$script" --input /nonexistent.json --now "$now" --state-dir "$d" 2>/dev/null); rc=$?

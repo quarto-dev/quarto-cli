@@ -3,8 +3,8 @@
 # that need no triage. Prints JSON lines: one header, then one record per
 # candidate. Needs only gh (authenticated) and jq. Never writes to the state dir.
 #
-# Usage: select-candidates.sh [--since <ISO8601|Nd>] [--skip-file <path>]
-#          [--state-dir <dir>] [--input <search.json>] [--now <ISO8601>] [--table]
+# Usage: select-candidates.sh [--since <Nd|YYYY-MM-DD|YYYY-MM-DDTHH:MM:SSZ>] [--skip-file <path>]
+#          [--state-dir <dir>] [--input <search.json>] [--now <YYYY-MM-DDTHH:MM:SSZ>] [--table]
 # Exit codes: 0 ok; 1 gh/network/input failure; 2 listing truncated; 3 usage
 # error or malformed last-run/--since.
 set -euo pipefail
@@ -68,7 +68,7 @@ if [ -n "$since" ]; then
       '($s | fromdateiso8601) - ($n * 86400) | todate')
   else
     [[ $since =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && since="${since}T00:00:00Z"
-    cutoff=$(normalize_iso "$since") || die 3 "--since must be Nd or an ISO 8601 UTC timestamp: $since"
+    cutoff=$(normalize_iso "$since") || die 3 "--since must be Nd, YYYY-MM-DD or YYYY-MM-DDTHH:MM:SSZ: $since"
   fi
 elif [ -e "$state_dir/last-run" ]; then
   last_run=$(tr -d '[:space:]' < "$state_dir/last-run")
@@ -121,9 +121,10 @@ fi
 printf '%s' "$pages" | jq -e 'type == "array" and length > 0' >/dev/null 2>&1 \
   || die 1 "listing is not a non-empty array of GraphQL pages"
 
-# The search reports how many results exist; fewer fetched means a partial listing.
+# The search reports how many results exist; fewer distinct items fetched means a partial listing
+# (a page can repeat an item when search order shifts between requests).
 truncated=$(printf '%s' "$pages" | jq -r \
-  '([.[].data.search.nodes | length] | add) < (.[-1].data.search.issueCount) ') \
+  '([.[].data.search.nodes[] | select(. != null) | .number] | unique | length) < (.[-1].data.search.issueCount) ') \
   || die 1 "listing has an unexpected shape"
 [ "$truncated" = "false" ] || die 2 "listing truncated: fewer results fetched than the search reports"
 
@@ -134,7 +135,7 @@ out=$(printf '%s' "$pages" | jq -c \
   | ($start | fromdateiso8601) as $hi
   | ($skip | split("\n") | map(gsub("#.*"; "") | gsub("[ \t\r]"; "")) | map(select(test("^[0-9]+$")) | tonumber)) as $skipped
   | ["duplicate","invalid","question","wontfix","needs-repro","stale","support"] as $blocking
-  | [.[].data.search.nodes[] | select(. != null)
+  | [[.[].data.search.nodes[] | select(. != null)] | unique_by(.number) | .[]
      | select((.createdAt | fromdateiso8601) as $t | $t >= $lo and $t < $hi)
      | . as $n
      | ([$n.labels.nodes[].name]) as $labels
