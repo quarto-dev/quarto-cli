@@ -160,12 +160,15 @@ export async function execProcess(
     } else {
       // Process the streams independently
       const promises: Promise<void>[] = [];
+      let readerGone!: () => void;
+      const readerGoneSignal = new Promise<void>((r) => readerGone = r);
       const stopChild = () => {
         try {
           process.kill();
         } catch {
           // already exited
         }
+        readerGone();
       };
 
       if (process.stdout !== null) {
@@ -196,7 +199,9 @@ export async function execProcess(
           }),
         );
       }
-      await withTimeout(Promise.all(promises));
+      // Once our reader is gone, a worker the child started can still hold
+      // its pipes open: wait for the child's exit, not for the pipes' EOF.
+      await withTimeout(Promise.race([Promise.all(promises), readerGoneSignal]));
     }
 
     // await result
