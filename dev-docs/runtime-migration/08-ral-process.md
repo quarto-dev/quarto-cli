@@ -1888,7 +1888,7 @@ Resolved since the first draft:
 ### Task 2: `execProcess` on `spawn`
 
 - Step 1: ran the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/exec-process-stdin.test.ts`; it exited 0 with `ok | 4 passed | 0 failed (135ms)`.
-- Step 2: rewrote `execProcess` on `deno_ral/process.ts`'s `spawn`, retaining the 4 KB stdin writes and #14445 close handling, `MuxAsyncIterator`, timeouts on both draining and status, and exit-cleanup registration.
+- Step 2: rewrote `execProcess` on `deno_ral/process.ts`'s `spawn`, retaining the 4 KB stdin writes and #14445 close handling, `MuxAsyncIterator`, the timeouts (on draining the independent streams, and on the status in both modes; the merged-output drain stays untimed, as before), and exit-cleanup registration.
   The existing single streaming decoder and EOF flush in both `processOutput` and `filteredAsyncIterator` remain unchanged; only the planned `StdioOption` annotation and layer stdio writes changed in `processOutput`.
 - Step 3, initial check: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 1 with two `TS2345` errors at the merge branch's `addStream(process.stdout!.values())` and `addStream(process.stderr!.values(), stderrFilter)` calls: their `AsyncIterableIterator<Uint8Array<ArrayBufferLike>>` values did not satisfy the old `AsyncIterableIterator<Uint8Array<ArrayBuffer>>` parameter.
   The combined regression-test command failed at type-check time with the same errors, before any behaviour test ran.
