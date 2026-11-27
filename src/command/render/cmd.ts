@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import { dirname, relative } from "../../deno_ral/path.ts";
 import { expandGlobSync, statSync } from "../../deno_ral/fs.ts";
 import { Command } from "cliffy/command/mod.ts";
@@ -161,7 +162,7 @@ export const renderCommand = new Command()
     // if input is missing but there exists an args parameter which is a .qmd or .ipynb file,
     // issue a warning.
     if (!input || input === kCliffyImplicitCwd) {
-      input = Deno.cwd();
+      input = cwd();
       debug(`Render: Using current directory (${input}) as implicit input`);
       const firstArg = args.find((arg) =>
         arg.endsWith(".qmd") || arg.endsWith(".ipynb")
@@ -245,7 +246,7 @@ export const renderCommand = new Command()
       for (const walk of expandGlobSync(input)) {
         const services = renderServices(notebookContext());
         try {
-          renderResultInput = relative(Deno.cwd(), walk.path) || ".";
+          renderResultInput = relative(cwd(), walk.path) || ".";
           if (renderResult) {
             renderResult.context.cleanup();
           }

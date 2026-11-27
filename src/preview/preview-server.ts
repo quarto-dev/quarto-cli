@@ -6,6 +6,7 @@
 
 import { MuxAsyncIterator } from "async";
 import { isWindows } from "../deno_ral/platform.ts";
+import { killProcess, spawn, writeStderrSync } from "../deno_ral/process.ts";
 
 export interface PreviewServer {
   // returns path to browse to
@@ -34,22 +35,23 @@ export function runExternalPreviewServer(options: {
   cwd?: string;
 }): PreviewServer {
   const { cmd } = options;
-  // start the process
-  const denoCommand = new Deno.Command(cmd[0], {
+  // start the process; on POSIX it leads its own process group so that stop()
+  // also ends what it spawned (uvicorn workers, a Shiny app's R/Python children)
+  const process = spawn(cmd[0], {
     args: cmd.slice(1),
-    ...options,
+    env: options.env,
+    cwd: options.cwd,
     stdout: "piped",
     stderr: "piped",
+    detached: !isWindows,
   });
-
-  const process = denoCommand.spawn();
 
   // merge and stream stdout and stderr
   const multiplexIterator = new MuxAsyncIterator<
     Uint8Array
   >();
-  multiplexIterator.add(process.stdout);
-  multiplexIterator.add(process.stderr);
+  multiplexIterator.add(process.stdout!);
+  multiplexIterator.add(process.stderr!);
 
   // wait for ready and then return from 'start'
   const decoder = new TextDecoder();
@@ -60,20 +62,22 @@ export function runExternalPreviewServer(options: {
         if (options.readyPattern.test(text)) {
           break;
         }
-        Deno.stderr.writeSync(chunk);
+        writeStderrSync(chunk);
       }
       return "";
     },
     serve: async () => {
       for await (const chunk of multiplexIterator) {
-        Deno.stderr.writeSync(chunk);
+        writeStderrSync(chunk);
       }
-      await process.output();
+      await process.status;
     },
     stop: () => {
-      if (!isWindows) {
-        Deno.kill(-process.pid, "SIGTERM");
-      } else {
+      // POSIX: SIGTERM to the group the child leads. Windows: the layer runs
+      // taskkill /T on the tree rooted at the child (no groups to signal).
+      try {
+        killProcess(-process.pid, "SIGTERM");
+      } catch {
         process.kill();
       }
       return Promise.resolve();

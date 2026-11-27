@@ -1,5 +1,10 @@
 import { resolve, toFileUrl } from "../../../../src/deno_ral/path.ts";
 import {
+  args as processArgs,
+  exec,
+  exit,
+} from "../../../../src/deno_ral/process.ts";
+import {
   DependencyGraph,
   Edge,
   getDenoInfo,
@@ -98,7 +103,7 @@ function explain(
   }
   if (!found) {
     console.error(`graph does not have cyclic imports`);
-    Deno.exit(1);
+    exit(1);
   }
   return result;
 }
@@ -141,16 +146,18 @@ format: html
   const filename = await Deno.makeTempFile({ suffix: ".qmd" });
   Deno.writeTextFileSync(filename, qmdOut.join("\n"));
 
-  const process = Deno.run({
-    cmd: ["quarto", "preview", filename],
+  await exec("quarto", {
+    args: ["preview", filename],
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
   });
-  await process.status();
 
   Deno.remove(filename);
 }
 
 if (import.meta.main) {
-  if (Deno.args.length === 0) {
+  if (processArgs().length === 0) {
     console.log(
       `explain-all-cycles.ts: generate a graph visualization of cyclic imports
 between all files reachable from some source file.
@@ -171,12 +178,12 @@ Examples:
 If no output option is given, opens an interactive preview.
 `,
     );
-    Deno.exit(1);
+    exit(1);
   }
-  const json = await getDenoInfo(Deno.args[0]);
+  const json = await getDenoInfo(processArgs()[0]);
   const { graph } = moduleGraph(json);
 
-  let args = Array.from(Deno.args);
+  let args = Array.from(processArgs());
 
   let result = explain(graph);
   if (args[1] === "--simplify") {

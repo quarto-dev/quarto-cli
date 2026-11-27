@@ -4,6 +4,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+import { exit } from "../../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { gitCmdOutput, gitCmds } from "../../../core/git.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
@@ -175,7 +176,7 @@ export const pullGitSubtreeCommand = new Command()
       error(
         "QUARTO_ROOT environment variable not set. This command requires a development version of Quarto.",
       );
-      Deno.exit(1);
+      exit(1);
     }
 
     // Show current branch for debugging (only if debug logging enabled)
@@ -205,7 +206,7 @@ export const pullGitSubtreeCommand = new Command()
       if (!config) {
         error(`Unknown subtree name: ${nameArg}`);
         error(`Available subtrees: ${SUBTREES.map((s) => s.name).join(", ")}`);
-        Deno.exit(1);
+        exit(1);
       }
       subtreesToPull = [config];
       info(`Quarto root: ${quartoRoot}`);
@@ -231,6 +232,6 @@ export const pullGitSubtreeCommand = new Command()
     info(`Failed: ${errorCount}`);
 
     if (errorCount > 0) {
-      Deno.exit(1);
+      exit(1);
     }
   });

@@ -4,6 +4,7 @@
  * Copyright (C) 2021-2025 Posit Software, PBC
  */
 
+import { cwd } from "../../../deno_ral/process.ts";
 import {
   ExtensionSource,
   extensionSource,
@@ -632,7 +633,7 @@ async function isTrusted(
 }
 
 async function ensureBrandDirectory(force: boolean, dryRun: boolean) {
-  const currentDir = Deno.cwd();
+  const currentDir = cwd();
   const nbContext = notebookContext();
   const project = await projectContext(currentDir, nbContext);
   // Use project directory if available, otherwise fall back to current directory

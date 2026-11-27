@@ -36,6 +36,7 @@ import { join } from "../deno_ral/path.ts";
 import { expandPath, suggestUserBinPaths } from "../core/path.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { makeTempDirSync } from "../deno_ral/temp.ts";
+import { exit, writeStdoutSync } from "../deno_ral/process.ts";
 
 // The tools that are available to install
 const kInstallableTools: { [key: string]: InstallableTool } = {
@@ -101,7 +102,7 @@ export async function printToolInfo(name: string) {
     if (response.installed && tool.verifyConfiguration) {
       response["configuration"] = await tool.verifyConfiguration();
     }
-    Deno.stdout.writeSync(
+    writeStdoutSync(
       new TextEncoder().encode(JSON.stringify(response, null, 2) + "\n"),
     );
   }
@@ -162,7 +163,7 @@ export async function installTool(
         if (alreadyInstalled) {
           // Already installed, do nothing
           context.error(`Install canceled - ${name} is already installed.`);
-          Deno.exit(1);
+          exit(1);
         } else {
           // Prereqs for this platform
           const platformPrereqs = tool.prereqs.filter((prereq) =>
@@ -177,7 +178,7 @@ export async function installTool(
                 ? await prereq.message(context)
                 : prereq.message;
               context.error(message);
-              Deno.exit(1);
+              exit(1);
             }
           }
 
@@ -353,7 +354,7 @@ const installContext = (
         installMessaging.error(
           error.message,
         );
-        Deno.exit(1);
+        exit(1);
       }
     },
     workingDir,

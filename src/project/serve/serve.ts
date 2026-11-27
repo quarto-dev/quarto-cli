@@ -13,6 +13,7 @@ import {
   safeRemoveSync,
   writeTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { cwd, killProcess, pid as processPid } from "../../deno_ral/process.ts";
 import {
   basename,
   dirname,
@@ -150,7 +151,7 @@ export async function serveProject(
   const nbContext = renderOptions.services.notebook;
   if (typeof target === "string") {
     if (target === ".") {
-      target = Deno.cwd();
+      target = cwd();
     }
     project = await projectContext(
       target,
@@ -364,8 +365,10 @@ export async function serveProject(
       pandocArgs,
     );
 
-  // set stopServer hook
+  // set stopServer hook and register it as a cleanup handler before start,
+  // which for an external server waits for its ready pattern
   stopServer = previewServer.stop;
+  onCleanup(stopServer);
 
   // start server (launch browser if a path is returned)
   const path = await previewServer.start();
@@ -381,9 +384,6 @@ export async function serveProject(
       await openUrl(previewURL(options.host!, options.port!, path));
     }
   }
-
-  // register the stopServer function as a cleanup handler
-  onCleanup(stopServer);
 
   // if there is a touchPath then touch
   if (options.touchPath) {
@@ -912,7 +912,7 @@ function acquirePreviewLock(project: ProjectContext) {
         { newline: false },
       );
       try {
-        Deno.kill(pid, "SIGTERM");
+        killProcess(pid, "SIGTERM");
         sleepSync(3000);
       } catch {
         //
@@ -923,7 +923,7 @@ function acquirePreviewLock(project: ProjectContext) {
   }
 
   // write our pid to the lockfile
-  writeTextFileSync(lockfile, String(Deno.pid));
+  writeTextFileSync(lockfile, String(processPid()));
 
   // remove the lockfile when we exit
   onCleanup(() => releasePreviewLock(project));

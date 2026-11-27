@@ -16,6 +16,7 @@ import {
 import { Confirm } from "cliffy/prompt/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { basename, dirname, join, relative } from "../deno_ral/path.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 import { projectContext } from "../project/project-context.ts";
 import { TempContext } from "../core/temp-types.ts";
@@ -63,7 +64,7 @@ export async function installExtension(
   }
 
   // Compute the installation directory
-  const currentDir = Deno.cwd();
+  const currentDir = cwd();
   const installDir = await determineInstallDir(
     currentDir,
     allowPrompt,

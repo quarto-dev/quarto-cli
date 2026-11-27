@@ -6,6 +6,7 @@
 
 import { existsSync, statSync } from "../deno_ral/fs.ts";
 import { dirname, join, relative } from "../deno_ral/path.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 import * as ld from "../core/lodash.ts";
 
@@ -64,7 +65,7 @@ export function isDocumentConfig(
 }
 
 export async function inspectConfig(path?: string): Promise<InspectedConfig> {
-  path = path || Deno.cwd();
+  path = path || cwd();
   if (!existsSync(path)) {
     throw new Error(`${path} not found`);
   }

@@ -16,7 +16,7 @@ import {
   reportPerformanceMetrics,
 } from "./performance/metrics.ts";
 import { makeTimedFunctionAsync } from "./performance/function-times.ts";
-import { isWindows } from "../deno_ral/platform.ts";
+import { args as processArgs, onSignal } from "../deno_ral/process.ts";
 import { convertCombinedLuaProfileToCSV } from "./performance/perfetto-utils.ts";
 import { env } from "../deno_ral/env.ts";
 
@@ -24,18 +24,13 @@ type Runner = (args: Args) => Promise<unknown>;
 export async function mainRunner(runner: Runner) {
   try {
     // Parse the raw args to read globals and initialize logging
-    const args = parse(Deno.args);
+    const args = parse(processArgs());
     await initializeLogger(logOptions(args));
 
-    // install termination signal handlers
-
-    // Even though windows doesn't technically have signals, Deno
-    // does the "expected" thing here and calls abend
-    // on interruption.
-    Deno.addSignalListener("SIGINT", abend);
-    if (!isWindows) {
-      Deno.addSignalListener("SIGTERM", abend);
-    }
+    // install termination signal handlers (SIGTERM is a no-op on Windows,
+    // where Deno maps console interruption to SIGINT)
+    onSignal("SIGINT", abend);
+    onSignal("SIGTERM", abend);
 
     const metricEnv = env.get("QUARTO_REPORT_PERFORMANCE_METRICS");
     if (metricEnv === "true" || metricEnv?.split(",").includes("fileReads")) {

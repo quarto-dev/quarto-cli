@@ -26,15 +26,14 @@ import {
   readTextFileSync,
   writeTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { exec, execPath } from "../../deno_ral/process.ts";
 
 export function typeNameFromSchemaName(schemaName: string) {
   return capitalize(toCapitalizationCase(schemaName.replaceAll("/", "-")));
 }
 
 export function fmtSource(source: string) {
-  return new Deno.Command(Deno.execPath(), {
-    args: ["fmt", source],
-  }).output();
+  return exec(execPath(), { args: ["fmt", source] });
 }
 
 export const generatedSrcMessage =

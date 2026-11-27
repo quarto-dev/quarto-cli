@@ -4,6 +4,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+import { execPath } from "../../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { join } from "../../../deno_ral/path.ts";
 import { resourcePath } from "../../../core/resources.ts";
@@ -20,7 +21,7 @@ export const makeAstDiagramCommand = new Command()
   //deno-lint-ignore no-explicit-any
   .action(async (options: any, ...args: string[]) => {
     const renderOpts = {
-      cmd: Deno.execPath(),
+      cmd: execPath(),
       args: [
         "run",
         "--allow-read",

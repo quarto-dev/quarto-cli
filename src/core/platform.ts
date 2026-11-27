@@ -6,6 +6,7 @@
 
 import { isWindows } from "../deno_ral/platform.ts";
 import { env } from "../deno_ral/env.ts";
+import { isTerminal } from "../deno_ral/process.ts";
 
 export function isMingw() {
   return isWindows && !!env.get("MSYSTEM");
@@ -96,7 +97,7 @@ export function jupyterHubServicePrefix() {
 }
 
 export function isInteractiveTerminal() {
-  return Deno.stderr.isTerminal();
+  return isTerminal("stderr");
 }
 
 export function isInteractiveSession() {

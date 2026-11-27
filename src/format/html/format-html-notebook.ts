@@ -21,6 +21,7 @@ import {
 } from "../../command/render/types.ts";
 
 import { basename, dirname, isAbsolute, join, relative } from "../../deno_ral/path.ts";
+import { cwd } from "../../deno_ral/process.ts";
 import { ProjectContext } from "../../project/types.ts";
 import {
   NotebookPreview,
@@ -331,7 +332,7 @@ const nbAbsPath = (input: string, nbPath: string) => {
   }
 
   // Ensure that the input path is absolute
-  const inputAbsPath = isAbsolute(input) ? input : join(Deno.cwd(), input);
+  const inputAbsPath = isAbsolute(input) ? input : join(cwd(), input);
 
   // Ensure that the notebook path is absolute
   return join(dirname(inputAbsPath), nbPath);

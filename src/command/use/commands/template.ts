@@ -4,6 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../../deno_ral/process.ts";
 import {
   ExtensionSource,
   extensionSource,
@@ -310,7 +311,7 @@ async function isTrusted(
 }
 
 async function determineDirectory(allowPrompt: boolean) {
-  const currentDir = Deno.cwd();
+  const currentDir = cwd();
   if (!allowPrompt) {
     // If we can't prompt, we'll use either the current directory (if empty), or throw
     if (!directoryEmpty(currentDir)) {

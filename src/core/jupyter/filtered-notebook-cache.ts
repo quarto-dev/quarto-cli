@@ -16,6 +16,7 @@ import { dirname, isAbsolute, join } from "../../deno_ral/path.ts";
 import { parseShellRunCommand } from "../../core/run/shell.ts";
 import { quartoCacheDir } from "../appdirs.ts";
 import { which } from "../path.ts";
+import { cwd } from "../../deno_ral/process.ts";
 
 // get cached copy of filtered notebook
 export async function filteredNotebookFromCache(
@@ -44,7 +45,7 @@ export async function cacheFilteredNotebook(
 }
 
 function normalizeNotebookPath(file: string) {
-  return isAbsolute(file) ? file : join(Deno.cwd(), file);
+  return isAbsolute(file) ? file : join(cwd(), file);
 }
 
 // generate a notebook invalidation key

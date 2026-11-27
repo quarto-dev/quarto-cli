@@ -85,20 +85,21 @@ async function assertArgumentsReachDeno(
 }
 
 // Runs quarto.cmd through cmd with an unquoted command line, as typed in a
-// terminal, where cmd itself sees the ")" in "report(1).qmd".
+// terminal, where cmd itself sees the ")" in "report(1).qmd". Runs the
+// runtime's command API directly: the layer has no raw Windows command line.
 async function assertTypedArgumentsReachDeno(launcher: Launcher, cwd: string) {
-  const result = await execProcess({
-    cmd: "cmd",
+  const result = await new Deno.Command("cmd", {
     args: ["/d", "/s", "/c", `""${launcher.cmd}" run report(1).qmd C:\\notes!"`],
     windowsRawArguments: true,
     cwd,
     stdout: "piped",
     stderr: "piped",
     env: launcher.env,
-  });
-  const stdout = result.stdout ?? "";
+  }).output();
+  const decoder = new TextDecoder();
+  const stdout = decoder.decode(result.stdout);
   const details = `(exit ${result.code})\nstdout:\n${stdout}\nstderr:\n${
-    result.stderr ?? ""
+    decoder.decode(result.stderr)
   }`;
   const argsLine = stdout.split(/\r?\n/).find((line) =>
     line.startsWith("ARGS=")

@@ -40,6 +40,7 @@ import {
   safeRemoveSync,
   writeTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { cwd, exec, execPath } from "../../deno_ral/process.ts";
 
 // ResourceDescription filenames are always project-relative
 export interface ResourceDescription {
@@ -247,7 +248,7 @@ export async function extractResolvedResourceFilenamesFromQmd(
   // We need another uniquing pass here.
   const result = new Set<string>();
   for (const resource of uniqueResources(pageResources)) {
-    result.add(resolveResourceFilename(resource, Deno.cwd()));
+    result.add(resolveResourceFilename(resource, cwd()));
   }
   return Array.from(result);
 }
@@ -339,8 +340,7 @@ async function resolveImport(
 
   projectRoot = projectRoot ?? dirname(referent);
 
-  const deno = Deno.execPath();
-  const p = new Deno.Command(deno, {
+  const output = await exec(execPath(), {
     args: [
       "check",
       file,
@@ -350,7 +350,6 @@ async function resolveImport(
     ],
     stderr: "piped",
   });
-  const output = await p.output();
   const stderr = output.stderr;
   if (!output.success) {
     error("Compilation of typescript dependencies in ojs cell failed.");
@@ -779,7 +778,7 @@ export async function makeSelfContainedResources(
     ),
     ...attachments.map(
       (f) => {
-        const resolvedFileName = resolveResourceFilename(f, Deno.cwd());
+        const resolvedFileName = resolveResourceFilename(f, cwd());
         const mimeType = lookup(resolvedFileName) ||
           "application/octet-stream";
         return [

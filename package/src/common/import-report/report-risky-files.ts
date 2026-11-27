@@ -1,4 +1,5 @@
 import { resolve, toFileUrl } from "../../../../src/deno_ral/path.ts";
+import { args, exec, exit } from "../../../../src/deno_ral/process.ts";
 import {
   DependencyGraph,
   Edge,
@@ -43,7 +44,7 @@ function filesInCycles(
 }
 
 if (import.meta.main) {
-  if (Deno.args.length === 0) {
+  if (args().length === 0) {
     console.log(
       `report-risky-files.ts: Report files that are in import cycles and export constants
 
@@ -53,18 +54,16 @@ Usage:
 Example:
   $ quarto run --dev package/src/common/import-report/report-risky-files.ts src/quarto.ts`,
     );
-    Deno.exit(1);
+    exit(1);
   }
-  const json = await getDenoInfo(Deno.args[0]);
+  const json = await getDenoInfo(args()[0]);
   const { graph } = moduleGraph(json);
 
   const rawCycleFiles = filesInCycles(graph);
 
-  const cmd = ["rg", "-l", "export const"];
-  const p = Deno.run({ cmd, stdout: "piped", stderr: "piped" });
-  const { code } = await p.status();
-  if (code !== 0) {
-    Deno.exit(code);
+  const output = await exec("rg", { args: ["-l", "export const"] });
+  if (!output.success) {
+    exit(output.code);
   }
 
   // heuristically remove string path prefixes
@@ -73,8 +72,7 @@ Example:
   );
 
   const exportFiles = new Set(
-    (new TextDecoder().decode(await p.output())).trim()
-      .split("\n"),
+    new TextDecoder().decode(output.stdout).trim().split("\n"),
   );
 
   const result = cycleFiles.filter((s) => exportFiles.has(s));

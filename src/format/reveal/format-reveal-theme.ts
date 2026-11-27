@@ -10,6 +10,7 @@ import {
   readFileSync,
   readTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { cwd } from "../../deno_ral/process.ts";
 
 import { kTheme } from "../../config/constants.ts";
 import {
@@ -127,7 +128,7 @@ export async function revealTheme(
   const themeLayers = (Array.isArray(themeConfig) ? themeConfig : [themeConfig])
     .map(
       (theme) => {
-        const themePath = join(relative(Deno.cwd(), dirname(input)), theme);
+        const themePath = join(relative(cwd(), dirname(input)), theme);
         if (theme === "brand") {
           usedBrandLayers = true;
           return brandLayers;

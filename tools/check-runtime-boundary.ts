@@ -311,7 +311,7 @@ export function acceptIncrease(current: Baseline): Baseline {
  * `src-js` plain JavaScript, neither of which can. */
 const kDenoRalImportScopes: readonly string[] = ["src", "package/src", "tests"];
 
-/** The scopes of the fs, temp, errors and env keys. `tests` is left out: it keeps deliberate Deno.*
+/** The scopes of the fs, temp, errors, env and process keys. `tests` is left out: it keeps deliberate Deno.*
  * fixtures whose increase a maintainer accepts, and a covered API is an error no acceptance clears. */
 const kRalLayerScopes: readonly string[] = ["src", "package/src"];
 
@@ -367,6 +367,29 @@ export const kRalDenoReplacements: Readonly<
     "errors.ConnectionRefused": "isConnectionRefused",
   }),
   ...ralReplacements("env.ts", ["env.get", "env.set", "env.delete", "env.toObject"]),
+  ...ralReplacements("process.ts", [
+    "exit", "cwd", "chdir", "args", "execPath", "pid",
+  ], {
+    Command: "spawn, exec or execSync",
+    run: "exec or execSync",
+    kill: "killProcess",
+    addSignalListener: "onSignal",
+    stdin: "readStdin, readStdinLines or isTerminal",
+    stdout: "writeStdoutSync or isTerminal",
+    stderr: "writeStderrSync or isTerminal",
+    // a call is keyed by the stream and its member (`Deno.stdout.writeSync()` is `stdout.writeSync`)
+    "stdout.writeSync": "writeStdoutSync",
+    "stderr.writeSync": "writeStderrSync",
+    "stdin.readable": "readStdin or readStdinLines",
+    "stdin.close": "readStdinLines (closes stdin when the loop stops early)",
+    "stdin.isTerminal": "isTerminal",
+    "stdout.isTerminal": "isTerminal",
+    "stderr.isTerminal": "isTerminal",
+    ChildProcess: "ChildProcess",
+    CommandOptions: "SpawnOptions",
+    CommandStatus: "ExitStatus",
+    CommandOutput: "ExecOutput",
+  }),
   ...Object.fromEntries(
     ["BrokenPipe", "NotConnected", "ConnectionAborted", "ConnectionReset"].map((name) => [
       `errors.${name}`,

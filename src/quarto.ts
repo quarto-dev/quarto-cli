@@ -58,6 +58,7 @@ import "./core/api/register.ts";
 
 import { kCliffyImplicitCwd } from "./config/constants.ts";
 import { mainRunner } from "./core/main.ts";
+import { args as processArgs, exit } from "./deno_ral/process.ts";
 
 const checkVersionRequirement = () => {
   const versionReq = runtimeEnv.get("QUARTO_VERSION_REQUIREMENT");
@@ -66,7 +67,7 @@ const checkVersionRequirement = () => {
       error(
         `Quarto version ${quartoConfig.version()} does not meet semver requirement ${versionReq}`,
       );
-      Deno.exit(1);
+      exit(1);
     }
   }
 };
@@ -78,7 +79,7 @@ const checkReconfiguration = async () => {
     const source = readSourceDevConfig();
     if (installed == null || !devConfigsEqual(installed, source)) {
       await reconfigureQuarto(installed, source);
-      Deno.exit(1);
+      exit(1);
     }
   }
 };
@@ -98,7 +99,7 @@ const passThroughPandoc = async (
     undefined,
     true,
   );
-  Deno.exit(result.code);
+  exit(result.code);
 };
 
 const passThroughTypst = async (
@@ -110,14 +111,14 @@ const passThroughTypst = async (
       "The 'typst update' command is not supported.\n" +
         "Please install the latest version of Quarto from http://quarto.org to get the latest supported typst features.",
     );
-    Deno.exit(1);
+    exit(1);
   }
   const result = await execProcess({
     cmd: typstBinaryPath(),
     args: args.slice(1),
     env,
   });
-  Deno.exit(result.code);
+  exit(result.code);
 };
 
 export async function quarto(
@@ -137,7 +138,7 @@ export async function quarto(
   // passthrough to run handlers
   if (args[0] === "run" && args[1] !== "help" && args[1] !== "--help") {
     const result = await runScript(args.slice(1), env);
-    Deno.exit(result.code);
+    exit(result.code);
   }
 
   // inject implicit cwd arg for quarto preview/render whose
@@ -185,7 +186,7 @@ export async function quarto(
   });
 
   // From here on, we have a temp dir that we need to clean up.
-  // The calls to Deno.exit() above are fine, but no further
+  // The calls to exit() above are fine, but no further
   // ones should be made
   //
   // init temp dir
@@ -221,7 +222,7 @@ export async function quarto(
 if (import.meta.main) {
   await mainRunner(async (args) => {
     // initialize profile (remove from args)
-    let quartoArgs = [...Deno.args];
+    let quartoArgs = processArgs();
     if (setProfileFromArg(args)) {
       const removeArgs = new Map<string, boolean>();
       removeArgs.set("--profile", true);

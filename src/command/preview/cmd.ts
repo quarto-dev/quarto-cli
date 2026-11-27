@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import { existsSync, statSync } from "../../deno_ral/fs.ts";
 import { dirname, extname, join, relative } from "../../deno_ral/path.ts";
 
@@ -148,7 +149,7 @@ export const previewCommand = new Command()
     // if input is missing but there exists an args parameter which is a .qmd or .ipynb file,
     // issue a warning.
     if (!file || file === kCliffyImplicitCwd) {
-      file = Deno.cwd();
+      file = cwd();
       const firstArg = args.find((arg) =>
         arg.endsWith(".qmd") || arg.endsWith(".ipynb")
       );
@@ -163,7 +164,7 @@ export const previewCommand = new Command()
       }
     }
 
-    file = file || Deno.cwd();
+    file = file || cwd();
     if (!existsSync(file)) {
       throw new Error(`${file} not found`);
     }
@@ -425,7 +426,7 @@ export const previewCommand = new Command()
         args.push("--to", options.render);
       }
 
-      await preview(relative(Deno.cwd(), file), flags, args, {
+      await preview(relative(cwd(), file), flags, args, {
         port: options.port,
         host: options.host,
         browser: (options.browser === false || options.browse === false)

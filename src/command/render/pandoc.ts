@@ -235,7 +235,7 @@ import { makeTimedFunctionAsync } from "../../core/performance/function-times.ts
 import { walkJson } from "../../core/json.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 import { assert } from "testing/asserts";
-import { call } from "../../deno_ral/process.ts";
+import { call, type SpawnOptions } from "../../deno_ral/process.ts";
 import { env } from "../../deno_ral/env.ts";
 
 // in case we are running multiple pandoc processes
@@ -271,7 +271,7 @@ const handleCombinedLuaProfiles = (
 };
 
 function captureRenderCommand(
-  args: Deno.CommandOptions,
+  args: SpawnOptions,
   temp: TempContext,
   outputDir: string,
 ) {

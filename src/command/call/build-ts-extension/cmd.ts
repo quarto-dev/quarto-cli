@@ -4,6 +4,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+import { cwd as currentDir, exit } from "../../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { error, info } from "../../../deno_ral/log.ts";
 import {
@@ -45,7 +46,7 @@ async function resolveConfig(): Promise<
   { config: DenoConfig; configPath: string }
 > {
   // Look for deno.json in current directory
-  const cwd = Deno.cwd();
+  const cwd = currentDir();
   const userConfigPath = join(cwd, "deno.json");
 
   if (existsSync(userConfigPath)) {
@@ -60,7 +61,7 @@ async function resolveConfig(): Promise<
         'deno.json can use either "importMap" (path to file) OR "imports" (inline mappings), but not both.\n',
       );
       error("Please remove one of these fields from your deno.json.");
-      Deno.exit(1);
+      exit(1);
     }
 
     return { config, configPath: userConfigPath };
@@ -73,7 +74,7 @@ async function resolveConfig(): Promise<
     error("Could not find default extension-build configuration.\n");
     error("This may indicate that Quarto was not built correctly.");
     error("Expected config at: " + defaultConfigPath);
-    Deno.exit(1);
+    exit(1);
   }
 
   info(`Using default config: ${defaultConfigPath}`);
@@ -92,7 +93,7 @@ async function autoDetectEntryPoint(
       error(
         `Entry point specified in deno.json does not exist: ${configEntryPoint}`,
       );
-      Deno.exit(1);
+      exit(1);
     }
     return configEntryPoint;
   }
@@ -117,7 +118,7 @@ async function autoDetectEntryPoint(
       error("    }");
       error("  }");
     }
-    Deno.exit(1);
+    exit(1);
   }
 
   // Find .ts files in src/
@@ -133,7 +134,7 @@ async function autoDetectEntryPoint(
     error("No .ts files found in src/\n");
     error("Create a TypeScript file:");
     error("  touch src/my-engine.ts");
-    Deno.exit(1);
+    exit(1);
   }
 
   if (tsFiles.length === 1) {
@@ -161,7 +162,7 @@ async function autoDetectEntryPoint(
     error("  }");
   }
 
-  Deno.exit(1);
+  exit(1);
 }
 
 function inferFilename(entryPoint: string): string {
@@ -200,7 +201,7 @@ function inferOutputPath(
 
     error(`  mkdir -p _extensions/${extensionName}`);
     error(`  touch _extensions/${extensionName}/_extension.yml`);
-    Deno.exit(1);
+    exit(1);
   }
 
   // Find all _extension.yml files using glob pattern
@@ -216,7 +217,7 @@ function inferOutputPath(
     );
     error("Create the extension metadata:");
     error(`  touch _extensions/${extensionName}/_extension.yml`);
-    Deno.exit(1);
+    exit(1);
   }
 
   if (extensionYmlFiles.length > 1) {
@@ -247,7 +248,7 @@ function inferOutputPath(
         "Use `quarto call build-ts-extension --init-config` to create a deno.json if this is intentional.",
       );
     }
-    Deno.exit(1);
+    exit(1);
   }
 
   // Use the single extension directory found
@@ -314,7 +315,7 @@ async function bundle(
   const result = await execProcess({
     cmd: denoBinary,
     args,
-    cwd: Deno.cwd(),
+    cwd: currentDir(),
   });
 
   if (!result.success) {
@@ -322,7 +323,7 @@ async function bundle(
     if (result.stderr) {
       error(result.stderr);
     }
-    Deno.exit(1);
+    exit(1);
   }
 
   // Validate that _extension.yml path matches output filename
@@ -372,7 +373,7 @@ async function initializeConfig(): Promise<void> {
     error("To use Quarto's default config, remove the existing deno.json.");
     error("Or manually add the importMap to your existing config:");
     info(`  "importMap": "${importMapPath}"`);
-    Deno.exit(1);
+    exit(1);
   }
 
   // Get absolute path to Quarto's import map
@@ -451,14 +452,14 @@ export const buildTsExtensionCommand = new Command()
         const result = await execProcess({
           cmd: denoBinary,
           args: ["check", `--config=${configPath}`, entryPoint],
-          cwd: Deno.cwd(),
+          cwd: currentDir(),
         });
         if (!result.success) {
           error("Type check failed\n");
           error(
             "See errors above. Fix type errors in your code or adjust compilerOptions in deno.json.",
           );
-          Deno.exit(1);
+          exit(1);
         }
         info("✓ Type check passed");
       } else {
@@ -471,6 +472,6 @@ export const buildTsExtensionCommand = new Command()
       } else {
         error(String(e));
       }
-      Deno.exit(1);
+      exit(1);
     }
   });

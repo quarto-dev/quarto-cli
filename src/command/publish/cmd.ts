@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2026 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import { existsSync, statSync } from "../../deno_ral/fs.ts";
 
 import { Command } from "cliffy/command/mod.ts";
@@ -317,7 +318,7 @@ async function createPublishOptions(
 ): Promise<PublishOptions> {
   const nbContext = notebookContext();
   // validate path exists
-  path = path || Deno.cwd();
+  path = path || cwd();
   if (!existsSync(path)) {
     throw new Error(
       `The specified path (${path}) does not exist so cannot be published.`,

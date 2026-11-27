@@ -11,6 +11,7 @@
  * Copyright (C) 2026 Posit Software, PBC
  */
 
+import { cwd } from "../../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
 import { env as runtimeEnv } from "../../../deno_ral/env.ts";
@@ -117,7 +118,7 @@ export function resolveAnchor(siteDir: string): string {
     }
     const parent = dirname(dir);
     if (parent === dir) {
-      return Deno.cwd();
+      return cwd();
     }
     dir = parent;
   }

@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
+import { cwd } from "../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { Table } from "cliffy/table/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -37,7 +38,7 @@ export const listCommand = new Command()
       const extensionContext = createExtensionContext();
       try {
         if (type.toLowerCase() === "extensions") {
-          await outputExtensions(Deno.cwd(), extensionContext);
+          await outputExtensions(cwd(), extensionContext);
         } else if (type.toLowerCase() === "tools") {
           await outputTools();
         } else {

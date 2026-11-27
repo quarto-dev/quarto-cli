@@ -35,6 +35,7 @@ import {
   unregisterForExitCleanup,
 } from "../process.ts";
 import { makeTempDirSync } from "../../deno_ral/temp.ts";
+import { type ExitStatus, spawn } from "../../deno_ral/process.ts";
 
 export interface ChromeLaunchOptions {
   /**
@@ -132,19 +133,19 @@ export function hasPageTarget(list: unknown): boolean {
 async function waitForCdpEndpoint(
   port: number,
   timeout: number,
-  exited: Promise<Deno.CommandStatus>,
+  exited: Promise<ExitStatus>,
   isReady: (list: unknown) => boolean,
 ): Promise<string | undefined> {
   const interval = 50;
   const deadline = Date.now() + timeout;
-  let dead: Deno.CommandStatus | undefined;
+  let dead: ExitStatus | undefined;
   // TS narrows a captured variable to `undefined` after the first `if
   // (getDead())` returns and never widens it back across the `await`
   // below, even though the `.then()` reassigns it concurrently -- reading
   // through a function call sidesteps that, since each call site gets its
   // own fresh local binding to narrow.
   const getDead = () => dead;
-  const exitedMessage = (status: Deno.CommandStatus) =>
+  const exitedMessage = (status: ExitStatus) =>
     `Chrome exited (code ${status.code}) before its CDP endpoint on port ` +
     `${port} became ready`;
   let abortInFlightProbe: (() => void) | undefined;
@@ -283,12 +284,12 @@ export async function launchChrome(
     ...(options.url ? [options.url] : []),
   ];
 
-  const process = new Deno.Command(app, {
+  const process = spawn(app, {
     args,
     // stdout is never read; piping it only risks blocking Chrome on a full pipe
     stdout: "null",
     stderr: "piped",
-  }).spawn();
+  });
 
   // Register for cleanup inside exitWithCleanup() in case something goes wrong
   const cleanupId = registerForExitCleanup(process);
@@ -297,7 +298,7 @@ export async function launchChrome(
   // it to the debug log, keeping the tail around to explain a failed launch.
   let stderrTail = "";
   const draining = (async () => {
-    const stream = process.stderr.pipeThrough(new TextDecoderStream());
+    const stream = process.stderr!.pipeThrough(new TextDecoderStream());
     for await (const chunk of stream) {
       debug(`[${prefix}] ${chunk.trimEnd()}`);
       stderrTail = (stderrTail + chunk).slice(-2000);

@@ -6,6 +6,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { exit } from "../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { executionEngine, executionEngines } from "../../execute/engine.ts";
 import { initializeProjectContextAndEngines } from "../command-utils.ts";
@@ -30,12 +31,12 @@ export const engineCommand = new Command()
           executionEngines().map((e) => e.name).join(", ")
         }`,
       );
-      Deno.exit(1);
+      exit(1);
     }
 
     if (!engine.populateCommand) {
       console.error(`Engine ${engineName} does not support subcommands`);
-      Deno.exit(1);
+      exit(1);
     }
 
     // Create temporary command and let engine populate it

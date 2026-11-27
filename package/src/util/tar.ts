@@ -8,6 +8,7 @@ import { info } from "../../../src/deno_ral/log.ts";
 import { dirname, extname } from "../../../src/deno_ral/path.ts";
 import { existsSync } from "../../../src/deno_ral/fs.ts";
 import { os } from "../../../src/deno_ral/platform.ts";
+import { exec } from "../../../src/deno_ral/process.ts";
 
 export function windowsSystemTar(systemRoot?: string): string {
   return `${systemRoot || "C:\\Windows"}\\System32\\tar.exe`;
@@ -92,11 +93,11 @@ export async function makeTarball(
   );
 
   info(tarCmd);
-  // @ts-expect-error `Deno.run()` is soft-removed as of Deno 2; the runtime keeps it.
-  const p = Deno.run({
-    cmd: tarCmd,
+  const status = await exec(tarCmd[0], {
+    args: tarCmd.slice(1),
+    stdout: "inherit",
+    stderr: "inherit",
   });
-  const status = await p.status();
   if (status.code !== 0) {
     throw Error(
       `Failure to make tarball ${output} using ${
@@ -116,12 +117,12 @@ export async function unTar(input: string, directory?: string) {
   const tarCmd = unTarCommand(currentTarBinary(), input, directory);
 
   info(tarCmd);
-  // @ts-expect-error `Deno.run()` is soft-removed as of Deno 2; the runtime keeps it.
-  const p = Deno.run({
-    cmd: tarCmd,
+  const status = await exec(tarCmd[0], {
+    args: tarCmd.slice(1),
     cwd,
+    stdout: "inherit",
+    stderr: "inherit",
   });
-  const status = await p.status();
   if (status.code !== 0) {
     const systemTarPath = windowsSystemTar(Deno.env.get("WINDIR"));
     const fallbackNote = os === "windows" && tarCmd[0] === "tar"

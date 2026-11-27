@@ -4,6 +4,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+import { exit } from "../../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../core/schema/utils.ts";
 import { readAndValidateYamlFromMappedString } from "../../../core/lib/yaml-schema/validated-yaml.ts";
@@ -35,7 +36,7 @@ const getSchema = async (schemaNameOrFile: string) => {
       for (const err of result.yamlValidationErrors) {
         error(tidyverseFormatError(err.niceError), { colorize: false });
       }
-      Deno.exit(1);
+      exit(1);
     }
     const schemaName = `user-schema-${schemaNameOrFile}`;
     const newSchema = convertFromYaml(result.yaml);
@@ -83,6 +84,6 @@ export const validateYamlCommand = new Command()
       }
     }
     if (result.yamlValidationErrors.length) {
-      Deno.exit(1);
+      exit(1);
     }
   });

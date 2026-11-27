@@ -60,6 +60,8 @@ import { makeTempDirSync } from "../deno_ral/temp.ts";
 Deno.readTextFileSync(path);
 ```
 
+Processes and standard streams (`Deno.Command`, `Deno.exit`, `Deno.cwd`, `Deno.args`, `Deno.stdout`, …) go through `src/deno_ral/process.ts`; `execProcess` (`src/core/process.ts`) remains the API for running external tools with captured output.
+
 ## Sync vs Async
 
 Prefer sync APIs in CLI handlers for simpler code flow. Use async for I/O-heavy parallel operations.
@@ -69,9 +71,10 @@ Prefer sync APIs in CLI handlers for simpler code flow. Use async for I/O-heavy 
 ```typescript
 import { normalizePath } from "../core/path.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 // Normalize paths for consistent comparison
-const normalized = normalizePath(Deno.cwd());
+const normalized = normalizePath(cwd());
 
 // Platform-specific logic
 if (isWindows) {

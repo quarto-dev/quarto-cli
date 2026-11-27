@@ -6,9 +6,10 @@
 */
 
 import { debug, error, info } from "../../../src/deno_ral/log.ts";
+import { exec, type ExitStatus } from "../../../src/deno_ral/process.ts";
 
 export interface CmdResult {
-  status: Deno.CommandStatus;
+  status: ExitStatus;
   stdout: string;
   stderr: string;
 }
@@ -17,18 +18,9 @@ export async function runCmd(
   runCmd: string,
   args: string[],
 ): Promise<CmdResult> {
-  // const cmd: string[] = [];
-  // cmd.push(runCmd);
-  // cmd.push(...args);
-
   info([runCmd, ...args]);
   info(`Starting ${runCmd}`);
-  const cmd = new Deno.Command(runCmd, {
-    args,
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const output = await cmd.output();
+  const output = await exec(runCmd, { args });
   const stdout = new TextDecoder().decode(output.stdout);
   const stderr = new TextDecoder().decode(output.stderr);
   info(`Finished ${runCmd}`);
@@ -48,7 +40,7 @@ export async function runCmd(
   }
 
   return {
-    status: output,
+    status: { success: output.success, code: output.code, signal: output.signal },
     stdout,
     stderr,
   };

@@ -15,6 +15,7 @@ import {
 } from "../../deno_ral/fs.ts";
 
 import { error, info } from "../../deno_ral/log.ts";
+import { pid } from "../../deno_ral/process.ts";
 
 import * as ld from "../../core/lodash.ts";
 
@@ -489,7 +490,7 @@ title: "Title"
           const jupyterExecOptions: JupyterExecuteOptions = {
             kernelspec,
             python_cmd: await quarto.jupyter.pythonExec(kernelspec),
-            supervisor_pid: options.previewServer ? Deno.pid : undefined,
+            supervisor_pid: options.previewServer ? pid() : undefined,
             ...execOptions,
           };
           if (executeDaemon === false || executeDaemon === 0) {
@@ -712,12 +713,12 @@ title: "Title"
           readyPattern,
           cwd: dirname(options.input),
         });
-        await server.start();
-
-        // stop the server onCleanup
+        // stop the server onCleanup (registered before start, which can
+        // wait indefinitely for readyPattern)
         quarto.system.onCleanup(async () => {
           await server.stop();
         });
+        await server.start();
 
         // notify when ready
         if (options.onReady) {

@@ -5,6 +5,7 @@
  */
 
 import { join } from "../../../src/deno_ral/path.ts";
+import { execPath, execSync } from "../../../src/deno_ral/process.ts";
 
 export function buildQuartoPreviewJs(
   srcDir: string,
@@ -15,14 +16,13 @@ export function buildQuartoPreviewJs(
   if (force) {
     args.push("--force");
   }
-  const buildCmd = new Deno.Command(Deno.execPath(), {
-    args: args,
+  return execSync(execPath(), {
+    args,
     cwd: quartoPreviewJsDir(srcDir),
     env: denoDir ? { DENO_DIR: denoDir } : undefined,
     stderr: "inherit",
     stdout: "inherit",
   });
-  return buildCmd.outputSync();
 }
 
 export function quartoPreviewJsDir(srcDir: string) {

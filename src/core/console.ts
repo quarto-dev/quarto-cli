@@ -5,7 +5,7 @@
  */
 
 import { ansi } from "cliffy/ansi/mod.ts";
-import { writeAllSync } from "io/write-all";
+import { writeStdoutSync } from "../deno_ral/process.ts";
 import { info } from "../deno_ral/log.ts";
 import { runningInCI } from "./ci-info.ts";
 import { SpinnerOptions } from "./console-types.ts";
@@ -171,7 +171,7 @@ export function formatLine(values: string[], lengths: number[]) {
 }
 
 export function writeFileToStdout(file: string) {
-  writeAllSync(Deno.stdout, readFileSync(file));
+  writeStdoutSync(readFileSync(file));
 }
 
 export function clearLine() {

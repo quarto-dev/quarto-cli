@@ -5,6 +5,7 @@
  */
 
 import { info } from "../deno_ral/log.ts";
+import { exit } from "../deno_ral/process.ts";
 
 const cleanupHandlers: VoidFunction[] = [];
 
@@ -22,5 +23,5 @@ export function exitWithCleanup(code: number) {
       info("Error occurred during cleanup: " + error);
     }
   }
-  Deno.exit(code);
+  exit(code);
 }
