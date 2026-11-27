@@ -1,0 +1,21 @@
+[
+  {
+    "data": {
+      "search": {
+        "issueCount": 9,
+        "pageInfo": { "hasNextPage": false, "endCursor": "Y3Vyc29yOjk=" },
+        "nodes": [
+          { "__typename": "Issue", "number": 1001, "title": "Plain issue created exactly at the cutoff", "createdAt": "2026-11-20T00:00:00Z", "authorAssociation": "NONE", "author": { "login": "reporter-a" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [ { "name": "bug" } ] }, "comments": { "totalCount": 2 }, "closedByPullRequestsReferences": { "totalCount": 0 } },
+          { "__typename": "Issue", "number": 1002, "title": "Issue created exactly at the run start", "createdAt": "2026-11-27T12:00:00Z", "authorAssociation": "NONE", "author": { "login": "reporter-b" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [] }, "comments": { "totalCount": 0 }, "closedByPullRequestsReferences": { "totalCount": 0 } },
+          { "__typename": "Issue", "number": 1003, "title": "Assigned and labelled question", "createdAt": "2026-11-21T08:00:00Z", "authorAssociation": "CONTRIBUTOR", "author": { "login": "reporter-c" }, "assignees": { "totalCount": 1 }, "labels": { "nodes": [ { "name": "question" } ] }, "comments": { "totalCount": 1 }, "closedByPullRequestsReferences": { "totalCount": 0 } },
+          { "__typename": "PullRequest", "number": 1004, "title": "Draft pull request", "createdAt": "2026-11-21T09:00:00Z", "authorAssociation": "MEMBER", "author": { "login": "member-d" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [] }, "comments": { "totalCount": 0 }, "isDraft": true, "reviewDecision": null },
+          { "__typename": "Issue", "number": 1005, "title": "Support request", "createdAt": "2026-11-22T10:00:00Z", "authorAssociation": "NONE", "author": { "login": "reporter-e" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [ { "name": "support" } ] }, "comments": { "totalCount": 0 }, "closedByPullRequestsReferences": { "totalCount": 0 } },
+          { "__typename": "Issue", "number": 1006, "title": "Issue with an open closing pull request", "createdAt": "2026-11-22T11:00:00Z", "authorAssociation": "NONE", "author": { "login": "reporter-f" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [ { "name": "bug" } ] }, "comments": { "totalCount": 3 }, "closedByPullRequestsReferences": { "totalCount": 1 } },
+          { "__typename": "Issue", "number": 1007, "title": "Issue listed in the skip file", "createdAt": "2026-11-23T12:00:00Z", "authorAssociation": "NONE", "author": { "login": "reporter-g" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [] }, "comments": { "totalCount": 0 }, "closedByPullRequestsReferences": { "totalCount": 0 } },
+          { "__typename": "Issue", "number": 1008, "title": "Issue labelled needs-design", "createdAt": "2026-11-24T13:00:00Z", "authorAssociation": "MEMBER", "author": { "login": "member-h" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [ { "name": "needs-design" }, { "name": "enhancement" } ] }, "comments": { "totalCount": 4 }, "closedByPullRequestsReferences": { "totalCount": 0 } },
+          { "__typename": "PullRequest", "number": 1009, "title": "Ready pull request awaiting review", "createdAt": "2026-11-25T14:00:00Z", "authorAssociation": "FIRST_TIME_CONTRIBUTOR", "author": { "login": "contrib-i" }, "assignees": { "totalCount": 0 }, "labels": { "nodes": [] }, "comments": { "totalCount": 1 }, "isDraft": false, "reviewDecision": "REVIEW_REQUIRED" }
+        ]
+      }
+    }
+  }
+]
