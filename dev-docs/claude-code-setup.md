@@ -51,9 +51,9 @@ types its slash form. Add `disable-model-invocation: true` to a skill's frontmat
 anything task-like and consequential enough that it should only run when explicitly invoked
 (e.g. cutting a release).
 
-A shared skill must be usable by any contributor with just `git` and `gh` — it must not assume
-personal tooling (a particular browser-automation CLI, a personal issue tracker, etc.) without
-documenting a fallback.
+Prefer common command-line tools such as `git`, `gh` and `jq` for shared skills. List additional
+prerequisites in `SKILL.md`, such as `uv` for `verify-l10n-pr`. Document a fallback for any
+personal tooling the skill uses.
 
 `.claude/skills/` can also contain personal, repository-local skills that are excluded from
 git in the same way as personal commands (see "What's Not Committed" below).
@@ -61,6 +61,20 @@ git in the same way as personal commands (see "What's Not Committed" below).
 repository-local skill the same name as a tracked shared skill.** If a shared skill is later
 committed at the same path, Git may refuse to overwrite the untracked file, or local changes
 may shadow the tracked file. Use unique names for personal skills.
+
+Claude Code discovers shared skills in `.claude/skills/`. To make a shared skill available to
+Codex, commit a symlink at `.agents/skills/<name>` pointing to `../../.claude/skills/<name>`.
+Keep the skill's helper scripts in its `scripts/` directory.
+
+On Windows, enable Developer Mode or use an administrator shell. For a new clone, pass
+`-c core.symlinks=true` to `git clone`. In an existing checkout, check the link for local
+changes first. For the triage skill, run `git status --short -- .agents/skills/triage-issues`.
+If the status output is empty, run these commands from the repository root.
+
+```powershell
+git config core.symlinks true
+git checkout-index --force -- .agents/skills/triage-issues
+```
 
 ### Where information belongs
 
