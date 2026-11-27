@@ -77,7 +77,7 @@ Use the run start from the header as the filename stem, formatted as `YYYY-MM-DD
 
 Next step, following the verdict and its reason, naming committed skills only:
 
-- Today and Dig deeper bugs: `/investigate-issue <n>` (agents without that command follow `.claude/skills/investigate-issue/SKILL.md`).
+- Today and Dig deeper bugs: `/investigate-issue <n>` (agents without that command follow `.claude/skills/investigate-issue/SKILL.md`). A Dig deeper bug that still needs a reproduction request gets "ask the reporter for a minimal reproduction" instead.
 - Today and Dig deeper PRs: "review PR #n".
 - Later: none.
 - Nothing to do: suggest a reply if the thread needs one, such as directing a usage question to Discussions. Use `null` for items already handled or superseded.
