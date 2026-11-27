@@ -1,0 +1,4 @@
+# Preface {.unnumbered}
+
+Test book for cross references to book parts and to sections inside part files
+(<https://github.com/quarto-dev/quarto-cli/issues/2571>).

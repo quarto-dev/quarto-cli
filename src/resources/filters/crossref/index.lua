@@ -77,6 +77,16 @@ function indexAddEntry(label, parent, order, caption, appendix)
   }
 end
 
+-- add an entry for an unnumbered heading such as a book part. these
+-- don't advance section counters, so refs to them use the title
+function indexAddUnnumbered(label, caption)
+  indexAddEntry(label, nil, {
+    section = crossref.index.section:clone(),
+    order = 0
+  }, caption)
+  crossref.index.entries[label].unnumbered = true
+end
+
 -- advance a subref
 function nextSubrefOrder()
   local order = { section = nil, order = crossref.index.nextSubrefOrder }
@@ -173,7 +183,7 @@ function writeFullIndex(indexFile, doc)
     index.headings:insert(chapterId)
 
     -- chapter entry
-    if refType(chapterId) == "sec" and param("number-offset") ~= nil then
+    if refType(chapterId) == "sec" then
       local chapterEntry = {
         key = chapterId,
         parent = nil,
@@ -183,6 +193,11 @@ function writeFullIndex(indexFile, doc)
         },
         caption = pandoc.utils.stringify(doc.meta.title)
       }
+      -- chapters without a number offset (e.g. book parts) are
+      -- unnumbered, so refs to them use the title (#2571)
+      if param("number-offset") == nil then
+        chapterEntry.unnumbered = true
+      end
       index.entries:insert(chapterEntry)
     end
   end
@@ -195,7 +210,8 @@ function writeFullIndex(indexFile, doc)
       order = {
         number = v.order.order,
       },
-      caption = index_caption(v)
+      caption = index_caption(v),
+      unnumbered = v.unnumbered
     }
     -- add section if we have one
     if v.order.section ~= nil then
