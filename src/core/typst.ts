@@ -23,15 +23,16 @@ import { architectureToolsPath } from "./resources.ts";
 import { resourcePath } from "./resources.ts";
 import { md5HashSync } from "./hash.ts";
 import { projectScratchPath } from "../project/project-scratch.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function typstBinaryPath() {
-  return Deno.env.get("QUARTO_TYPST") ||
+  return env.get("QUARTO_TYPST") ||
     architectureToolsPath("typst");
 }
 
 export function fontPathsArgs(
   fontPaths?: string[],
-  getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
+  getEnv: (name: string) => string | undefined = (name) => env.get(name),
 ) {
   // orders matter and fontPathsQuarto should be first for our template to work
   const fontPathsQuarto = ["--font-path", resourcePath("formats/typst/fonts")];
@@ -98,7 +99,7 @@ function fontDirFingerprint(dir: string): string | undefined {
 // dir invalidate both caches.
 export function availableFontsCacheKey(
   fontPaths: string[],
-  getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
+  getEnv: (name: string) => string | undefined = (name) => env.get(name),
 ): string | undefined {
   const fingerprints: string[] = [];
   for (const dir of fontPathDirs(fontPaths, getEnv)) {
@@ -265,7 +266,7 @@ export async function typstVersion() {
 
 export async function validateRequiredTypstVersion() {
   // only validate if we have a custom env var
-  if (Deno.env.get("QUARTO_TYPST")) {
+  if (env.get("QUARTO_TYPST")) {
     const version = await typstVersion();
     if (version) {
       const required = ">=0.15";

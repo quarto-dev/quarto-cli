@@ -16,6 +16,7 @@ import { which } from "../path.ts";
 import { JupyterCapabilities, JupyterKernelspec } from "./types.ts";
 import { warnOnce } from "../log.ts";
 import { debug } from "../../deno_ral/log.ts";
+import { env } from "../../deno_ral/env.ts";
 
 // cache capabilities per language
 const kNoLanguage = "(none)";
@@ -108,9 +109,9 @@ const S_IXUSR = 0o100;
 
 async function getVerifiedJuliaCondaJupyterCapabilities() {
   debug("Looking for Jupyter capabilities from Julia conda");
-  let juliaHome = Deno.env.get("JULIA_HOME");
+  let juliaHome = env.get("JULIA_HOME");
   if (!juliaHome) {
-    const home = isWindows ? Deno.env.get("USERPROFILE") : Deno.env.get("HOME");
+    const home = isWindows ? env.get("USERPROFILE") : env.get("HOME");
     if (home) {
       juliaHome = join(home, ".julia");
     }
@@ -162,7 +163,7 @@ async function getVerifiedJuliaCondaJupyterCapabilities() {
 }
 
 async function getQuartoJupyterCapabilities() {
-  let quartoJupyter = Deno.env.get("QUARTO_PYTHON");
+  let quartoJupyter = env.get("QUARTO_PYTHON");
   if (quartoJupyter) {
     debug(`Checking QUARTO_PYTHON set to '${quartoJupyter}'`);
     // if the path is relative then resolve it
@@ -236,7 +237,7 @@ export function isEnvDir(dir: string) {
 }
 
 function pyPython() {
-  return Deno.env.get("PY_PYTHON");
+  return env.get("PY_PYTHON");
 }
 
 function getPyLauncherJupyterCapabilities() {

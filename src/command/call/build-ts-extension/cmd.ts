@@ -22,6 +22,7 @@ import {
 import { expandGlobSync } from "../../../core/deno/expand-glob.ts";
 import { readYaml } from "../../../core/yaml.ts";
 import { warning } from "../../../deno_ral/log.ts";
+import { env } from "../../../deno_ral/env.ts";
 
 interface DenoConfig {
   compilerOptions?: Record<string, unknown>;
@@ -260,7 +261,7 @@ async function bundle(
 ): Promise<void> {
   info("Bundling...");
 
-  const denoBinary = Deno.env.get("QUARTO_DENO") ||
+  const denoBinary = env.get("QUARTO_DENO") ||
     architectureToolsPath("deno");
 
   // Determine output path
@@ -445,7 +446,7 @@ export const buildTsExtensionCommand = new Command()
       if (options.check) {
         // Just type-check
         info("Type-checking...");
-        const denoBinary = Deno.env.get("QUARTO_DENO") ||
+        const denoBinary = env.get("QUARTO_DENO") ||
           architectureToolsPath("deno");
         const result = await execProcess({
           cmd: denoBinary,

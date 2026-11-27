@@ -39,6 +39,7 @@ import {
   isWindows,
   os as platformOs,
 } from "../../deno_ral/platform.ts";
+import { env } from "../../deno_ral/env.ts";
 
 // This the https texlive repo that we use by default
 export const kDefaultRepos = [
@@ -371,8 +372,8 @@ async function afterInstall(context: InstallContext) {
     let restartRequired = false;
     // Use `||` (not `??`) so an explicit empty `QUARTO_TINYTEX_REPOSITORY=""`
     // falls through to `CTAN_REPO` rather than masking it.
-    const envRepo = Deno.env.get("QUARTO_TINYTEX_REPOSITORY") ||
-      Deno.env.get("CTAN_REPO");
+    const envRepo = env.get("QUARTO_TINYTEX_REPOSITORY") ||
+      env.get("CTAN_REPO");
     const defaultRepo = await resolveTinytexRepo(envRepo);
     await context.withSpinner(
       {
@@ -418,7 +419,7 @@ This will instruct TeX Live to create symlinks that it needs in <bin_dir_on_path
       };
 
       const paths: string[] = [];
-      const envPath = Deno.env.get("QUARTO_TEXLIVE_BINPATH");
+      const envPath = env.get("QUARTO_TEXLIVE_BINPATH");
       if (envPath) {
         paths.push(envPath);
       } else if (!isWindows) {

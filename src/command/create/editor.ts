@@ -23,6 +23,7 @@ import {
   stringTypePredicate,
 } from "../../typing/dynamic.ts";
 import { call } from "../../deno_ral/process.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export interface Editor {
   // A short, command line friendly id
@@ -318,7 +319,7 @@ async function findEditorPath(
         }
         break;
       case "env": {
-        const envValue = Deno.env.get(action.arg);
+        const envValue = env.get(action.arg);
         if (envValue) {
           return filter(envValue);
         }
@@ -332,19 +333,19 @@ async function findEditorPath(
 function windowsAppPaths(folderName: string, command: string) {
   const paths: string[] = [];
   // Scan local app folder
-  const localAppData = Deno.env.get("LOCALAPPDATA");
+  const localAppData = env.get("LOCALAPPDATA");
   if (localAppData) {
     paths.push(join(localAppData, "Programs", folderName, command));
   }
 
   // Scan program files folder
-  const programFiles = Deno.env.get("PROGRAMFILES");
+  const programFiles = env.get("PROGRAMFILES");
   if (programFiles) {
     paths.push(join(programFiles, folderName, command));
   }
 
   // Scan program files x86
-  const programFilesx86 = Deno.env.get("PROGRAMFILES(X86)");
+  const programFilesx86 = env.get("PROGRAMFILES(X86)");
   if (programFilesx86) {
     paths.push(join(programFilesx86, folderName, command));
   }
@@ -355,7 +356,7 @@ function windowsAppPaths(folderName: string, command: string) {
 function macosAppPaths(appName: string) {
   const paths: string[] = [];
   paths.push(join("/Applications", appName));
-  const home = Deno.env.get("HOME");
+  const home = env.get("HOME");
   if (home) {
     paths.push(join(home, "Applications", appName));
   }

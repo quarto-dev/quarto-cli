@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { env } from "../deno_ral/env.ts";
 export const kMetadataFormat = "format";
 
 export const kDisplayName = "display-name";
@@ -91,7 +92,7 @@ export const kPdfStandardApplied = "pdf-standard-applied";
 
 /** Read QUARTO_PDF_STANDARD env var as a fallback for pdf-standard option. */
 export function pdfStandardEnv(): string[] | undefined {
-  const val = Deno.env.get("QUARTO_PDF_STANDARD");
+  const val = env.get("QUARTO_PDF_STANDARD");
   if (val) {
     return val.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
   }

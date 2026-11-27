@@ -119,6 +119,7 @@ import { setExecuteEnvironment } from "../../execute/environment.ts";
 import { safeCloneDeep } from "../../core/safe-clone-deep.ts";
 import { warn } from "log";
 import { writeTextFileSync } from "../../deno_ral/fs.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export async function renderExecute(
   context: RenderContext,
@@ -364,9 +365,9 @@ export async function renderFiles(
     };
   } finally {
     tempContext.cleanup();
-    if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
+    if (env.get("QUARTO_PROFILER_OUTPUT")) {
       writeTextFileSync(
-        Deno.env.get("QUARTO_PROFILER_OUTPUT")!,
+        env.get("QUARTO_PROFILER_OUTPUT")!,
         JSON.stringify(getTimingData()),
       );
     }
@@ -421,9 +422,9 @@ export async function renderFile(
         : new Error(error ? String(error) : undefined),
     };
   } finally {
-    if (Deno.env.get("QUARTO_PROFILER_OUTPUT")) {
+    if (env.get("QUARTO_PROFILER_OUTPUT")) {
       writeTextFileSync(
-        Deno.env.get("QUARTO_PROFILER_OUTPUT")!,
+        env.get("QUARTO_PROFILER_OUTPUT")!,
         JSON.stringify(getTimingData()),
       );
     }

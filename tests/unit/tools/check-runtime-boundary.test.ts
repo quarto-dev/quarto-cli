@@ -402,6 +402,16 @@ unitTest("check-runtime-boundary - fs, temp and errors keys name their replaceme
 });
 
 // deno-lint-ignore require-await
+unitTest("check-runtime-boundary - env keys name their replacement in src and package/src", async () => {
+  for (const key of ["env.get", "env.set", "env.delete", "env.toObject"]) {
+    assertEquals(denoReplacement(key, "src"), `${key} from src/deno_ral/env.ts`, key);
+    assertEquals(denoReplacement(key, "package/src"), `${key} from src/deno_ral/env.ts`, key);
+    assertEquals(denoReplacement(key, "tests"), undefined, key);
+  }
+  assertEquals(denoReplacement("env", "src"), undefined);
+});
+
+// deno-lint-ignore require-await
 unitTest("check-runtime-boundary - diffChanges an uncovered increase is a finding without replacement", async () => {
   const changes: FileChange[] = [{
     path: "tests/unit/a.test.ts",

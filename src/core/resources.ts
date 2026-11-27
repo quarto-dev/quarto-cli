@@ -16,6 +16,7 @@ import {
   registryReadString,
 } from "./registry.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function resourcePath(resource?: string): string {
   const sharePath = quartoConfig.sharePath();
@@ -44,7 +45,7 @@ export function toolsPath(binary: string, defaultPath?: string): string {
   };
 
   const binaryEnvKey = `QUARTO_${binary.toUpperCase()}`;
-  const binaryPath = Deno.env.get(binaryEnvKey);
+  const binaryPath = env.get(binaryEnvKey);
   if (binaryPath) {
     if (!existsSync(binaryPath)) {
       // If this is windows, we shouldn't warn if there is an 'exe' version of the path
@@ -107,7 +108,7 @@ export async function rBinaryPath(
 
   debug(`-- Searching for R binary --`);
   // if there is a QUARTO_R environment variable then respect that
-  const quartoR = Deno.env.get("QUARTO_R");
+  const quartoR = env.get("QUARTO_R");
   debug(`Looking for '${binary}' in QUARTO_R: ${quartoR}`);
   if (quartoR) {
     // Use safeExistsSync: a malformed QUARTO_R (e.g. invalid path syntax)
@@ -124,7 +125,7 @@ export async function rBinaryPath(
   }
 
   // if there is an R_HOME then respect that
-  const rHome = Deno.env.get("R_HOME");
+  const rHome = env.get("R_HOME");
   debug(`Looking for '${binary}' in R_HOME: ${rHome}`);
   if (rHome) {
     let rHomeBin = join(rHome, "bin", isWindows ? binary + ".exe" : binary);
@@ -173,7 +174,7 @@ export async function rBinaryPath(
     }
     // last ditch, try to find R in program files
     debug(`Looking for '${binary}' in Windows PROGRAMFILES.`);
-    const progFiles = Deno.env.get("programfiles");
+    const progFiles = env.get("programfiles");
     if (progFiles) {
       // Search program files for the binary
       for (const entry of readDirSync(progFiles)) {

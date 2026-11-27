@@ -7,6 +7,7 @@ import { dirname } from "../deno_ral/path.ts";
 import { existsSync } from "../deno_ral/fs.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { execProcess } from "./process.ts";
+import { env } from "../deno_ral/env.ts";
 
 // Quote a value as a PowerShell single-quoted string literal. PowerShell
 // treats ' and the curly quotes ‘ ’ ‚ ‛ all as single quotes; each is
@@ -55,7 +56,7 @@ export function unzip(file: string, dir?: string) {
     // On Windows, prefer System32 tar to avoid Git Bash tar path issues
     let tarCmd = "tar";
     if (isWindows) {
-      const systemRoot = Deno.env.get("SystemRoot") || "C:\\Windows";
+      const systemRoot = env.get("SystemRoot") || "C:\\Windows";
       const system32Tar = `${systemRoot}\\System32\\tar.exe`;
       if (existsSync(system32Tar)) {
         tarCmd = system32Tar;

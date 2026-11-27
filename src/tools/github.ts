@@ -10,17 +10,18 @@ import {
   statSync,
   writeTextFileSync,
 } from "../deno_ral/fs.ts";
+import { env } from "../deno_ral/env.ts";
 
 // deno-lint-ignore-file camelcase
 
 // GitHub Actions Detection
 export function isGitHubActions(): boolean {
-  return Deno.env.get("GITHUB_ACTIONS") === "true";
+  return env.get("GITHUB_ACTIONS") === "true";
 }
 
 export function isVerboseMode(): boolean {
-  return Deno.env.get("RUNNER_DEBUG") === "1" ||
-    Deno.env.get("QUARTO_TEST_VERBOSE") === "true";
+  return env.get("RUNNER_DEBUG") === "1" ||
+    env.get("QUARTO_TEST_VERBOSE") === "true";
 }
 
 // GitHub Actions Workflow Command Escaping
@@ -162,7 +163,7 @@ export function harnessOwnsStep(
   orchestrated?: string | null,
 ): boolean {
   const o = orchestrated === undefined
-    ? Deno.env.get("QUARTO_TESTS_GHA_ORCHESTRATED")
+    ? env.get("QUARTO_TESTS_GHA_ORCHESTRATED")
     : orchestrated;
   return githubActions && !o;
 }
@@ -170,7 +171,7 @@ export function harnessOwnsStep(
 // Deno module state is per test file, so persist the step-wide annotation
 // count beside the runner-provided summary file.
 export function defaultAnnotationCounterPath(): string | undefined {
-  const summary = Deno.env.get("GITHUB_STEP_SUMMARY");
+  const summary = env.get("GITHUB_STEP_SUMMARY");
   return summary ? `${summary}.qt-annotation-count` : undefined;
 }
 
@@ -243,7 +244,7 @@ export function stepSummary(
   markdown: string,
   path?: string | null,
 ): boolean {
-  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  const p = path === undefined ? env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return false;
   try {
     writeTextFileSync(p, markdown, { append: true });
@@ -257,7 +258,7 @@ export function stepSummary(
 export function stepSummarySize(
   path?: string | null,
 ): number {
-  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  const p = path === undefined ? env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return 0;
   try {
     return statSync(p).size;
@@ -314,7 +315,7 @@ export function appendStepSummaryBounded(
   markdown: string,
   path?: string | null,
 ): boolean {
-  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  const p = path === undefined ? env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return false;
   if (appendIfFits(markdown, p)) return true;
   emitTruncationNotice(p);
@@ -354,7 +355,7 @@ export function appendStepSummaryFirstFit(
   candidates: string[],
   path?: string | null,
 ): number {
-  const p = path === undefined ? Deno.env.get("GITHUB_STEP_SUMMARY") : path;
+  const p = path === undefined ? env.get("GITHUB_STEP_SUMMARY") : path;
   if (!p) return -1;
   for (let i = 0; i < candidates.length; i++) {
     if (appendIfFits(candidates[i], p)) {
@@ -525,7 +526,7 @@ export function annotationBody(
 // GH_TOKEN is the gh CLI's variable; GITHUB_TOKEN is the usual name for the
 // GitHub Actions token when a workflow exports it.
 export function githubToken(
-  getEnv: (name: string) => string | undefined = (name) => Deno.env.get(name),
+  getEnv: (name: string) => string | undefined = (name) => env.get(name),
 ): string | undefined {
   return getEnv("GH_TOKEN") || getEnv("GITHUB_TOKEN") || undefined;
 }

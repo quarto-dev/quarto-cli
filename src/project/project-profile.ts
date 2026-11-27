@@ -20,6 +20,7 @@ import {
 } from "../quarto-core/profile.ts";
 import { dotenvQuartoProfile } from "../quarto-core/dotenv.ts";
 import { Metadata } from "../config/types.ts";
+import { env } from "../deno_ral/env.ts";
 
 const kQuartoProfileConfig = "profile";
 
@@ -39,7 +40,7 @@ export async function initializeProfileConfig(
   // read the original env var once
   const firstRun = baseQuartoProfile === undefined;
   if (firstRun) {
-    baseQuartoProfile = Deno.env.get(kQuartoProfile) || "";
+    baseQuartoProfile = env.get(kQuartoProfile) || "";
   }
 
   // read the config then delete it
@@ -68,7 +69,7 @@ export async function initializeProfileConfig(
   const active = readProfile(quartoProfile);
   if (active.length === 0) {
     //  do some smart detection of connect if there are no profiles defined
-    if (Deno.env.get("RSTUDIO_PRODUCT") === "CONNECT") {
+    if (env.get("RSTUDIO_PRODUCT") === "CONNECT") {
       active.push("connect");
     }
   }
@@ -85,13 +86,13 @@ export async function initializeProfileConfig(
   // notify any listeners of this
   const updatedQuartoProfile = active.join(",");
   if (!firstRun) {
-    if (Deno.env.get(kQuartoProfile) !== updatedQuartoProfile) {
+    if (env.get(kQuartoProfile) !== updatedQuartoProfile) {
       fireActiveProfileChanged(updatedQuartoProfile);
     }
   }
 
   // set the environment variable for those that want to read it directly
-  Deno.env.set(kQuartoProfile, active.join(","));
+  env.set(kQuartoProfile, active.join(","));
 
   return await mergeProfiles(
     dir,

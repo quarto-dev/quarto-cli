@@ -9,6 +9,7 @@ import { gitCmdOutput, gitCmds } from "../../../core/git.ts";
 import { debug, error, info } from "../../../deno_ral/log.ts";
 import { stat as fsStat } from "../../../deno_ral/fs.ts";
 import { logLevel } from "../../../core/log.ts";
+import { env } from "../../../deno_ral/env.ts";
 
 interface SubtreeConfig {
   name: string;
@@ -169,7 +170,7 @@ export const pullGitSubtreeCommand = new Command()
   )
   .action(async (_options: unknown, nameArg?: string) => {
     // Get quarto root directory
-    const quartoRoot = Deno.env.get("QUARTO_ROOT");
+    const quartoRoot = env.get("QUARTO_ROOT");
     if (!quartoRoot) {
       error(
         "QUARTO_ROOT environment variable not set. This command requires a development version of Quarto.",

@@ -22,7 +22,7 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 ## State
 
 - The plans merged to `main` as #15133 on 2026-10-20.
-- Updated 2026-11-26: PR 13 merged as #15427 (`c3e91773a`). The filesystem codemod now covers every `src` directory outside standalone TS under `src/resources` and `src/webui`, and the `src` ratchet baseline is down to 384 Deno calls. `news/changelog-1.12.md` carries the entry for the sorted directory listings of PRs 11–13.
+- Updated 2026-11-26: PR 13 merged as #15427 (`c3e91773a`). PRs 10–13 complete the filesystem codemod for the eligible CLI files under `src`. It skips the ratchet's `src` exclusions (the runtime layer among them), standalone TS under `src/resources` and `src/webui`, and `src/core/lib` (bundled for the browser); it leaves `Deno.*` in the two files that patch `Deno` (`src/core/deno/monkey-patch.ts`, `src/core/performance/metrics.ts`). The `src` ratchet baseline is down to 384 Deno calls. `news/changelog-1.12.md` carries the entry for the sorted directory listings of PRs 11–13.
 - Updated 2026-11-25: PR 12 merged as #15426 (`330120538`). The `src/project` and `src/format` filesystem codemod is on `main`, and the `src` ratchet baseline is down to 507 Deno calls. The sorted `readDir` order now reaches the bslib SCSS concatenation and the MECA item listing.
 - Updated 2026-11-25: PR 11 merged as #15423 (`2f262e6e8`). The `src/command` filesystem codemod is on `main`, and the `src` ratchet baseline is down to 670 Deno calls.
 - Updated 2026-11-24: PR 10 merged as #15418 (`1c129ffe`). The core filesystem codemod and fs/temp/error replacement hints are on `main`. The `--reverse` backport demonstration for `v1.10` and `v1.11` is pending the first real maintenance fix to a migrated call site. See PR 10 "Follow-up after merge".
@@ -86,7 +86,7 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. Continue with PR 14 (`deno_ral/env.ts` and the `env` codemod over `src`). Generate it from fresh `main` and regenerate the shared ratchet baseline before it lands. PR 08 and PR 22 follow it.
+5. PR 14 (`deno_ral/env.ts` and the `env` codemod over `src`) is in progress on `rt/14-ral-env` (step 0 done 2026-11-26); regenerate the shared ratchet baseline before it lands. PR 08 and PR 22 follow it.
    On the Phase 0 path, #15259 landed the lockfile half of 00b. The remainder follows the README overlap row and gates 03–06, then 07.
    The remainder has not started (checked 2026-11-25) and is the critical path of both phases: PR 25 waits for 04 and 07, which wait for it. Start it now, alongside PR 14, then PR 00c, the one PR tied to the `v1.12` branch cut.
    See the README sequence for work that can proceed in parallel.

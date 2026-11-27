@@ -97,6 +97,7 @@ import { kTocIndent } from "../../config/constants.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { tinyTexBinDir } from "../../tools/impl/tinytex-info.ts";
 import { typstBinaryPath } from "../../core/typst.ts";
+import { env } from "../../deno_ral/env.ts";
 
 const kQuartoParams = "quarto-params";
 
@@ -716,10 +717,10 @@ function initFilterParams(dependenciesFile: string) {
     const value = readCodePage();
     if (value) {
       debug("Windows: Using code page " + value);
-      Deno.env.set("QUARTO_WIN_CODEPAGE", value);
+      env.set("QUARTO_WIN_CODEPAGE", value);
     }
   }
-  Deno.env.set("QUARTO_FILTER_DEPENDENCY_FILE", dependenciesFile);
+  env.set("QUARTO_FILTER_DEPENDENCY_FILE", dependenciesFile);
   return params;
 }
 

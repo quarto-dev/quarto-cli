@@ -7,6 +7,7 @@
 import { join } from "../deno_ral/path.ts";
 import { ensureDirSync } from "../deno_ral/fs.ts";
 import { os as platformOs } from "../deno_ral/platform.ts";
+import { env } from "../deno_ral/env.ts";
 
 export function quartoDataDir(subdir?: string, roaming = false) {
   return quartoDir(userDataDir, subdir, roaming);
@@ -109,7 +110,7 @@ export function userRuntimeDir(appName: string) {
 
 function darwinUserDataDir(appName: string) {
   return join(
-    Deno.env.get("HOME") || "",
+    env.get("HOME") || "",
     "Library",
     "Application Support",
     appName,
@@ -118,7 +119,7 @@ function darwinUserDataDir(appName: string) {
 
 function darwinUserCacheDir(appName: string) {
   return join(
-    Deno.env.get("HOME") || "",
+    env.get("HOME") || "",
     "Library",
     "Caches",
     appName,
@@ -126,25 +127,25 @@ function darwinUserCacheDir(appName: string) {
 }
 
 function xdgUserDataDir(appName: string) {
-  const dataHome = Deno.env.get("XDG_DATA_HOME") ||
-    join(Deno.env.get("HOME") || "", ".local", "share");
+  const dataHome = env.get("XDG_DATA_HOME") ||
+    join(env.get("HOME") || "", ".local", "share");
   return join(dataHome, appName);
 }
 
 function xdgUserConfigDir(appName: string) {
-  const configHome = Deno.env.get("XDG_CONFIG_HOME") ||
-    join(Deno.env.get("HOME") || "", ".config");
+  const configHome = env.get("XDG_CONFIG_HOME") ||
+    join(env.get("HOME") || "", ".config");
   return join(configHome, appName);
 }
 
 function xdgUserCacheDir(appName: string) {
-  const cacheHome = Deno.env.get("XDG_CACHE_HOME") ||
-    join(Deno.env.get("HOME") || "", ".cache");
+  const cacheHome = env.get("XDG_CACHE_HOME") ||
+    join(env.get("HOME") || "", ".cache");
   return join(cacheHome, appName);
 }
 
 function xdgUserRuntimeDir(appName: string) {
-  const runtimeDir = Deno.env.get("XDG_RUNTIME_DIR");
+  const runtimeDir = env.get("XDG_RUNTIME_DIR");
   if (runtimeDir) {
     return runtimeDir;
   } else {
@@ -153,7 +154,6 @@ function xdgUserRuntimeDir(appName: string) {
 }
 
 function windowsUserDataDir(appName: string, roaming = false) {
-  const dir =
-    (roaming ? Deno.env.get("APPDATA") : Deno.env.get("LOCALAPPDATA")) || "";
+  const dir = (roaming ? env.get("APPDATA") : env.get("LOCALAPPDATA")) || "";
   return join(dir, appName);
 }

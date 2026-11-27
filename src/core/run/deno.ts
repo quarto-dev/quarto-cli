@@ -17,6 +17,7 @@ import { RunHandler, RunHandlerOptions } from "./types.ts";
 import { removeIfExists } from "../path.ts";
 import { copyTo } from "../copy.ts";
 import { quartoConfig } from "../quarto.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const denoRunHandler: RunHandler = {
   canHandle: (script: string) => {
@@ -42,7 +43,7 @@ export const denoRunHandler: RunHandler = {
     let importMap: string;
     if (options?.dev) {
       // Use main dev import map for internal development tools
-      const srcDir = Deno.env.get("QUARTO_SRC_PATH") ||
+      const srcDir = env.get("QUARTO_SRC_PATH") ||
         join(quartoConfig.sharePath(), "../../src");
       importMap = normalize(join(srcDir, "import_map.json"));
     } else {
@@ -50,7 +51,7 @@ export const denoRunHandler: RunHandler = {
       importMap = normalize(join(denoDir, "../run_import_map.json"));
     }
 
-    const noNet = Deno.env.get("QUARTO_RUN_NO_NETWORK") === "true";
+    const noNet = env.get("QUARTO_RUN_NO_NETWORK") === "true";
 
     // --cached-only can only be used in bundles as vendoring is not done anymore in dev mode
     const cachedOnly = noNet;

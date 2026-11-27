@@ -31,6 +31,7 @@ import { randomHex } from "../../core/random.ts";
 import { RenderFlags } from "../../command/render/types.ts";
 import { createBundle } from "../common/bundle.ts";
 import { readFileSync } from "../../deno_ral/fs.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const kRSConnect = "connect";
 const kRSConnectDescription = "Posit Connect";
@@ -62,8 +63,8 @@ function accountTokens() {
   const accounts: AccountToken[] = [];
 
   // check for environment variable
-  const server = Deno.env.get(kRSConnectServerVar);
-  const apiKey = Deno.env.get(kRSConnectAuthTokenVar);
+  const server = env.get(kRSConnectServerVar);
+  const apiKey = env.get(kRSConnectAuthTokenVar);
   if (server && apiKey) {
     accounts.push({
       type: AccountTokenType.Environment,

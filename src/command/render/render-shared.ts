@@ -35,6 +35,7 @@ import { notebookContext } from "../../render/notebook/notebook-context.ts";
 import { singleFileProjectContext } from "../../project/types/single-file/single-file.ts";
 import { ProjectContext } from "../../project/types.ts";
 import { statSync } from "../../deno_ral/fs.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export async function render(
   path: string,
@@ -81,7 +82,7 @@ export async function render(
   // set env var if requested
   if (context && options.setProjectDir) {
     // FIXME we can't set environment variables like this with asyncs flying around
-    Deno.env.set("QUARTO_PROJECT_DIR", context.dir);
+    env.set("QUARTO_PROJECT_DIR", context.dir);
   }
 
   if (statSync(path).isDirectory) {
@@ -189,8 +190,8 @@ let quartoRenderToken: string | null | undefined;
 export function renderToken(): string | null {
   const kQuartoRenderToken = "QUARTO_RENDER_TOKEN";
   if (quartoRenderToken === undefined) {
-    quartoRenderToken = Deno.env.get(kQuartoRenderToken) || null;
-    Deno.env.delete(kQuartoRenderToken);
+    quartoRenderToken = env.get(kQuartoRenderToken) || null;
+    env.delete(kQuartoRenderToken);
   }
   return quartoRenderToken;
 }

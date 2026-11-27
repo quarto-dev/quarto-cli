@@ -6,11 +6,12 @@
 
 import { Args } from "flags";
 import { Command } from "cliffy/command/mod.ts";
+import { env } from "../deno_ral/env.ts";
 
 export const kQuartoProfile = "QUARTO_PROFILE";
 
 export function activeProfiles(): string[] {
-  return readProfile(Deno.env.get(kQuartoProfile));
+  return readProfile(env.get(kQuartoProfile));
 }
 
 export function readProfile(profile?: string) {
@@ -24,7 +25,7 @@ export function readProfile(profile?: string) {
 export function setProfileFromArg(args: Args) {
   // set profile if specified
   if (args.profile) {
-    Deno.env.set(kQuartoProfile, args.profile);
+    env.set(kQuartoProfile, args.profile);
     return true;
   } else {
     return false;

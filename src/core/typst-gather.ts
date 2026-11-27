@@ -10,6 +10,7 @@ import { existsSync } from "../deno_ral/fs.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { architectureToolsPath } from "./resources.ts";
 import { execProcess } from "./process.ts";
+import { env } from "../deno_ral/env.ts";
 
 // Convert path to use forward slashes for TOML compatibility
 // TOML treats backslash as escape character, so Windows paths must use forward slashes
@@ -32,13 +33,13 @@ export interface AnalyzeResult {
 
 export function typstGatherBinaryPath(): string {
   const binaryName = isWindows ? "typst-gather.exe" : "typst-gather";
-  const binary = Deno.env.get("QUARTO_TYPST_GATHER") ||
+  const binary = env.get("QUARTO_TYPST_GATHER") ||
     architectureToolsPath(binaryName);
 
   if (!existsSync(binary)) {
     throw new Error(
       `typst-gather binary not found at ${binary}.\n` +
-        (Deno.env.get("QUARTO_TYPST_GATHER")
+        (env.get("QUARTO_TYPST_GATHER")
           ? `QUARTO_TYPST_GATHER is set but does not point to an existing file.`
           : `Reinstall Quarto to restore the bundled binary, or set ` +
             `QUARTO_TYPST_GATHER to the path of a typst-gather binary.\n` +

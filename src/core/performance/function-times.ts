@@ -5,6 +5,7 @@
  */
 
 import { Stats } from "./stats.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const functionTimes: Record<string, Stats> = {};
 
@@ -13,7 +14,7 @@ export const makeTimedFunction = <T extends (...args: any[]) => any>(
   name: string,
   fn: T,
 ): T => {
-  if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") === undefined) {
+  if (env.get("QUARTO_REPORT_PERFORMANCE_METRICS") === undefined) {
     return fn;
   }
   if (!functionTimes[name]) {
@@ -45,7 +46,7 @@ export const makeTimedFunctionAsync = <
   name: string,
   fn: T,
 ): T => {
-  if (Deno.env.get("QUARTO_REPORT_PERFORMANCE_METRICS") === undefined) {
+  if (env.get("QUARTO_REPORT_PERFORMANCE_METRICS") === undefined) {
     return fn;
   }
   if (!functionTimes[name]) {

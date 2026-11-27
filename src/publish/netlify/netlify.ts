@@ -31,6 +31,7 @@ import { withRetry } from "../../core/retry.ts";
 import { handlePublish, PublishHandler } from "../common/publish.ts";
 import { authorizePrompt } from "../account.ts";
 import { RenderFlags } from "../../command/render/types.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const kNetlify = "netlify";
 const kNetlifyDescription = "Netlify";
@@ -108,7 +109,7 @@ function removeToken(token: AccountToken) {
 }
 
 function environmentAuthToken() {
-  return Deno.env.get(kNetlifyAuthTokenVar);
+  return env.get(kNetlifyAuthTokenVar);
 }
 
 function accessTokens(): Array<AccessToken> | undefined {

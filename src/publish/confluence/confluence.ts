@@ -98,14 +98,15 @@ import { md5HashBytes } from "../../core/hash.ts";
 import { sleep } from "../../core/async.ts";
 import { info } from "../../deno_ral/log.ts";
 import { readFile, readTextFileSync } from "../../deno_ral/fs.ts";
+import { env } from "../../deno_ral/env.ts";
 
 export const CONFLUENCE_ID = "confluence";
 
 const getAccountTokens = (): Promise<AccountToken[]> => {
   const getConfluenceEnvironmentAccount = () => {
-    const server = Deno.env.get("CONFLUENCE_DOMAIN");
-    const name = Deno.env.get("CONFLUENCE_USER_EMAIL");
-    const token = Deno.env.get("CONFLUENCE_AUTH_TOKEN");
+    const server = env.get("CONFLUENCE_DOMAIN");
+    const name = env.get("CONFLUENCE_USER_EMAIL");
+    const token = env.get("CONFLUENCE_AUTH_TOKEN");
     if (server && name && token) {
       return {
         type: AccountTokenType.Environment,

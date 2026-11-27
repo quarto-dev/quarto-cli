@@ -9,6 +9,7 @@
  */
 
 import { info, warning } from "../../deno_ral/log.ts";
+import { env as runtimeEnv } from "../../deno_ral/env.ts";
 import * as colors from "fmt/colors";
 
 import { Select } from "cliffy/prompt/select.ts";
@@ -72,7 +73,7 @@ function accountTokens(): Promise<AccountToken[]> {
 
   // Check for environment variable token (CI/CD)
   // See also: POSIT_CONNECT_CLOUD_REFRESH_TOKEN, POSIT_CONNECT_CLOUD_ACCOUNT_ID
-  const envToken = Deno.env.get(kPositConnectCloudAccessTokenVar);
+  const envToken = runtimeEnv.get(kPositConnectCloudAccessTokenVar);
   if (envToken) {
     accounts.push({
       type: AccountTokenType.Environment,
@@ -360,7 +361,7 @@ async function publish(
         "No publishable accounts found for the provided access token.",
       );
     }
-    const envAccountId = Deno.env.get(kPositConnectCloudAccountIdVar)?.trim();
+    const envAccountId = runtimeEnv.get(kPositConnectCloudAccountIdVar)?.trim();
     if (envAccountId) {
       const match = publishable.find((a) => a.id === envAccountId);
       if (!match) {
@@ -600,7 +601,7 @@ function clientForAccount(
 ): PositConnectCloudClient {
   // For environment tokens, check for optional refresh token
   if (account.type === AccountTokenType.Environment) {
-    const refreshToken = Deno.env.get(kPositConnectCloudRefreshTokenVar);
+    const refreshToken = runtimeEnv.get(kPositConnectCloudRefreshTokenVar);
     if (refreshToken) {
       const pseudoToken: PositConnectCloudToken = {
         username: account.name,

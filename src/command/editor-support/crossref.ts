@@ -23,6 +23,7 @@ import {
   readTextFileSync,
   writeTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { env } from "../../deno_ral/env.ts";
 
 function parseCrossrefFlags(options: any, args: string[]): {
   input?: string;
@@ -97,8 +98,8 @@ const makeCrossrefCommand = () => {
 
       // setup index file and input type
       const indexFile = join(indexingDir, "index.json");
-      Deno.env.set("QUARTO_CROSSREF_INDEX_PATH", indexFile);
-      Deno.env.set("QUARTO_CROSSREF_INPUT_TYPE", "qmd");
+      env.set("QUARTO_CROSSREF_INDEX_PATH", indexFile);
+      env.set("QUARTO_CROSSREF_INPUT_TYPE", "qmd");
 
       // build command
       const cmd = pandocBinaryPath();

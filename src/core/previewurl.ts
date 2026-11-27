@@ -21,6 +21,7 @@ import {
 import { execProcess } from "./process.ts";
 import { kLocalhost } from "./port-consts.ts";
 import { findOpenPort, waitForPort } from "./port.ts";
+import { env } from "../deno_ral/env.ts";
 
 export interface HostAndPortOptions {
   port?: number;
@@ -96,8 +97,8 @@ export async function printBrowsePreviewMessage(
 }
 
 export async function rswURL(port: number, path: string) {
-  const server = Deno.env.get("RS_SERVER_URL")!;
-  const session = Deno.env.get("RS_SESSION_URL")!;
+  const server = env.get("RS_SERVER_URL")!;
+  const session = env.get("RS_SESSION_URL")!;
   const portToken = await rswPortToken(port);
   const url = `${server}${session.slice(1)}p/${portToken}/${path}`;
   return url;

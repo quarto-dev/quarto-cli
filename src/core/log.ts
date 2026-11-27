@@ -23,6 +23,7 @@ import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
 import { Block, pandoc } from "./pandoc/json.ts";
 import { isGitHubActions, isVerboseMode } from "../tools/github.ts";
+import { env } from "../deno_ral/env.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
 export type LogFormat = "plain" | "json-stream";
@@ -100,13 +101,13 @@ export function appendLogOptions(cmd: Command<any>): Command<any> {
 
 export function logOptions(args: Args) {
   const logOptions: LogOptions = {};
-  logOptions.log = args.l || args.log || Deno.env.get("QUARTO_LOG");
+  logOptions.log = args.l || args.log || env.get("QUARTO_LOG");
   if (logOptions.log) {
     ensureDirSync(dirname(logOptions.log));
   }
 
   // Determine log level with priority: explicit args > QUARTO_LOG_LEVEL > GitHub Actions debug mode
-  let level = args.ll || args["log-level"] || Deno.env.get("QUARTO_LOG_LEVEL");
+  let level = args.ll || args["log-level"] || env.get("QUARTO_LOG_LEVEL");
 
   // Enable DEBUG logging when GitHub Actions debug mode is on (RUNNER_DEBUG=1)
   // Can be overridden by explicit --log-level or QUARTO_LOG_LEVEL
@@ -117,7 +118,7 @@ export function logOptions(args: Args) {
   logOptions.level = level;
   logOptions.quiet = args.q || args.quiet;
   logOptions.format = parseFormat(
-    args.lf || args["log-format"] || Deno.env.get("QUARTO_LOG_FORMAT"),
+    args.lf || args["log-format"] || env.get("QUARTO_LOG_FORMAT"),
   );
   return logOptions;
 }

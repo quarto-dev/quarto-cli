@@ -11,6 +11,7 @@ import { register } from "deno_dom/src/parser.ts";
 import { DOMParser } from "deno_dom/src/dom/dom-parser.ts";
 import { makeTimedFunctionAsync } from "./performance/function-times.ts";
 import { writeTextFile } from "../deno_ral/fs.ts";
+import { env } from "../deno_ral/env.ts";
 
 export async function getDomParser() {
   await initDenoDom();
@@ -56,7 +57,7 @@ export async function initDenoDom() {
   if (!s_DenoDomInitialized) {
     try {
       // try to load the native plugin
-      const denoNativePluginPath = Deno.env.get("DENO_DOM_PLUGIN");
+      const denoNativePluginPath = env.get("DENO_DOM_PLUGIN");
       if (denoNativePluginPath) {
         // These types are only to deal with `as const` `readonly` shenanigans
         type DeepWriteable<T> = {
