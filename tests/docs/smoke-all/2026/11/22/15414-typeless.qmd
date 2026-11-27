@@ -1,0 +1,16 @@
+---
+title: Callout without a type
+format: typst
+keep-typ: true
+filters:
+  - 15414-typeless.lua
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        - ['kind:\s*"none"']
+        - []
+      noErrors: default
+---
+
+Text.

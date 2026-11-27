@@ -1,0 +1,21 @@
+---
+title: Callout override
+format: typst
+callout-appearance: minimal
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ['KIND-caution APPEARANCE-minimal']
+        - []
+      noErrors: default
+---
+
+```{=typst}
+#let quarto-callout = callout
+#let callout(..args) = quarto-callout(..args.named(), title: [KIND-#args.named().kind APPEARANCE-#args.named().appearance])
+```
+
+::: {.callout-caution}
+Body.
+:::

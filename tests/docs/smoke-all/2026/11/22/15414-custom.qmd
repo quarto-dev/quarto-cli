@@ -1,0 +1,33 @@
+---
+title: Custom callout types reach callout()
+format: typst
+filters:
+  - 15414-custom.lua
+_quarto:
+  tests:
+    typst:
+      ensurePdfRegexMatches:
+        - ['Exercise KIND-exercise APPEARANCE-default', 'Answer KIND-answer APPEARANCE-minimal', 'Note KIND-note APPEARANCE-default']
+        - []
+      noErrors: true
+---
+
+```{=typst}
+#let template-callout = callout
+#let callout(kind: "none", appearance: "default", ..args) = template-callout(..args, kind: kind, appearance: appearance, title: [#args.named().title KIND-#kind APPEARANCE-#appearance])
+```
+
+The filter builds custom callout types with `quarto.Callout()` and shadows `callout()` around each one to set its colours, as callout extensions do.
+The template override above it must still receive the custom type as `kind` and the requested appearance.
+
+::: exercise
+Do the exercise.
+:::
+
+::: answer
+The answer.
+:::
+
+::: {.callout-note}
+A built-in note.
+:::
