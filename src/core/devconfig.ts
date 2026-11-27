@@ -19,6 +19,7 @@ import { quartoConfig } from "./quarto.ts";
 import { normalizePath } from "./path.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { env } from "../deno_ral/env.ts";
+import { exec } from "../deno_ral/process.ts";
 
 const kDevConfig = "dev-config";
 
@@ -145,12 +146,10 @@ export async function reconfigureQuarto(
     join(quartoConfig.sharePath(), "..", ".."),
   );
 
-  const process = new Deno.Command(configureScript[0], {
+  await exec(configureScript[0], {
     args: configureScript.slice(1),
     cwd: quartoDir,
   });
-
-  await process.output();
 
   info("");
   error(

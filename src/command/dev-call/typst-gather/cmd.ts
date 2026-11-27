@@ -11,6 +11,7 @@ import { join } from "../../../deno_ral/path.ts";
 import { isWindows } from "../../../deno_ral/platform.ts";
 import { architectureToolsPath } from "../../../core/resources.ts";
 import { env } from "../../../deno_ral/env.ts";
+import { exec, exit } from "../../../deno_ral/process.ts";
 
 export const typstGatherCommand = new Command()
   .name("typst-gather")
@@ -27,7 +28,7 @@ export const typstGatherCommand = new Command()
       error(
         "QUARTO_ROOT environment variable not set. This command requires a development version of Quarto.",
       );
-      Deno.exit(1);
+      exit(1);
     }
 
     // Path to the TOML config file (relative to this source file's location in the repo)
@@ -52,7 +53,7 @@ export const typstGatherCommand = new Command()
             "the path of a typst-gather binary.",
         );
       }
-      Deno.exit(1);
+      exit(1);
     }
 
     info(`Quarto root: ${quartoRoot}`);
@@ -60,18 +61,16 @@ export const typstGatherCommand = new Command()
     info(`Running typst-gather...`);
 
     // Run typst-gather from the quarto root directory
-    const command = new Deno.Command(typstGatherBinary, {
+    const result = await exec(typstGatherBinary, {
       args: ["gather", tomlPath],
       cwd: quartoRoot,
       stdout: "inherit",
       stderr: "inherit",
     });
 
-    const result = await command.output();
-
     if (!result.success) {
       error(`typst-gather failed with exit code ${result.code}`);
-      Deno.exit(result.code);
+      exit(result.code);
     }
 
     info("Done!");

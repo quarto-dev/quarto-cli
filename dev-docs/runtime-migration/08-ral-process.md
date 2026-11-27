@@ -1081,7 +1081,7 @@ git commit -m "core/process: implement execProcess on deno_ral spawn"
 **Files:**
 - Modify: `src/core/devconfig.ts`, `src/core/schema/types-from-schema.ts`, `src/core/cri/launch.ts`, `src/core/typst.ts`, `src/preview/preview-server.ts`, `src/execute/ojs/extract-resources.ts`, `src/execute/jupyter/jupyter-kernel.ts`, `src/command/dev-call/typst-gather/cmd.ts`
 
-- [ ] **Step 1: `src/core/devconfig.ts`**
+- [x] **Step 1: `src/core/devconfig.ts`**
 
 Add `import { exec } from "../deno_ral/process.ts";` next to the other `deno_ral` imports.
 Replace lines 142-147:
@@ -1095,7 +1095,7 @@ Replace lines 142-147:
 
 (Output stays collected and discarded, as `Deno.Command(...).output()` did.)
 
-- [ ] **Step 2: `src/core/schema/types-from-schema.ts`**
+- [x] **Step 2: `src/core/schema/types-from-schema.ts`**
 
 Add `import { exec, execPath } from "../../deno_ral/process.ts";`.
 Replace lines 29-33:
@@ -1106,7 +1106,7 @@ export function fmtSource(source: string) {
 }
 ```
 
-- [ ] **Step 3: `src/core/cri/launch.ts`**
+- [x] **Step 3: `src/core/cri/launch.ts`**
 
 Add `type ExitStatus, spawn` to the existing import from `../../deno_ral/process.ts` (create it if the file has none: `import { type ExitStatus, spawn } from "../../deno_ral/process.ts";`).
 Replace `Deno.CommandStatus` with `ExitStatus` at lines 134, 139, 146.
@@ -1124,12 +1124,12 @@ Replace lines 285-290:
 Line 299: `const stream = process.stderr!.pipeThrough(new TextDecoderStream());`.
 Lines 315 (`process.kill()`) and 325 (`await process.status`) are unchanged.
 
-- [ ] **Step 4: `src/core/typst.ts`**
+- [x] **Step 4: `src/core/typst.ts`**
 
 Delete lines 295-341 (the `/* export async function typstWatch ... */` block).
 It is dead code and the only `Deno.Command` mention in the file.
 
-- [ ] **Step 5: `src/preview/preview-server.ts`**
+- [x] **Step 5: `src/preview/preview-server.ts`**
 
 Replace the import of `isWindows` (line 8) with:
 
@@ -1199,7 +1199,7 @@ and lines 36-81 with:
 The detached child no longer receives the terminal's Ctrl-C directly; both callers stop it from Quarto's cleanup (`execute/jupyter/jupyter.ts:713-715` registers `server.stop()` with `onCleanup`; `project/serve/serve.ts:465-467` calls it from the `stop()` it hands to the preview cleanup), which `core/main.ts`'s SIGINT handler runs.
 PR 14b's `tests/unit/process-group.test.ts` exercises this path end to end: the group kill on POSIX, the `taskkill /T` tree kill on Windows.
 
-- [ ] **Step 6: `src/execute/ojs/extract-resources.ts`**
+- [x] **Step 6: `src/execute/ojs/extract-resources.ts`**
 
 Add `import { cwd, exec, execPath } from "../../deno_ral/process.ts";`.
 Replace lines 337-349:
@@ -1220,7 +1220,7 @@ Replace lines 337-349:
 
 Lines 245 and 777: `Deno.cwd()` → `cwd()`.
 
-- [ ] **Step 7: `src/execute/jupyter/jupyter-kernel.ts`**
+- [x] **Step 7: `src/execute/jupyter/jupyter-kernel.ts`**
 
 Add `import { type ChildProcess, spawn } from "../../deno_ral/process.ts";`.
 Line 63: `let serverLogProcess: ChildProcess | undefined;`.
@@ -1234,7 +1234,7 @@ Lines 66-68:
 
 Line 147 (`serverLogProcess?.kill("SIGKILL")`) is unchanged.
 
-- [ ] **Step 8: `src/command/dev-call/typst-gather/cmd.ts`**
+- [x] **Step 8: `src/command/dev-call/typst-gather/cmd.ts`**
 
 Add `import { exec, exit } from "../../../deno_ral/process.ts";`.
 Replace lines 62-74:
@@ -1255,13 +1255,13 @@ Replace lines 62-74:
 
 Lines 30 and 55: `Deno.exit(1)` → `exit(1)`.
 
-- [ ] **Step 9: Type-check and test**
+- [x] **Step 9: Type-check and test**
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: no errors.
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/typst-gather/typst-gather.test.ts smoke/ojs/dependency-traversal.test.ts smoke/jupyter/issue-10097.test.ts` Expected: all pass (tally `0 failed`).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add src/core/devconfig.ts src/core/schema/types-from-schema.ts src/core/cri/launch.ts src/core/typst.ts src/preview/preview-server.ts src/execute/ojs/extract-resources.ts src/execute/jupyter/jupyter-kernel.ts src/command/dev-call/typst-gather/cmd.ts
@@ -1900,3 +1900,16 @@ Resolved since the first draft:
   Reverted the formatter-only change to the unchanged `encode` line. After the approved annotation change, the shortstat was `1 file changed, 31 insertions(+), 37 deletions(-)`; `git diff --check -- src/core/process.ts` passed.
 - Deviations: added `--allow-import` to the type-check gate as required by the open-decisions row; changed the `addStream` annotation from `AsyncIterableIterator<Uint8Array<ArrayBuffer>>` to `AsyncIterableIterator<Uint8Array>` to fix the two Deno 2.9.8 type errors; used the Windows PowerShell runner and `.exe` binaries; ran the UTF-8 chunk regression test in addition to the plan's two-file test command.
 - Outstanding: none in Task 2. Tasks 3–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 2.
+
+### Task 3: the direct `Deno.Command` sites in `src/`
+
+- Steps 1–8: migrated the eight planned files to `deno_ral/process.ts`, including the three lifecycle spawn sites.
+  `src/core/cri/launch.ts` still drains stderr and awaits `status` then `draining` before removing the user-data dir; `src/preview/preview-server.ts` now uses `detached: !isWindows` and `killProcess(-pid)` with the direct-kill fallback; `src/execute/jupyter/jupyter-kernel.ts` keeps the debug-only `tail -F` and its `SIGKILL` cleanup.
+  The direct-site grep over those files after editing (`Deno.Command`, `Deno.CommandStatus`, `Deno.ChildProcess`, `Deno.execPath`, `Deno.cwd`, `Deno.exit`, `Deno.kill`, `Deno.stderr`, and `process.output()`) printed no matches.
+- Step 9, type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+- Step 9, tests: the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/chrome-launch.test.ts unit/chrome-launch-flags.test.ts smoke/typst-gather/typst-gather.test.ts smoke/ojs/dependency-traversal.test.ts smoke/jupyter/issue-10097.test.ts` exited 0 with `ok | 23 passed | 0 failed (1m7s)`.
+- Formatting: `git diff --shortstat` over the eight source files printed `8 files changed, 45 insertions(+), 87 deletions(-)` before formatting.
+  `package/dist/bin/tools/x86_64/deno.exe fmt` on those files printed `Checked 8 files`; the shortstat afterward was `8 files changed, 41 insertions(+), 87 deletions(-)` because the new preview-server process import fit on one line.
+  `deno.exe fmt --check` on the same files then printed `Checked 8 files`; `git diff --check` passed. No formatter-only hunk outside the task's changed lines was introduced.
+- Deviations: added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.exe` binaries as required; no implementation changes beyond the planned edits and formatting.
+- Outstanding: none in Task 3. Tasks 4–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 3.

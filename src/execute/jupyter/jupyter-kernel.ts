@@ -32,6 +32,7 @@ import { ExecuteOptions } from "../types.ts";
 import { isWindows } from "../../deno_ral/platform.ts";
 import { makeTempFileSync } from "../../deno_ral/temp.ts";
 import { env } from "../../deno_ral/env.ts";
+import { type ChildProcess, spawn } from "../../deno_ral/process.ts";
 
 export interface JupyterExecuteOptions extends ExecuteOptions {
   kernelspec: JupyterKernelspec;
@@ -68,12 +69,12 @@ export async function executeKernelKeepalive(
   options: JupyterExecuteOptions,
 ): Promise<void> {
   // if we are in debug mode then tail follow the log file
-  let serverLogProcess: Deno.ChildProcess | undefined;
+  let serverLogProcess: ChildProcess | undefined;
   if (options.format.execute[kExecuteDebug]) {
     if (!isWindows) {
-      serverLogProcess = new Deno.Command("tail", {
+      serverLogProcess = spawn("tail", {
         args: ["-F", "-n", "0", kernelLogFile()],
-      }).spawn();
+      });
     }
   }
 
