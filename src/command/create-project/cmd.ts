@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import { basename } from "../../deno_ral/path.ts";
 
 import { Command } from "cliffy/command/mod.ts";
@@ -132,7 +133,7 @@ export const createProjectCommand = new Command()
     await initializeProjectContextAndEngines();
 
     if (dir === undefined || dir === ".") {
-      dir = Deno.cwd();
+      dir = cwd();
     }
 
     const engine = options.engine || [];

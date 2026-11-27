@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import {
   ensureDirSync,
   existsSync,
@@ -152,7 +153,7 @@ const computeProjectRenderConfig = async (
   // file normaliation
   const normalizeFiles = (targetFiles: string[]) => {
     return targetFiles.map((file) => {
-      const target = isAbsolute(file) ? file : join(Deno.cwd(), file);
+      const target = isAbsolute(file) ? file : join(cwd(), file);
       if (!existsSync(target)) {
         throw new Error("Render target does not exist: " + file);
       }

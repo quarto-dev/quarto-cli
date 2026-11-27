@@ -4,6 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { Checkbox } from "cliffy/prompt/mod.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../core/schema/utils.ts";
@@ -83,7 +84,7 @@ export const removeCommand = new Command()
           }
         } else {
           // Not provided, give the user a list to select from
-          const workingDir = Deno.cwd();
+          const workingDir = cwd();
 
           const resolveTargetDir = async () => {
             if (options.embed) {

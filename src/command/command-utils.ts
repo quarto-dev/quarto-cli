@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd } from "../deno_ral/process.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../core/schema/utils.ts";
 import {
   frameInputWalkError,
@@ -56,7 +57,7 @@ export async function initializeProjectContextAndEngines(
 
   // Use the project config if we're in a project directory, or load only
   // the bundled engines when no project exists
-  const baseDir = normalizePath(dir || Deno.cwd());
+  const baseDir = normalizePath(dir || cwd());
   const resolved = await resolveProjectConfig(baseDir);
   const config = resolved?.config ?? await bundledEngineConfig(baseDir);
 

@@ -4,6 +4,11 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import {
+  cwd,
+  readStdinLines,
+  writeStdoutSync,
+} from "../../deno_ral/process.ts";
 import { extensionArtifactCreator } from "./artifacts/extension.ts";
 import { projectArtifactCreator } from "./artifacts/project.ts";
 import { kEditorInfos, scanForEditors } from "./editor.ts";
@@ -17,7 +22,6 @@ import { initializeProjectContextAndEngines } from "../command-utils.ts";
 
 import { Command } from "cliffy/command/mod.ts";
 import { prompt, Select, SelectValueOptions } from "cliffy/prompt/mod.ts";
-import { readLines } from "../../deno_ral/io.ts";
 import { info } from "../../deno_ral/log.ts";
 import { ArtifactCreator, CreateDirective, CreateResult } from "./cmd-types.ts";
 
@@ -90,7 +94,7 @@ export const createCommand = new Command()
 
           const commandOpts = resolvedArtifact.resolveOptions(args);
           const createOptions = {
-            cwd: Deno.cwd(),
+            cwd: cwd(),
             options: commandOpts,
           };
 
@@ -255,9 +259,12 @@ async function createFromStdin() {
   }
   */
 
-  // Read the stdin and then close it
-  const { value: input } = await readLines(Deno.stdin).next();
-  Deno.stdin.close();
+  // Read the first line of stdin (the JSON request)
+  let input = "";
+  for await (const line of readStdinLines()) {
+    input = line;
+    break;
+  }
 
   // Parse options
   const jsonOptions = JSON.parse(input);
@@ -293,5 +300,5 @@ async function createFromStdin() {
     true,
   );
   const resultJSON = JSON.stringify(createResult, undefined);
-  Deno.stdout.writeSync(new TextEncoder().encode(resultJSON));
+  writeStdoutSync(new TextEncoder().encode(resultJSON));
 }

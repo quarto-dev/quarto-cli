@@ -3,6 +3,7 @@
  *
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
+import { cwd } from "../../deno_ral/process.ts";
 import { basename, isAbsolute, join } from "../../deno_ral/path.ts";
 import {
   kEmbedResources,
@@ -92,7 +93,7 @@ export function resolveTemplatePartialPaths(
       if (isAbsolute(inputDir)) {
         return join(inputDir, path);
       } else {
-        return join(Deno.cwd(), inputDir, path);
+        return join(cwd(), inputDir, path);
       }
     }
   });

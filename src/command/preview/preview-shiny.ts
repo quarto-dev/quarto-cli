@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../deno_ral/process.ts";
 import { info } from "../../deno_ral/log.ts";
 
 import { dirname, extname, isAbsolute, join } from "../../deno_ral/path.ts";
@@ -53,7 +54,7 @@ export async function previewShiny(options: PreviewShinyOptions) {
   let rendering = false;
   const renderingFile = isAbsolute(options.input)
     ? options.input
-    : join(Deno.cwd(), options.input);
+    : join(cwd(), options.input);
   const render = async (to?: string) => {
     to = to || options.format;
     const renderFlags: RenderFlags = { to, execute: true };

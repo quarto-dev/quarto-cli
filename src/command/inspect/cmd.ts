@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { cwd, writeStdoutSync } from "../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 
 import {
@@ -50,7 +51,7 @@ export const inspectCommand = new Command()
       setInitializer(initYamlIntelligenceResourcesFromFilesystem);
       await initState();
 
-      path = path || Deno.cwd();
+      path = path || cwd();
 
       // get the config
       const config = await inspectConfig(path);
@@ -59,9 +60,7 @@ export const inspectCommand = new Command()
       const outputJson = JSON.stringify(config, undefined, 2);
 
       if (!output) {
-        Deno.stdout.writeSync(
-          new TextEncoder().encode(outputJson + "\n"),
-        );
+        writeStdoutSync(new TextEncoder().encode(outputJson + "\n"));
       } else {
         writeTextFileSync(output, outputJson + "\n");
       }

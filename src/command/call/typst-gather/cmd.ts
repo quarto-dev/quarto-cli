@@ -4,6 +4,7 @@
  * Copyright (C) 2025 Posit Software, PBC
  */
 
+import { cwd as currentDir, exit } from "../../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { info } from "../../../deno_ral/log.ts";
 
@@ -39,7 +40,7 @@ interface TypstGatherConfig {
 }
 
 async function findExtensionDir(): Promise<string | null> {
-  const cwd = Deno.cwd();
+  const cwd = currentDir();
 
   // Check if we're in an extension directory (has _extension.yml)
   if (existsSync(join(cwd, "_extension.yml"))) {
@@ -109,7 +110,7 @@ function extractTypstFiles(extensionDir: string): string[] {
 async function resolveConfig(
   extensionDir: string | null,
 ): Promise<TypstGatherConfig | null> {
-  const cwd = Deno.cwd();
+  const cwd = currentDir();
 
   // First, check for typst-gather.toml in current directory
   const configPath = join(cwd, "typst-gather.toml");
@@ -248,13 +249,13 @@ export function generateConfigFromAnalysis(
 }
 
 async function initConfig(): Promise<void> {
-  const configFile = join(Deno.cwd(), "typst-gather.toml");
+  const configFile = join(currentDir(), "typst-gather.toml");
 
   // Check if config already exists
   if (existsSync(configFile)) {
     console.error("typst-gather.toml already exists");
     console.error("Remove it first or edit it manually.");
-    Deno.exit(1);
+    exit(1);
   }
 
   // Find typst files via extension directory structure
@@ -265,7 +266,7 @@ async function initConfig(): Promise<void> {
     console.error(
       "Run this command from a directory containing _extension.yml or _extensions/",
     );
-    Deno.exit(1);
+    exit(1);
   }
 
   const typFiles = extractTypstFiles(extensionDir);
@@ -287,7 +288,7 @@ async function initConfig(): Promise<void> {
   const analysis = await runAnalyze(analyzeConfig);
 
   // Calculate relative path from cwd to extension dir for rootdir
-  const rootdir = relative(Deno.cwd(), extensionDir);
+  const rootdir = relative(currentDir(), extensionDir);
 
   // Generate config content from analysis
   const configContent = generateConfigFromAnalysis(analysis, rootdir);
@@ -297,7 +298,7 @@ async function initConfig(): Promise<void> {
     writeTextFileSync(configFile, configContent);
   } catch (e) {
     console.error(`Error writing typst-gather.toml: ${e}`);
-    Deno.exit(1);
+    exit(1);
   }
 
   const previewImports = analysis.imports.filter(
@@ -356,7 +357,7 @@ export const typstGatherCommand = new Command()
       // Resolve configuration
       const config = await resolveConfig(extensionDir);
       if (!config) {
-        Deno.exit(1);
+        exit(1);
       }
 
       const typstGatherBinary = typstGatherBinaryPath();
@@ -370,7 +371,7 @@ export const typstGatherCommand = new Command()
         result = await execProcess({
           cmd: typstGatherBinary,
           args: ["gather", config.configFile],
-          cwd: Deno.cwd(),
+          cwd: currentDir(),
         });
       } else {
         // Auto-detected — pipe config on stdin
@@ -387,7 +388,7 @@ export const typstGatherCommand = new Command()
           {
             cmd: typstGatherBinary,
             args: ["gather", "-"],
-            cwd: Deno.cwd(),
+            cwd: currentDir(),
           },
           tomlContent,
         );
@@ -417,7 +418,7 @@ export const typstGatherCommand = new Command()
           );
         }
 
-        Deno.exit(1);
+        exit(1);
       }
 
       info("Done!");
@@ -427,6 +428,6 @@ export const typstGatherCommand = new Command()
       } else {
         console.error(String(e));
       }
-      Deno.exit(1);
+      exit(1);
     }
   });

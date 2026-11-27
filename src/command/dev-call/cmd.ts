@@ -1,3 +1,4 @@
+import { exit } from "../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { quartoConfig } from "../../core/quarto.ts";
 import { commands } from "../command.ts";
@@ -71,7 +72,7 @@ export const devCallCommand = new Command()
   )
   .action(() => {
     devCallCommand.showHelp();
-    Deno.exit(1);
+    exit(1);
   })
   .command("cli-info", generateCliInfoCommand)
   .command("validate-yaml", validateYamlCommand)

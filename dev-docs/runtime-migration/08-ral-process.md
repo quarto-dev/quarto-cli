@@ -1347,7 +1347,7 @@ git commit -m "core: exit/cwd/args/signals/stdio through deno_ral/process"
 
 **Files:** the files below.
 
-- [ ] **Step 1: `Deno.exit` files**
+- [x] **Step 1: `Deno.exit` files**
 
 | File | Import to add |
 |---|---|
@@ -1366,7 +1366,7 @@ sed -i 's/Deno\.cwd()/currentDir()/g' src/command/call/build-ts-extension/cmd.ts
 Then add the imports from the table (by hand; `add_import` works for all of them).
 Comment lines that mention `Deno.exit` (`src/command/call/axe/cmd.ts:417`) are left for PR 25's comment cleanup.
 
-- [ ] **Step 2: `Deno.cwd` files (no local `cwd` binding; plain `cwd` import)**
+- [x] **Step 2: `Deno.cwd` files (no local `cwd` binding; plain `cwd` import)**
 
 | Import path | Files |
 |---|---|
@@ -1378,13 +1378,13 @@ Comment lines that mention `Deno.exit` (`src/command/call/axe/cmd.ts:417`) are l
 For each: `sed -i 's/Deno\.cwd()/cwd()/g' FILE` and add `import { cwd } from "<path>";` (`src/command/call/axe/cmd.ts` has only its one `Deno.cwd()` code site).
 `src/command/inspect/cmd.ts` and `src/command/create/cmd.ts` also need `writeStdoutSync` (Step 4), so import `{ cwd, writeStdoutSync }` there.
 
-- [ ] **Step 3: `args` and `execPath`**
+- [x] **Step 3: `args` and `execPath`**
 
 `src/command/render/latexmk/quarto-latexmk.ts:130` (`Deno.args`) is not touched: decision 9 deletes this standalone entry in PR 39.
 `src/command/dev-call/make-ast-diagram/cmd.ts:23`: `cmd: Deno.execPath(),` → `cmd: execPath(),` with `import { execPath } from "../../../deno_ral/process.ts";`.
 `src/command/render/pandoc.ts:262`: `args: Deno.CommandOptions,` → `args: SpawnOptions,` and extend line 227 to `import { call, type SpawnOptions } from "../../deno_ral/process.ts";`.
 
-- [ ] **Step 4: stdout / stdin**
+- [x] **Step 4: stdout / stdin**
 
 `src/command/inspect/cmd.ts:61-63`:
 ```ts
@@ -1406,7 +1406,7 @@ and line 296: `writeStdoutSync(new TextEncoder().encode(resultJSON));`.
     writeStdoutSync(new TextEncoder().encode(capsJSON));
 ```
 
-- [ ] **Step 5: Verify and commit**
+- [x] **Step 5: Verify and commit**
 
 Run: `rg -n '\bDeno\.(exit|cwd|args|execPath|stdin|stdout|stderr|CommandOptions)\b' src/command -g '*.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` Expected: empty.
 
@@ -1928,3 +1928,19 @@ Resolved since the first draft:
   Reverted the formatter's two unchanged `formatter: (({ msg }) => ...)` lines in `log.ts`; the final shortstat returned to `12 files changed, 30 insertions(+), 41 deletions(-)`. `git diff --check` passed.
 - Deviations: applied the planned textual substitutions with exact file edits rather than the shell `add_import`/`sed` helper; added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required. No implementation changes beyond the planned edits.
 - Outstanding: none in Task 4. Tasks 5–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 4.
+
+### Task 5: `src/command`: exit, cwd, args, execPath, stdio, stdin
+
+- Steps 1–4: migrated the 27 planned files to `deno_ral/process.ts`: seven `Deno.exit` files, sixteen additional `Deno.cwd` files, the `execPath` and `SpawnOptions` sites, and the four stdout/stdin files.
+  The local `cwd` bindings in `build-ts-extension/cmd.ts` and `call/typst-gather/cmd.ts` remain unchanged and use the planned `currentDir` import alias; the `quarto-latexmk.ts` `Deno.args` site and the `axe/cmd.ts` comment remain untouched.
+  `create/cmd.ts` now reads its first JSON line through `readStdinLines`; `editor-support/crossref.ts` retains its `readFileSync` layer import and uses `readStdin`/`writeStdoutSync`.
+- Step 5, source grep: `rg -n '\bDeno\.(exit|cwd|args|execPath|stdin|stdout|stderr|CommandOptions)\b' src/command -g '*.ts' -g '!src/command/render/latexmk/quarto-latexmk.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` printed no matches (the empty pipeline exited 1), as expected.
+- Step 5, type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+- Step 5, tests: the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and the planned five explicit smoke files plus the PowerShell expansions of `smoke/build-ts-extension/*.test.ts` and `unit/render/*.test.ts` exited 0 with `ok | 32 passed (26 steps) | 0 failed | 0 ignored (13 steps) (2m4s)`.
+- Step 5, manual checks: `create --json` with the planned project directive exited 0 and printed `{"path":…,"openfiles":["_quarto.yml"]}`.
+  `quarto.cmd capabilities | head -3` printed `{`, `"formats": [`, and `"html",`; the Quarto pipeline status was 0.
+- Formatting: `git diff --shortstat -- src/command` printed `27 files changed, 100 insertions(+), 75 deletions(-)` before formatting.
+  `deno.exe fmt --check` on all 27 files reported four already-unformatted files (`call/axe/cmd.ts`, `preview/cmd.ts`, `render/cmd.ts`, and `render/project.ts`), whose unrelated hunks were left alone.
+  `deno.exe fmt` on the other 23 files printed `Checked 23 files`; the shortstat afterward was unchanged at `27 files changed, 100 insertions(+), 75 deletions(-)`. `git diff --check -- src/command` passed.
+- Deviations: applied the planned textual substitutions with exact file edits rather than the shell `add_import`/`sed` helper; added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required. The tests produced two untracked build artifacts, which were removed; no implementation changes beyond the planned edits.
+- Outstanding: none in Task 5. Tasks 6–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 5.

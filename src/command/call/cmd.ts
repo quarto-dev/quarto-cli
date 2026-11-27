@@ -1,3 +1,4 @@
+import { exit } from "../../deno_ral/process.ts";
 import { Command } from "cliffy/command/mod.ts";
 import { engineCommand } from "./engine-cmd.ts";
 import { buildTsExtensionCommand } from "./build-ts-extension/cmd.ts";
@@ -11,7 +12,7 @@ export const callCommand = new Command()
   )
   .action(() => {
     callCommand.showHelp();
-    Deno.exit(1);
+    exit(1);
   })
   .command("engine", engineCommand)
   .command("build-ts-extension", buildTsExtensionCommand)

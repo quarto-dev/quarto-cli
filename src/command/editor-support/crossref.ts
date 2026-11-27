@@ -4,8 +4,8 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
+import { readStdin, writeStdoutSync } from "../../deno_ral/process.ts";
 import { join } from "../../deno_ral/path.ts";
-import { readAll } from "../../deno_ral/io.ts";
 import { error } from "../../deno_ral/log.ts";
 import { encodeBase64 } from "../../deno_ral/encoding.ts";
 
@@ -85,7 +85,7 @@ const makeCrossrefCommand = () => {
           return readTextFileSync(flags.input);
         } else {
           // read input
-          const stdinContent = await readAll(Deno.stdin);
+          const stdinContent = await readStdin();
           return new TextDecoder().decode(stdinContent);
         }
       };
@@ -152,7 +152,7 @@ const makeCrossrefCommand = () => {
       const outputFile = getOutputFile();
       if (outputFile === "stdout") {
         // write back the index
-        Deno.stdout.writeSync(readFileSync(indexFile));
+        writeStdoutSync(readFileSync(indexFile));
       } else {
         writeTextFileSync(outputFile, readTextFileSync(indexFile));
       }

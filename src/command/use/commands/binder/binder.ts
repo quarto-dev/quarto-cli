@@ -4,6 +4,7 @@
  * Copyright (C) 2021-2022 Posit Software, PBC
  */
 
+import { cwd } from "../../../../deno_ral/process.ts";
 import { initYamlIntelligenceResourcesFromFilesystem } from "../../../../core/schema/utils.ts";
 import { createTempContext } from "../../../../core/temp.ts";
 
@@ -62,7 +63,7 @@ export const useBinderCommand = new Command()
       // compute the project context
       logProgress("Determining configuration");
       const nbContext = notebookContext();
-      const context = await projectContext(Deno.cwd(), nbContext);
+      const context = await projectContext(cwd(), nbContext);
       if (!context) {
         throw new Error(
           "You must be in a Quarto project in order to configure Binder support.",
