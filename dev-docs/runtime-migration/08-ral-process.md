@@ -1783,20 +1783,20 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 
 ## Review checklist
 
-- [ ] `spawn` returns `null` streams for non-piped stdio (never a throwing getter); `exec`/`execSync` return empty buffers for non-piped stdio.
-- [ ] `exec`/`execSync` errors keep `cause` and set `code: "ENOENT"` for a missing executable.
-- [ ] `env` is passed through untouched (merge is the runtime's default); `clearEnv` is honoured; the merge case is in the test.
-- [ ] `detached` reaches `Deno.Command`; `preview-server.ts` passes `detached: !isWindows` and stops with `killProcess(-pid)` on POSIX, `taskkill /T` on Windows.
-- [ ] `writeAllSync` never throws on 0 bytes or a broken pipe and returns the bytes written; `core/log.ts` uses `writeStderrSync`.
-- [ ] `readStdinLines` closes stdin only when the consumer stopped before EOF.
-- [ ] `execProcess` still: writes stdin in 4 KB chunks with the `#14445` close handling; merges streams with `MuxAsyncIterator` when `mergeOutput` is set; applies `timeout` to the independent-stream drain and to the status in both modes (the merged-output drain stays untimed); registers and unregisters the child for exit cleanup.
-- [ ] `ExecProcessOptions` is still a superset of `packages/quarto-types/src/system.ts` `ExecProcessOptions` (cmd, args, cwd, env, stdin, stdout, stderr); the changelog line is present.
-- [ ] `cri/launch.ts`: stderr is still drained; `close()` still awaits `status` then `draining` before removing the user-data dir.
-- [ ] `create --json` reads the first stdin line; `editor-support crossref` reads all of stdin.
-- [ ] Every file with a local `cwd`/`args`/`pid` binding uses the alias import (`currentDir`, `processArgs`, `processPid`), and no local binding was renamed.
-- [ ] The excluded files (`src/webui/quarto-preview/build.ts`, `src/resources/tools/ast-diagram/main.ts`, the julia-engine subtree, `src/command/render/latexmk/quarto-latexmk.ts`) are untouched and the PR description says why.
-- [ ] No comment line was edited except by the `quarto.ts` sed (comments belong to PR 25).
-- [ ] The baseline only went down; `.claude/rules/typescript/deno-ral.md` lists the new exports.
+- [x] `spawn` returns `null` streams for non-piped stdio (never a throwing getter); `exec`/`execSync` return empty buffers for non-piped stdio.
+- [x] `exec`/`execSync` errors keep `cause` and set `code: "ENOENT"` for a missing executable.
+- [x] `env` is passed through untouched (merge is the runtime's default); `clearEnv` is honoured; the merge case is in the test.
+- [x] `detached` reaches `Deno.Command`; `preview-server.ts` passes `detached: !isWindows` and stops with `killProcess(-pid)` on POSIX, `taskkill /T` on Windows.
+- [x] `writeAllSync` never throws on 0 bytes or a broken pipe and returns the bytes written; `core/log.ts` uses `writeStderrSync`.
+- [x] `readStdinLines` closes stdin only when the consumer stopped before EOF.
+- [x] `execProcess` still: writes stdin in 4 KB chunks with the `#14445` close handling; merges streams with `MuxAsyncIterator` when `mergeOutput` is set; applies `timeout` to the independent-stream drain and to the status in both modes (the merged-output drain stays untimed); registers and unregisters the child for exit cleanup.
+- [x] `ExecProcessOptions` is still a superset of `packages/quarto-types/src/system.ts` `ExecProcessOptions` (cmd, args, cwd, env, stdin, stdout, stderr); the changelog line is present.
+- [x] `cri/launch.ts`: stderr is still drained; `close()` still awaits `status` then `draining` before removing the user-data dir.
+- [x] `create --json` reads the first stdin line; `editor-support crossref` reads all of stdin.
+- [x] Every file with a local `cwd`/`args`/`pid` binding uses the alias import (`currentDir`, `processArgs`, `processPid`), and no local binding was renamed.
+- [x] The excluded files (`src/webui/quarto-preview/build.ts`, `src/resources/tools/ast-diagram/main.ts`, the julia-engine subtree, `src/command/render/latexmk/quarto-latexmk.ts`) are untouched and the PR description says why.
+- [x] No comment line was edited except by the `quarto.ts` sed (comments belong to PR 25).
+- [x] The baseline only went down; `.claude/rules/typescript/deno-ral.md` lists the new exports.
 
 ## Risks and rollback
 
@@ -2015,3 +2015,14 @@ Resolved since the first draft:
 - Outstanding, reserved to the maintainer: open the draft PR and replace `#N`; copy the before/after ratchet numbers above into the PR description; explain that the preview build and AST-diagram scripts stay untouched because they run without Quarto's source import map and have later owners, the julia-engine subtree is maintained upstream, and `quarto-latexmk.ts` is a standalone entry scheduled for deletion.
   `TRIAGE-2026-10-16.md` A9 remains open (with the partial answer recorded in "Decisions needed"), so the PR description must say so.
   The preview Ctrl-C/process-listing and Shiny-for-Python preview checks on Windows, and the POSIX-only preview/process-group checks, were not run; they remain manual maintainer verification. The wrap-up session still owns the review checklist and whole-branch checks.
+
+### Wrap-up — coordinator at `7fe15949d`
+
+- Whole-branch checks of README "How to execute a plan", against `upstream/main` `15ca804d1`: the `globalThis`/indirect-`Deno` diff grep printed one hit, a comment (`where Deno maps console interruption to SIGINT`); the `PR [0-9]` comment grep printed nothing; the new test functions (`runReaderGone`, `shell`, `childScript`) are each defined once, file-local, with no existing helper for the same job in `tests/` or `src/`.
+- Review checklist: ticked after an independent review of the code as committed. Notes on two items:
+  - Item 13: comment lines next to code the tasks and review fixes rewrote were changed or dropped, in `src/core/process.ts`, `src/core/log.ts`, `src/core/main.ts`, `package/src/util/cmd.ts`, `src/command/create/cmd.ts`, `src/project/serve/serve.ts`, `src/execute/jupyter/jupyter.ts`, `src/preview/preview-server.ts`, `tests/unit/launcher-arguments.test.ts` and the scope doc comment of `tools/check-runtime-boundary.ts`.
+    The removed comment lines that contain a `Deno.` call, the ones the ratchet counts, are only the planned ones: the two `// @ts-expect-error` lines in `package/src/util/tar.ts`, the `src/quarto.ts` sed line and the `src/core/typst.ts` block. Accepted by the maintainer: comments that mention Deno calls stay with PR 25.
+  - Item 14: `src` and `package/src` went down (219 → 85, 241 → 207); `tests` went up 774 → 775 by the accepted launcher-arguments increase (`1d2a87562`). `.claude/rules/typescript/deno-ral.md` lists every exported function; types and the deprecated `call` alias are not listed.
+- Verification reused from the same HEAD: the Windows unit list with the `execProcess` tests, `259 passed | 0 failed | 4 ignored`; the smoke list, `58 passed | 0 failed | 1 ignored`; `deno check quarto.ts`, exit 0; the boundary check, `OK` (`src` 85, `package/src` 207, `tests` 775).
+  The inherited-pipe case of `tests/unit/exec-process-reader-gone.test.ts` also passes on Windows without the fix, so the Linux PR check is its evidence.
+- Pending on the open PR: `#N` in `news/changelog-1.12.md`, the manual preview Ctrl-C checks (Windows, Linux/macOS, Shiny for Python).
