@@ -128,7 +128,7 @@ truncated=$(printf '%s' "$pages" | jq -r \
   '([.[].data.search.issueCount] | unique | length) > 1
    or ([.[].data.search.nodes[] | select(. != null) | .number] | unique | length) < (.[-1].data.search.issueCount) ') \
   || die 1 "listing has an unexpected shape"
-[ "$truncated" = "false" ] || die 2 "listing truncated: fewer results fetched than the search reports"
+[ "$truncated" = "false" ] || die 2 "listing incomplete: the search count changed between pages, or fewer distinct results were fetched than it reports"
 
 out=$(printf '%s' "$pages" | jq -c \
   --arg cutoff "$cutoff" --arg start "$start" --arg mode "$mode" \
