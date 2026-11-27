@@ -20,6 +20,7 @@ import {
 } from "./types.ts";
 import { isEnvDir } from "./capabilities.ts";
 import { lines } from "../lib/text.ts";
+import { cwd } from "../../deno_ral/process.ts";
 
 export const jupyterCellSrcAsStr = (cell: JupyterCell) => {
   return typeof cell.source === "string" ? cell.source : cell.source.join("");
@@ -84,9 +85,9 @@ export function jupyterUnactivatedEnvMessage(
   caps: JupyterCapabilities,
   indent = "",
 ) {
-  for (const path of readDirSync(Deno.cwd())) {
+  for (const path of readDirSync(cwd())) {
     if (path.isDirectory) {
-      const targetPath = join(Deno.cwd(), path.name);
+      const targetPath = join(cwd(), path.name);
       // We may encounter a directory for which we
       // don't have permissions. If that happens, just ignore it
       try {
@@ -116,7 +117,7 @@ export function jupyterUnactivatedEnvMessage(
   const kRequirementsTxt = "requirements.txt";
   const kEnvironmentYaml = "environment.yml";
   for (const envFile of [kRequirementsTxt, kEnvironmentYaml]) {
-    if (existsSync(join(Deno.cwd(), envFile))) {
+    if (existsSync(join(cwd(), envFile))) {
       return indent + "There is a " + colors.bold(envFile) +
         " file in this directory. " +
         "Is this for a " +

@@ -1273,7 +1273,7 @@ git commit -m "Route direct Deno.Command sites through deno_ral/process"
 **Files:**
 - Modify: `src/core/cleanup.ts`, `src/core/main.ts`, `src/core/platform.ts`, `src/core/log.ts`, `src/core/console.ts`, `src/core/path.ts`, `src/core/mapped-text.ts`, `src/core/bibliography.ts`, `src/core/jupyter/jupyter-shared.ts`, `src/core/jupyter/jupyter-embed.ts`, `src/core/jupyter/filtered-notebook-cache.ts`, `src/core/schema/validated-yaml.ts`
 
-- [ ] **Step 1: `cwd` sites (one-liners)**
+- [x] **Step 1: `cwd` sites (one-liners)**
 
 ```bash
 for f in src/core/path.ts src/core/mapped-text.ts src/core/bibliography.ts; do
@@ -1286,11 +1286,11 @@ for f in src/core/jupyter/jupyter-shared.ts src/core/jupyter/jupyter-embed.ts sr
 done
 ```
 
-- [ ] **Step 2: `src/core/cleanup.ts`**
+- [x] **Step 2: `src/core/cleanup.ts`**
 
 Add `import { exit } from "../deno_ral/process.ts";`; line 25: `exit(code);`.
 
-- [ ] **Step 3: `src/core/main.ts`**
+- [x] **Step 3: `src/core/main.ts`**
 
 Replace the `isWindows` import (line 19) with `import { args as processArgs, onSignal } from "../deno_ral/process.ts";` (`isWindows` has no other use in the file).
 Line 26: `const args = parse(processArgs());`.
@@ -1303,11 +1303,11 @@ Replace lines 29-37 with:
     onSignal("SIGTERM", abend);
 ```
 
-- [ ] **Step 4: `src/core/platform.ts`**
+- [x] **Step 4: `src/core/platform.ts`**
 
 Add `import { isTerminal } from "../deno_ral/process.ts";`; line 98: `return isTerminal("stderr");`.
 
-- [ ] **Step 5: `src/core/log.ts`**
+- [x] **Step 5: `src/core/log.ts`**
 
 Add `import { writeStderrSync } from "../deno_ral/process.ts";`.
 Replace lines 177-195 (`override log(msg: string): void { ... }`) with:
@@ -1318,7 +1318,7 @@ Replace lines 177-195 (`override log(msg: string): void { ... }`) with:
   }
 ```
 
-- [ ] **Step 6: `src/core/console.ts`**
+- [x] **Step 6: `src/core/console.ts`**
 
 Replace line 8 (the `io/write-all` import; verify with `grep -n 'writeAllSync' src/core/console.ts` that line 174 is its only use) with `import { writeStdoutSync } from "../deno_ral/process.ts";`.
 Keep the `readFileSync` import from `../deno_ral/fs.ts` (line 13).
@@ -1330,7 +1330,7 @@ export function writeFileToStdout(file: string) {
 }
 ```
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 Run: `rg -n '\bDeno\.(exit|cwd|args|addSignalListener|stdin|stdout|stderr)\b' src/core -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` Expected: empty.
 
@@ -1913,3 +1913,18 @@ Resolved since the first draft:
   `deno.exe fmt --check` on the same files then printed `Checked 8 files`; `git diff --check` passed. No formatter-only hunk outside the task's changed lines was introduced.
 - Deviations: added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.exe` binaries as required; no implementation changes beyond the planned edits and formatting.
 - Outstanding: none in Task 3. Tasks 4–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 3.
+
+### Task 4: `src/core`: exit, cwd, args, signals, stdio
+
+- Steps 1–6: migrated the twelve planned files to `deno_ral/process.ts`: seven `cwd` files plus `cleanup.ts`, `main.ts`, `platform.ts`, `log.ts` and `console.ts`.
+  `main.ts` now parses `processArgs()` and registers both signal handlers through `onSignal`; `log.ts` delegates its complete stderr write to `writeStderrSync`; `console.ts` keeps the existing `readFileSync` layer import and writes the bytes with `writeStdoutSync`.
+- Step 7, source grep: `rg -n '\bDeno\.(exit|cwd|args|addSignalListener|stdin|stdout|stderr)\b' src/core -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` printed no matches (the empty pipeline exited 1), as expected.
+  `grep -n 'writeAllSync' src/core/console.ts` after the edit printed no matches, confirming that both its import and only call were replaced.
+- Step 7, type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+- Step 7, tests: the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/path.test.ts unit/environment.test.ts unit/core/append-log-options.test.ts (Get-ChildItem smoke/logging -Recurse -Filter *.test.ts).FullName` exited 0 with `ok | 25 passed | 0 failed (1m5s)`.
+- Step 6 output verification: `package/dist/bin/quarto.cmd render tests/docs/test.qmd --to pdf --output -` exited 0; its redirected stdout was 12,054 bytes beginning `%PDF-1.7`, while the render and two `lualatex` runs were reported on stderr.
+- Formatting: `git diff --shortstat` over the twelve source files printed `12 files changed, 30 insertions(+), 41 deletions(-)` before formatting.
+  `package/dist/bin/tools/x86_64/deno.exe fmt` on those files printed `Checked 12 files`; the shortstat afterward was `12 files changed, 32 insertions(+), 43 deletions(-)`.
+  Reverted the formatter's two unchanged `formatter: (({ msg }) => ...)` lines in `log.ts`; the final shortstat returned to `12 files changed, 30 insertions(+), 41 deletions(-)`. `git diff --check` passed.
+- Deviations: applied the planned textual substitutions with exact file edits rather than the shell `add_import`/`sed` helper; added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required. No implementation changes beyond the planned edits.
+- Outstanding: none in Task 4. Tasks 5–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 4.

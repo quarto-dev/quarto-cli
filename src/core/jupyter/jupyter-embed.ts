@@ -69,6 +69,7 @@ import { logProgress } from "../log.ts";
 import * as ld from "../lodash.ts";
 import { texSafeFilename } from "../tex.ts";
 import { readTextFileSync } from "../../deno_ral/fs.ts";
+import { cwd } from "../../deno_ral/process.ts";
 
 export interface JupyterNotebookAddress {
   path: string;
@@ -380,7 +381,7 @@ function resolveNbPath(input: string, path: string, context: ProjectContext) {
     if (isAbsolute(input)) {
       return join(dirname(input), path);
     } else {
-      const baseDir = context.isSingleFile ? Deno.cwd() : context.dir;
+      const baseDir = context.isSingleFile ? cwd() : context.dir;
       const result = join(baseDir, dirname(input), path);
       return result;
     }

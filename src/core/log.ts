@@ -24,6 +24,7 @@ import { pandocBinaryPath } from "./resources.ts";
 import { Block, pandoc } from "./pandoc/json.ts";
 import { isGitHubActions, isVerboseMode } from "../tools/github.ts";
 import { env } from "../deno_ral/env.ts";
+import { writeStderrSync } from "../deno_ral/process.ts";
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
 export type LogFormat = "plain" | "json-stream";
@@ -176,23 +177,7 @@ export class StdErrOutputHandler extends BaseHandler {
     return msg;
   }
   override log(msg: string): void {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(msg);
-
-    let bytesWritten = 0;
-    while (bytesWritten < data.length) {
-      // Write the remaining portion of the buffer
-      const remaining = data.subarray(bytesWritten);
-      const written = Deno.stderr.writeSync(remaining);
-
-      // If we wrote 0 bytes, something is wrong - avoid infinite loop
-      if (written === 0) {
-        // Could add fallback handling here if needed
-        break;
-      }
-
-      bytesWritten += written;
-    }
+    writeStderrSync(new TextEncoder().encode(msg));
   }
 }
 

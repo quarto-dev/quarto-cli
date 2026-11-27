@@ -18,6 +18,7 @@ import { FAILSAFE_SCHEMA, loadAll, Type } from "yaml";
 import { execProcess } from "./process.ts";
 import { pandocBinaryPath } from "./resources.ts";
 import { readTextFileSync } from "../deno_ral/fs.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 // Keeps every scalar as written and, like pandoc, accepts any tag (!!int,
 // !custom, ...) by keeping the untagged value
@@ -101,7 +102,7 @@ export async function renderToCSLJSON(
     const biblioPath = join(dir, biblio);
     const absBiblioPath = isAbsolute(biblioPath)
       ? biblioPath
-      : join(Deno.cwd(), biblioPath);
+      : join(cwd(), biblioPath);
     const ext = extname(biblioPath).toLowerCase();
     const cmd = [pandocBinaryPath()];
     let stdin: string | undefined;

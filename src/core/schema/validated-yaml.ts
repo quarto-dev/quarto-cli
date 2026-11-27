@@ -15,6 +15,7 @@ import {
   readAndValidateYamlFromMappedString,
   ValidationError,
 } from "../lib/yaml-schema/validated-yaml.ts";
+import { cwd } from "../../deno_ral/process.ts";
 
 export { ValidationError } from "../lib/yaml-schema/validated-yaml.ts";
 
@@ -30,7 +31,7 @@ export async function readAndValidateYamlFromFile(
 
   let shortFileName = file;
   if (shortFileName.startsWith("/")) {
-    shortFileName = relative(Deno.cwd(), shortFileName);
+    shortFileName = relative(cwd(), shortFileName);
   }
 
   let fileContents = readTextFileSync(file).trimEnd();

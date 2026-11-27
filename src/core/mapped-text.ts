@@ -17,6 +17,7 @@ import * as mt from "./lib/mapped-text.ts";
 import { withTiming } from "./timing.ts";
 import { makeTimedFunction } from "./performance/function-times.ts";
 import { readTextFileSync } from "../deno_ral/fs.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 export type EitherString = mt.EitherString;
 export type MappedString = mt.MappedString;
@@ -90,7 +91,7 @@ export function mappedStringFromFile(filename: string): MappedString {
   const value = readTextFileSync(filename);
 
   if (filename.startsWith("/")) {
-    filename = relative(Deno.cwd(), filename);
+    filename = relative(cwd(), filename);
   }
   return asMappedString(value, filename);
 }

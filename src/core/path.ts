@@ -35,6 +35,7 @@ import { getenv } from "./env.ts";
 import { execProcess } from "./process.ts";
 import { isWindows } from "../deno_ral/platform.ts";
 import { env } from "../deno_ral/env.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 export function skipHiddenWithin(dir: string) {
   // walk() yields children of `dir` in normalized form without a doubled separator
@@ -341,7 +342,7 @@ export function resolveGlobs(
 export function normalizePath(path: string | URL): string {
   let file = path instanceof URL ? fromFileUrl(path) : path;
   if (!isAbsolute(file)) {
-    file = join(Deno.cwd(), file);
+    file = join(cwd(), file);
   }
   file = normalize(file);
   // some runtimes (e.g. nodejs) create paths w/ lowercase drive
