@@ -160,6 +160,13 @@ export async function execProcess(
     } else {
       // Process the streams independently
       const promises: Promise<void>[] = [];
+      const stopChild = () => {
+        try {
+          process.kill();
+        } catch {
+          // already exited
+        }
+      };
 
       if (process.stdout !== null) {
         promises.push(
@@ -167,6 +174,7 @@ export async function execProcess(
             process.stdout.values(),
             options.stdout,
             respectStreams ? "stdout" : undefined,
+            stopChild,
           ).then((text) => {
             stdoutText = text;
           }),
@@ -182,6 +190,7 @@ export async function execProcess(
             iterator,
             options.stderr,
             respectStreams ? "stderr" : undefined,
+            stopChild,
           ).then((text) => {
             stderrText = text;
           }),
@@ -242,10 +251,14 @@ async function* filteredAsyncIterator(
 }
 
 // Processes ouptut from an interator (stderr, stdout, etc...)
+// With `which`, a short write means the reader of our own stream went away
+// (`quarto run script | head`): onReaderGone stops the child, so its output
+// ends instead of accumulating.
 async function processOutput(
   iterator: AsyncIterable<Uint8Array>,
   output?: StdioOption,
   which?: "stdout" | "stderr",
+  onReaderGone?: () => void,
 ): Promise<string> {
   const decoder = new TextDecoder();
   let outputText = "";
@@ -258,13 +271,19 @@ async function processOutput(
     }
     outputText += text;
   };
+  const write = which === "stdout"
+    ? writeStdoutSync
+    : which === "stderr"
+    ? writeStderrSync
+    : undefined;
+  let readerGone = false;
   for await (const chunk of iterator) {
-    if (output === "inherit" || output === undefined) {
-      if (which === "stdout") {
-        writeStdoutSync(chunk);
-      } else if (which === "stderr") {
-        writeStderrSync(chunk);
-      }
+    if (
+      write && !readerGone && (output === "inherit" || output === undefined) &&
+      write(chunk) < chunk.length
+    ) {
+      readerGone = true;
+      onReaderGone?.();
     }
     accept(decoder.decode(chunk, { stream: true }));
   }
