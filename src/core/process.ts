@@ -160,15 +160,19 @@ export async function execProcess(
     } else {
       // Process the streams independently
       const promises: Promise<void>[] = [];
-      let readerGone!: () => void;
-      const readerGoneSignal = new Promise<void>((r) => readerGone = r);
-      const stopChild = () => {
-        try {
-          process.kill();
-        } catch {
-          // already exited
-        }
-        readerGone();
+      let signalReaderGone!: () => void;
+      const readerGoneSignal = new Promise<void>((r) => signalReaderGone = r);
+      const readerGone: ReaderGone = {
+        gone: false,
+        stop: () => {
+          readerGone.gone = true;
+          try {
+            process.kill();
+          } catch {
+            // already exited
+          }
+          signalReaderGone();
+        },
       };
 
       if (process.stdout !== null) {
@@ -177,7 +181,7 @@ export async function execProcess(
             process.stdout.values(),
             options.stdout,
             respectStreams ? "stdout" : undefined,
-            stopChild,
+            readerGone,
           ).then((text) => {
             stdoutText = text;
           }),
@@ -193,7 +197,7 @@ export async function execProcess(
             iterator,
             options.stderr,
             respectStreams ? "stderr" : undefined,
-            stopChild,
+            readerGone,
           ).then((text) => {
             stderrText = text;
           }),
@@ -255,15 +259,20 @@ async function* filteredAsyncIterator(
   }
 }
 
+// Shared by both streams of one child: once a passthrough write is short, the
+// child is stopped, and the rest of both pipes (a worker it started may keep
+// writing) is drained without being kept.
+type ReaderGone = { gone: boolean; stop: () => void };
+
 // Processes ouptut from an interator (stderr, stdout, etc...)
 // With `which`, a short write means the reader of our own stream went away
-// (`quarto run script | head`): onReaderGone stops the child, so its output
-// ends instead of accumulating.
+// (`quarto run script | head`): readerGone.stop() stops the child, so its
+// output ends instead of accumulating.
 async function processOutput(
   iterator: AsyncIterable<Uint8Array>,
   output?: StdioOption,
   which?: "stdout" | "stderr",
-  onReaderGone?: () => void,
+  readerGone?: ReaderGone,
 ): Promise<string> {
   const decoder = new TextDecoder();
   let outputText = "";
@@ -281,14 +290,16 @@ async function processOutput(
     : which === "stderr"
     ? writeStderrSync
     : undefined;
-  let readerGone = false;
   for await (const chunk of iterator) {
+    if (readerGone?.gone) {
+      continue;
+    }
     if (
-      write && !readerGone && (output === "inherit" || output === undefined) &&
+      write && (output === "inherit" || output === undefined) &&
       write(chunk) < chunk.length
     ) {
-      readerGone = true;
-      onReaderGone?.();
+      readerGone?.stop();
+      continue;
     }
     accept(decoder.decode(chunk, { stream: true }));
   }
