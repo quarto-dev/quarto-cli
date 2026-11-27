@@ -450,12 +450,25 @@ function render_latex()
       
       -- For any footnote content that was pulled out, append a footnotetext
       -- that include the contents
-      for _i, v in ipairs(noteContents) do
+      --
+      -- Each \footnotemark above stepped the footnote counter, and a plain
+      -- \footnotetext uses the counter's current value, so every text would
+      -- get the last mark's number. Rewind the counter to the first mark
+      -- and step it forward before each following text (quarto-dev/quarto-cli#15299).
+      for i, v in ipairs(noteContents) do
+        local footnotetext = '\\footnotetext{'
+        if #noteContents > 1 then
+          if i == 1 then
+            footnotetext = '\\addtocounter{footnote}{-' .. (#noteContents - 1) .. '}' .. footnotetext
+          else
+            footnotetext = '\\addtocounter{footnote}{1}' .. footnotetext
+          end
+        end
         -- If there are paragraphs, just attach to them when possible
         if v[1].t == "Para" then
-          table.insert(v[1].content, 1, pandoc.RawInline('latex', '\\footnotetext{'))
+          table.insert(v[1].content, 1, pandoc.RawInline('latex', footnotetext))
         else
-          v:insert(1, pandoc.RawInline('latex', '\\footnotetext{'))
+          v:insert(1, pandoc.RawInline('latex', footnotetext))
         end
           
         if v[#v].t == "Para" then

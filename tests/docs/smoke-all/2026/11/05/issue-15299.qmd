@@ -1,0 +1,44 @@
+---
+title: Several footnotes in one callout
+format: latex
+_quarto:
+  tests:
+    latex:
+      ensureFileRegexMatches:
+        - - '^\\addtocounter\{footnote\}\{-2\}\\footnotetext\{Callout\snote\sone\.\}'
+          - '^\\addtocounter\{footnote\}\{1\}\\footnotetext\{Callout\snote\stwo\.\}'
+          - '^\\addtocounter\{footnote\}\{1\}\\footnotetext\{Callout\snote\sthree\.\}'
+          - '^\\footnotetext\{The\sonly\scallout\snote\.\}'
+          - '^\\addtocounter\{footnote\}\{-1\}\\footnotetext\{Simple\sno\sicon\sone\.\}'
+          - '^\\addtocounter\{footnote\}\{1\}\\footnotetext\{Simple\sno\sicon\stwo\.\}'
+          - '^\\addtocounter\{footnote\}\{-1\}\\footnotetext\{Simple\sicon\sone\.\}'
+          - '^\\addtocounter\{footnote\}\{1\}\\footnotetext\{Simple\sicon\stwo\.\}'
+          - '^\\addtocounter\{footnote\}\{-1\}\\footnotetext\{Minimal\sone\.\}'
+          - '^\\addtocounter\{footnote\}\{1\}\\footnotetext\{Minimal\stwo\.\}'
+        - # a callout with a single footnote needs no counter change
+          - '\\addtocounter\{footnote\}\{-?[0-9]+\}\\footnotetext\{The\sonly'
+---
+
+In LaTeX output, footnotes inside a callout are replaced by `\footnotemark{}` and their text is written after the callout box with `\footnotetext{}`. Each `\footnotemark` steps the footnote counter, and a plain `\footnotetext` uses the counter's current value, so all the footnotes of one callout were printed with the number of the last one (1, 2, 5, 5, 5 here). The counter must be rewound to the first mark before the first text and stepped forward before each of the others.
+
+Text outside a callout, so the counter does not start at zero.^[Outside note one.] And a second one.^[Outside note two.]
+
+::: {.callout-note}
+Text inside a callout with three footnotes: one^[Callout note one.], two^[Callout note two.] and three^[Callout note three.].
+:::
+
+::: {.callout-tip}
+A callout with a single footnote.^[The only callout note.]
+:::
+
+::: {.callout-warning appearance="simple" icon="false"}
+A simple callout without an icon: one^[Simple no icon one.] and two^[Simple no icon two.].
+:::
+
+::: {.callout-important appearance="simple"}
+A simple callout with an icon: one^[Simple icon one.] and two^[Simple icon two.].
+:::
+
+::: {.callout-note appearance="minimal"}
+A minimal callout: one^[Minimal one.] and two^[Minimal two.].
+:::
