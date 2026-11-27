@@ -590,6 +590,10 @@ export function fillLogoPaths(
     }
     return undefined;
   }
+  if (spec === false) {
+    // keep an explicit `logo: false` so `resolveLogo()` can disable the logo
+    return false;
+  }
   if (!spec) {
     return undefined;
   }

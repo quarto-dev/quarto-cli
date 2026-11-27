@@ -1,0 +1,28 @@
+---
+title: Typst with logo false (top level)
+format:
+  typst:
+    output-ext: typ
+logo: false
+brand:
+  color:
+    primary: "#1f6f8b"
+  logo:
+    images:
+      quarto:
+        path: quarto.png
+        alt: quarto logo
+    small: quarto
+_quarto:
+  tests:
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - 'primary: rgb\("#1f6f8b"\)'
+        -
+          - 'set page\(background'
+          - 'image\("[^"]*quarto\.png"'
+---
+
+`logo: false` removes the brand logo in Typst output, while the rest of the
+brand still applies (#15311).
