@@ -1,6 +1,6 @@
 # <key>: [<lang>, ...]   languages whose translation of <key> is still missing (languages sorted)
 announcement-dismiss-label: [da, el, nb]
-link-external-newwindow-label: [az, bg, de]
+link-external-newwindow-label: [az, bg]
 revealjs-menu-button-label: [da, nl]
 skip-to-content: [eu, is]
 tools-download: [sr-Latn]
