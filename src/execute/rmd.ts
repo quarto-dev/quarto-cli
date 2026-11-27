@@ -55,6 +55,7 @@ import {
 } from "../core/lib/mapped-text.ts";
 import { makeTempFileSync } from "../deno_ral/temp.ts";
 import { env } from "../deno_ral/env.ts";
+import { cwd as currentDir } from "../deno_ral/process.ts";
 
 const kRmdExtensions = [".rmd", ".rmarkdown"];
 
@@ -451,7 +452,7 @@ async function callR<T>(
 ): Promise<T> {
   // establish cwd for our R scripts (the current dir if there is an renv
   // otherwise the project dir if specified)
-  const cwd = withinActiveRenv() ? Deno.cwd() : projectDir ?? Deno.cwd();
+  const cwd = withinActiveRenv() ? currentDir() : projectDir ?? currentDir();
 
   // create a temp file for writing the results
   const resultsFile = makeTempFileSync(

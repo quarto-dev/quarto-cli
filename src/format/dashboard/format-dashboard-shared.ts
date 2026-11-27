@@ -4,6 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 import { warning } from "../../deno_ral/log.ts";
+import { cwd } from "../../deno_ral/process.ts";
 import { kTitle } from "../../config/constants.ts";
 import { Format, Metadata } from "../../config/types.ts";
 import { Document, Element } from "../../core/deno-dom.ts";
@@ -271,7 +272,7 @@ const kNavButtonAliases: Record<
     });
   },
   github: async (_text?: string) => {
-    const context = await gitHubContext(Deno.cwd());
+    const context = await gitHubContext(cwd());
     if (context.repoUrl) {
       return {
         icon: "github",

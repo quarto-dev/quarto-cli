@@ -7,6 +7,7 @@
 import { existsSync, readDirSync, statSync, walkSync } from "../deno_ral/fs.ts";
 import { expandGlobSync } from "../core/deno/expand-glob.ts";
 import { warning } from "../deno_ral/log.ts";
+import { cwd } from "../deno_ral/process.ts";
 import { isSubdir } from "../deno_ral/fs.ts";
 import { coerce, Range, satisfies } from "semver/mod.ts";
 
@@ -629,7 +630,7 @@ export function discoverExtensionPath(
           }`,
         );
       }
-      return relative(Deno.cwd(), paths[0]);
+      return relative(cwd(), paths[0]);
     } else {
       return undefined;
     }
@@ -823,7 +824,7 @@ async function readExtension(
   const extensionDirRaw = dirname(extensionFile);
   const extensionDir = isAbsolute(extensionDirRaw)
     ? extensionDirRaw
-    : join(Deno.cwd(), extensionDirRaw);
+    : join(cwd(), extensionDirRaw);
 
   // The formats that are being contributed
   const formats = contributes?.formats as Metadata ||

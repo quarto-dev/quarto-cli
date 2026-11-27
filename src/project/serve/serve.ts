@@ -13,6 +13,7 @@ import {
   safeRemoveSync,
   writeTextFileSync,
 } from "../../deno_ral/fs.ts";
+import { cwd, killProcess, pid as processPid } from "../../deno_ral/process.ts";
 import {
   basename,
   dirname,
@@ -150,7 +151,7 @@ export async function serveProject(
   const nbContext = renderOptions.services.notebook;
   if (typeof target === "string") {
     if (target === ".") {
-      target = Deno.cwd();
+      target = cwd();
     }
     project = await projectContext(
       target,
@@ -912,7 +913,7 @@ function acquirePreviewLock(project: ProjectContext) {
         { newline: false },
       );
       try {
-        Deno.kill(pid, "SIGTERM");
+        killProcess(pid, "SIGTERM");
         sleepSync(3000);
       } catch {
         //
@@ -923,7 +924,7 @@ function acquirePreviewLock(project: ProjectContext) {
   }
 
   // write our pid to the lockfile
-  writeTextFileSync(lockfile, String(Deno.pid));
+  writeTextFileSync(lockfile, String(processPid()));
 
   // remove the lockfile when we exit
   onCleanup(() => releasePreviewLock(project));

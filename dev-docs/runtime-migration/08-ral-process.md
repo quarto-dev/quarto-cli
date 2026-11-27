@@ -1425,7 +1425,7 @@ git commit -m "command: exit/cwd/args/execPath/stdio through deno_ral/process"
 
 **Files:** below.
 
-- [ ] **Step 1: `cwd` sites**
+- [x] **Step 1: `cwd` sites**
 
 | File | Import | Edit |
 |---|---|---|
@@ -1437,7 +1437,7 @@ git commit -m "command: exit/cwd/args/execPath/stdio through deno_ral/process"
 | `src/execute/jupyter/jupyter.ts` | `import { pid } from "../../deno_ral/process.ts";` | line 487 `supervisor_pid: options.previewServer ? pid() : undefined,` |
 | `src/tools/tools.ts` | `import { exit, writeStdoutSync } from "../deno_ral/process.ts";` | lines 151, 166, 338 `exit(1)`; lines 95-97 `writeStdoutSync(new TextEncoder().encode(JSON.stringify(response, null, 2) + "\n"));` |
 
-- [ ] **Step 2: Verify and commit**
+- [x] **Step 2: Verify and commit**
 
 Run: `rg -n '\bDeno\.(exit|cwd|pid|kill|stdin|stdout|stderr)\b' src/project src/format src/execute src/extension src/inspect src/tools src/preview -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` Expected: empty.
 
@@ -1944,3 +1944,19 @@ Resolved since the first draft:
   `deno.exe fmt` on the other 23 files printed `Checked 23 files`; the shortstat afterward was unchanged at `27 files changed, 100 insertions(+), 75 deletions(-)`. `git diff --check -- src/command` passed.
 - Deviations: applied the planned textual substitutions with exact file edits rather than the shell `add_import`/`sed` helper; added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required. The tests produced two untracked build artifacts, which were removed; no implementation changes beyond the planned edits.
 - Outstanding: none in Task 5. Tasks 6–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 5.
+
+### Task 6: `src/project`, `src/format`, `src/execute`, `src/extension`, `src/inspect`, `src/tools`
+
+- Step 1: migrated the ten planned files to `deno_ral/process.ts`.
+  `serve.ts` now uses `cwd`, `killProcess` and the `processPid` alias without renaming its local `pid`; `rmd.ts` keeps its local `cwd` and uses the planned `currentDir` alias; `jupyter.ts` writes `pid()` as the supervisor pid; `tools.ts` uses `writeStdoutSync` and `exit` at the planned sites.
+  The remaining six files have only their planned `cwd` import and call-site substitutions.
+- Step 2, source grep: `rg -n '\bDeno\.(exit|cwd|pid|kill|stdin|stdout|stderr)\b' src/project src/format src/execute src/extension src/inspect src/tools src/preview -g '*.ts' | rg -v '^[^:]+:[0-9]+:\s*(//|/\*|\*)'` printed no matches (the empty pipeline exited 1), as expected.
+- Step 2, type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+- Step 2, tests: the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, the PowerShell expansions of `unit/project`, `unit/extension` and `unit/tools`, and the four planned smoke files exited 0 with `ok | 192 passed | 0 failed | 3 ignored (2m42s)`.
+  `smoke/render/render-jupyter.test.ts` was included, so the fallback test was not needed.
+- Formatting: `git diff --shortstat` over the ten source files printed `10 files changed, 26 insertions(+), 18 deletions(-)` before formatting.
+  `deno.exe fmt --check` on those files reported `format-html-notebook.ts` (its pre-existing long path import and blank lines) and the new long `writeStdoutSync` line in `tools.ts`.
+  Left the pre-existing formatting in `format-html-notebook.ts` untouched and ran `deno.exe fmt` on the other nine files; it printed `Checked 9 files` and wrapped only the new `tools.ts` call. The shortstat afterward was `10 files changed, 26 insertions(+), 16 deletions(-)`.
+  `git diff --check` passed, and no formatter-only hunk outside the task's changed lines was introduced.
+- Deviations: applied the planned textual substitutions with exact file edits rather than the shell `add_import`/`sed` helper; added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.exe` binaries as required. No implementation changes beyond the planned edits and formatting.
+- Outstanding: none in Task 6. Tasks 7–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 6.
