@@ -312,11 +312,18 @@ const aboutPagePostProcessor = (
 
     // Grab the about element
     let aboutEl = aboutPage.id ? doc.getElementById(aboutPage.id) : undefined;
+    let aboutElIsMain = false;
     if (!aboutEl) {
-      aboutEl = doc.querySelector("main.content");
+      aboutEl = doc.querySelector("main.content") ?? undefined;
+      aboutElIsMain = aboutEl !== undefined;
     }
 
-    const body = aboutEl?.outerHTML || "";
+    // When the about element is the page's <main>, pass only its inner HTML
+    // and render the template *into* <main>, so the title block, image and
+    // links stay inside the main landmark (and the title is not a banner).
+    const body = aboutElIsMain
+      ? aboutEl?.innerHTML || ""
+      : aboutEl?.outerHTML || "";
     const ejsData: AboutPageEjsData = {
       title,
       body,
@@ -336,10 +343,14 @@ const aboutPagePostProcessor = (
     );
 
     // Replace the about page contents with the updated contents
-    const aboutPageContainer = doc.createElement("div");
-    aboutPageContainer.innerHTML = aboutPageHtml;
-    aboutEl?.after(...aboutPageContainer.childNodes);
-    aboutEl?.remove();
+    if (aboutEl && aboutElIsMain) {
+      aboutEl.innerHTML = aboutPageHtml;
+    } else {
+      const aboutPageContainer = doc.createElement("div");
+      aboutPageContainer.innerHTML = aboutPageHtml;
+      aboutEl?.after(...aboutPageContainer.childNodes);
+      aboutEl?.remove();
+    }
 
     const result: HtmlPostProcessResult = {
       resources: [],
