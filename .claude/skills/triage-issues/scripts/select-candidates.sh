@@ -121,10 +121,12 @@ fi
 printf '%s' "$pages" | jq -e 'type == "array" and length > 0' >/dev/null 2>&1 \
   || die 1 "listing is not a non-empty array of GraphQL pages"
 
-# The search reports how many results exist; fewer distinct items fetched means a partial listing
-# (a page can repeat an item when search order shifts between requests).
+# The search reports how many results exist. The listing is partial when that count changes between
+# pages (items opened or closed mid-fetch) or when fewer distinct items were fetched (a page can repeat
+# an item when search order shifts between requests).
 truncated=$(printf '%s' "$pages" | jq -r \
-  '([.[].data.search.nodes[] | select(. != null) | .number] | unique | length) < (.[-1].data.search.issueCount) ') \
+  '([.[].data.search.issueCount] | unique | length) > 1
+   or ([.[].data.search.nodes[] | select(. != null) | .number] | unique | length) < (.[-1].data.search.issueCount) ') \
   || die 1 "listing has an unexpected shape"
 [ "$truncated" = "false" ] || die 2 "listing truncated: fewer results fetched than the search reports"
 
@@ -135,7 +137,7 @@ out=$(printf '%s' "$pages" | jq -c \
   | ($start | fromdateiso8601) as $hi
   | ($skip | split("\n") | map(gsub("#.*"; "") | gsub("[ \t\r]"; "")) | map(select(test("^[0-9]+$")) | tonumber)) as $skipped
   | ["duplicate","invalid","question","wontfix","needs-repro","stale","support"] as $blocking
-  | [[.[].data.search.nodes[] | select(. != null)] | unique_by(.number) | .[]
+  | [[.[].data.search.nodes[] | select(. != null)] | group_by(.number) | map(last) | .[]
      | select((.createdAt | fromdateiso8601) as $t | $t >= $lo and $t < $hi)
      | . as $n
      | ([$n.labels.nodes[].name]) as $labels

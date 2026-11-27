@@ -78,6 +78,16 @@ jq 'map(.data.search.issueCount = 9) | .[1].data.search.nodes = [.[0].data.searc
 out=$(bash "$script" --input "$tmp/duplicate-complete.json" --now "$now" --state-dir "$d")
 check duplicate_emitted_once "$(numbers "$out")" '[1007,1008,1009]'
 
+# duplicate_keeps_latest: a repeated item is judged on its last fetched copy (here: unassigned later)
+jq '.[1].data.search.nodes = [.[0].data.search.nodes[2]] | .[0].data.search.nodes[2].assignees.totalCount = 1 | .[1].data.search.nodes[0].assignees.totalCount = 0 | .[1].data.search.nodes[0].labels.nodes = [] | map(.data.search.issueCount = 9)' "$tmp/duplicate.json" > "$tmp/duplicate-latest.json"
+out=$(bash "$script" --input "$tmp/duplicate-latest.json" --now "$now" --state-dir "$d")
+check duplicate_keeps_latest "$(numbers "$out")" '[1003,1007,1008,1009]'
+
+# count_changes_between_pages: differing issueCount across pages means the listing moved under us
+jq '.[0].data.search.issueCount = 10 | .[1].data.search.nodes = [] | .[1].data.search.issueCount = 9' "$tmp/duplicate.json" > "$tmp/count-changed.json"
+out=$(bash "$script" --input "$tmp/count-changed.json" --now "$now" --state-dir "$d" 2>/dev/null); rc=$?
+check count_changes_between_pages "$rc:$out" "2:"
+
 # missing_input
 out=$(bash "$script" --input /nonexistent.json --now "$now" --state-dir "$d" 2>/dev/null); rc=$?
 check missing_input "$rc" 1

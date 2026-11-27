@@ -49,7 +49,7 @@ Set `possible_regression` to true when the thread says it worked in an earlier v
 3. Today: a bug passing every gate check.
 4. Dig deeper: every remaining issue. A bug asking for several things gets "split into N issues" as reason. An issue too vague to tell bug from feature or question gets "needs info" as reason, work type `unknown`, and "ask the reporter to clarify" as next step.
 
-**PRs** get the same four verdicts, read as review effort, first match wins. Their work type is always `review`.
+**PRs** get the same four verdicts, read as review effort, first match wins. Their work type is always `review` once the thread was read (an unread PR stays `unknown`, see step 2).
 
 1. Nothing to do: superseded, or a maintainer is already reviewing.
 2. Later: large, or adds a feature.
