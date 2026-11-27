@@ -1789,7 +1789,7 @@ git commit -m "Changelog, rules doc and lower runtime boundary baseline after pr
 - [ ] `detached` reaches `Deno.Command`; `preview-server.ts` passes `detached: !isWindows` and stops with `killProcess(-pid)` on POSIX, `taskkill /T` on Windows.
 - [ ] `writeAllSync` never throws on 0 bytes or a broken pipe and returns the bytes written; `core/log.ts` uses `writeStderrSync`.
 - [ ] `readStdinLines` closes stdin only when the consumer stopped before EOF.
-- [ ] `execProcess` still: writes stdin in 4 KB chunks with the `#14445` close handling; merges streams with `MuxAsyncIterator` when `mergeOutput` is set; applies `timeout` to both the stream drain and the status; registers and unregisters the child for exit cleanup.
+- [ ] `execProcess` still: writes stdin in 4 KB chunks with the `#14445` close handling; merges streams with `MuxAsyncIterator` when `mergeOutput` is set; applies `timeout` to the independent-stream drain and to the status in both modes (the merged-output drain stays untimed); registers and unregisters the child for exit cleanup.
 - [ ] `ExecProcessOptions` is still a superset of `packages/quarto-types/src/system.ts` `ExecProcessOptions` (cmd, args, cwd, env, stdin, stdout, stderr); the changelog line is present.
 - [ ] `cri/launch.ts`: stderr is still drained; `close()` still awaits `status` then `draining` before removing the user-data dir.
 - [ ] `create --json` reads the first stdin line; `editor-support crossref` reads all of stdin.

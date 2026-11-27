@@ -71,9 +71,10 @@ Prefer sync APIs in CLI handlers for simpler code flow. Use async for I/O-heavy 
 ```typescript
 import { normalizePath } from "../core/path.ts";
 import { isWindows } from "../deno_ral/platform.ts";
+import { cwd } from "../deno_ral/process.ts";
 
 // Normalize paths for consistent comparison
-const normalized = normalizePath(Deno.cwd());
+const normalized = normalizePath(cwd());
 
 // Platform-specific logic
 if (isWindows) {
