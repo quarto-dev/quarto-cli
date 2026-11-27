@@ -129,6 +129,11 @@ link-external-newwindow-label: "(opens in a new tab)"
 # Imperative, like other button labels; use the language's usual "close" verb.
 announcement-dismiss-label: "Dismiss announcement"
 
+# Accessible name for the button that closes the table of contents sheet on narrow screens (never shown as visible text).
+# The sheet is a panel that slides up from the bottom of the screen and lists the page sections.
+# Imperative, like other button labels; use the language's usual "close" verb.
+toc-sheet-close-label: "Close table of contents"
+
 # Accessible name for the Reveal.js slide menu button (never shown as visible text).
 # "Slide" is a presentation slide (PowerPoint sense); use a noun phrase, not a command.
 revealjs-menu-button-label: "Slide menu"

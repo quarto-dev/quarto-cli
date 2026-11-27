@@ -2,7 +2,7 @@
   "quarto.js": {
     "inputs": {
       "quarto.js": {
-        "bytes": 27594,
+        "bytes": 42915,
         "imports": [],
         "format": "esm"
       }
@@ -25,10 +25,10 @@
         "entryPoint": "quarto.js",
         "inputs": {
           "quarto.js": {
-            "bytesInOutput": 22796
+            "bytesInOutput": 34682
           }
         },
-        "bytes": 22796
+        "bytes": 34682
       }
     }
   }

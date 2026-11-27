@@ -1,0 +1,9 @@
+---
+title: "Mobile TOC right-body"
+format:
+  html:
+    toc: true
+    toc-location: right-body
+---
+
+{{< include _sections.md >}}

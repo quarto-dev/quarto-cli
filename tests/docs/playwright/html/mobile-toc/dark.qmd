@@ -1,0 +1,13 @@
+---
+title: "Mobile TOC dark"
+format:
+  html:
+    toc: true
+    theme:
+      light: cosmo
+      dark: darkly
+    axe:
+      output: json
+---
+
+{{< include _sections.md >}}

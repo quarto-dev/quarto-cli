@@ -1,0 +1,11 @@
+---
+title: "Mobile TOC right"
+format:
+  html:
+    toc: true
+    toc-location: right
+    axe:
+      output: json
+---
+
+{{< include _sections.md >}}
