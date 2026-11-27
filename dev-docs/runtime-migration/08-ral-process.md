@@ -289,7 +289,7 @@ When a file already imports from `deno_ral/process.ts` (only `src/command/render
 
 ### Task 0: confirm `Deno.CommandOptions.detached`
 
-- [ ] **Step 1: Check the bundled Deno's type declarations**
+- [x] **Step 1: Check the bundled Deno's type declarations**
 
 Run: `package/dist/bin/tools/x86_64/deno types | grep -n -A3 'detached?: boolean'` Expected: one hit inside `interface CommandOptions` (doc: "Whether to detach the spawned process from the current process").
 PR 14b records that Deno 2.7.14, the version before PR 00a, already has it, so this check should pass whatever the Phase 0 state; if it is absent all the same, stop and land PR 00a first (not a header dependency, a guard): the process-group contract depends on it, and a hand-rolled `setsid` wrapper is not portable to macOS.
@@ -1860,3 +1860,14 @@ Resolved since the first draft:
 - Gates measured on `d0f4d3e70`: `deno check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` (from `src/`) → exit 0.
   The `package/src` check of Task 8 → exit 1 with 17 errors: 9 `TS2339 Property 'run'` (this PR removes them) and 8 unrelated to this PR (`TS18046` ×1, `TS2554` ×2, `TS2339 'Solve'` ×2, `TS7053` ×3).
 - Procedural amendments (staging, gates, manual checks, ratchet keys, counts) are rows of `OPEN-DECISIONS.md` naming PR 08.
+
+### Task 0: confirm `Deno.CommandOptions.detached`
+
+- Step 1: `package/dist/bin/tools/x86_64/deno.exe --version` printed `deno 2.9.8 (stable, release, x86_64-pc-windows-msvc)`.
+  `package/dist/bin/tools/x86_64/deno.exe types | grep -n -A3 'detached?: boolean'` exited 0 with the single hit `4210:    detached?: boolean;`.
+  The surrounding declaration check (`grep -n -B25 -A3 'detached?: boolean'`) showed line 4198, `Whether to detach the spawned process from the current process.`, inside `CommandOptions`.
+  The guard passes; PR 00a does not need to be landed first.
+- Preflight: README already marks PR 08 `in progress`, and HANDOFF already names it as in progress with step 0 done, so neither file needed an update.
+  `git status --short` was empty before this plan-only change.
+- Deviations: used the Windows `.exe` suffix for the bundled Deno binary; no source or test changes, and no formatter run.
+- Outstanding: Tasks 1–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 0.
