@@ -1735,7 +1735,7 @@ git commit -m "package/src: Deno.run and Deno.Command through deno_ral/process"
 **Files:**
 - Modify: `news/changelog-1.12.md`, `tools/runtime-boundary-baseline.json`, `.claude/rules/typescript/deno-ral.md`
 
-- [ ] **Step 1: Changelog**
+- [x] **Step 1: Changelog**
 
 Open the PR as a draft to get its number `N`, then add under `## Extensions` in `news/changelog-1.12.md` (create the heading in the position `.claude/rules/changelog.md` prescribes if it is absent):
 
@@ -1744,11 +1744,11 @@ Open the PR as a draft to get its number `N`, then add under `## Extensions` in 
   Other Deno-specific options (`uid`, `gid`, `windowsRawArguments`, numeric stdio) were never part of the declared API and are now ignored.
 ```
 
-- [ ] **Step 2: Lower the baseline**
+- [x] **Step 2: Lower the baseline**
 
 Run: `quarto run --dev tools/check-runtime-boundary.ts --update-baseline && quarto run --dev tools/check-runtime-boundary.ts` Expected: the second command passes; `git diff tools/runtime-boundary-baseline.json` shows only decreases: `src` lower by 133, `package/src` lower by 32 (re-measure if an earlier PR changed the touched files; the counts must only go down).
 
-- [ ] **Step 3: Update the rules doc**
+- [x] **Step 3: Update the rules doc**
 
 In `.claude/rules/typescript/deno-ral.md`, replace the `process.ts` row of the module table with:
 
@@ -1760,7 +1760,7 @@ and add under "Process execution" in the Common Utilities section: "Never call `
 `execProcess` (`src/core/process.ts`) remains the API for running external tools with captured output.
 Spawn with `detached: true` (POSIX) when the child must be stopped together with its own children through `killProcess(-pid)`."
 
-- [ ] **Step 4: Run the Verification list below, then commit**
+- [x] **Step 4: Run the Verification list below, then commit**
 
 ```bash
 git add news/changelog-1.12.md tools/runtime-boundary-baseline.json .claude/rules/typescript/deno-ral.md
@@ -1986,3 +1986,32 @@ Resolved since the first draft:
   `deno.exe fmt --check` on those files reported all ten as already unformatted before the edits (including line-ending-only and pre-existing style differences); no formatter write was run, so no unrelated formatter hunks were introduced. The post-edit shortstat was unchanged and `git diff --check` passed.
 - Deviations: added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required; applied the plan's import-alias convention to the two local-`args` collisions described above. The package type check's exit 1 is the expected residual eight-error result, not a new failure.
 - Outstanding: none in Task 8. Task 9 remains unticked for a later session; no maintainer-reserved step occurs in Task 8.
+
+### Task 9: changelog, ratchet, docs, final verification
+
+- Step 1: added the planned `quarto.system.execProcess` entry under `## Extensions` in `news/changelog-1.12.md`, with the literal `#N` because opening the draft PR is reserved to the maintainer.
+- Step 2, process replacement hints: added the 17 process-family keys to `kRalDenoReplacements` through `ralReplacements`, scoped to `src` and `package/src` through `kRalLayerScopes`, not `tests`, as the step-0 decision requires.
+  Added their unit case and updated the existing moved-`cwd` expectation. Its first run failed only that old expectation (`expected undefined, received "cwd from src/deno_ral/process.ts"`); after correcting it, the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/tools/check-runtime-boundary.test.ts` exited 0 with `ok | 49 passed | 0 failed (12s)`.
+- Step 2, baseline: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts --update-baseline && package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` exited 0.
+  The first command measured `src` 219 / 49 and `package/src` 241 / 3; the second printed `src 85 (baseline 85) 49 (baseline 49)`, `package/src 207 (baseline 207) 3 (baseline 3)`, all other counts unchanged, and `OK: no count exceeds the baseline.`
+  The measured decreases are `src` 219 → 85 (-134) and `package/src` 241 → 207 (-34). The maintainer ruled that -34 is correct: 32 code sites plus the two `// @ts-expect-error \`Deno.run()\`` comment lines in `package/src/util/tar.ts`, which the ratchet counts.
+- Step 3: replaced the rules-doc `process.ts` row and added the planned direct-call, `execProcess`, detached-spawn and group-kill guidance. No Markdown formatter was run.
+- Codemod cross-check: `package/dist/bin/quarto.cmd run --dev tools/codemod-deno-ral.ts --rules process --dir src --dry-run` exited 0 with `Summary: 625 files scanned, 0 would be rewritten, 0 replacements, 1 with collisions, 2 skipped`.
+  The collision is the excluded `src/command/render/latexmk/quarto-latexmk.ts`; the two skipped files are `src/core/deno/monkey-patch.ts` and `src/core/performance/metrics.ts`. The report is `.claude/docs/task9-codemod-process.log`.
+- Verification, process contract: the Windows PowerShell runner with `--agent unit/ral/process.test.ts` exited 0 with `ok | 17 passed | 0 failed (1s)`.
+- Verification, unit list: the same runner with the five explicit unit files, PowerShell expansions of `unit/project`, `unit/render`, `unit/tools` and `unit/ral`, plus `unit/tar-command.test.ts`, exited 0 with `ok | 249 passed | 0 failed | 4 ignored (1m37s)`.
+- Verification, smoke list: the same runner with the eight explicit smoke files and PowerShell expansions of `smoke/inspect`, `smoke/typst-gather`, `smoke/run` and `smoke/build-ts-extension` exited 0 with `ok | 58 passed (26 steps) | 0 failed | 1 ignored (13 steps) (3m48s)`.
+- Verification, type check: from `src`, `../package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 0 and printed `Check quarto.ts`.
+- Verification, ratchet and residue: `package/dist/bin/quarto.cmd run --dev tools/check-runtime-boundary.ts` exited 0 with `OK: no count exceeds the baseline.`
+  The acceptance `rg` pipeline printed no matches (empty pipeline exit 1); `rg -n 'Deno\.run\(|new Deno\.Command' package/src -g '*.ts'` also printed no matches (exit 1).
+- Verification, inspect pipe: `package/dist/bin/quarto.cmd inspect tests/docs/test.qmd | head -c 1; echo " exit=${PIPESTATUS[0]}"` printed `{ exit=0` and no `BrokenPipe` message.
+- Verification, Chrome: `package/dist/bin/quarto.cmd check` exited 0 and reported `Chrome Headless ... OK`, using the system Chrome.
+  Rendering an ignored copy of `tests/docs/smoke-all/2025/11/14/mermaid-svg-docx.qmd` with `package/dist/bin/quarto.cmd render .claude/docs/task9-mermaid.qmd --to docx` exited 0 and printed `Output created: task9-mermaid.docx`; the document's expected SVG clipping notice and librsvg CSS warnings were printed.
+- Formatting: `git diff --shortstat -- tools/check-runtime-boundary.ts tests/unit/tools/check-runtime-boundary.test.ts` printed `2 files changed, 51 insertions(+), 1 deletion(-)` before formatting.
+  `deno.exe fmt` on both files changed many pre-existing lines (`2 files changed, 1506 insertions(+), 714 deletions(-)`), so both files were restored and only the intended edits were reapplied.
+  `deno.exe fmt --check` then reported both already-unformatted files without writing them; the final shortstat is `2 files changed, 52 insertions(+), 2 deletions(-)`, including the moved-`cwd` expectation. `git diff --check` passed, with no formatter-only hunks retained.
+- Deviations: used the Windows PowerShell runner and `.cmd`/`.exe` binaries, and added `--allow-import` to the type-check gate, as required.
+  Added the process replacement keys and their test under the step-0 ratchet-keys decision. Applied the maintainer's measured `package/src` delta ruling above. Removed only the untracked render/test artifacts produced by the verification runs.
+- Outstanding, reserved to the maintainer: open the draft PR and replace `#N`; copy the before/after ratchet numbers above into the PR description; explain that the preview build and AST-diagram scripts stay untouched because they run without Quarto's source import map and have later owners, the julia-engine subtree is maintained upstream, and `quarto-latexmk.ts` is a standalone entry scheduled for deletion.
+  `TRIAGE-2026-10-16.md` A9 remains open (with the partial answer recorded in "Decisions needed"), so the PR description must say so.
+  The preview Ctrl-C/process-listing and Shiny-for-Python preview checks on Windows, and the POSIX-only preview/process-group checks, were not run; they remain manual maintainer verification. The wrap-up session still owns the review checklist and whole-branch checks.

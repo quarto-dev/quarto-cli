@@ -19,7 +19,7 @@ The `deno_ral/` directory provides a runtime abstraction layer over Deno's stand
 | `log.ts`      | Logging                                  | `debug`, `info`, `warning`, `error`                                                                                                                                                                                                                                                          |
 | `kv.ts`       | Deno KV cache stores                     | `openKv`, `getKv`, `kvOp`, `KvDamagedError`                                                                                                                                                                                                                                                  |
 | `platform.ts` | Platform detection                       | `isWindows`                                                                                                                                                                                                                                                                                  |
-| `process.ts`  | Process execution                        | Process utilities                                                                                                                                                                                                                                                                            |
+| `process.ts` | Process execution and process-level runtime | `spawn`, `exec`, `execSync`, `exit`, `cwd`, `chdir`, `args`, `execPath`, `pid`, `onSignal`, `killProcess`, `writeStdoutSync`, `writeStderrSync`, `isTerminal`, `readStdin`, `readStdinLines` |
 
 ## Why Use deno_ral
 
@@ -53,6 +53,10 @@ const result = await execProcess({
   stdout: "piped",
 });
 ```
+
+Never call `Deno.Command`, `Deno.exit`, `Deno.cwd` or `Deno.args` directly; import the equivalent from `deno_ral/process.ts`.
+`execProcess` (`src/core/process.ts`) remains the API for running external tools with captured output.
+Spawn with `detached: true` (POSIX) when the child must be stopped together with its own children through `killProcess(-pid)`.
 
 ## Safe File Operations
 

@@ -96,6 +96,8 @@ All changes included in 1.12:
 ## Extensions
 
 - ([#15063](https://github.com/quarto-dev/quarto-cli/issues/15063)): Fix a format extension's own `language` file stopping the render with a "does not exist" error, and its `metadata-files` being ignored. Both now resolve relative to the extension's directory, and per-language files such as `_language-fr.yml` load beside the `language` file. (author: @mcanouil)
+- ([#N](https://github.com/quarto-dev/quarto-cli/pull/N)): `quarto.system.execProcess` (the engine-extension API) now accepts exactly the options declared in `@quarto/types` plus `clearEnv`, `signal` and `detached`.
+  Other Deno-specific options (`uid`, `gid`, `windowsRawArguments`, numeric stdio) were never part of the declared API and are now ignored.
 
 ## Other fixes and improvements
 

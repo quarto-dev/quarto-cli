@@ -412,6 +412,41 @@ unitTest("check-runtime-boundary - env keys name their replacement in src and pa
 });
 
 // deno-lint-ignore require-await
+unitTest("check-runtime-boundary - process keys name their replacement in src and package/src", async () => {
+  const replacements: Record<string, string> = {
+    Command: "spawn, exec or execSync",
+    run: "exec or execSync",
+    exit: "exit",
+    cwd: "cwd",
+    chdir: "chdir",
+    args: "args",
+    execPath: "execPath",
+    pid: "pid",
+    kill: "killProcess",
+    addSignalListener: "onSignal",
+    stdin: "readStdin, readStdinLines or isTerminal",
+    stdout: "writeStdoutSync or isTerminal",
+    stderr: "writeStderrSync or isTerminal",
+    ChildProcess: "ChildProcess",
+    CommandOptions: "SpawnOptions",
+    CommandStatus: "ExitStatus",
+    CommandOutput: "ExecOutput",
+  };
+  for (const [key, replacement] of Object.entries(replacements)) {
+    for (const scope of ["src", "package/src"]) {
+      assertEquals(
+        denoReplacement(key, scope),
+        `${replacement} from src/deno_ral/process.ts`,
+        `${scope}: ${key}`,
+      );
+    }
+    for (const scope of ["tests", "resources", "src-js"]) {
+      assertEquals(denoReplacement(key, scope), undefined, `${scope}: ${key}`);
+    }
+  }
+});
+
+// deno-lint-ignore require-await
 unitTest("check-runtime-boundary - diffChanges an uncovered increase is a finding without replacement", async () => {
   const changes: FileChange[] = [{
     path: "tests/unit/a.test.ts",
@@ -455,7 +490,7 @@ unitTest("check-runtime-boundary - diffChanges a moved covered call does not hid
   ]);
   assertEquals(report.findings.length, 1);
   assertEquals(report.findings[0].name, "cwd");
-  assertEquals(report.findings[0].replacement, undefined);
+  assertEquals(report.findings[0].replacement, kRalDenoReplacements["cwd"].hint);
 });
 
 // deno-lint-ignore require-await
