@@ -1,0 +1,23 @@
+---
+title: "Solana about page centres the image when stacked"
+image: https://quarto.org/quarto.png
+about:
+  id: about-15178
+  template: solana
+_quarto:
+  tests:
+    html:
+      ensureHtmlElements:
+        - ['div.quarto-about-solana img.about-image']
+      ensureCssRegexMatches:
+        - ['div\.quarto-about-solana \.about-entity\s*\{[^}]*align-items:\s*start']
+        - ['div\.quarto-about-solana \.about-entity\s*\{[^}]*align-items:\s*center[\s\S]*div\.quarto-about-solana \.about-entity\s*\{[^}]*align-items:\s*start']
+---
+
+::: {#about-15178}
+
+Below the `lg` breakpoint the layout stacks, and the image must be centred
+like the text. The base `align-items: start` must come before the
+breakpoint rule, so it can't override it.
+
+:::
