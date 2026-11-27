@@ -44,6 +44,7 @@ All changes included in 1.12:
   - Printed output drops backgrounds and uses the 11pt print size of the other Quarto HTML themes.
   - Pandoc 3.13's automatic dark mode is not enabled.
 - ([#15373](https://github.com/quarto-dev/quarto-cli/pull/15373)): Fix name particles such as `de` or `van` missing from editor names in the `citation_editor` Google Scholar meta tags, and `undefined` shown for an editor without a given name.
+- ([#15384](https://github.com/quarto-dev/quarto-cli/pull/15384)): Fix extra space below the code of a code block with a `filename` inside a titled callout. (author: @mcanouil)
 
 ### `pdf`
 

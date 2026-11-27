@@ -61,6 +61,8 @@ const cases = [
   { id: "titled-cell-first", button: "plain", edge: "top", reference: "titled-paragraph" },
   { id: "titled-cell-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
   { id: "titled-annotated", button: "plain-annotated", edge: "top", reference: "titled-paragraph" },
+  { id: "titled-filename-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
+  { id: "titled-cell-filename-last", button: "plain", edge: "bottom", reference: "titled-paragraph" },
   { id: "collapse-first", button: "plain", edge: null, reference: null },
   { id: "simple-first", button: "plain", edge: "top", reference: "simple-paragraph" },
   { id: "minimal-last", button: "plain", edge: "bottom", reference: "minimal-paragraph" },
@@ -118,4 +120,24 @@ test.describe("Code copy button in callouts", () => {
     );
     expect(hit).toContain("code-annotation-anchor");
   });
+
+  // The titled-callout padding rule must not add space inside the filename
+  // frame (#15382): the space below the code matches a filename block outside
+  // a callout.
+  for (const id of ["titled-filename", "titled-cell-filename"]) {
+    test(`${id}: no extra space below the code of a filename block`, async ({ page }) => {
+      const gapBelowCode = (selector: string) =>
+        page.evaluate((selector) => {
+          const frame = document.querySelector(selector)!;
+          const code = frame.querySelector("div.sourceCode")!;
+          return frame.getBoundingClientRect().bottom -
+            code.getBoundingClientRect().bottom;
+        }, selector);
+      const outside = await gapBelowCode(
+        "div.code-with-filename:not(.callout *)",
+      );
+      const inside = await gapBelowCode(`#${id} div.code-with-filename`);
+      expect(Math.abs(inside - outside)).toBeLessThanOrEqual(1);
+    });
+  }
 });
