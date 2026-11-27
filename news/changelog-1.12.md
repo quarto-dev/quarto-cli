@@ -76,6 +76,7 @@ All changes included in 1.12:
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Fix listing `image-alt` values containing quotes or `&` rendering broken or double-escaped alt text. (author: @mcanouil)
 - ([#15269](https://github.com/quarto-dev/quarto-cli/pull/15269)): Add `target` and `rel` options to listings and listing items, with the listing value as the default for its items. (author: @mcanouil)
 - ([#15366](https://github.com/quarto-dev/quarto-cli/pull/15366)): Fix name particles such as `de` or `van` missing from author names in listings and their RSS feeds, and `undefined` shown for a structured author name without a given name.
+- ([#15397](https://github.com/quarto-dev/quarto-cli/pull/15397)): Fix the fixed navbar leaving an empty band at the top of the page when it hides on scroll. The navbar now stays in place until the page has scrolled past its height.
 
 ## Commands
 

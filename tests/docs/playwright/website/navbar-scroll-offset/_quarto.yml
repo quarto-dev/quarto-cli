@@ -1,0 +1,11 @@
+project:
+  type: website
+
+website:
+  title: "navbar-scroll-offset"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+
+format: html
