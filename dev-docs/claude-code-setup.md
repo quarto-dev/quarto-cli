@@ -51,8 +51,9 @@ types its slash form. Add `disable-model-invocation: true` to a skill's frontmat
 anything task-like and consequential enough that it should only run when explicitly invoked
 (e.g. cutting a release).
 
-A shared skill must be usable by any contributor with just `git`, `gh` and `jq` — it must not assume
-personal tooling (a particular browser-automation CLI, a personal issue tracker, etc.) without
+A shared skill should need only `git`, `gh` and common command-line tools such as `jq`; a skill
+that needs more (for example `uv` for `verify-l10n-pr`) names its prerequisites in `SKILL.md`. It
+must not assume personal tooling (a particular browser-automation CLI, a personal issue tracker, etc.) without
 documenting a fallback.
 
 `.claude/skills/` can also contain personal, repository-local skills that are excluded from
@@ -67,7 +68,7 @@ layout is one committed symlink there per shared skill, pointing at
 `../../.claude/skills/<name>`; not every shared skill is mirrored yet. Windows
 contributors need `git config core.symlinks true` (Developer Mode or an administrator shell) and
 a re-checkout for those links to materialize. A skill's helper scripts live in its own
-`scripts/` directory and need only `git`, `gh` and `jq`.
+`scripts/` directory.
 
 ### Where information belongs
 
