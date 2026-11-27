@@ -713,12 +713,12 @@ title: "Title"
           readyPattern,
           cwd: dirname(options.input),
         });
-        await server.start();
-
-        // stop the server onCleanup
+        // stop the server onCleanup (registered before start, which can
+        // wait indefinitely for readyPattern)
         quarto.system.onCleanup(async () => {
           await server.stop();
         });
+        await server.start();
 
         // notify when ready
         if (options.onReady) {

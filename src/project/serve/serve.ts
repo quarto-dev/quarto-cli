@@ -365,8 +365,10 @@ export async function serveProject(
       pandocArgs,
     );
 
-  // set stopServer hook
+  // set stopServer hook and register it as a cleanup handler before start,
+  // which for an external server waits for its ready pattern
   stopServer = previewServer.stop;
+  onCleanup(stopServer);
 
   // start server (launch browser if a path is returned)
   const path = await previewServer.start();
@@ -382,9 +384,6 @@ export async function serveProject(
       await openUrl(previewURL(options.host!, options.port!, path));
     }
   }
-
-  // register the stopServer function as a cleanup handler
-  onCleanup(stopServer);
 
   // if there is a touchPath then touch
   if (options.touchPath) {

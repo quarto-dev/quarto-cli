@@ -298,8 +298,6 @@ export async function validateRequiredTypstVersion() {
   }
 }
 
-// TODO: this doesn't yet work correctly (typst exits on the first change to the typ file)
-// leaving the code here anyway as a foundation for getting it to work later
 function typstProgress(input: string, output: string) {
   info(
     `[typst]: Compiling ${basename(input)} to ${basename(output)}...`,

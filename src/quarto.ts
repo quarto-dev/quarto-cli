@@ -222,7 +222,7 @@ export async function quarto(
 if (import.meta.main) {
   await mainRunner(async (args) => {
     // initialize profile (remove from args)
-    let quartoArgs = [...processArgs()];
+    let quartoArgs = processArgs();
     if (setProfileFromArg(args)) {
       const removeArgs = new Map<string, boolean>();
       removeArgs.set("--profile", true);

@@ -377,6 +377,13 @@ export const kRalDenoReplacements: Readonly<
     stdin: "readStdin, readStdinLines or isTerminal",
     stdout: "writeStdoutSync or isTerminal",
     stderr: "writeStderrSync or isTerminal",
+    // a call is keyed by the stream and its member (`Deno.stdout.writeSync()` is `stdout.writeSync`)
+    "stdout.writeSync": "writeStdoutSync",
+    "stderr.writeSync": "writeStderrSync",
+    "stdin.readable": "readStdin or readStdinLines",
+    "stdin.isTerminal": "isTerminal",
+    "stdout.isTerminal": "isTerminal",
+    "stderr.isTerminal": "isTerminal",
     ChildProcess: "ChildProcess",
     CommandOptions: "SpawnOptions",
     CommandStatus: "ExitStatus",
