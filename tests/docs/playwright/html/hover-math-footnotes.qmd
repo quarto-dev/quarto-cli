@@ -1,0 +1,8 @@
+---
+title: Math in footnote popups
+format: html
+---
+
+Calligraphic $\mathcal{A}$^[Let $\mathcal{A}$ be an abelian category.].
+
+Upright $\mathrm{A}$^[Let $\mathrm{A}$ be an abelian category.].

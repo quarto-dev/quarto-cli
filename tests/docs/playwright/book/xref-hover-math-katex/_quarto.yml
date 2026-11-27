@@ -1,0 +1,13 @@
+project:
+  type: book
+
+book:
+  title: "Crossref Hover Math KaTeX"
+  chapters:
+    - index.qmd
+    - with-math.qmd
+    - no-math.qmd
+
+format:
+  html:
+    html-math-method: katex

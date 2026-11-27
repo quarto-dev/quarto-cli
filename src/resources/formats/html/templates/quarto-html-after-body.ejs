@@ -392,6 +392,17 @@
       <% } %>
       window.tippy(el, config); 
     }
+
+    // MathJax 4 loads font data on first use, which only its promise-based
+    // typeset waits for (the synchronous one throws instead)
+    const typesetPopupMath = (el) => {
+      if (window.MathJax?.typesetPromise) {
+        return window.MathJax.typesetPromise([el]);
+      } else if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(el);
+      }
+      return Promise.resolve();
+    }
     <% } %>
   
     <% if (hoverFootnotes) { %>
@@ -399,18 +410,23 @@
     const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
     for (var i=0; i<noterefs.length; i++) {
       const ref = noterefs[i];
-      tippyHover(ref, function() {
+      tippyHover(ref, undefined, function(instance) {
+        instance.disable();
         // use id or data attribute instead here
         let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
         try { href = new URL(href).hash; } catch {}
         const id = href.replace(/^#\/?/, "");
         const note = window.document.getElementById(id);
   
-        if (note) {
-          return note.innerHTML;
-        } else {
-          return "";
-        }
+        // typeset when shown: the page's own typesetting may not have
+        // reached the footnote yet
+        const content = note ? note.cloneNode(true) : document.createElement("div");
+        typesetPopupMath(content).then(() => {
+          instance.setContent(content.innerHTML);
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
       });
     }
   
@@ -419,7 +435,7 @@
     <% if (hoverXrefs) { %>
     const xrefs = window.document.querySelectorAll('a.quarto-xref');
   
-    const processXRef = (id, note) => {
+    const processXRef = async (id, note) => {
   
       // Strip column container classes
       const stripColumnClz = (el) => {
@@ -448,14 +464,10 @@
             }
           }
   
-          if (window.Quarto?.typesetMath) {
-            window.Quarto.typesetMath(container);
-          }
+          await typesetPopupMath(container);
           return container.innerHTML
         } else {
-          if (window.Quarto?.typesetMath) {
-            window.Quarto.typesetMath(note);
-          }
+          await typesetPopupMath(note);
           return note.innerHTML;
         }
       } else {
@@ -464,9 +476,7 @@
         if (anchorLink) {
           anchorLink.remove();
         }
-        if (window.Quarto?.typesetMath) {
-          window.Quarto.typesetMath(note);
-        }
+        await typesetPopupMath(note);
         <% /* %>
         // TODO in 1.5, we should make sure this works without a callout special case
         <% */ %>
@@ -478,6 +488,47 @@
       }
     }
   
+    // A page without math of its own doesn't load a math library, so before
+    // showing math fetched from another page, load the library that page uses
+    let mathLoading = null;
+    const ensureMath = (note, htmlDoc, docUrl) => {
+      if (window.Quarto?.typesetMath || note.querySelector('.math') === null) {
+        return Promise.resolve();
+      }
+      if (mathLoading === null) {
+        mathLoading = (async () => {
+          const base = new URL(docUrl, window.location.href);
+          for (const el of htmlDoc.head.querySelectorAll('link[rel="stylesheet"], script')) {
+            const src = el.getAttribute(el.tagName === "LINK" ? "href" : "src");
+            if (src && /mathjax|katex/i.test(src)) {
+              await new Promise((resolve) => {
+                let loaded;
+                if (el.tagName === "LINK") {
+                  loaded = document.createElement("link");
+                  loaded.rel = "stylesheet";
+                  loaded.href = new URL(src, base).href;
+                } else {
+                  loaded = document.createElement("script");
+                  loaded.src = new URL(src, base).href;
+                }
+                loaded.onload = resolve;
+                loaded.onerror = resolve;
+                document.head.appendChild(loaded);
+              });
+            } else if (!src && el.tagName === "SCRIPT" && /window\.Quarto|backupDefine/.test(el.textContent)) {
+              // defines window.Quarto.typesetMath, or hides an AMD loader around KaTeX
+              const script = document.createElement("script");
+              script.textContent = el.textContent;
+              document.head.appendChild(script);
+            }
+          }
+          if (window.MathJax?.startup?.promise) {
+            await window.MathJax.startup.promise;
+          }
+        })();
+      }
+      return mathLoading;
+    }
   
     for (var i=0; i<xrefs.length; i++) {
       const xref = xrefs[i];
@@ -495,13 +546,12 @@
           const id = hash.replace(/^#\/?/, "");
           const note = window.document.getElementById(id);
           if (note !== null) {
-            try {
-              const html = processXRef(id, note.cloneNode(true));
+            processXRef(id, note.cloneNode(true)).then(html => {
               instance.setContent(html);
-            } finally {
+            }).finally(() => {
               instance.enable();
               instance.show();
-            }
+            });
           } else {
             // See if we can fetch this
             fetch(url.split('#')[0])
@@ -512,9 +562,9 @@
               const note = htmlDoc.getElementById(id);
   
               if (note !== null) {
-                const html = processXRef(id, note);
-                
-                instance.setContent(html);
+                return ensureMath(note, htmlDoc, url)
+                  .then(() => processXRef(id, note))
+                  .then(html => instance.setContent(html));
               } 
             }).finally(() => {
               instance.enable();
@@ -538,8 +588,9 @@
               if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
                 note.children[0].remove();
               }
-              const html = processXRef(null, note);
-              instance.setContent(html);
+              return ensureMath(note, htmlDoc, url)
+                .then(() => processXRef(null, note))
+                .then(html => instance.setContent(html));
             } 
           }).finally(() => {
             instance.enable();
