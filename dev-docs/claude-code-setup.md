@@ -62,6 +62,12 @@ repository-local skill the same name as a tracked shared skill.** If a shared sk
 committed at the same path, Git may refuse to overwrite the untracked file, or local changes
 may shadow the tracked file. Use unique names for personal skills.
 
+Claude Code reads only `.claude/skills/`. Other agents read `.agents/skills/`, which holds one
+committed symlink per shared skill pointing at `../../.claude/skills/<name>`. Windows
+contributors need `git config core.symlinks true` (Developer Mode or an administrator shell) and
+a re-checkout for those links to materialize. A skill's helper scripts live in its own
+`scripts/` directory and need only `git`, `gh` and `jq`.
+
 ### Where information belongs
 
 Choose a location based on how often the information changes and how it is used:
