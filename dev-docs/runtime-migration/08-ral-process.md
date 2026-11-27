@@ -924,11 +924,11 @@ git commit -m "deno_ral/process: spawn/exec interface with contract test"
 - Modify: `src/core/process.ts`
 - Test: `tests/unit/exec-process-stdin.test.ts` (existing), `tests/unit/ral/process.test.ts`
 
-- [ ] **Step 1: Run the existing regression test to record the baseline**
+- [x] **Step 1: Run the existing regression test to record the baseline**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts` Expected: `ok | 4 passed | 0 failed` (on Windows too: the tests that return early count as passed).
 
-- [ ] **Step 2: Rewrite `src/core/process.ts`**
+- [x] **Step 2: Rewrite `src/core/process.ts`**
 
 Replace lines 7-50 (imports through `ExecProcessOptions`) with:
 
@@ -1062,14 +1062,14 @@ In `processOutput` (lines 251-279), change only the `output` parameter type and 
 
 Delete the `// FIXME: In Deno 2 we get ReadableStreams...` comment block and the `// process.close();` comments; nothing else changes.
 
-- [ ] **Step 3: Type-check and run the regression tests**
+- [x] **Step 3: Type-check and run the regression tests**
 
 Run: `cd src && ../package/dist/bin/tools/x86_64/deno check --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` Expected: errors only in `src/core/cri/launch.ts` (`registerForExitCleanup` now takes `ChildProcess`; `Deno.ChildProcess` is structurally compatible, so this may already pass) and nowhere else.
 If `launch.ts` errors, Task 3 fixes it; continue.
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/exec-process-stdin.test.ts unit/ral/process.test.ts` Expected: `ok | 21 passed | 0 failed`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/core/process.ts
@@ -1884,3 +1884,19 @@ Resolved since the first draft:
   The post-format test run exited 0 with `ok | 17 passed | 0 failed (805ms)`; `git diff --check` passed.
 - Deviations: used the Windows PowerShell runner and `.exe` formatter as required; no implementation or test changes beyond the planned code and its formatting.
 - Outstanding: none in Task 1. Tasks 2–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 1.
+
+### Task 2: `execProcess` on `spawn`
+
+- Step 1: ran the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/exec-process-stdin.test.ts`; it exited 0 with `ok | 4 passed | 0 failed (135ms)`.
+- Step 2: rewrote `execProcess` on `deno_ral/process.ts`'s `spawn`, retaining the 4 KB stdin writes and #14445 close handling, `MuxAsyncIterator`, timeouts on both draining and status, and exit-cleanup registration.
+  The existing single streaming decoder and EOF flush in both `processOutput` and `filteredAsyncIterator` remain unchanged; only the planned `StdioOption` annotation and layer stdio writes changed in `processOutput`.
+- Step 3, initial check: `deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=import_map.json quarto.ts` exited 1 with two `TS2345` errors at the merge branch's `addStream(process.stdout!.values())` and `addStream(process.stderr!.values(), stderrFilter)` calls: their `AsyncIterableIterator<Uint8Array<ArrayBufferLike>>` values did not satisfy the old `AsyncIterableIterator<Uint8Array<ArrayBuffer>>` parameter.
+  The combined regression-test command failed at type-check time with the same errors, before any behaviour test ran.
+- Step 3, final checks: changed only the `addStream` parameter annotation to `AsyncIterableIterator<Uint8Array>`, matching the Task 1 `ChildProcess` stream interface and the downstream iterators.
+  The same `deno check` command then exited 0 with no output.
+  The PowerShell runner with `--agent unit/exec-process-stdin.test.ts unit/ral/process.test.ts` exited 0 with `ok | 21 passed | 0 failed (2s)`.
+  The split-multibyte parity test required by the PR 08 output-decoding decision also ran separately: `--agent unit/exec-process-utf8-chunks.test.ts` exited 0 with `ok | 7 passed | 0 failed (2s)`.
+- Formatting: `git diff --shortstat -- src/core/process.ts` printed `1 file changed, 30 insertions(+), 35 deletions(-)` before formatting and `1 file changed, 31 insertions(+), 38 deletions(-)` after `deno.exe fmt src/core/process.ts`.
+  Reverted the formatter-only change to the unchanged `encode` line. After the approved annotation change, the shortstat was `1 file changed, 31 insertions(+), 37 deletions(-)`; `git diff --check -- src/core/process.ts` passed.
+- Deviations: added `--allow-import` to the type-check gate as required by the open-decisions row; changed the `addStream` annotation from `AsyncIterableIterator<Uint8Array<ArrayBuffer>>` to `AsyncIterableIterator<Uint8Array>` to fix the two Deno 2.9.8 type errors; used the Windows PowerShell runner and `.exe` binaries; ran the UTF-8 chunk regression test in addition to the plan's two-file test command.
+- Outstanding: none in Task 2. Tasks 3–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 2.

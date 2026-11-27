@@ -6,14 +6,22 @@
 
 import { MuxAsyncIterator } from "async";
 import { debug, info } from "../deno_ral/log.ts";
+import {
+  type ChildProcess,
+  spawn,
+  type SpawnOptions,
+  type StdioOption,
+  writeStderrSync,
+  writeStdoutSync,
+} from "../deno_ral/process.ts";
 import { onCleanup } from "./cleanup.ts";
 import { ProcessResult } from "./process-types.ts";
 
-const processList = new Map<number, Deno.ChildProcess>();
+const processList = new Map<number, ChildProcess>();
 let processCount = 0;
 let cleanupRegistered = false;
 
-export function registerForExitCleanup(process: Deno.ChildProcess) {
+export function registerForExitCleanup(process: ChildProcess) {
   // The registry is only killed by a handler that execProcess used to be the
   // sole installer of, so registering a process was not on its own enough to
   // have it cleaned up. Install it here too: a command that spawns a browser
@@ -36,7 +44,6 @@ function ensureCleanup() {
       for (const process of processList.values()) {
         try {
           process.kill();
-          // process.close();
         } catch (error) {
           info("Error occurred during cleanup: " + error);
         }
@@ -45,7 +52,7 @@ function ensureCleanup() {
   }
 }
 
-export type ExecProcessOptions = Deno.CommandOptions & {
+export type ExecProcessOptions = SpawnOptions & {
   cmd: string;
 };
 
@@ -70,25 +77,28 @@ export async function execProcess(
   ensureCleanup();
   // define process
   try {
-    // If the caller asked for stdout/stderr to be directed to the rid of an open
-    // file, just allow that to happen. Otherwise, specify piped and we will implement
-    // the proper behavior for inherit, etc....
     debug(`[execProcess] ${[options.cmd, ...(options.args || [])].join(" ")}`);
-    const denoCmd = new Deno.Command(options.cmd, {
-      ...options,
-      stdin: stdin !== undefined ? "piped" : options.stdin,
-      stdout: typeof (options.stdout) === "number" ? options.stdout : "piped",
-      stderr: typeof (options.stderr) === "number" ? options.stderr : "piped",
+    // stdout/stderr are always piped here; "inherit" is implemented below by
+    // processOutput so that output can be captured and echoed at once.
+    const process = spawn(options.cmd, {
+      args: options.args,
+      cwd: options.cwd,
+      env: options.env,
+      clearEnv: options.clearEnv,
+      detached: options.detached,
+      signal: options.signal,
+      stdin: stdin !== undefined ? "piped" : (options.stdin ?? "inherit"),
+      stdout: "piped",
+      stderr: "piped",
     });
-    const process = denoCmd.spawn();
     const thisProcessId = registerForExitCleanup(process);
 
     if (stdin !== undefined) {
-      const stdinWriter = process.stdin.getWriter();
       if (!process.stdin) {
         unregisterForExitCleanup(thisProcessId);
         throw new Error("Process stdin not available");
       }
+      const stdinWriter = process.stdin.getWriter();
       // write in 4k chunks (deno observed to overflow at > 64k)
       const kWindowSize = 4096;
       const buffer = new TextEncoder().encode(stdin);
@@ -126,14 +136,14 @@ export async function execProcess(
 
       // Add streams to the multiplexer
       const addStream = (
-        iterator: AsyncIterableIterator<Uint8Array<ArrayBuffer>>,
+        iterator: AsyncIterableIterator<Uint8Array>,
         filter?: (output: string) => string,
       ) => {
         multiplexIterator.add(filteredAsyncIterator(iterator, filter));
       };
 
-      addStream(process.stdout.values());
-      addStream(process.stderr.values(), stderrFilter);
+      addStream(process.stdout!.values());
+      addStream(process.stderr!.values(), stderrFilter);
 
       // Process the output
       const allOutput = await processOutput(
@@ -147,17 +157,6 @@ export async function execProcess(
       } else {
         stderrText = allOutput;
       }
-
-      // Close the streams
-      // FIXME: In Deno 2 we get ReadableStreams which do not have a close method?
-      //
-      // const closeStream = (stream: ReadableStream<Uint8Array<ArrayBuffer>> | null) => {
-      //   if (stream) {
-      //     stream.close();
-      //   }
-      // };
-      // closeStream(process.stdout);
-      // closeStream(process.stderr);
     } else {
       // Process the streams independently
       const promises: Promise<void>[] = [];
@@ -170,7 +169,6 @@ export async function execProcess(
             respectStreams ? "stdout" : undefined,
           ).then((text) => {
             stdoutText = text;
-            // process.stdout!.close();
           }),
         );
       }
@@ -186,7 +184,6 @@ export async function execProcess(
             respectStreams ? "stderr" : undefined,
           ).then((text) => {
             stderrText = text;
-            // process.stderr!.close();
           }),
         );
       }
@@ -194,10 +191,7 @@ export async function execProcess(
     }
 
     // await result
-    const status = await withTimeout(process.output());
-
-    // close the process
-    // process.close();
+    const status = await withTimeout(process.status);
 
     unregisterForExitCleanup(thisProcessId);
 
@@ -250,7 +244,7 @@ async function* filteredAsyncIterator(
 // Processes ouptut from an interator (stderr, stdout, etc...)
 async function processOutput(
   iterator: AsyncIterable<Uint8Array>,
-  output?: "piped" | "inherit" | "null" | number,
+  output?: StdioOption,
   which?: "stdout" | "stderr",
 ): Promise<string> {
   const decoder = new TextDecoder();
@@ -267,9 +261,9 @@ async function processOutput(
   for await (const chunk of iterator) {
     if (output === "inherit" || output === undefined) {
       if (which === "stdout") {
-        Deno.stdout.writeSync(chunk);
+        writeStdoutSync(chunk);
       } else if (which === "stderr") {
-        Deno.stderr.writeSync(chunk);
+        writeStderrSync(chunk);
       }
     }
     accept(decoder.decode(chunk, { stream: true }));
