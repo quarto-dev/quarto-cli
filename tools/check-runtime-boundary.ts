@@ -381,6 +381,7 @@ export const kRalDenoReplacements: Readonly<
     "stdout.writeSync": "writeStdoutSync",
     "stderr.writeSync": "writeStderrSync",
     "stdin.readable": "readStdin or readStdinLines",
+    "stdin.close": "readStdinLines (closes stdin when the loop stops early)",
     "stdin.isTerminal": "isTerminal",
     "stdout.isTerminal": "isTerminal",
     "stderr.isTerminal": "isTerminal",

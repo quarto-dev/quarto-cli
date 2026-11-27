@@ -11,7 +11,7 @@
  */
 
 import { unitTest } from "../test.ts";
-import { assert } from "../asserts.ts";
+import { assert, assertEquals } from "../asserts.ts";
 import { execPath, killProcess, spawn } from "../../src/deno_ral/process.ts";
 import { dirname, fromFileUrl, join } from "../../src/deno_ral/path.ts";
 import { createTempContext } from "../../src/core/temp.ts";
@@ -19,6 +19,9 @@ import { createTempContext } from "../../src/core/temp.ts";
 const repoRoot = join(dirname(fromFileUrl(import.meta.url)), "..", "..");
 const moduleUrl = (rel: string) =>
   new URL(`../../src/${rel}`, import.meta.url).href;
+// The runner's exit code when execProcess reports the child as failed; the
+// stopped child's own code differs by platform (1 on Windows, SIGTERM on POSIX).
+const kChildStopped = 9;
 
 unitTest(
   "execProcess - respectStreams stops the child when the reader goes away",
@@ -37,10 +40,11 @@ while (p.writeStdoutSync(chunk) === chunk.length) {}
       const runner = temp.createFileFromString(
         `import { execProcess } from ${JSON.stringify(moduleUrl("core/process.ts"))};
 import * as p from ${JSON.stringify(moduleUrl("deno_ral/process.ts"))};
-await execProcess(
+const r = await execProcess(
   { cmd: p.execPath(), args: ["run", "--no-config", "--allow-all", ${JSON.stringify(writer)}] },
   undefined, undefined, undefined, true,
 );
+p.exit(r.success ? 0 : ${kChildStopped});
 `,
         { suffix: ".ts" },
       );
@@ -64,8 +68,12 @@ await execProcess(
       await reader.cancel(); // like `head -n 1`
 
       let timer: ReturnType<typeof setTimeout> | undefined;
+      let code: number | undefined;
       const ended = await Promise.race([
-        child.status.then(() => true),
+        child.status.then((s) => {
+          code = s.code;
+          return true;
+        }),
         new Promise<boolean>((r) => {
           timer = setTimeout(() => r(false), 20_000);
         }),
@@ -81,6 +89,7 @@ await execProcess(
       // Without the stop, a fast writer's output piles up until the runner
       // fails with "Invalid string length"; a slow one grows it indefinitely.
       assert(!/error/i.test(err), `runner did not end quietly:\n${err}`);
+      assertEquals(code, kChildStopped, "the stopped child's failure reaches the caller");
     } finally {
       temp.cleanup();
     }

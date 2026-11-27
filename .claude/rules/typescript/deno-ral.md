@@ -54,7 +54,7 @@ const result = await execProcess({
 });
 ```
 
-Never call `Deno.Command`, `Deno.exit`, `Deno.cwd` or `Deno.args` directly; import the equivalent from `deno_ral/process.ts`.
+Outside `deno_ral/process.ts`, whose wrappers are the one place these calls belong, never call `Deno.Command`, `Deno.exit`, `Deno.cwd` or `Deno.args` directly; import the equivalent from `deno_ral/process.ts`.
 `execProcess` (`src/core/process.ts`) remains the API for running external tools with captured output.
 Spawn with `detached: true` (POSIX) when the child must be stopped together with its own children through `killProcess(-pid)`.
 

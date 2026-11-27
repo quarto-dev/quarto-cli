@@ -450,10 +450,11 @@ unitTest("check-runtime-boundary - process keys name their replacement in src an
 unitTest("check-runtime-boundary - standard stream calls as written name their replacement", async () => {
   const counted = countText(
     `${DENO}stdout.writeSync(b);\n${DENO}stderr.writeSync(b);\n${DENO}stdin.readable;\n` +
-      `${DENO}stdin.isTerminal();\n${DENO}stdout.isTerminal();\n${DENO}stderr.isTerminal();\n`,
+      `${DENO}stdin.isTerminal();\n${DENO}stdout.isTerminal();\n${DENO}stderr.isTerminal();\n` +
+      `${DENO}stdin.close();\n`,
   );
   const keys = Object.keys(counted.deno);
-  assertEquals(keys.length, 6);
+  assertEquals(keys.length, 7);
   for (const key of keys) {
     for (const scope of ["src", "package/src"]) {
       assert(denoReplacement(key, scope) !== undefined, `${scope}: ${key}`);
