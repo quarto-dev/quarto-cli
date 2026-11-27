@@ -9,6 +9,7 @@
 
 import { existsSync } from "../../../../src/deno_ral/fs.ts";
 import { resolve } from "../../../../src/deno_ral/path.ts";
+import { args, exec, exit } from "../../../../src/deno_ral/process.ts";
 import { architectureToolsPath } from "../../../../src/core/resources.ts";
 import { Parser } from "npm:acorn@8.14.0";
 import { simple } from "npm:acorn-walk@8.3.4";
@@ -29,9 +30,8 @@ async function generateCycles(entryPoint: string): Promise<string> {
   const scriptPath = resolve("package/src/common/import-report/explain-all-cycles.ts");
   const importMapPath = resolve("src/import_map.json");
 
-  const process = Deno.run({
-    cmd: [
-      denoBinary,
+  const result = await exec(denoBinary, {
+    args: [
       "run",
       "--allow-read",
       "--allow-write",
@@ -47,18 +47,12 @@ async function generateCycles(entryPoint: string): Promise<string> {
       "--toon",
       cyclesFile,
     ],
-    stdout: "piped",
-    stderr: "piped",
   });
 
-  const status = await process.status();
-
-  if (!status.success) {
-    const error = new TextDecoder().decode(await process.stderrOutput());
+  if (!result.success) {
+    const error = new TextDecoder().decode(result.stderr);
     throw new Error(`Failed to generate cycles: ${error}`);
   }
-
-  process.close();
 
   return cyclesFile;
 }
@@ -807,7 +801,7 @@ if (import.meta.main) {
     console.error("\nPlease run prepare-dist first:");
     console.error("  cd package && ./scripts/common/prepare-dist.sh");
     console.error("\nSee ~/bin/try-dist for more details.");
-    Deno.exit(1);
+    exit(1);
   }
 
   console.log("✓ Found bundle at:", bundlePath);
@@ -824,7 +818,7 @@ if (import.meta.main) {
 
   if (asyncModules.length === 0) {
     console.log("✅ No async modules found. Bundle is clean!");
-    Deno.exit(0);
+    exit(0);
   }
 
   // Find root async modules
@@ -844,7 +838,7 @@ if (import.meta.main) {
   console.log();
 
   // Generate cycles
-  const entryPoint = Deno.args[0] || "src/quarto.ts";
+  const entryPoint = args()[0] || "src/quarto.ts";
   const cyclesFile = await generateCycles(entryPoint);
   console.log(`✓ Generated cycles data\n`);
 

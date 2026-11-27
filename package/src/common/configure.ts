@@ -21,6 +21,7 @@ import {
 import { suggestUserBinPaths, which } from "../../../src/core/path.ts";
 import { buildQuartoPreviewJs } from "./previewjs.ts";
 import { isWindows } from "../../../src/deno_ral/platform.ts";
+import { execSync } from "../../../src/deno_ral/process.ts";
 
 export async function configure(
   config: Configuration,
@@ -169,10 +170,12 @@ export function copyPandocScript(config: Configuration, targetDir: string) {
 
   if (!isWindows) {
     info("> creating pandoc symlink");
-    Deno.run({
+    execSync("ln", {
+      args: ["-s", linkTarget, "pandoc"],
       cwd: targetDir,
-      cmd: ["ln", "-s", linkTarget, "pandoc"]
-    });  
+      stdout: "inherit",
+      stderr: "inherit",
+    });
   }
 }
 

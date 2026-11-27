@@ -6,6 +6,7 @@
 */
 import { join } from "../../../src/deno_ral/path.ts";
 import { info } from "../../../src/deno_ral/log.ts";
+import { exec } from "../../../src/deno_ral/process.ts";
 import * as colors from "fmt/colors";
 
 export interface Repo {
@@ -46,12 +47,12 @@ async function checkout(dir: string, commit: string) {
   gitCmd.push("checkout");
   gitCmd.push(commit);
 
-  const p = Deno.run({
-    cmd: gitCmd,
+  const status = await exec(gitCmd[0], {
+    args: gitCmd.slice(1),
     cwd: dir,
+    stdout: "inherit",
+    stderr: "inherit",
   });
-
-  const status = await p.status();
   if (status.code !== 0) {
     throw Error("Failed to checkout");
   }
@@ -64,22 +65,18 @@ async function clone(workingDir: string, url: string) {
   gitCmd.push("clone");
   gitCmd.push(url);
 
-  const p = Deno.run({
-    cmd: gitCmd,
+  const output = await exec(gitCmd[0], {
+    args: gitCmd.slice(1),
     cwd: workingDir,
+    stdout: "inherit",
     stderr: "piped",
   });
-
-  const status = await p.status();
-  if (status.code !== 0) {
+  if (output.code !== 0) {
     throw Error("Failed to clone repo");
   }
 
-  const output = await p.stderrOutput();
-  if (output) {
-    // Try to read the git clone output
-    const outputTxt = new TextDecoder().decode(output);
-
+  const outputTxt = new TextDecoder().decode(output.stderr);
+  if (outputTxt) {
     // Forward the output
     info(outputTxt);
 
@@ -110,11 +107,11 @@ export async function applyGitPatches(patches: string[]) {
     // this helps debug when patch goes wrong
     // https://git-scm.com/docs/git-apply#Documentation/git-apply.txt---reject
     gitCmd.push("--reject");
-    const p = Deno.run({
-      cmd: gitCmd,
+    const status = await exec(gitCmd[0], {
+      args: gitCmd.slice(1),
+      stdout: "inherit",
       stderr: "piped",
     });
-    const status = await p.status();
     if (status.code !== 0) {
       throw Error(`Failed to apply patch: '${patch}'`);
     }

@@ -8,6 +8,7 @@
 */
 
 import { architectureToolsPath } from "../../../../src/core/resources.ts";
+import { args, exec } from "../../../../src/deno_ral/process.ts";
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -64,13 +65,11 @@ export interface Edge {
 
 export async function getDenoInfo(_root: string): Promise<DenoInfoJSON> {
   const denoBinary = Deno.env.get("QUARTO_DENO") || architectureToolsPath("deno");
-  const process = Deno.run({
-    cmd: [denoBinary, "info", Deno.args[0], "--json"],
-    stdout: "piped",
+  const output = await exec(denoBinary, {
+    args: ["info", args()[0], "--json"],
+    stderr: "inherit",
   });
-  const rawOutput = await process.output();
-
-  const json = JSON.parse(new TextDecoder().decode(rawOutput)) as DenoInfoJSON;
+  const json = JSON.parse(new TextDecoder().decode(output.stdout)) as DenoInfoJSON;
   return json;
 }
 

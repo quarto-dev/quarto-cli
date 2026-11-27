@@ -1487,7 +1487,7 @@ PR 24 may later replace the `execSync("ln", …)` in `configure.ts` with `symlin
 **Files:**
 - Modify: `package/src/util/cmd.ts`, `package/src/common/previewjs.ts`, `package/src/util/tar.ts`, `package/src/util/git.ts`, `package/src/common/configure.ts`, `package/src/common/import-report/deno-info.ts`, `explain-all-cycles.ts`, `explain-import-chain.ts`, `report-bundle-async-cycles.ts`, `report-risky-files.ts`
 
-- [ ] **Step 1: `package/src/util/cmd.ts`**
+- [x] **Step 1: `package/src/util/cmd.ts`**
 
 ```ts
 import { debug, error, info } from "../../../src/deno_ral/log.ts";
@@ -1532,7 +1532,7 @@ export async function runCmd(
 }
 ```
 
-- [ ] **Step 2: `package/src/common/previewjs.ts`**
+- [x] **Step 2: `package/src/common/previewjs.ts`**
 
 ```ts
 import { join } from "../../../src/deno_ral/path.ts";
@@ -1559,7 +1559,7 @@ export function buildQuartoPreviewJs(
 
 (Callers at `package/src/common/configure.ts:47` and `prepare-dist.ts:105` read `result.success`/`result.code`, which `ExecOutput` has.)
 
-- [ ] **Step 3: `package/src/util/tar.ts`**
+- [x] **Step 3: `package/src/util/tar.ts`**
 
 Add `import { exec } from "../../../src/deno_ral/process.ts";`.
 Lines 95-99:
@@ -1586,7 +1586,7 @@ Lines 119-124:
 Both replaced ranges start at the `// @ts-expect-error` comment line above each `Deno.run` (lines 95 and 119): it must go with the call, or the type check fails on an unused directive.
 The `if (status.code !== 0)` blocks that follow are unchanged.
 
-- [ ] **Step 4: `package/src/util/git.ts`**
+- [x] **Step 4: `package/src/util/git.ts`**
 
 Add `import { exec } from "../../../src/deno_ral/process.ts";`.
 Lines 49-57 (checkout):
@@ -1636,7 +1636,7 @@ Lines 113-120 (apply):
     }
 ```
 
-- [ ] **Step 5: `package/src/common/configure.ts`**
+- [x] **Step 5: `package/src/common/configure.ts`**
 
 Add `import { execSync } from "../../../src/deno_ral/process.ts";`.
 Lines 171-174 (previously an un-awaited `Deno.run`):
@@ -1650,7 +1650,7 @@ Lines 171-174 (previously an un-awaited `Deno.run`):
     });
 ```
 
-- [ ] **Step 6: the five import-report scripts** (import path `../../../../src/deno_ral/process.ts`)
+- [x] **Step 6: the five import-report scripts** (import path `../../../../src/deno_ral/process.ts`)
 
 `deno-info.ts:67-73`:
 ```ts
@@ -1715,7 +1715,7 @@ plus `Deno.exit(` → `exit(` and `Deno.args` → `args()` in both (`import { ar
 ```
 plus `exit`/`args()` for its other sites.
 
-- [ ] **Step 7: Verify and commit**
+- [x] **Step 7: Verify and commit**
 
 Run: `grep -rn 'Deno\.run(\|new Deno\.Command\|Deno\.CommandStatus' package/src --include=*.ts` Expected: empty.
 
@@ -1971,3 +1971,18 @@ Resolved since the first draft:
   `package/dist/bin/tools/x86_64/deno.exe fmt --check src/quarto.ts` printed `Checked 1 file`; no formatting changes were needed and the shortstat afterward was unchanged. `git diff --check -- src/quarto.ts` passed.
 - Deviations: applied the planned textual substitutions with exact file edits rather than `sed -i`, and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required. No implementation changes beyond the planned edits.
 - Outstanding: none in Task 7. Tasks 8–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 7.
+
+### Task 8: `package/src`: `Deno.run` and the two `Deno.Command` helpers
+
+- Steps 1–6: migrated the ten planned files to `deno_ral/process.ts`: `runCmd` now returns the layer's `ExitStatus`, the preview build uses `execSync(execPath(), …)`, the tar/git/configure process calls use `exec`/`execSync`, and all five import-report scripts use layer process execution, exit and arguments.
+  Both interactive preview calls pass `stdin: "inherit"`; git clone still parses piped stderr; the two tar `@ts-expect-error` directives and the obsolete `process.close()` were removed with their old process calls.
+  `explain-all-cycles.ts` and `explain-import-chain.ts` use `args as processArgs`, because their block-local `args` bindings would otherwise shadow the planned import and put the earlier argument reads in its temporal dead zone; the local bindings are unchanged.
+- Step 7, source grep: `grep -rn 'Deno\.run(\|new Deno\.Command\|Deno\.CommandStatus' package/src --include=*.ts` printed no matches (exit 1), as expected.
+- Step 7, type check: `package/dist/bin/tools/x86_64/deno.exe check --allow-import --unstable-kv --unstable-ffi --import-map=src/import_map.json package/src/bld.ts package/src/common/import-report/report-risky-files.ts package/src/common/import-report/report-bundle-async-cycles.ts package/src/common/import-report/explain-all-cycles.ts package/src/common/import-report/explain-import-chain.ts` exited 1 with exactly the eight errors expected by the step-0 decision: `TS18046` ×1, `TS2554` ×2, `TS2339 'Solve'` ×2 and `TS7053` ×3, followed by `Found 8 errors.`
+  No `TS2339 Property 'run'` error remains; all eight are the recorded pre-existing errors outside this task's scope. Output: `.claude/docs/task8-typecheck.log`.
+- Step 7, tests: the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/tar-command.test.ts unit/macos-notarize-status.test.ts` exited 0 with `ok | 20 passed | 0 failed (1s)`.
+- Step 7, build loader: `package/src/quarto-bld.cmd prepare-dist --help` exited 0 and printed the `quarto-bld [command] prepare-dist` usage, description and options.
+- Formatting: `git diff --shortstat` over the ten source files printed `10 files changed, 86 insertions(+), 88 deletions(-)` before formatting.
+  `deno.exe fmt --check` on those files reported all ten as already unformatted before the edits (including line-ending-only and pre-existing style differences); no formatter write was run, so no unrelated formatter hunks were introduced. The post-edit shortstat was unchanged and `git diff --check` passed.
+- Deviations: added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required; applied the plan's import-alias convention to the two local-`args` collisions described above. The package type check's exit 1 is the expected residual eight-error result, not a new failure.
+- Outstanding: none in Task 8. Task 9 remains unticked for a later session; no maintainer-reserved step occurs in Task 8.

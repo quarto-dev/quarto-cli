@@ -1,5 +1,10 @@
 import { resolve, toFileUrl } from "../../../../src/deno_ral/path.ts";
 import {
+  args as processArgs,
+  exec,
+  exit,
+} from "../../../../src/deno_ral/process.ts";
+import {
   DependencyGraph,
   Edge,
   getDenoInfo,
@@ -22,7 +27,7 @@ function explain(
       s.slice(longestCommonDirPrefix([source, target]).length)
     );
     console.error(`${ss} does not depend on ${st}`);
-    Deno.exit(1);
+    exit(1);
   }
   if (!deps[target].has(source)) {
     return result;
@@ -137,16 +142,18 @@ format: html
   const filename = await Deno.makeTempFile({ suffix: ".qmd" });
   Deno.writeTextFileSync(filename, qmdOut.join("\n"));
 
-  const process = Deno.run({
-    cmd: ["quarto", "preview", filename],
+  await exec("quarto", {
+    args: ["preview", filename],
+    stdin: "inherit",
+    stdout: "inherit",
+    stderr: "inherit",
   });
-  await process.status();
 
   Deno.remove(filename);
 }
 
 if (import.meta.main) {
-  if (Deno.args.length === 0) {
+  if (processArgs().length === 0) {
     console.log(
       `explain-import-chain.ts: generate a graph visualization of import paths
 between files in quarto.
@@ -176,11 +183,11 @@ If no dependencies exist, this script will report that:
 If no output option is given, opens an interactive preview.
 `,
     );
-    Deno.exit(1);
+    exit(1);
   }
   // Parse arguments
   let simplify = false;
-  let args = Deno.args;
+  let args = processArgs();
 
   if (args[2] === "--simplify") {
     simplify = true;
