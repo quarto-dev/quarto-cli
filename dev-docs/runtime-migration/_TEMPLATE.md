@@ -74,7 +74,7 @@ What can break, how it shows up, how to revert.
 
 ## Decisions needed
 Only if a choice cannot be made in the plan: options, trade-offs, recommendation.
-Keep the decisions still open apart from the notes that answer a review ("Not changed because ..."), so a worker sees at a glance what is open; a decision that needs a named person is also a row of README "Open decisions with an owner".
+Keep the decisions still open apart from the notes that answer a review ("Not changed because ..."), so a worker sees at a glance what is open; a decision that needs a named person is also a row of `OPEN-DECISIONS.md`.
 ```
 
 Rules (from the writing-plans skill): no placeholders ("TBD", "handle edge cases", "similar to task N"); exact paths; code blocks for every code step; exact commands with expected output; DRY, YAGNI, TDD, frequent commits.

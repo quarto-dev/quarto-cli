@@ -14,5 +14,5 @@ A PR opened before the wrap-up stays a draft until the wrap-up has run.
 At step 0, set the PR's row in README "The sequence" to `in progress` and update `HANDOFF.md` if it names the PR as next.
 When the PR merges, the coordinator follows [post-merge closeout](README.md#after-a-pr-merges) on a fresh docs branch.
 
-Record a finding that changes another plan (a new blocker, a command that no longer works, a defect in its steps) in README "Open decisions with an owner" and name the affected plan.
+Record a finding that changes another plan (a new blocker, a command that no longer works, a defect in its steps) in `OPEN-DECISIONS.md` and name the affected plan.
 Its step 0 picks up the finding; leave the plan itself unchanged.

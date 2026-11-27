@@ -22,6 +22,7 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 ## State
 
 - The plans merged to `main` as #15133 on 2026-10-20.
+- Updated 2026-11-27: PR 14 merged as #15429 (`6c6123b94`). `src/deno_ral/env.ts` holds the process environment behind `env.get`, `env.set`, `env.delete` and `env.toObject`, the eligible `src` files call it instead of `Deno.env`, and the ratchet's replacement hints cover `Deno.env` in `src` and `package/src`. The codemod skipped `src/core/performance/metrics.ts`, which patches `Deno`; PR 25 Task 6 converts its `Deno.env.get` once PR 20b removes the patch. The `src` ratchet baseline is down to 219 Deno calls.
 - Updated 2026-11-26: PR 13 merged as #15427 (`c3e91773a`). PRs 10–13 complete the filesystem codemod for the eligible CLI files under `src`. It skips the ratchet's `src` exclusions (the runtime layer among them), standalone TS under `src/resources` and `src/webui`, and `src/core/lib` (bundled for the browser); it leaves `Deno.*` in the two files that patch `Deno` (`src/core/deno/monkey-patch.ts`, `src/core/performance/metrics.ts`). The `src` ratchet baseline is down to 384 Deno calls. `news/changelog-1.12.md` carries the entry for the sorted directory listings of PRs 11–13.
 - Updated 2026-11-25: PR 12 merged as #15426 (`330120538`). The `src/project` and `src/format` filesystem codemod is on `main`, and the `src` ratchet baseline is down to 507 Deno calls. The sorted `readDir` order now reaches the bslib SCSS concatenation and the MECA item listing.
 - Updated 2026-11-25: PR 11 merged as #15423 (`2f262e6e8`). The `src/command` filesystem codemod is on `main`, and the `src` ratchet baseline is down to 670 Deno calls.
@@ -29,7 +30,7 @@ Written 2026-10-15 at the end of the planning session, updated 2026-10-16 at the
 - Updated 2026-11-03: Quarto 1.11.9 shipped stable on 2026-10-30 with Deno 2.9.8; `main` now targets 1.12. PR 00a (#15186) and the runtime behavior verification are complete. The boundary codemods and script deprecation notice did not ship in 1.11; apply the README release and backport corrections before executing a plan.
 - Updated 2026-11-16: PR 09 merged as #15223 on 2026-11-03 (`2a6d12a`): `src/deno_ral/fs.ts`, `temp.ts`, `errors.ts` and `tools/codemod-deno-ral.ts` are on `main`. The split-UTF-8 `execProcess` fix PR 08 waited for merged as #15346. An audit of every plan against `main` at `1d80652` added its corrections to the README open-decisions table.
 - Updated 2026-11-05: #15259 merged on 2026-11-03 and landed the lockfile half of PR 00b (committed frozen `deno.lock` in configure, the dev launchers, `quarto-bld` and the bundle). The PR 00b remainder is the `deno_std` download/lock scripts, the external-specifier and test-import checks, the `deno-cache` CI input and the three-OS bundle gate; the README overlap row carries the verified inventory.
-- Corrected release targets: boundary work and the script notice in 1.12 on Deno, Node in 1.13, bundled-Deno removal in 1.14. The README release correction row governs old version promises, compatibility windows, rollback and changelog paths at plan step 0.
+- Corrected release targets: boundary work and the script notice in 1.12 on Deno, Node in 1.13, bundled-Deno removal in 1.14. The release correction row of `OPEN-DECISIONS.md` governs old version promises, compatibility windows, rollback and changelog paths at plan step 0.
 - Everything durable is in this directory (`dev-docs/runtime-migration/`):
   - `README.md`: entry point, the ordered table of 45 PRs, two spikes and one milestone, dependency graph, conventions the plans decided, progress metric.
   - `00-assessment.md`: decision record (why Node, impact, phased plan, spike results, module-by-module refactoring plan).
@@ -86,9 +87,9 @@ Two notes for whoever continues: the B1 commit carries the maintainer's author i
 2. Read `README.md`, then `00-assessment.md` sections 10 and 11, then `_TEMPLATE.md`.
 3. The section 9 decisions are taken (`REVIEW-2026-10-15.md` section 6); the test runner is decided by Spike V in `SPIKES.md` before PR 31.
 4. Apply the local corrections of `TRIAGE-2026-10-16.md` bucket C (one task per plan file, in parallel where the triage marks it), then the re-read of 02, 25, 26, 27, 29, 33, 35, 36 the triage's step 4 asks for (02, 25, 26, 27 and 29 done 2026-10-16, 33, 35 and 36 done 2026-10-17: step 4 is complete).
-5. PR 14 (`deno_ral/env.ts` and the `env` codemod over `src`) is in progress on `rt/14-ral-env` (step 0 done 2026-11-26); regenerate the shared ratchet baseline before it lands. PR 08 and PR 22 follow it.
+5. Continue with PR 08 (`deno_ral/process.ts`): its dependencies (02, 10–13, 14) are merged. PR 22 follows it. PR 20b Task 6 (dotenv) no longer waits for PR 14.
    On the Phase 0 path, #15259 landed the lockfile half of 00b. The remainder follows the README overlap row and gates 03–06, then 07.
-   The remainder has not started (checked 2026-11-25) and is the critical path of both phases: PR 25 waits for 04 and 07, which wait for it. Start it now, alongside PR 14, then PR 00c, the one PR tied to the `v1.12` branch cut.
+   The remainder has not started (checked 2026-11-25) and is the critical path of both phases: PR 25 waits for 04 and 07, which wait for it. Start it now, alongside PR 08, then PR 00c, the one PR tied to the `v1.12` branch cut.
    See the README sequence for work that can proceed in parallel.
    For the per-worktree session ritual (window model, trust, fresh conversation, concurrency ceiling), check
    `local/multi-worktree-workflow.md` if it exists — it is a maintainer-local, untracked note.
@@ -127,4 +128,4 @@ The "Roles" table has since been filled in for a solo maintainer (Chris) plus LL
 
 The maintainer's private beads tree tracks the PRs, spikes, milestone and additional prerequisites. It is not committed to the repository.
 `README.md` holds the shared sequence, dependencies and status; each plan holds its design and checkbox steps. Keep the private tracker and README aligned, including blockers discovered after planning.
-Corrections to an unexecuted plan go in README "Open decisions with an owner"; the executor applies them at step 0 rather than treating the old plan as current.
+Corrections to an unexecuted plan go in `OPEN-DECISIONS.md`; the executor applies them at step 0 rather than treating the old plan as current.
