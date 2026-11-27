@@ -51,10 +51,9 @@ types its slash form. Add `disable-model-invocation: true` to a skill's frontmat
 anything task-like and consequential enough that it should only run when explicitly invoked
 (e.g. cutting a release).
 
-A shared skill should need only `git`, `gh` and common command-line tools such as `jq`; a skill
-that needs more (for example `uv` for `verify-l10n-pr`) names its prerequisites in `SKILL.md`. It
-must not assume personal tooling (a particular browser-automation CLI, a personal issue tracker, etc.) without
-documenting a fallback.
+Prefer common command-line tools such as `git`, `gh` and `jq` for shared skills. List additional
+prerequisites in `SKILL.md`, such as `uv` for `verify-l10n-pr`. Document a fallback for any
+personal tooling the skill uses.
 
 `.claude/skills/` can also contain personal, repository-local skills that are excluded from
 git in the same way as personal commands (see "What's Not Committed" below).
@@ -63,12 +62,19 @@ repository-local skill the same name as a tracked shared skill.** If a shared sk
 committed at the same path, Git may refuse to overwrite the untracked file, or local changes
 may shadow the tracked file. Use unique names for personal skills.
 
-Claude Code reads only `.claude/skills/`. Other agents read `.agents/skills/`. The intended
-layout is one committed symlink there per shared skill, pointing at
-`../../.claude/skills/<name>`; not every shared skill is mirrored yet. Windows
-contributors need `git config core.symlinks true` (Developer Mode or an administrator shell) and
-a re-checkout for those links to materialize. A skill's helper scripts live in its own
-`scripts/` directory.
+Claude Code discovers shared skills in `.claude/skills/`. To make a shared skill available to
+Codex, commit a symlink at `.agents/skills/<name>` pointing to `../../.claude/skills/<name>`.
+Keep the skill's helper scripts in its `scripts/` directory.
+
+On Windows, enable Developer Mode or use an administrator shell. For a new clone, pass
+`-c core.symlinks=true` to `git clone`. In an existing checkout, check the link for local
+changes first. For the triage skill, run `git status --short -- .agents/skills/triage-issues`.
+If the status output is empty, run these commands from the repository root.
+
+```powershell
+git config core.symlinks true
+git checkout-index --force -- .agents/skills/triage-issues
+```
 
 ### Where information belongs
 

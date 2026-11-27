@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
-# List open quarto-cli issues and PRs created in a time window, minus the ones
-# that need no triage. Prints JSON lines: one header, then one record per
-# candidate. Needs only gh (authenticated) and jq. Never writes to the state dir.
+# Apply the triage filters to open quarto-cli issues and PRs in a time window.
+# Print a header followed by one record per candidate as JSON lines.
 #
 # Usage: select-candidates.sh [--since <Nd|YYYY-MM-DD|YYYY-MM-DDTHH:MM:SSZ>] [--skip-file <path>]
 #          [--state-dir <dir>] [--input <search.json>] [--now <YYYY-MM-DDTHH:MM:SSZ>] [--table]
-# Exit codes: 0 ok; 1 gh/network/input failure; 2 listing truncated; 3 usage
-# error or malformed last-run/--since.
+# Exit codes: 0 success, 1 gh or input failure, 2 incomplete listing,
+# 3 invalid argument or last-run file.
 set -euo pipefail
 
 # Git Bash rewrites POSIX-looking arguments passed to native programs (jq.exe, gh.exe); keep them literal.
@@ -35,7 +34,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-# Normalize an ISO 8601 timestamp through jq; fails when it does not parse.
 normalize_iso() {
   [[ $1 =~ $ISO_RE ]] || return 1
   jq -rn --arg t "$1" '$t | fromdateiso8601 | todate' 2>/dev/null
@@ -47,7 +45,6 @@ else
   start=$(jq -rn 'now | floor | todate')
 fi
 
-# State directory: --state-dir, else $QUARTO_TRIAGE_DIR, else the main checkout's .claude/triage.
 if [ -z "$state_dir" ]; then
   state_dir=${QUARTO_TRIAGE_DIR:-}
 fi
@@ -59,7 +56,6 @@ elif [ -d "$state_dir" ]; then
   state_dir=$(CDPATH= cd "$state_dir" && pwd -P)
 fi
 
-# Cutoff.
 mode=ordinary
 if [ -n "$since" ]; then
   mode=adhoc
@@ -77,14 +73,12 @@ else
   cutoff=$(jq -rn --arg s "$start" '($s | fromdateiso8601) - (7 * 86400) | todate')
 fi
 
-# Skip file: numbers one per line; CR, blank lines and '#' comments ignored (parsed in jq).
 skip_text=""
 if [ -n "$skip_file" ]; then
   [ -f "$skip_file" ] || die 3 "skip file not found: $skip_file"
   skip_text=$(cat "$skip_file")
 fi
 
-# Fetch: array of GraphQL pages.
 if [ -n "$input" ]; then
   [ -f "$input" ] || die 1 "input file not found: $input"
   pages=$(cat "$input")
@@ -128,7 +122,7 @@ truncated=$(printf '%s' "$pages" | jq -r \
   '([.[].data.search.issueCount] | unique | length) > 1
    or ([.[].data.search.nodes[] | select(. != null) | .number] | unique | length) < (.[-1].data.search.issueCount) ') \
   || die 1 "listing has an unexpected shape"
-[ "$truncated" = "false" ] || die 2 "listing incomplete: the search count changed between pages, or fewer distinct results were fetched than it reports"
+[ "$truncated" = "false" ] || die 2 "Incomplete listing. The result count changed between pages, or the listing contains fewer distinct items than GitHub reported."
 
 out=$(printf '%s' "$pages" | jq -c \
   --arg cutoff "$cutoff" --arg start "$start" --arg mode "$mode" \
