@@ -300,7 +300,7 @@ PR 14b records that Deno 2.7.14, the version before PR 00a, already has it, so t
 - Modify: `src/deno_ral/process.ts`
 - Test: `tests/unit/ral/process.test.ts`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 The test must not use raw `Deno.*` (the ratchet has a `tests` scope).
 Child scripts that exercise `exit`, `writeStdoutSync` and `readStdinLines` are written to a temp file and run with `execPath() run --no-config --allow-all <script>`.
@@ -577,11 +577,11 @@ p.writeStdoutSync(new TextEncoder().encode("done\\n"));
 });
 ```
 
-- [ ] **Step 2: Run it and see it fail**
+- [x] **Step 2: Run it and see it fail**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts` Expected: the run fails at type-check time with `Module '"../../../src/deno_ral/process.ts"' has no exported member 'exec'` (and the other names).
 
-- [ ] **Step 3: Implement `src/deno_ral/process.ts`**
+- [x] **Step 3: Implement `src/deno_ral/process.ts`**
 
 Replace the whole file with:
 
@@ -904,14 +904,14 @@ export const call = (cmd: string, options: SpawnOptions = {}) =>
   exec(cmd, options);
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent unit/ral/process.test.ts` Expected: `ok | 17 passed | 0 failed`
 
 If the "reader going away early" case fails with a non-3 code, read the child's stderr in the assertion message: a `BrokenPipe` from a write path other than `writeAllSync` (for example a `console.log`) means the script is wrong, not the layer.
 If the "early break" case hits the 30 s timeout, `Deno.stdin.close()` did not release the pending read on this Deno version; report it on the PR (the case documents a contract PR 28 must meet on Node) rather than weakening the test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/deno_ral/process.ts tests/unit/ral/process.test.ts
@@ -1871,3 +1871,16 @@ Resolved since the first draft:
   `git status --short` was empty before this plan-only change.
 - Deviations: used the Windows `.exe` suffix for the bundled Deno binary; no source or test changes, and no formatter run.
 - Outstanding: Tasks 1–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 0.
+
+### Task 1: `src/deno_ral/process.ts` with its unit test
+
+- Steps 1–2: added `tests/unit/ral/process.test.ts`, then ran the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent unit/ral/process.test.ts`.
+  The expected characterization start exited 1 at module load, before any behaviour test ran: nine `TS2305` missing-export errors, including `Module '".../src/deno_ral/process.ts"' has no exported member 'exec'.`, followed by `Found 9 errors.` and `error: Type checking failed.`
+  This is the planned missing-interface failure, not a failing behaviour test.
+- Steps 3–4: replaced `src/deno_ral/process.ts` with the planned interface and Deno implementation. The same test command exited 0 with `ok | 17 passed | 0 failed (1s)`.
+  On Windows the POSIX-only clear-environment and process-group cases returned early and counted as passed; the direct-`ping` kill case, 1 MiB exit flush, early-reader exit code 3, and early-stdin-break case all ran and passed without a timeout.
+- Formatting: with the new test marked intent-to-add, `git diff --shortstat -- src/deno_ral/process.ts tests/unit/ral/process.test.ts` printed `2 files changed, 574 insertions(+), 5 deletions(-)` before formatting.
+  `package/dist/bin/tools/x86_64/deno.exe fmt src/deno_ral/process.ts tests/unit/ral/process.test.ts` printed `Checked 2 files`; the shortstat afterward was `2 files changed, 631 insertions(+), 5 deletions(-)` because the formatter reflowed long lines in the new test.
+  The post-format test run exited 0 with `ok | 17 passed | 0 failed (805ms)`; `git diff --check` passed.
+- Deviations: used the Windows PowerShell runner and `.exe` formatter as required; no implementation or test changes beyond the planned code and its formatting.
+- Outstanding: none in Task 1. Tasks 2–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 1.
