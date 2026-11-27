@@ -247,6 +247,8 @@ export interface OpenOptions {
   write?: boolean;
   append?: boolean;
   create?: boolean;
+  // create the file, and fail with AlreadyExists if it exists already
+  createNew?: boolean;
   truncate?: boolean;
   mode?: number;
 }
