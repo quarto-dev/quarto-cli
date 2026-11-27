@@ -1,0 +1,18 @@
+---
+title: Catchable JSON errors
+format: html
+filters:
+  - at: pre-ast
+    type: lua
+    path: issue-15226.lua
+_quarto:
+  tests:
+    html:
+      noErrorsOrWarnings: default
+      printsMessage:
+        level: INFO
+        regex: 'ERROR \('
+        negate: true
+---
+
+JSON encoding and decoding errors are catchable from a pre-AST Lua filter.
