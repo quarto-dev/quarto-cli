@@ -1458,20 +1458,20 @@ git commit -m "project/format/execute/extension/tools: process calls through den
 
 `src/webui/quarto-preview/build.ts` is not touched: it runs with `deno run --no-config` (no import map), it is outside the ratchet's `src` scope (PR 02 `kSrcExclusions`), and PR 25 records it in the ratchet allow-list until PR 33 ports the build tooling.
 
-- [ ] **Step 1: `src/quarto.ts`**
+- [x] **Step 1: `src/quarto.ts`**
 
 Add `import { args as processArgs, exit } from "./deno_ral/process.ts";` after the `import { mainRunner } from "./core/main.ts";` line.
 `sed -i 's/Deno\.exit(/exit(/g' src/quarto.ts` (6 code sites; the sed also rewrites the comment at line 187, "The calls to Deno.exit() above", to "exit()", which is correct prose).
 Line 223: `let quartoArgs = [...processArgs()];`.
 Line 7's comment keeps `Deno.realPathSync` (it describes the monkey patch; PR 25 deletes it).
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `package/dist/bin/quarto --version && package/dist/bin/quarto pandoc --version | head -1 && package/dist/bin/quarto typst --version` Expected: a version, `pandoc 3.x`, `typst 0.x` (the three `exit(result.code)` passthrough paths).
 
 Run: `cd tests && QUARTO_TESTS_NO_CONFIG=true ./run-tests.sh --agent smoke/run/command-passthrough.test.ts smoke/run/run-script.test.ts` Expected: `0 failed`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/quarto.ts
@@ -1960,3 +1960,14 @@ Resolved since the first draft:
   `git diff --check` passed, and no formatter-only hunk outside the task's changed lines was introduced.
 - Deviations: applied the planned textual substitutions with exact file edits rather than the shell `add_import`/`sed` helper; added `--allow-import` to the type-check gate and used the Windows PowerShell runner and `.exe` binaries as required. No implementation changes beyond the planned edits and formatting.
 - Outstanding: none in Task 6. Tasks 7–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 6.
+
+### Task 7: `src/quarto.ts`
+
+- Step 1: added the planned `args as processArgs` and `exit` import, replaced all six `Deno.exit` code sites, changed `Deno.args` to `processArgs()`, and rewrote only the planned `Deno.exit()` comment.
+  `rg -n 'Deno\.(exit|args)' src/quarto.ts` printed no matches; the `Deno.realPathSync` comment at the top of the file remains unchanged.
+- Step 2, passthrough commands: `package/dist/bin/quarto.cmd --version && package/dist/bin/quarto.cmd pandoc --version | head -1 && package/dist/bin/quarto.cmd typst --version` exited 0 and printed `99.9.9`, `Check src/quarto.ts`, `pandoc 3.13`, and `typst 0.15.1 (9dfd3a08)`.
+- Step 2, tests: the Windows PowerShell runner with the worktree's `package/dist/bin` first on `PATH`, `QUARTO_TESTS_NO_CONFIG=true`, and `--agent smoke/run/command-passthrough.test.ts smoke/run/run-script.test.ts` exited 0 with `ok | 10 passed | 0 failed (21s)`.
+- Formatting: `git diff --shortstat -- src/quarto.ts` printed `1 file changed, 9 insertions(+), 8 deletions(-)` before formatting.
+  `package/dist/bin/tools/x86_64/deno.exe fmt --check src/quarto.ts` printed `Checked 1 file`; no formatting changes were needed and the shortstat afterward was unchanged. `git diff --check -- src/quarto.ts` passed.
+- Deviations: applied the planned textual substitutions with exact file edits rather than `sed -i`, and used the Windows PowerShell runner and `.cmd`/`.exe` binaries as required. No implementation changes beyond the planned edits.
+- Outstanding: none in Task 7. Tasks 8–9 remain unticked for later sessions; no maintainer-reserved step occurs in Task 7.
