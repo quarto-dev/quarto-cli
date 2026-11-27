@@ -56,7 +56,7 @@ if [ -z "$state_dir" ]; then
     || die 3 "not in a git repository; pass --state-dir or set QUARTO_TRIAGE_DIR"
   state_dir="$(cd "$(dirname "$common")" && pwd -P)/.claude/triage"
 elif [ -d "$state_dir" ]; then
-  state_dir=$(cd "$state_dir" && pwd -P)
+  state_dir=$(CDPATH= cd "$state_dir" && pwd -P)
 fi
 
 # Cutoff.

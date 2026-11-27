@@ -73,6 +73,12 @@ check truncated "$rc:$out" "2:"
 out=$(bash "$script" --input /nonexistent.json --now "$now" --state-dir "$d" 2>/dev/null); rc=$?
 check missing_input "$rc" 1
 
+# relative_state_dir_with_cdpath: CDPATH must not leak into the resolved path
+d=$(fresh_dir)
+printf '2026-11-20T00:00:00Z\n' > "$d/last-run"
+out=$(cd "$(dirname "$d")" && CDPATH=. bash "$script" --input "$fixture" --now "$now" --state-dir "$(basename "$d")")
+check relative_state_dir_with_cdpath "$(header "$out" | jq -c '[.cutoff, (.state_dir | contains("\n"))]')" '["2026-11-20T00:00:00Z",false]'
+
 # worktree_state_dir
 repo="$tmp/repo"
 git init -q "$repo"
