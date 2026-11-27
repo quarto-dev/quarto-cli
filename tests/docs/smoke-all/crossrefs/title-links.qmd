@@ -1,0 +1,54 @@
+---
+title: Cross Reference Links Showing Titles
+number-sections: true
+format:
+  html: default
+  typst:
+    keep-typ: true
+  pdf:
+    keep-tex: true
+_quarto:
+  tests:
+    html:
+      ensureFileRegexMatches:
+        -
+          - "<a href=\"#sec-intro\" class=\"quarto-xref\">Introduction <em>basics</em></a>"
+          - "<a href=\"#eq-energy\" class=\"quarto-xref\">mass–energy equivalence</a>"
+          # equation without a name falls back to a numbered reference
+          - "<a href=\"#eq-plain\" class=\"quarto-xref\">Equation&nbsp;2</a>"
+          # links with text are left alone
+          - "<a href=\"#sec-intro\">the intro</a>"
+        - []
+    pdf:
+      ensureLatexFileRegexMatches:
+        -
+          - "\\\\hyperref\\[sec-intro\\]\\{Introduction \\\\emph\\{basics\\}\\}"
+          - "\\\\hyperref\\[eq-energy\\]\\{mass--energy equivalence\\}"
+          - "Equation~\\\\ref\\{eq-plain\\}"
+        - []
+    typst:
+      ensureTypstFileRegexMatches:
+        -
+          - "#link\\(<sec-intro>\\)\\[Introduction #emph\\[basics\\]\\]"
+          - "#link\\(<eq-energy>\\)\\[mass--energy equivalence\\]"
+          - "#ref\\(<eq-plain>, supplement: \\[Equation\\]\\)"
+        - []
+---
+
+## Introduction *basics* {#sec-intro}
+
+A link with no text to a section or equation shows the section title or the
+equation's `name` instead of its number
+(<https://github.com/quarto-dev/quarto-cli/issues/1196>,
+<https://github.com/quarto-dev/quarto-cli/issues/4532>).
+An equation without a name falls back to a regular numbered reference.
+
+$$
+E = mc^2
+$$ {#eq-energy name="mass–energy equivalence"}
+
+$$
+a = b
+$$ {#eq-plain}
+
+See [](#sec-intro), [](#eq-energy) and [](#eq-plain), or [the intro](#sec-intro).
