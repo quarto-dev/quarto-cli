@@ -2,14 +2,43 @@
 -- Copyright (C) 2020-2022 Posit Software, PBC
 
 -- parse a layout specification
-function parseLayoutWidths(figLayout, figureCount)
+function parseLayoutWidths(figLayout, cells)
+  local figureCount = #cells
   
-  -- parse json
-  figLayout = pandoc.List(quarto.json.decode(figLayout))
-  
-  -- if there are no tables then make a table and stick the items in it
-  if not figLayout:find_if(function(item) return type(item) == "table" end) then
-     figLayout = pandoc.List({figLayout})
+  if figLayout == "auto" then
+    local sizes = pandoc.List({})
+    _quarto.ast.walk(pandoc.Div(cells), {
+      Image = function(image)
+        print("Found image")
+        local mt, contents = pandoc.mediabag.lookup(image.src)
+        if mt == nil then
+          mt, contents = pandoc.mediabag.fetch(image.src)
+        end
+        if mt == nil then
+          error("Could not find image " .. image.src)
+        end
+        sizes:insert(pandoc.image.size(contents))
+      end
+    })
+    if #cells ~= #sizes then
+      error("Number of found images does not match number of cells; cannot use 'auto' layout")
+    end
+    if #cells == 0 then
+      error("No images found; cannot use 'auto' layout")
+    end
+    -- create widths such that the first image is 100% and the rest are relative to it
+    figLayout = pandoc.List({sizes:map(function(size) 
+      return size.width * (sizes[1].height / size.height)
+    end)})
+    quarto.utils.dump(figLayout)
+  else
+    -- parse json
+    figLayout = pandoc.List(quarto.json.decode(figLayout))
+    
+    -- if there are no tables then make a table and stick the items in it
+    if not figLayout:find_if(function(item) return type(item) == "table" end) then
+      figLayout = pandoc.List({figLayout})
+    end
   end
       
   -- validate that layout is now all rows
