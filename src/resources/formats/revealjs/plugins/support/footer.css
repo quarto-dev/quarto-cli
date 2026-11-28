@@ -63,8 +63,14 @@
   left: 54px;
 }
 
-.reveal .slide-chalkboard-buttons > span {
-  margin-right: 14px;
+.reveal .slide-chalkboard-buttons > button {
+  margin: 0 14px 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
   cursor: pointer;
 }
 
@@ -99,7 +105,7 @@
   .reveal .slide-chalkboard-buttons.slide-menu-offset {
     left: 36px;
   }
-  .reveal .slide-chalkboard-buttons > span {
+  .reveal .slide-chalkboard-buttons > button {
     margin-right: 9px;
   }
 }
