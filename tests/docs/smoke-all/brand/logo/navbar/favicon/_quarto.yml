@@ -1,0 +1,12 @@
+project:
+  type: website
+theme:
+  light: brand
+  dark: [brand, dark-fixups.scss]
+website:
+  navbar:
+    style: "docked"
+    search: true
+    contents:
+      - index.qmd
+      - conclusion.qmd
