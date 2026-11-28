@@ -1,6 +1,11 @@
 ---
 title: "inline jupyter expressions"
+format: markdown
 engine: jupyter
+_quarto:
+  tests:
+    markdown:
+      ensureSnapshotMatches: true
 ---
 
 ```{python}
