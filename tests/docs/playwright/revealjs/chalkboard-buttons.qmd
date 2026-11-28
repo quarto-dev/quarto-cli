@@ -1,0 +1,14 @@
+---
+pagetitle: Chalkboard buttons
+format:
+  revealjs:
+    chalkboard: true
+---
+
+## Slide 1
+
+The chalkboard buttons can be reached and used with the keyboard.
+
+## Slide 2
+
+Plain slide.

@@ -202,28 +202,44 @@ window.QuartoSupport = function () {
       // add buttons
       const buttons = [
         {
+          className: "chalkboard-toggle-chalkboard",
           icon: "easel2",
-          title: "Toggle Chalkboard (b)",
+          label: "Toggle Chalkboard",
+          shortcut: "b",
           onclick: chalkboard.toggleChalkboard,
         },
         {
+          className: "chalkboard-toggle-notes-canvas",
           icon: "brush",
-          title: "Toggle Notes Canvas (c)",
+          label: "Toggle Notes Canvas",
+          shortcut: "c",
           onclick: chalkboard.toggleNotesCanvas,
         },
       ];
       buttons.forEach(function (button) {
-        const span = document.createElement("span");
-        span.title = button.title;
+        const buttonEl = document.createElement("button");
+        buttonEl.type = "button";
+        buttonEl.classList.add("chalkboard-button", button.className);
+        buttonEl.title = button.label + " (" + button.shortcut + ")";
+        buttonEl.setAttribute("aria-label", button.label);
+        buttonEl.setAttribute("aria-keyshortcuts", button.shortcut);
         const icon = document.createElement("i");
         icon.classList.add("fas");
         icon.classList.add("fa-" + button.icon);
-        span.appendChild(icon);
-        span.onclick = function (event) {
+        icon.setAttribute("aria-hidden", "true");
+        buttonEl.appendChild(icon);
+        buttonEl.addEventListener("click", function (event) {
           event.preventDefault();
           button.onclick();
-        };
-        chalkboardDiv.appendChild(span);
+        });
+        // Keep Enter and Space for the button: reveal.js would otherwise
+        // handle them on the document (Space moves to the next slide).
+        buttonEl.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.stopPropagation();
+          }
+        });
+        chalkboardDiv.appendChild(buttonEl);
       });
       revealParent.appendChild(chalkboardDiv);
       const config = deck.getConfig();

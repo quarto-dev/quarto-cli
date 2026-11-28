@@ -1,5 +1,5 @@
 import { test, expect, Locator, Page } from '@playwright/test';
-import { expectCloseTo, getCSSProperty, tabKey } from '../src/utils';
+import { expectCloseTo, getCSSProperty, tabKey, tabUntilFocused } from '../src/utils';
 
 test('logo and footer are correctly shown in default mode', async ({ page }) => {
   await page.goto('./revealjs/logo-footer.html#/slide-1');
@@ -328,6 +328,46 @@ test.describe('the slide menu button has an accessible name', () => {
   test('a label set through the language files', async ({ page }) => {
     await page.goto('./revealjs/menu-button-label.html');
     await expect(button(page)).toHaveAccessibleName('Menu des diapositives');
+  });
+});
+
+// https://github.com/quarto-dev/quarto-cli/issues/15428
+test.describe('the chalkboard buttons work with the keyboard', () => {
+  const deck = './revealjs/chalkboard-buttons.html';
+  const currentSlide = (page: Page) => page.locator('section.slide.present');
+  const chalkboardButton = (page: Page) =>
+    page.getByRole('button', { name: 'Toggle Chalkboard', exact: true });
+  const notesCanvasButton = (page: Page) =>
+    page.getByRole('button', { name: 'Toggle Notes Canvas', exact: true });
+
+  test.beforeEach(async ({ page }) => {
+    await page.goto(deck);
+    await expect(page.locator('.reveal.ready')).toBeAttached();
+  });
+
+  test('both buttons are buttons with an accessible name', async ({ page }) => {
+    await expect(chalkboardButton(page)).toHaveClass(/\bchalkboard-toggle-chalkboard\b/);
+    await expect(notesCanvasButton(page)).toHaveClass(/\bchalkboard-toggle-notes-canvas\b/);
+  });
+
+  test('Tab reaches the chalkboard button and Enter toggles the chalkboard', async ({ page, browserName }) => {
+    const board = page.locator('#chalkboard');
+    await expect(board).toHaveCSS('visibility', 'hidden');
+    expect(await tabUntilFocused(page, browserName, chalkboardButton(page))).toBe(true);
+    await page.keyboard.press('Enter');
+    await expect(board).toHaveCSS('visibility', 'visible');
+    await expect(currentSlide(page)).toHaveId('slide-1');
+    await page.keyboard.press('Enter');
+    await expect(board).toHaveCSS('visibility', 'hidden');
+  });
+
+  test('Space toggles the notes canvas without moving to the next slide', async ({ page, browserName }) => {
+    const notesCanvas = page.locator('#notescanvas');
+    await expect(notesCanvas).toHaveCSS('pointer-events', 'none');
+    expect(await tabUntilFocused(page, browserName, notesCanvasButton(page))).toBe(true);
+    await page.keyboard.press('Space');
+    await expect(notesCanvas).toHaveCSS('pointer-events', 'auto');
+    await expect(currentSlide(page)).toHaveId('slide-1');
   });
 });
 
